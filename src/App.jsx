@@ -1,35 +1,35 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Routes, Route } from "react-router-dom";
+import NotFound from "./pages/user/NotFound";
+import Signup from "./pages/auth/UserAuth/Signup";
+import Login from "./pages/auth/UserAuth/Login";
+import ForgotPassword from "./pages/auth/UserAuth/ForgotPassword";
+import Otp from "./pages/auth/UserAuth/Otp";
+import VendorSignup from "./pages/auth/VendorAuth/Signup";
+import VendorLogin from "./pages/auth/VendorAuth/Login";
+import VendorForgotPassword from "./pages/auth/VendorAuth/ForgotPassword";
+import VendorOtp from "./pages/auth/VendorAuth/Otp";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Routes>
+      <Route path="*" element={<NotFound />} />
+
+      <Route path="/auth">
+        <Route path="user">
+          <Route path="signup" element={<Signup />} />
+          <Route path="login" element={<Login />} />
+          <Route path="forgot-password" element={<ForgotPassword />} />
+          <Route path="otp" element={<Otp />} />
+        </Route>
+        <Route path="vendor">
+          <Route path="signup" element={<VendorSignup />} />
+          <Route path="login" element={<VendorLogin />} />
+          <Route path="forgot-password" element={<VendorForgotPassword />} />
+          <Route path="otp" element={<VendorOtp />} />
+        </Route>
+      </Route>
+    </Routes>
+  );
 }
 
-export default App
+export default App;
