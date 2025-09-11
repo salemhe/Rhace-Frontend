@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import ReservationHomePage from "./pages/user/ReservationHomePage";
 import NotFound from "./pages/user/NotFound";
 import Signup from "./pages/auth/UserAuth/Signup";
 import Login from "./pages/auth/UserAuth/Login";
@@ -28,6 +29,8 @@ function App() {
           <Route path="otp" element={<VendorOtp />} />
         </Route>
       </Route>
+
+      <Route path="/" element={<ReservationHomePage />} />
     </Routes>
   );
 }
