@@ -1,4 +1,5 @@
 import { Routes, Route } from "react-router-dom";
+import ReservationHomePage from "./pages/user/ReservationHomePage";
 import NotFound from "./pages/user/NotFound";
 import Signup from "./pages/auth/UserAuth/Signup";
 import Login from "./pages/auth/UserAuth/Login";
@@ -50,6 +51,8 @@ function App() {
       </Route>
       <Route path="/hotels/:id" element={<RestaurantsPage />} />
       <Route path="/hotels/:id/reservations" element={<>Test</>} />
+
+      <Route path="/" element={<ReservationHomePage />} />
     </Routes>
   );
 }
