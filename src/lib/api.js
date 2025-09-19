@@ -188,3 +188,186 @@ export const VIP = [
     price: 20000,
   },
 ];
+
+export const HotelData = {
+  data: [
+    {
+      _id: "1",
+      businessName: "The Gourmet Kitchen",
+      address: "123 Culinary St, Foodie City, FC 45678",
+      phone: "+1 (555) 123-4567",
+      email: "info@gourmetkitchen.com",
+      specials: "DJ Tune Live Tonight",
+      profileImages: [
+        {
+          url: ClubImage1,
+        },
+        {
+          url: ClubImage2,
+        },
+        {
+          url: ClubImage3,
+        },
+        {
+          url: ClubImage4,
+        },
+        {
+          url: ClubImage5,
+        },
+      ],
+      rating: 4.8,
+      reviews: 256,
+      openingHours: "Mon-Sun: 11:00 AM - 10:00 PM",
+      priceRange: 50000,
+      ageLimit: 18,
+      menu: [
+        {
+          name: "Bruschetta",
+          description:
+            "Grilled bread topped with fresh tomatoes, basil, and olive oil.",
+        },
+      ],
+      openingTime: "11:00 AM",
+      closingTime: "10:00 PM",
+      dressCode: ["Italian", "French", "Contemporary"],
+      businessDescription: "A club with prestige experience",
+      slots: 30,
+    },
+  ],
+};
+
+export const RoomsData = [
+    {
+      id: 1,
+      name: 'Superior Single Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 2,
+      name: 'Superior Double Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 3,
+      name: 'Superior Twin Bed Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 4,
+      name: 'Superior Deluxe Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 5,
+      name: 'Superior Executive Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 6,
+      name: 'Superior Suite Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 7,
+      name: 'Superior Presidential Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    }
+  ];
