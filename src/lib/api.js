@@ -235,3 +235,139 @@ export const HotelData = {
     },
   ],
 };
+
+export const RoomsData = [
+    {
+      id: 1,
+      name: 'Superior Single Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 2,
+      name: 'Superior Double Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 3,
+      name: 'Superior Twin Bed Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 4,
+      name: 'Superior Deluxe Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 5,
+      name: 'Superior Executive Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 6,
+      name: 'Superior Suite Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    },
+    {
+      id: 7,
+      name: 'Superior Presidential Room',
+      description: 'Super comfortable room with single bed and a top view',
+      images: ['/api/placeholder/300/200'],
+      amenities: {
+        wifi: true,
+        adults: 2,
+        bedType: '2 Twin Bed',
+        breakfast: true,
+        parking: true,
+        cityView: true
+      },
+      discount: 10,
+      originalPrice: 160000,
+      discountedPrice: 150000,
+      roomsLeft: 3,
+      cancellation: 'Free cancellation until 24h before check-in'
+    }
+  ];

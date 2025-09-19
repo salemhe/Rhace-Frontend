@@ -13,11 +13,13 @@ import Onboarding from "./pages/auth/UserAuth/Onboarding";
 import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
 import Reservation from "./pages/user/restaurant/Reservation";
 import ClubReservation from "./pages/user/club/Reservation";
+import HotelReservation from "./pages/user/hotels/ReservationSummary";
 import ReservationLayout from "./pages/layouts/ReservationLayout";
 import ClubReservationLayout from "./pages/layouts/ClubReservationLayout";
 import PrePaymentPage from "./pages/user/restaurant/PrePayment";
 import CompletedPage from "./pages/user/restaurant/Completed";
 import ClubPage from "./pages/user/club/ClubPage";
+import HotelsPage from "./pages/user/hotels/HotelsPage";
 
 function App() {
   return (
@@ -48,9 +50,9 @@ function App() {
       <Route path="/clubs/:id" element={<ClubPage />} />
       <Route element={<ClubReservationLayout />}>
         <Route path="/clubs/:id/reservations" element={<ClubReservation />} />
+        <Route path="/hotels/:id/reservations" element={<HotelReservation />} />
       </Route>
-      <Route path="/hotels/:id" element={<RestaurantsPage />} />
-      <Route path="/hotels/:id/reservations" element={<>Test</>} />
+      <Route path="/hotels/:id" element={<HotelsPage />} />
 
       <Route path="/" element={<ReservationHomePage />} />
     </Routes>

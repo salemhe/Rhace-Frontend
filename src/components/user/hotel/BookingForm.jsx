@@ -1,28 +1,22 @@
 "use client";
 import React, { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
+import { GuestPicker } from "../ui/guestpicker";
 
 const HotelBookingForm = ({ id }) => {
   const [date, setDate] = useState();
   const [date2, setDate2] = useState();
   const [request, setRequest] = useState("");
-  const [guests, setGuests] = useState("");
+  const [guests, setGuests] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -103,7 +97,7 @@ const HotelBookingForm = ({ id }) => {
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
+                  "flex-1 justify-start text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
                   !date && "text-muted-foreground"
                 )}
               >
@@ -128,7 +122,7 @@ const HotelBookingForm = ({ id }) => {
               <Button
                 variant="outline"
                 className={cn(
-                  "w-full justify-start text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
+                  "flex-1 justify-start text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
                   !date2 && "text-muted-foreground"
                 )}
               >
@@ -149,28 +143,7 @@ const HotelBookingForm = ({ id }) => {
             </PopoverContent>
           </Popover>
         </div>
-        <Select value={guests} onValueChange={setGuests}>
-          <SelectTrigger
-            className={cn(
-              "w-full text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl px-6 min-w-[150px] flex h-[60px]",
-              !request && "text-muted-foreground"
-            )}
-          >
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="time" className="text-black">
-                Guest
-              </Label>
-              <SelectValue placeholder="Number of guests" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            {[1, 2, 3, 4].map((t) => (
-              <SelectItem key={t} value={`${t}`}>
-                {t}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <GuestPicker value={guests} onChange={setGuests} />
         <div className="flex flex-col gap-y-3">
           <Label htmlFor="special-request">Special Request</Label>
           <Textarea

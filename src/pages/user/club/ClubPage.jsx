@@ -53,7 +53,6 @@ const ClubPage = () => {
                                             ({club.reviews.toLocaleString()} reviews)
                                         </span>{" "}
                                         <span className="size-1 rounded-full bg-black"></span>
-                                        {/* <span>{club.slots.toLocaleString()} booked</span> */}
                                     </div>
                                 </div>
                             </div>

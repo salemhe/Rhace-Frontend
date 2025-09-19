@@ -1,24 +1,23 @@
 "use client";
 import React, { useState } from "react";
-import { Mail, MapPin, Phone, Star } from "lucide-react";
-import HotelInfo from "./HotelInfo";
+import { Hotel, Mail, MapPin, Phone, Star } from "lucide-react";
+import HotelInfo from "../../../components/user/hotel/HotelInfo";
 import HotelSaveCopy from "@/components/user/ui/SaveCopy";
-import MapComponent from "../../MapComponent";
-import HotelBookingForm from "../../HotelBookingForm";
 import Images from "@/components/user/ui/Image";
 import Images2 from "@/components/user/ui/Image2";
 import Footer from "@/components/user/Footer";
 import { useParams } from "react-router";
 import { HotelData } from "@/lib/api";
+import HotelBookingForm from "@/components/user/hotel/BookingForm";
+import MapComponent from "@/components/user/ui/mapComponent";
+import HotelBookingPopup from "@/components/user/hotel/BookiingPopup";
+import Header from "@/components/user/Header";
 
 const fetchHotel = () => {
-    return HotelData
+    return HotelData.data[0]
 }
-
-export const HotelsPageClient = () => {
-  const [activeTab, setActiveTab] = useState<
-    "property_details" | "rooms" | "policies" | "reviews" | "messages"
-  >("property_details");
+ const HotelsPage = () => {
+  const [activeTab, setActiveTab] = useState("property_details");
 
   const { id } = useParams();
   const hotel = fetchHotel();
@@ -28,12 +27,12 @@ export const HotelsPageClient = () => {
       <div className="hidden md:block">
         <Header />
       </div>
-      <main className="mx-auto mt-[85px] py-8 px-4 max-w-7xl sm:px-6 lg:px-8">
+      <main className="mx-auto md:mt-[85px] mb-[160px] md:mb-[16px] md:py-8 max-w-7xl sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row gap-8 w-full">
-          <div className="w-full space-y-8">
+          <div className="w-full space-y-4 md:space-y-8">
             <div className="col-span-2">
               <div className="w-full space-y-6">
-                <div className="flex gap-2">
+                <div className="flex md:gap-2">
                   <Images
                     images={hotel?.profileImages ?? []}
                     name={hotel.businessName}
@@ -43,12 +42,14 @@ export const HotelsPageClient = () => {
                     name={hotel.businessName}
                   />
                   {activeTab === "rooms" && (
+                    <div className="hidden md:block">
                     <HotelBookingForm id={id} restaurant={hotel} />
+                    </div>
                   )}
                 </div>
                 <div className="space-y-2">
                   <div className="flex flex-col md:flex-row md:justify-between md:items-cente w-full gap-4">
-                    <div className="flex gap-2 items-center">
+                    <div className="flex gap-2 items-center pt-2 md:pt-0 px-4 md:px-0">
                       <h1 className="text-2xl text-[#111827] font-semibold">
                         {hotel.businessName}{" "}
                       </h1>{" "}
@@ -59,7 +60,7 @@ export const HotelsPageClient = () => {
                     </div>
                     <HotelSaveCopy id={id} />
                   </div>
-                  <div className="flex gap-1 items-center text-xs">
+                  <div className="md:flex hidden gap-1 items-center text-xs">
                     <Star className="fill-[#F0AE02] text-[#F0AE02] h-4" />{" "}
                     {hotel.rating}{" "}
                     <span className="text-[#6B7280]">
@@ -83,7 +84,10 @@ export const HotelsPageClient = () => {
 
           {activeTab !== "rooms" && (
             <div className="space-y-8 px-4 md:px-0">
+              <div className="hidden md:block">
+
               <HotelBookingForm id={id} restaurant={hotel} />
+              </div>
 
               <div className="rounded-2xl bg-[#E7F0F0] border border-[#E5E7EB] p-1">
                 <MapComponent address={hotel.address} />
@@ -133,6 +137,7 @@ export const HotelsPageClient = () => {
             </div>
           )}
         </div>
+        <HotelBookingPopup id={id} />
       </main>
       <div className="hidden md:block">
         <Footer />
@@ -140,3 +145,6 @@ export const HotelsPageClient = () => {
     </>
   );
 };
+
+
+export default HotelsPage;

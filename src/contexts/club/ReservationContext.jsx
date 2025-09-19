@@ -39,7 +39,7 @@ export function ReservationsProvider({
   const handleSubmit = async () => {
     try {
       setIsLoading(true);
-      if (!date || !guestCount ||!table || !time) {
+      if (!date || !guestCount) {
         throw new Error("Please fill in all required fields.");
       }
 
