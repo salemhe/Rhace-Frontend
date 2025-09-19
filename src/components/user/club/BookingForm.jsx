@@ -25,7 +25,6 @@ const BookingForm = ({ id }) => {
             guests,
             specialRequest: request,
         });
-        e.preventDefault();
         setIsLoading(true);
         try {
             if (!date || !time) {

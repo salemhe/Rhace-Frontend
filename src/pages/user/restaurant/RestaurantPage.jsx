@@ -17,7 +17,7 @@ const fetchRestaurant = () => {
 
 const RestaurantsPage = () => {
     const { id } = useParams();
-    const data = fetchRestaurant(id);
+    const data = fetchRestaurant();
     const restaurant = data.data[0];
 
     return (
