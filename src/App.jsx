@@ -10,6 +10,16 @@ import VendorLogin from "./pages/auth/VendorAuth/Login";
 import VendorForgotPassword from "./pages/auth/VendorAuth/ForgotPassword";
 import VendorOtp from "./pages/auth/VendorAuth/Otp";
 import Onboarding from "./pages/auth/UserAuth/Onboarding";
+import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
+import Reservation from "./pages/user/restaurant/Reservation";
+import ClubReservation from "./pages/user/club/Reservation";
+import HotelReservation from "./pages/user/hotels/ReservationSummary";
+import ReservationLayout from "./pages/layouts/ReservationLayout";
+import ClubReservationLayout from "./pages/layouts/ClubReservationLayout";
+import PrePaymentPage from "./pages/user/restaurant/PrePayment";
+import CompletedPage from "./pages/user/restaurant/Completed";
+import ClubPage from "./pages/user/club/ClubPage";
+import HotelsPage from "./pages/user/hotels/HotelsPage";
 
 function App() {
   return (
@@ -33,6 +43,18 @@ function App() {
       </Route>
 
       <Route path="/" element={<ReservationHomePage />} />
+      <Route path="/restaurants/:id" element={<RestaurantsPage />} />
+      <Route element={<ReservationLayout />}>
+        <Route path="/restaurants/:id/reservations" element={<Reservation />} />
+        <Route path="/restaurants/pre-payment/:id" element={<PrePaymentPage />} />
+      </Route>
+      <Route path="/restaurants/completed/:id" element={<CompletedPage />} />
+      <Route path="/clubs/:id" element={<ClubPage />} />
+      <Route element={<ClubReservationLayout />}>
+        <Route path="/clubs/:id/reservations" element={<ClubReservation />} />
+        <Route path="/hotels/:id/reservations" element={<HotelReservation />} />
+      </Route>
+      <Route path="/hotels/:id" element={<HotelsPage />} />
     </Routes>
   );
 }

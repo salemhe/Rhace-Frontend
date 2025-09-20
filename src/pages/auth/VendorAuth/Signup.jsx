@@ -166,7 +166,7 @@ const Signup = () => {
                   <PasswordStrengthMeter strength={strength} />
                 </div>
               )}
-              <Button disabled={!formData.name || !formData.email || !formData.password || !formData.confirmPassword || strength < 3} onClick={handleRegister} className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6">Register</Button>
+              <Button disabled={!formData.businessName || !formData.email || !formData.password || !formData.confirmPassword || strength < 3} onClick={handleRegister} className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6">Register</Button>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-6">
               <p className="text-sm text-center text-gray-600">
