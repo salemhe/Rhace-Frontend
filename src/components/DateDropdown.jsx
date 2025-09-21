@@ -95,7 +95,7 @@ import {
          <span className="flex-1 text-sm text-gray-700">
            {selectedDate ? format(selectedDate, "MMM d, yyyy") : "Pick date"}
          </span>
-         <FiChevronDown className="text-gray-500 cursor-pointer" />
+         <FiChevronDown className="text-gray-500 cursor-pointer " />
        </div>
  
        {/* calendar dropdown */}

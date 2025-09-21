@@ -1,7 +1,7 @@
 import Footer from "@/components/Footer";
 import UserHeader from "@/components/headers/user-header";
 import SearchSection from "@/components/SearchSection";
-import TableGrid from "@/components/Tablegrid";
+import TableGrid, { TableGridThree, TableGridTwo } from "@/components/Tablegrid";
 import { useEffect, useState } from "react";
 import Restaurant from "../../assets/find.png";
 import Hotel from "../../assets/find-hotel.jpg";
@@ -156,7 +156,7 @@ const SvgIcon3= ({ isActive }) => (
                 </div>
 
                 {/* Search Section */}
-                <div className="relative w-full mt-4 sm:mt-5 lg:mt-6 px-1 sm:px-0 z-[20]">
+                <div className="relative w-full mt-4 sm:mt-5 lg:mt-6 px-1  sm:px-0 z-[20]">
                   <SearchSection activeTab={activeTab} onSearch={()=>{}} />
                 </div>
                 
@@ -165,7 +165,7 @@ const SvgIcon3= ({ isActive }) => (
         </div>
 
        {activeTab === "restaurants" &&(
-        <div className="max-w-7xl mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* {isLoading ? (
             <div className="flex justify-center items-center py-12">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-700"></div>
@@ -194,7 +194,7 @@ const SvgIcon3= ({ isActive }) => (
           
       ) }
        {activeTab === "hotels" && (
-        <div className="max-w-7xl mt-[30px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* {
            vendors
               .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "hotel")).length === 0 ? (
@@ -211,11 +211,11 @@ const SvgIcon3= ({ isActive }) => (
           />
            )
           } */}
-           <TableGrid title="Popular Searches" />
+           <TableGridTwo title="Popular Searches" />
         </div>
       ) }
       {activeTab === "clubs" && (
-         <div className="max-w-7xl mt-[30px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+         <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* {
            vendors
               .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "hotel")).length === 0 ? (
@@ -232,7 +232,7 @@ const SvgIcon3= ({ isActive }) => (
           />
            )
           } */}
-           <TableGrid title="Popular Clubs" />
+           <TableGridThree title="Popular Clubs" />
         </div>
       )}
 

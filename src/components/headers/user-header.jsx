@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Search, MapPin, User, Menu, X, Heart, Clock, Bell } from 'lucide-react';
 
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const UserHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const {pathname } = useLocation();
+  const navigate = useNavigate();
    const navItems = [
     { name: "Home", href: "/" },
     // { name: "Restaurants", href: "/userDashboard/search" },
@@ -63,7 +64,7 @@ const UserHeader = () => {
             <button className="p-2 hover:bg-purple-700 rounded-full transition-colors duration-200">
               <Bell className="w-5 h-5" />
             </button>
-            <button className="flex items-center space-x-2 outline  outline-offset-[-1px] outline-gray-200 px-4 py-2 rounded-full transition-colors duration-200">
+            <button onClick={() => navigate("/auth/user/signup")} className="flex items-center space-x-2 outline  outline-offset-[-1px] outline-gray-200 px-4 py-2 rounded-full transition-colors duration-200">
               <User className="w-5 h-5" />
               <span>Sign In</span>
             </button>
@@ -86,7 +87,7 @@ const UserHeader = () => {
               <a href="#" className="hover:text-purple-300 transition-colors duration-200">Restaurants</a>
               <a href="#" className="hover:text-purple-300 transition-colors duration-200">Reservations</a>
               <a href="#" className="hover:text-purple-300 transition-colors duration-200">About</a>
-              <button className="flex items-center space-x-2 bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-full transition-colors duration-200 w-fit">
+              <button onClick={() => navigate("/auth/user/signup")} className="flex items-center space-x-2 bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-full transition-colors duration-200 w-fit">
                 <User className="w-5 h-5" />
                 <span>Sign In</span>
               </button>

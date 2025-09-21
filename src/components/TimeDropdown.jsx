@@ -39,7 +39,7 @@ export const TimeDropdown = ({
       >
         <div className="flex items-center space-x-2">
           {/* <FiClock className="text-gray-500" /> */}
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-gray-700 pl-2 ">
             {selectedTime ?? 'Select time'}
           </span>
         </div>
