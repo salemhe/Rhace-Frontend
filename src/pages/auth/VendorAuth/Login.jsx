@@ -3,12 +3,20 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
 import HeroImage from '../../../components/auth/HeroImage'
+import { authService } from "@/services/auth.service"
+import { useDispatch } from "react-redux"
+import { useNavigate, useSearchParams } from "react-router"
+import { toast } from "sonner"
+import { setVendor } from "@/redux/slices/authSlice"
 
 const getCurrentYear = () => new Date().getFullYear();
 
 const Login = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const [isLoading, setIsloading] = useState(false);
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState({
     email: "",
@@ -19,12 +27,32 @@ const Login = () => {
     password: "",
   })
 
-  const handleLogin = () => {
-    if (formValidation()) {
-      setError({ email: "", password: "" })
-      console.log("Logging in with:", formData)
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get("redirect") || "/";
+
+  const handleLogin = async () => {
+    try {
+      if (!formValidation()) {
+        return
+      }
+      setError({ email: "", password: "" });
+      setIsloading(true);
+      const user = await authService.vendorLogin(
+        formData.email,
+        formData.password,
+      );
+      dispatch(setVendor(user?.vendor));
+      toast.success("Welcome back!");
+      navigate(redirectTo);
+    } catch (err) {
+      toast.error(err.response?.data.message);
+      if (err.response.data.message === "Please verify your email with the OTP sent to your inbox.") {
+        navigate(`/auth/vendor/otp?email=${formData.email}`)
+      }
+    } finally {
+      setIsloading(false);
     }
-  }
+  };
 
   const formValidation = () => {
     // Basic validation logic
@@ -106,7 +134,19 @@ const Login = () => {
                   Forgot password?
                 </a>
               </div>
-              <Button disabled={!formData.email || !formData.password} onClick={handleLogin} className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6">Login</Button>
+              <Button
+                disabled={!formData.email || !formData.password || isLoading}
+                onClick={handleLogin}
+                className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-1">
+                    Loading <Loader2 className="animate-spin" />
+                  </span>
+                ) : (
+                  "Login"
+                )}
+              </Button>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-6">
               <p className="text-sm text-center text-gray-600">

@@ -1,8 +1,155 @@
-import React from 'react'
+import { useEffect, useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { Loader2 } from "lucide-react"
+import HeroImage from '../../../components/auth/HeroImage'
+import { authService } from "@/services/auth.service"
+import { useNavigate, useSearchParams } from "react-router"
+import { toast } from "sonner"
+import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
+
+const getCurrentYear = () => new Date().getFullYear();
 
 const Otp = () => {
+  const [searchParams] = useSearchParams();
+  const email = searchParams.get("email") || "john@example.com";
+  const navigate = useNavigate();
+  const [value, setValue] = useState("")
+  const [isLoading, setIsloading] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  const [countdown, setCountdown] = useState(0);
+  const [showModal, setShowModal] = useState(false);
+
+
+  useEffect(() => {
+    let timer
+    if (countdown > 0) {
+      timer = setInterval(() => setCountdown((prev) => prev - 1), 1000);
+    }
+    return () => clearInterval(timer);
+  }, [countdown]);
+
+  const handleResend = async () => {
+    try {
+      setIsResending(true);
+      const res = await authService.resendOTP(email);
+      setShowModal(true);
+      setCountdown(60);
+      toast.success(res.message)
+    } catch (err) {
+      toast.error(err.response?.data.message);
+    } finally {
+      setIsResending(false)
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      setIsloading(true);
+      if (value.length < 0) return;
+      const res = await authService.verifyOTP(email, value);
+      toast.success(res.message)
+      navigate("/auth/user/login")
+    } catch (err) {
+      toast.error(err.response?.data.message);
+    } finally {
+      setIsloading(false)
+    }
+  };
+
   return (
-    <div>Otp</div>
+    <div className='w-full h-screen flex p-4 bg-white'>
+      <div className='flex-1 h-full overflow-y-auto hide-scrollbar'>
+        <div className="min-h-screen flex items-center justify-center">
+          <Card className="w-full max-w-md bg-white shadow-none p-0 border-none">
+            <CardHeader className="text-center pb-6">
+              <div className="flex items-center justify-center gap-2 mb-6">
+                <div className="w-6 h-6 bg-[#60A5FA] rounded-full flex items-center justify-center">
+                </div>
+                <span className="text-xl font-semibold text-gray-900">Rhace</span>
+              </div>
+              <h1 className="text-2xl font-semibold text-gray-900 mb-2">Verify your email</h1>
+              <p className="text-sm text-gray-600">A verification code has been sent to <span className="font-medium">{email}</span></p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+
+              {/* OTP Inputs */}
+              <div className="flex justify-center gap-2 mb-6">
+                <InputOTP
+                  maxLength={6}
+                  value={value}
+                  onChange={(value) => setValue(value)}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                  </InputOTPGroup>
+                  <InputOTPSeparator />
+                  <InputOTPGroup>
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
+              <Button
+                disabled={isLoading}
+                onClick={handleSubmit}
+                className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6"
+              >
+                {isLoading ? (
+                  <span className="flex items-center gap-1">
+                    Loading <Loader2 className="animate-spin" />
+                  </span>
+                ) : (
+                  "Verify OTP"
+                )}
+              </Button>
+
+              <Button
+                disabled={countdown > 0 || isResending}
+                onClick={handleResend}
+                variant="outline"
+                className={`w-full px-4 py-2 rounded-md`}
+              >
+                {countdown > 0 ? `Resend in ${countdown}s` : "Resend OTP"}
+              </Button>
+            </CardContent>
+            <CardFooter className="flex flex-col space-y-4 pt-6">
+              <p className="text-sm text-center text-gray-600">
+                Already verified?{" "}
+                <a href="/auth/user/login" className="text-blue-600 hover:underline font-medium">
+                  Login
+                </a>
+              </p>
+              <div className="flex flex-col md:flex-row justify-between items-center w-full text-xs text-gray-500">
+                <span>Copyright © {getCurrentYear()} Rhace Enterprises LTD.</span>
+                <a href="#" className="hover:underline">
+                  Privacy Policy
+                </a>
+              </div>
+            </CardFooter>
+          </Card>
+        </div>
+      </div>
+      <HeroImage role='user' />
+      {showModal && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/50">
+          <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full text-center">
+            <h2 className="text-xl font-semibold mb-2">Email Sent!</h2>
+            <p className="mb-4">A new OTP has been sent to {email}</p>
+            <Button
+              className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6"
+              onClick={() => setShowModal(false)}
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
