@@ -13,9 +13,11 @@ import {
 // import { AuthService } from "@/app/lib/api/services/userAuth.service";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 // import { SearchSectionTwo } from "./SearchSection";
+import { useSelector } from "react-redux";
+import { logout } from "@/redux/slices/authSlice";
 
 const Header = () => {
-  const { pathname } = useLocation()
+  const { pathname } = useLocation();
 
   const [scrolled, setScrolled] = useState(false);
   const [isHomePage, setIsHomePage] = useState(pathname === '/');
@@ -24,6 +26,7 @@ const Header = () => {
   const[ishotelPaymentPage, setIsHotelPaymentPage] = useState(pathname.startsWith('/hotels/:id/payment'));
   const [onboarding, setOnboarding] = useState(pathname === '/onboarding');
   const[isverifyStaffPage, setIsVerifyStaffPage] = useState(pathname.startsWith('/verify-staff'));
+  const  user = useSelector((state) => state.auth);
 
 
   // Check if the current path is a login slug
@@ -42,7 +45,7 @@ const Header = () => {
 
   // Auth state management
   const [profile, setProfile] = useState(null);
-//   const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
 
   const navItems = [
     { name: "Home", href: "/" },
@@ -65,45 +68,35 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    // const fetchUserData = async () => {
-    //   try {
-    //     if (await AuthService.isAuthenticated()) {
-    //       const token = await AuthService.getToken();
-    //       const id = AuthService.extractUserId(token)
-    //       setProfile(await AuthService.getUser(id));
-    //     }
-    //   } catch (error) {
-    //     console.log(error)
-    //   } finally {
-    //     setLoading(false);
-    //   }
-    // };
-
-    const fetchUserData = () => {
-        setProfile({
-            firstName: "Wisdom",
-            lastName: "Ofogba",
-            email: "wisetega007@gmail.com"
-        })
-    }
+    const fetchUserData = async () => {
+      try {
+        setLoading(true)
+        if (user.isAuthenticated) {
+          setProfile(user.user);
+        }
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setLoading(false);
+      }
+    };
 
     fetchUserData();
   }, []);
 
   const handleLogout = async () => {
-    // AuthService.logout();
+    logout();
     setProfile(null);
   };
 
   const hideNavigation = !isLoginSlug && !ishotelPaymentPage && !onboarding && !isverifyStaffPage;
 
   const renderAuthButtons = () => {
-    // if (loading) {
-    //   return (
-    //     <div className="size-10 bg-gray-300 mr-[50px] animate-pulse rounded-full" />
-    //   );
-    // }
-
+    if (loading) {
+      return (
+        <div className="size-10 bg-gray-300 mr-[50px] animate-pulse rounded-full" />
+      );
+    }
     if (profile) {
       return (
         <DropdownMenu>
@@ -183,13 +176,13 @@ const Header = () => {
     return (
       <>
         <Button className="cursor-pointer rounded-full" variant={scrolled || !isHomePage ? "ghost" : "default"} asChild>
-          <a href="/user-login">Login</a>
+          <a href="/auth/user/login">Login</a>
         </Button>
         <Button
           className="cursor-pointer rounded-full bg-blue-700 hover:bg-blue-700/90"
           asChild
         >
-          <a href="/user-signup">Create Account</a>
+          <a href="/auth/user/signup">Create Account</a>
         </Button>
       </>
     );
