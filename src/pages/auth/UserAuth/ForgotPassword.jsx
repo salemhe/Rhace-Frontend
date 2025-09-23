@@ -4,9 +4,26 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import ForgotImage from "../../../assets/auth/forgot.svg";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { toast } from "sonner";
+import { authService } from "@/services/auth.service";
+import { Loader2 } from "lucide-react";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("")
+  const [isLoading, setIsloading] = useState(false)
+
+  const handleSubmit = async () => {
+    if (!email) return;
+    try {
+      setIsloading(true)
+      await authService.forgotPassword(email);
+      toast.success("A reset password link has been sent to your Email")
+    } catch (err) {
+      toast.error(err.response.data.message)
+    } finally {
+      setIsloading(false)
+    }
+  }
 
   return (
     <div className='w-full h-screen flex p-4 bg-white'>
@@ -33,8 +50,8 @@ const ForgotPassword = () => {
                 />
               </div>
 
-              <Button className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white py-3 rounded-lg font-medium" size="lg">
-                Send
+              <Button disabled={isLoading} onClick={handleSubmit} className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white py-3 rounded-lg font-medium" size="lg">
+                {isLoading ? (<> Loading <Loader2 className="animate-spin" /></>) : "Send"}
               </Button>
             </div>
             <div className="text-center">

@@ -5,10 +5,15 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Eye, EyeOff } from "lucide-react"
 import HeroImage from '../../../components/auth/HeroImage'
+import { authService } from "@/services/auth.service"
+import { toast } from "sonner"
+import { useNavigate } from "react-router"
 
 const getCurrentYear = () => new Date().getFullYear();
 
 const Signup = () => {
+  const navigate = useNavigate();
+  const [isLoading, setIsloading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState({
@@ -24,10 +29,23 @@ const Signup = () => {
     confirmPassword: "",
   })
 
-  const handleRegister = () => {
-    if (formValidation()) {
-      setError({ name: "", email: "", password: "", confirmPassword: "" })
-      console.log("Registering with:", formData)
+  const handleRegister = async () => {
+    try {
+      if (!formValidation()) {
+        return
+      }
+      setError({ email: "", password: "", businessName: "", confirmPassword: "" });
+      setIsloading(true);
+      const user = await authService.vendorRegister(
+        formData
+      );
+      console.log(user);
+      toast.success("Congratulations!. Next: verify your email");
+      navigate(`/auth/vendor/otp?email=${formData.email}`)
+    } catch (err) {
+      toast.error(err.response?.data.message);
+    } finally {
+      setIsloading(false);
     }
   }
 
@@ -88,11 +106,11 @@ const Signup = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                <Label htmlFor="businessName" className="text-sm font-medium text-gray-700">
                   Business Name
                 </Label>
                 <Input
-                  id="name"
+                  id="businessName"
                   type="text"
                   value={formData.businessName}
                   placeholder="John Doe"
@@ -166,12 +184,20 @@ const Signup = () => {
                   <PasswordStrengthMeter strength={strength} />
                 </div>
               )}
-              <Button disabled={!formData.businessName || !formData.email || !formData.password || !formData.confirmPassword || strength < 3} onClick={handleRegister} className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6">Register</Button>
+              <Button disabled={!formData.businessName || !formData.email || !formData.password || !formData.confirmPassword || strength < 3} onClick={handleRegister} className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6">
+                {isLoading ? (
+                  <span className="flex items-center gap-1">
+                    Loading <Loader2 className="animate-spin" />
+                  </span>
+                ) : (
+                  "Register"
+                )}
+              </Button>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-6">
               <p className="text-sm text-center text-gray-600">
                 Already Have An Account?{" "}
-                <a href="/auth/user/login" className="text-blue-600 hover:underline font-medium">
+                <a href="/auth/vendor/login" className="text-blue-600 hover:underline font-medium">
                   Sign In
                 </a>
               </p>
