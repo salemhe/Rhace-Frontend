@@ -790,7 +790,7 @@ const cuisineColorPalette = [
             <div
               key={restaurant.id}
               onClick={() => {
-                navigate(`/hotels/${restaurant._id}`);
+                navigate(`/clubs/${restaurant._id}`);
               }}
               className="h-80 px-2 pt-2 pb-4 flex flex-col bg-white rounded-[20px] border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
             >
@@ -934,7 +934,7 @@ const cuisineColorPalette = [
             <div
               key={restaurant.id}
               onClick={() => {
-                navigate(`/hotels/${restaurant._id}`);
+                navigate(`/clubs/${restaurant._id}`);
               }}
               className="min-w-[260px] max-w-[260px] h-72 px-2 cursor-pointer pt-2 pb-4 flex flex-col bg-white rounded-[20px] border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
             >
