@@ -22,7 +22,7 @@ const ResetPassword = () => {
     const navigate = useNavigate()
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [isLoading, setIsloading] = useState(false)
-    const searchParams = useSearchParams();
+    const [searchParams] = useSearchParams();
     const token = searchParams.get("token")
 
     const handleSubmit = async () => {
@@ -37,7 +37,7 @@ const ResetPassword = () => {
             setIsloading(true)
             await authService.resetPassword(token, password)
             toast.success("A reset password link has been sent to your Email")
-                        navigate("/auth/vendor/login")
+                        navigate("/auth/user/login")
         } catch (err) {
             toast.error(err.response.data.message)
         } finally {

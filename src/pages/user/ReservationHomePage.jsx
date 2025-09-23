@@ -11,6 +11,7 @@ import {
   Plus, Minus,
 } from "lucide-react";
 import Restaurant from "../../assets/RestaurantBackground.jpg";
+import Header from "@/components/user/Header";
 
 function ReservationHomePage() {
   const [activeButton, setActiveButton] = useState("restaurant");
@@ -185,6 +186,7 @@ function ReservationHomePage() {
         backgroundImage: `linear-gradient(#20053299 0%, #20053299 60%), url(${Restaurant})`,
       }}
     >
+      <Header />
       <section className="h-full">
         <div className="flex flex-col items-center justify-center h-full">
           <div className="text-center">
@@ -290,20 +292,18 @@ function ReservationHomePage() {
                           className={`
                             h-8 w-8 text-sm rounded hover:bg-gray-100 transition-colors
                             ${!day ? "cursor-not-allowed" : "cursor-pointer"}
-                            ${
-                              day === 18
-                                ? "bg-[#0A6C6D]/70 text-white hover:bg-[#0A6C6D]"
-                                : "text-gray-700"
+                            ${day === 18
+                              ? "bg-[#0A6C6D]/70 text-white hover:bg-[#0A6C6D]"
+                              : "text-gray-700"
                             }
-                            ${
-                              selectedDate &&
+                            ${selectedDate &&
                               day === selectedDate.getDate() &&
                               currentMonth.getMonth() ===
-                                selectedDate.getMonth() &&
+                              selectedDate.getMonth() &&
                               currentMonth.getFullYear() ===
-                                selectedDate.getFullYear()
-                                ? "bg-[#0A6C6D] text-white"
-                                : ""
+                              selectedDate.getFullYear()
+                              ? "bg-[#0A6C6D] text-white"
+                              : ""
                             }
                           `}
                         >
@@ -344,10 +344,9 @@ function ReservationHomePage() {
                           onClick={() => handleTimeSelect(time)}
                           className={`
                             px-3 py-2 text-xs rounded-md border transition-colors text-center
-                            ${
-                              selectedTime === time
-                                ? "bg-[#0A6C6D] text-white border-[#0A6C6D]"
-                                : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
+                            ${selectedTime === time
+                              ? "bg-[#0A6C6D] text-white border-[#0A6C6D]"
+                              : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
                             }
                           `}
                         >
@@ -369,9 +368,8 @@ function ReservationHomePage() {
                   className="w-full bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer text-left flex justify-between items-center"
                   onClick={toggleGuestPicker}
                 >
-                  {`${adults + children + infants} Guest${
-                    adults + children + infants !== 1 ? "s" : ""
-                  }`}
+                  {`${adults + children + infants} Guest${adults + children + infants !== 1 ? "s" : ""
+                    }`}
                   <ChevronDown size={15} />
                 </button>
 
@@ -395,14 +393,14 @@ function ReservationHomePage() {
                             onClick={() => handleDecrement("adults")}
                             disabled={adults === 0}
                           >
-                             <Minus size={15} strokeWidth={3} className="text-gray-500" />
+                            <Minus size={15} strokeWidth={3} className="text-gray-500" />
                           </button>
                           <span className="w-6 text-center">{adults}</span>
                           <button
                             className="p-1 rounded-full border-2 border-gray-500 flex items-center justify-center hover:bg-gray-100"
                             onClick={() => handleIncrement("adults")}
                           >
-                             <Plus size={15} strokeWidth={3} className="text-gray-500" />
+                            <Plus size={15} strokeWidth={3} className="text-gray-500" />
                           </button>
                         </div>
                       </div>
@@ -422,7 +420,7 @@ function ReservationHomePage() {
                             onClick={() => handleDecrement("children")}
                             disabled={children === 0}
                           >
-                             <Minus size={15} strokeWidth={3} className="text-gray-500" />
+                            <Minus size={15} strokeWidth={3} className="text-gray-500" />
                           </button>
                           <span className="w-6 text-center">{children}</span>
                           <button
@@ -449,7 +447,7 @@ function ReservationHomePage() {
                             onClick={() => handleDecrement("infants")}
                             disabled={infants === 0}
                           >
-                             <Minus size={15} strokeWidth={3} className="text-gray-500" />
+                            <Minus size={15} strokeWidth={3} className="text-gray-500" />
                           </button>
                           <span className="w-6 text-center">{infants}</span>
                           <button
