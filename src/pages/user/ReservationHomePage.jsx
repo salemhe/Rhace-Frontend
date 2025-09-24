@@ -1,5 +1,5 @@
 import Footer from "@/components/Footer";
-import UserHeader from "@/components/headers/user-header";
+import UserHeader from "@/components/layout/headers/user-header";
 import SearchSection from "@/components/SearchSection";
 import TableGrid, { TableGridThree, TableGridTwo } from "@/components/Tablegrid";
 import { useEffect, useState } from "react";
