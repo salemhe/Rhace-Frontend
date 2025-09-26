@@ -6,7 +6,7 @@ import ForgotImage from "../../../assets/auth/forgot.svg";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { authService } from "@/services/auth.service";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail } from "lucide-react";
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState("")
@@ -40,17 +40,19 @@ const ForgotPassword = () => {
               </p>
             </div>
             <div className="space-y-6">
-              <div>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
                 <Input
+                  id="email"
                   type="email"
-                  placeholder="Enter your email"
+                  placeholder="john.doe@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                  className="pl-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
                 />
               </div>
 
-              <Button disabled={isLoading} onClick={handleSubmit} className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white py-3 rounded-lg font-medium" size="lg">
+              <Button disabled={isLoading} onClick={handleSubmit} className="w-full h-10 sm:h-12 rounded-md bg-[#0a646d] text-white text-sm sm:text-base font-light shadow-md hover:shadow-lg hover:bg-[#127a87] transition-colors duration-300" size="lg">
                 {isLoading ? (<> Loading <Loader2 className="animate-spin" /></>) : "Send"}
               </Button>
             </div>
