@@ -3,31 +3,51 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Eye, EyeOff } from "lucide-react"
+import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react"
 import HeroImage from '../../../components/auth/HeroImage'
+import { toast } from "sonner"
+import { useNavigate } from "react-router"
+import { authService } from "@/services/auth.service"
 
 const getCurrentYear = () => new Date().getFullYear();
 
 const Signup = () => {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsloading] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
   })
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
   })
 
-  const handleRegister = () => {
-    if (formValidation()) {
-      setError({ name: "", email: "", password: "", confirmPassword: "" })
-      console.log("Registering with:", formData)
+  const handleRegister = async () => {
+    try {
+      if (!formValidation()) {
+        return
+      }
+      setError({ email: "", password: "", firstName: "", lastName: "", confirmPassword: "" });
+      setIsloading(true);
+      const user = await authService.register(
+        formData
+      );
+      console.log(user);
+      toast.success("Congratulations!. Next: verify your email");
+      navigate(`/auth/user/otp?email=${formData.email}`)
+    } catch (err) {
+      toast.error(err.response?.data.message);
+    } finally {
+      setIsloading(false);
     }
   }
 
@@ -46,8 +66,12 @@ const Signup = () => {
 
   const formValidation = () => {
     // Basic validation logic
-    if (!formData.name) {
-      setError((prev) => ({ ...prev, name: "Name is required." }))
+    if (!formData.firstName) {
+      setError((prev) => ({ ...prev, firstName: "First Name is required." }))
+      return false
+    }
+    if (!formData.lastName) {
+      setError((prev) => ({ ...prev, lastName: "Last Name is required." }))
       return false
     }
     if (!formData.email) {
@@ -88,31 +112,54 @@ const Signup = () => {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-gray-700">
-                  Name
+                <Label htmlFor="fname" className="text-sm font-medium text-gray-700">
+                  First Name
                 </Label>
-                <Input
-                  id="name"
-                  type="text"
-                  value={formData.name}
-                  placeholder="John Doe"
-                  onChange={(e) => handleInputChange("name", e.target.value)}
-                  className="w-full"
-                />
-                {error.name && <p className="text-sm text-red-600 mt-1">{error.name}</p>}
+                <div className="relative">
+                  <User className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
+                  <Input
+                    id="fname"
+                    type="text"
+                    value={formData.firstName}
+                    placeholder="John"
+                    onChange={(e) => handleInputChange("firstName", e.target.value)}
+                    className="pl-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                  />
+                </div>
+                {error.name && <p className="text-sm text-red-600 mt-1">{error.firstName}</p>}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-sm font-medium text-gray-700">
+                  Last Name
+                </Label>
+                <div className="relative">
+                  <User className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
+                  <Input
+                    id="lname"
+                    type="text"
+                    value={formData.lastName}
+                    placeholder="Doe"
+                    onChange={(e) => handleInputChange("lastName", e.target.value)}
+                    className="pl-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                  />
+                </div>
+                {error.name && <p className="text-sm text-red-600 mt-1">{error.lastName}</p>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Email
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="john.doe@example.com"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="w-full"
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john.doe@example.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    className="pl-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                  />
+                </div>
                 {error.email && <p className="text-sm text-red-600 mt-1">{error.email}</p>}
               </div>
               <div className="space-y-2">
@@ -120,13 +167,14 @@ const Signup = () => {
                   Password
                 </Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     placeholder="********"
                     onChange={(e) => handleInputChange("password", e.target.value)}
-                    className="w-full pr-10"
+                    className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
                   />
                   <button
                     type="button"
@@ -143,13 +191,14 @@ const Signup = () => {
                   Confirm Password
                 </Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
                   <Input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirmPassword}
                     placeholder="********"
                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                    className="w-full pr-10"
+                    className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
                   />
                   <button
                     type="button"
@@ -166,7 +215,15 @@ const Signup = () => {
                   <PasswordStrengthMeter strength={strength} />
                 </div>
               )}
-              <Button disabled={!formData.name || !formData.email || !formData.password || !formData.confirmPassword || strength < 3} onClick={handleRegister} className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6">Register</Button>
+              <Button disabled={!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.confirmPassword || strength < 3} onClick={handleRegister} className="w-full h-10 sm:h-12 rounded-md bg-[#0a646d] text-white text-sm sm:text-base font-light shadow-md hover:shadow-lg hover:bg-[#127a87] transition-colors duration-300">
+                {isLoading ? (
+                  <span className="flex items-center gap-1">
+                    Loading <Loader2 className="animate-spin" />
+                  </span>
+                ) : (
+                  "Register"
+                )}
+              </Button>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-6">
               <p className="text-sm text-center text-gray-600">
@@ -192,7 +249,7 @@ const Signup = () => {
 
 export default Signup
 
-const PasswordStrengthMeter = ({ strength }) => {
+export const PasswordStrengthMeter = ({ strength }) => {
 
 
   const getStrengthLabel = (score) => {
