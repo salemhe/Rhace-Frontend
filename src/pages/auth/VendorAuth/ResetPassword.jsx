@@ -1,83 +1,113 @@
-import HeroImage from "@/components/auth/HeroImage"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import ResetImage from "../../../assets/auth/reset.svg";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { toast } from "sonner";
-import { authService } from "@/services/auth.service";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { PasswordStrengthMeter } from "../UserAuth/Signup";
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
+import { Eye, EyeOff, Lock } from "lucide-react";
+import HeroImage from "@/components/auth/HeroImage";
+import { authService } from "@/services/auth.service";
+import { toast } from "sonner";
+import { useNavigate, useSearchParams } from "react-router";
+import ResetImage from "../../../assets/auth/reset.svg";
+
+
+const PasswordStrengthMeter = ({ strength }) => {
+    const getStrengthLabel = (score) => {
+        if (score <= 2) return "Weak";
+        if (score <= 4) return "Medium";
+        return "Strong";
+    };
+
+    const getStrengthColor = (score) => {
+        if (score <= 2) return "bg-red-600";
+        if (score <= 4) return "bg-yellow-600";
+        return "bg-green-600";
+    };
+
+    return (
+        <div className="flex flex-col space-y-1">
+            <div className="flex items-center">
+                <div className={`h-2 w-full rounded ${getStrengthColor(strength)}`} />
+                <span className="ml-2 text-sm font-medium">{getStrengthLabel(strength)}</span>
+            </div>
+            <div className="flex flex-col justify-between text-xs text-gray-500">
+                <span>Password must be at least 8 characters long</span>
+                <span>Include uppercase and lowercase letters</span>
+                <span>Include numbers</span>
+                <span>Include symbols</span>
+                <span>Longer passwords are stronger</span>
+            </div>
+        </div>
+    );
+};
 
 const ResetPassword = () => {
-    const [password, setPassword] = useState("")
-    const [confirmPassword, setConfirmPassword] = useState("")
+    const [password, setPassword] = useState("");
+    const [confirmPassword, setConfirmPassword] = useState("");
     const [error, setError] = useState({
         password: "",
-        confirmPassword: ""
-    })
-    const [showPassword, setShowPassword] = useState(false)
-    const navigate = useNavigate()
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-    const [isLoading, setIsloading] = useState(false)
-    const searchParams = useSearchParams();
-    const token = searchParams.get("token")
-
-    const handleSubmit = async () => {
-        if (!formValidation()) {
-            return
-        }
-        setError({
-            password: "",
-            confirmPassword: ""
-        })
-        try {
-            setIsloading(true)
-            await authService.vendorResetPassword(token, password)
-            toast.success("A reset password link has been sent to your Email")
-            navigate("/auth/vendor/login")
-        } catch (err) {
-            toast.error(err.response.data.message)
-        } finally {
-            setIsloading(false)
-        }
-    }
+        confirmPassword: "",
+    });
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+    const [isLoading, setIsloading] = useState(false);
+    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const token = searchParams.get("token");
 
     const getPasswordStrength = (password) => {
-        let strength = 0
-        if (password.length >= 8) strength++
-        if (/[A-Z]/.test(password)) strength++
-        if (/[a-z]/.test(password)) strength++
-        if (/[0-9]/.test(password)) strength++
-        if (/[^A-Za-z0-9]/.test(password)) strength++
-        if (password.length >= 12) strength++
-        return strength
-    }
+        let strength = 0;
+        if (password.length >= 8) strength++;
+        if (/[A-Z]/.test(password)) strength++;
+        if (/[a-z]/.test(password)) strength++;
+        if (/[0-9]/.test(password)) strength++;
+        if (/[^A-Za-z0-9]/.test(password)) strength++;
+        if (password.length >= 12) strength++;
+        return strength;
+    };
+
+    const strength = getPasswordStrength(password);
 
     const formValidation = () => {
         if (!password) {
-            setError((prev) => ({ ...prev, password: "Password is required." }))
-            return false
+            setError((prev) => ({ ...prev, password: "Password is required." }));
+            return false;
         }
         if (password.length < 8) {
-            setError((prev) => ({ ...prev, password: "Password must be at least 8 characters." }))
-            return false
+            setError((prev) => ({ ...prev, password: "Password must be at least 8 characters." }));
+            return false;
         }
         if (password !== confirmPassword) {
-            setError((prev) => ({ ...prev, confirmPassword: "Passwords do not match." }))
-            return false
+            setError((prev) => ({ ...prev, confirmPassword: "Passwords do not match." }));
+            return false;
         }
-        return true
-    }
+        return true;
+    };
 
-    const strength = getPasswordStrength(password)
+    const handleSubmit = async () => {
+        if (!formValidation()) {
+            return;
+        }
+        setError({
+            password: "",
+            confirmPassword: "",
+        });
+        try {
+            setIsloading(true);
+            await authService.vendorResetPassword(token, password);
+            toast.success("Password reset successful. Please login.");
+            navigate("/auth/vendor/login");
+        } catch (err) {
+            toast.error(err.response?.data.message);
+        } finally {
+            setIsloading(false);
+        }
+    };
 
     return (
-        <div className='w-full h-screen flex p-4 bg-white'>
-            <div className="h-screen overflow-auto flex-1 flex flex-col items-center justify-center">
-                <Card className="w-full max-w-md p-0 shadow-none border-none">
+        <div className="w-full h-screen flex p-4 bg-white">
+            <div className="flex-1 h-full overflow-y-auto hide-scrollbar flex items-center justify-center">
+                <Card className="w-full max-w-md bg-white shadow-none p-0 border-none">
                     <CardHeader className="flex justify-center">
                         <img src={ResetImage} alt="Forgot password illustration" className="w-48 h-48 object-contain" />
                     </CardHeader>
@@ -94,13 +124,14 @@ const ResetPassword = () => {
                                     Password
                                 </Label>
                                 <div className="relative">
+                                    <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
                                     <Input
                                         id="password"
                                         type={showPassword ? "text" : "password"}
                                         value={password}
                                         placeholder="********"
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full pr-10"
+                                        className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
                                     />
                                     <button
                                         type="button"
@@ -123,7 +154,7 @@ const ResetPassword = () => {
                                         value={confirmPassword}
                                         placeholder="********"
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full pr-10"
+                                        className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
                                     />
                                     <button
                                         type="button"
@@ -146,14 +177,14 @@ const ResetPassword = () => {
                             </Button>
                         </div>
                         <div className="text-center">
-                            <a href="/auth/vendor/login" className="text-blue-600 hover:underline font-medium text-sm">Back to Login</a>
+                            <a href="/auth/user/login" className="text-blue-600 hover:underline font-medium text-sm">Back to Login</a>
                         </div>
                     </CardContent>
                 </Card>
             </div>
-            <HeroImage role='vendor' />
+            <HeroImage role="vendor" />
         </div>
-    )
-}
+    );
+};
 
-export default ResetPassword
+export default ResetPassword;

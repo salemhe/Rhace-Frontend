@@ -22,6 +22,7 @@ import HotelsPage from "./pages/user/hotels/HotelsPage";
 import Layout from "./pages/layouts/Layout";
 import VendorResetPassword from "./pages/auth/VendorAuth/ResetPassword";
 import ResetPassword from "./pages/auth/UserAuth/ResetPassword";
+import Onboard from "./pages/auth/VendorAuth/Onboard";
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
             <Route path="forgot-password" element={<VendorForgotPassword />} />
             <Route path="otp" element={<VendorOtp />} />
             <Route path="reset-password" element={<VendorResetPassword />} />
+            <Route path="onboarding" element={<Onboard />} />
           </Route>
         </Route>
         <Route path="/restaurants/:id" element={<RestaurantsPage />} />
