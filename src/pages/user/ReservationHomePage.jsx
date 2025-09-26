@@ -1,17 +1,11 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  ConciergeBell,
-  BedSingle,
-  Speaker,
-  Search,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  Plus, Minus,
-} from "lucide-react";
-import Restaurant from "../../assets/RestaurantBackground.jpg";
-import Header from "@/components/user/Header";
+import Footer from "@/components/Footer";
+import UserHeader from "@/components/headers/user-header";
+import SearchSection from "@/components/SearchSection";
+import TableGrid, { TableGridThree, TableGridTwo } from "@/components/Tablegrid";
+import { useEffect, useState } from "react";
+import Restaurant from "../../assets/find.png";
+import Hotel from "../../assets/find-hotel.jpg";
+import Club from "../../assets/find-club.png";
 
 function ReservationHomePage() {
   const [mounted, setMounted] = useState(false);
@@ -90,72 +84,59 @@ const SvgIcon3= ({ isActive }) => (
       //   backgroundImage: `linear-gradient(#20053299 0%, #20053299 60%), url(${Restaurant})`,
       // }}
     >
-      <Header />
-      <section className="h-full">
-        <div className="flex flex-col items-center justify-center h-full">
-          <div className="text-center">
-            <h1 className="text-[#F9FAFB] text-6xl font-medium mb-4">
-              Find your Perfect Table
-            </h1>
-            <p className="text-[#F9FAFB]/80 text-2xl">
-              Discover and reserve the best restaurants in your city
-            </p>
-          </div>
+      <UserHeader />
+            <div className="relative min-h-[400px] sm:min-h-[400px]">
+            {/* Background Image */}
+            <div
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat rounded-br-[20px] rounded-bl-[20px]"
+              style={{
+                backgroundImage:
+                  activeTab === "restaurants"
+                    ? ` url(${Restaurant})`
+                    : activeTab === "hotels"
+                    ? ` url(${Hotel})`
+                    : `url(${Club})`,
+              }}
+            />
+            <div className="absolute inset-0 bg-black/50 rounded-br-[20px] rounded-bl-[20px]" />
 
-          <div className="mt-12 flex justify-between items-center max-w-sm w-full mx-auto">
-            <button
-              className={getButtonClass("restaurant")}
-              onClick={() => setActiveButton("restaurant")}
-            >
-              <ConciergeBell /> Restaurant
-            </button>
-            <button
-              className={getButtonClass("hotels")}
-              onClick={() => setActiveButton("hotels")}
-            >
-              <BedSingle /> Hotels
-            </button>
-            <button
-              className={getButtonClass("clubs")}
-              onClick={() => setActiveButton("clubs")}
-            >
-              <Speaker /> Clubs
-            </button>
-          </div>
+            {/* Content */}
+            <div className="relative max-w-7xl mx-auto px-4 min-h-[420px] sm:px-6 lg:px-8 py-14 sm:py-20 flex flex-col justify-center items-center text-center">
+              {/* Headings */}
+              {activeTab === "restaurants" ? (
+                <>
+                  <h1 className="text-[22px] sm:text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-1 leading-snug mt-[80px] sm:mt-6 lg:mt-8">
+                    Find your Perfect Table
+                  </h1>
+                  <p className="text-[13px] sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
+                    Discover and reserve the best restaurants in your city
+                  </p>
+                </>
+              ) : activeTab === "hotels" ? (
+                <>
+                  <h1 className="text-[22px] sm:text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug mt-[80px] sm:mt-6 lg:mt-8">
+                    Start Living Your Dream
+                  </h1>
+                  <p className="text-[13px] sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
+                    Discover and reserve the best hotels in your city
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h1 className="text-[22px] sm:text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug mt-[80px] sm:mt-6 lg:mt-8">
+                    Get Your Groove On
+                  </h1>
+                  <p className="text-[13px] sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
+                    Discover and reserve the best clubs in your city
+                  </p>
+                </>
+              )}
 
-          <div className="bg-[#F9FAFB] px-5 py-3 max-w-5xl w-full rounded-full mx-auto mt-8 border-2 border-[#E5E7EB] shadow-md relative">
-            <div className="flex items-center justify-between gap-4">
-              {/* Restaurant/Cuisine Input */}
-              <div className="flex-1">
-                <h1 className="text-xs text-[#111827]">Restaurant/Cuisine</h1>
-                <input
-                  type="text"
-                  placeholder="Enter Restaurant or Cuisine"
-                  className="w-full bg-transparent border-none outline-none text-gray-700 placeholder-gray-500 text-sm"
-                  onFocus={handleRestaurantFocus}
-                  onBlur={handleRestaurantBlur}
-                />
-              </div>
-
-              {/* Vertical Divider */}
-              <div className="h-8 w-px bg-gray-300"></div>
-
-              {/* Date Picker */}
-              <div className="flex-1 relative">
-                <h1 className="text-xs text-[#111827]">Date</h1>
-                <button
-                  className="w-full bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer text-left flex justify-between items-center"
-                  onClick={toggleDatePicker}
-                >
-                  {formatSelectedDate()}
-                  <ChevronDown size={15} />
-                </button>
-
-                {/* Date Picker Calendar */}
-                {showDatePicker && (
-                  <div className="absolute top-full left-[-16px] mt-6 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 w-80">
-                    {/* Month Header */}
-                    <div className="flex items-center justify-between mb-4">
+              {/* Tabs */}
+                <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4 mt-1 sm:mt-4 mb-2 sm:mb-[-40px]">
+                  {tabs.map((tab) => {
+                    const Icon = tab.icon;
+                    return (
                       <button
                         key={tab.value}
                         className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-[36px] gap-1.5 sm:gap-2.5 cursor-pointer text-[12px] sm:text-sm flex items-center font-medium transition-colors duration-200 ${
@@ -174,197 +155,72 @@ const SvgIcon3= ({ isActive }) => (
                   })}
                 </div>
 
-                    {/* Days of Week Header */}
-                    <div className="grid grid-cols-7 gap-1 mb-2">
-                      {daysOfWeek.map((day) => (
-                        <div
-                          key={day}
-                          className="text-xs text-gray-500 text-center py-2"
-                        >
-                          {day}
-                        </div>
-                      ))}
-                    </div>
+                {/* Search Section */}
+                <div className="relative w-full mt-4 sm:mt-5 lg:mt-6 px-1  sm:px-0 z-[20]">
+                  <SearchSection activeTab={activeTab} onSearch={()=>{}} />
+                </div>
+                
 
-                    {/* Calendar Grid */}
-                    <div className="grid grid-cols-7 gap-1">
-                      {getDaysInMonth(currentMonth).map((day, index) => (
-                        <button
-                          key={index}
-                          onClick={() => handleDateSelect(day)}
-                          disabled={!day}
-                          className={`
-                            h-8 w-8 text-sm rounded hover:bg-gray-100 transition-colors
-                            ${!day ? "cursor-not-allowed" : "cursor-pointer"}
-                            ${day === 18
-                              ? "bg-[#0A6C6D]/70 text-white hover:bg-[#0A6C6D]"
-                              : "text-gray-700"
-                            }
-                            ${selectedDate &&
-                              day === selectedDate.getDate() &&
-                              currentMonth.getMonth() ===
-                              selectedDate.getMonth() &&
-                              currentMonth.getFullYear() ===
-                              selectedDate.getFullYear()
-                              ? "bg-[#0A6C6D] text-white"
-                              : ""
-                            }
-                          `}
-                        >
-                          {day}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
+            </div>
+        </div>
+
+       {activeTab === "restaurants" &&(
+        <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-700"></div>
+              <span className="ml-2 text-gray-600">Loading restaurants...</span>
+            </div>
+          ) : vendors.filter(v => v.businessType?.toLowerCase() === "restaurant").length > 0 ? (
+            <TableGrid 
+              title='Top Rated Restaurants' 
+              restaurants={vendors
+                .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "restaurant"))
+                .map(vendor => convertToTableGridRestaurant(convertVendorsToRestaurants([vendor])[0]))
+              } 
+            />
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-gray-600">No restaurants found</p>
+            </div>
+          )} */}
+
+          
+          <TableGrid title="Popular Searches" />
+          <TableGrid title="In High Demand" />
+          <TableGrid title="Your History" />
+
+         </div>
+          
+      ) }
+       {activeTab === "hotels" && (
+        <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* {
+           vendors
+              .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "hotel")).length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No hotels found</p>
               </div>
-
-              {/* Vertical Divider */}
-              <div className="h-8 w-px bg-gray-300"></div>
-
-              {/* Time Picker */}
-              <div className="flex-1 relative">
-                <h1 className="text-xs text-[#111827]">Time</h1>
-                <button
-                  className="w-full bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer text-left flex justify-between items-center"
-                  onClick={toggleTimePicker}
-                >
-                  {formatSelectedTime()}
-                  <ChevronDown size={15} />
-                </button>
-
-                {/* Time Picker Dropdown */}
-                {showTimePicker && (
-                  <div className="absolute top-full left-[-16px] mt-6 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 w-72">
-                    <h3 className="font-medium text-gray-900 mb-3">
-                      Available Times
-                    </h3>
-
-                    {/* Time Grid */}
-                    <div className="grid grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-                      {availableTimes.map((time) => (
-                        <button
-                          key={time}
-                          onClick={() => handleTimeSelect(time)}
-                          className={`
-                            px-3 py-2 text-xs rounded-md border transition-colors text-center
-                            ${selectedTime === time
-                              ? "bg-[#0A6C6D] text-white border-[#0A6C6D]"
-                              : "bg-gray-50 text-gray-700 border-gray-200 hover:bg-gray-100"
-                            }
-                          `}
-                        >
-                          {time}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Vertical Divider */}
-              <div className="h-8 w-px bg-gray-300"></div>
-
-              {/* Guest Picker */}
-              <div className="flex-1 relative">
-                <h1 className="text-xs text-[#111827]">Guest</h1>
-                <button
-                  className="w-full bg-transparent border-none outline-none text-gray-700 text-sm cursor-pointer text-left flex justify-between items-center"
-                  onClick={toggleGuestPicker}
-                >
-                  {`${adults + children + infants} Guest${adults + children + infants !== 1 ? "s" : ""
-                    }`}
-                  <ChevronDown size={15} />
-                </button>
-
-                {/* Guest Picker Dropdown */}
-                {showGuestPicker && (
-                  <div className="absolute top-full left-[-16px] mt-6 bg-white border border-gray-200 rounded-lg shadow-lg p-4 z-50 w-72">
-                    <div className="space-y-4">
-                      {/* Adults */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-gray-900 font-medium">
-                            Adults
-                          </span>
-                          <span className="text-gray-500 text-sm">
-                            18 years and above
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="p-1 rounded-full border-2 border-gray-500 flex items-center justify-center hover:bg-gray-100"
-                            onClick={() => handleDecrement("adults")}
-                            disabled={adults === 0}
-                          >
-                            <Minus size={15} strokeWidth={3} className="text-gray-500" />
-                          </button>
-                          <span className="w-6 text-center">{adults}</span>
-                          <button
-                            className="p-1 rounded-full border-2 border-gray-500 flex items-center justify-center hover:bg-gray-100"
-                            onClick={() => handleIncrement("adults")}
-                          >
-                            <Plus size={15} strokeWidth={3} className="text-gray-500" />
-                          </button>
-                        </div>
-                      </div>
-                      {/* Children */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-gray-900 font-medium">
-                            Children
-                          </span>
-                          <span className="text-gray-500 text-sm">
-                            under 18 years
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="p-1 rounded-full border-2 border-gray-500 flex items-center justify-center hover:bg-gray-100"
-                            onClick={() => handleDecrement("children")}
-                            disabled={children === 0}
-                          >
-                            <Minus size={15} strokeWidth={3} className="text-gray-500" />
-                          </button>
-                          <span className="w-6 text-center">{children}</span>
-                          <button
-                            className="p-1 rounded-full border-2 border-gray-500 flex items-center justify-center hover:bg-gray-100"
-                            onClick={() => handleIncrement("children")}
-                          >
-                            <Plus size={15} strokeWidth={3} className="text-gray-500" />
-                          </button>
-                        </div>
-                      </div>
-                      {/* Infants */}
-                      <div className="flex items-center justify-between">
-                        <div className="flex flex-col">
-                          <span className="text-gray-900 font-medium">
-                            Infant
-                          </span>
-                          <span className="text-gray-500 text-sm">
-                            Under the age of 2
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            className="p-1 rounded-full border-2 border-gray-500 flex items-center justify-center hover:bg-gray-100"
-                            onClick={() => handleDecrement("infants")}
-                            disabled={infants === 0}
-                          >
-                            <Minus size={15} strokeWidth={3} className="text-gray-500" />
-                          </button>
-                          <span className="w-6 text-center">{infants}</span>
-                          <button
-                            className="p-1 rounded-full border-2 border-gray-500 flex items-center justify-center hover:bg-gray-100"
-                            onClick={() => handleIncrement("infants")}
-                          >
-                            <Plus size={15} strokeWidth={3} className="text-gray-500" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
+           ) : (
+             <TableGridTwo 
+            title="Popular Guest House Searches"
+            restaurants={vendors
+              .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "hotel"))
+              .map(vendor => convertToTableGridRestaurant(convertVendorsToRestaurants([vendor])[0]))
+            }
+          />
+           )
+          } */}
+           <TableGridTwo title="Popular Searches" />
+        </div>
+      ) }
+      {activeTab === "clubs" && (
+         <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* {
+           vendors
+              .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "hotel")).length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-600">No hotels found</p>
               </div>
            ) : (
              <TableGridTwo 
