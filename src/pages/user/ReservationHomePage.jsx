@@ -1,5 +1,5 @@
 import Footer from "@/components/Footer";
-import UserHeader from "@/components/headers/user-header";
+import UserHeader from "@/components/layout/headers/user-header";
 import SearchSection from "@/components/SearchSection";
 import TableGrid, { TableGridThree, TableGridTwo } from "@/components/Tablegrid";
 import { useEffect, useState } from "react";
@@ -105,28 +105,28 @@ const SvgIcon3= ({ isActive }) => (
               {/* Headings */}
               {activeTab === "restaurants" ? (
                 <>
-                  <h1 className="text-[22px] sm:text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-1 leading-snug mt-[80px] sm:mt-6 lg:mt-8">
+                  <h1 className=" text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-1 leading-snug mt-4[40px] sm:mt-6 lg:mt-8">
                     Find your Perfect Table
                   </h1>
-                  <p className="text-[13px] sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
+                  <p className="text-gray-50 font-['Inter'] w-56 leading-none text-xs sm:text-base font-normal md:text-xl  mb-5 sm:mb-8]">
                     Discover and reserve the best restaurants in your city
                   </p>
                 </>
               ) : activeTab === "hotels" ? (
                 <>
-                  <h1 className="text-[22px] sm:text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug mt-[80px] sm:mt-6 lg:mt-8">
+                  <h1 className=" text-3xl  md:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug mt-[40px] sm:mt-6 lg:mt-8">
                     Start Living Your Dream
                   </h1>
-                  <p className="text-[13px] sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
+                  <p className="text-xs font-normal sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
                     Discover and reserve the best hotels in your city
                   </p>
                 </>
               ) : (
                 <>
-                  <h1 className="text-[22px] sm:text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-4 leading-snug mt-[80px] sm:mt-6 lg:mt-8">
+                  <h1 className=" text-gray-50 font-bold leading-relaxed text-3xl md:text-5xl  sm:text-white mb-2 sm:mb-4 sm:leading-snug mt-[40px] sm:mt-6 lg:mt-8">
                     Get Your Groove On
                   </h1>
-                  <p className="text-[13px] sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
+                  <p className="text-xs sm:text-base font-normal md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
                     Discover and reserve the best clubs in your city
                   </p>
                 </>

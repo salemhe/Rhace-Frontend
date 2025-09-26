@@ -34,7 +34,7 @@ const UserHeader = () => {
           {/* Logo */}
           <div className="flex items-center space-x-2">
             <div className="w-[26px]  h-[26px] bg-[#60A5FA] rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg">R</span>
+              <span className="text-white font-bold text-lg"></span>
             </div>
             <span className="text-2xl font-bold">Rhace</span>
           </div>
