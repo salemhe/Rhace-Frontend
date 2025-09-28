@@ -6,7 +6,7 @@ import ResetImage from "../../../assets/auth/reset.svg";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { authService } from "@/services/auth.service";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router";
 import { Label } from "@/components/ui/label";
 import { PasswordStrengthMeter } from "./Signup";
@@ -22,7 +22,7 @@ const ResetPassword = () => {
     const navigate = useNavigate()
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
     const [isLoading, setIsloading] = useState(false)
-    const searchParams = useSearchParams();
+    const [searchParams] = useSearchParams();
     const token = searchParams.get("token")
 
     const handleSubmit = async () => {
@@ -37,7 +37,7 @@ const ResetPassword = () => {
             setIsloading(true)
             await authService.resetPassword(token, password)
             toast.success("A reset password link has been sent to your Email")
-                        navigate("/auth/vendor/login")
+            navigate("/auth/user/login")
         } catch (err) {
             toast.error(err.response.data.message)
         } finally {
@@ -94,13 +94,14 @@ const ResetPassword = () => {
                                     Password
                                 </Label>
                                 <div className="relative">
+                                    <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
                                     <Input
                                         id="password"
                                         type={showPassword ? "text" : "password"}
                                         value={password}
                                         placeholder="********"
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="w-full pr-10"
+                                        className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
                                     />
                                     <button
                                         type="button"
@@ -123,7 +124,7 @@ const ResetPassword = () => {
                                         value={confirmPassword}
                                         placeholder="********"
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="w-full pr-10"
+                                        className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
                                     />
                                     <button
                                         type="button"

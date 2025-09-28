@@ -13,10 +13,11 @@ import {
 // import { AuthService } from "@/app/lib/api/services/userAuth.service";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 // import { SearchSectionTwo } from "./SearchSection";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/redux/slices/authSlice";
 
 const Header = () => {
+  const dispatch = useDispatch();
   const { pathname } = useLocation();
 
   const [scrolled, setScrolled] = useState(false);
@@ -85,7 +86,8 @@ const Header = () => {
   }, []);
 
   const handleLogout = async () => {
-    logout();
+    console.log("Attempting to logout")
+    dispatch(logout());
     setProfile(null);
   };
 

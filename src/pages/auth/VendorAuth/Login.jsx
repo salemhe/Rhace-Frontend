@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Lock, Mail } from "lucide-react"
 import HeroImage from '../../../components/auth/HeroImage'
 import { authService } from "@/services/auth.service"
 import { useDispatch } from "react-redux"
@@ -43,6 +43,9 @@ const Login = () => {
       );
       dispatch(setVendor(user?.vendor));
       toast.success("Welcome back!");
+      if (!user.vendor.isOnboarded) {
+        navigate("/auth/vendor/onboarding")
+      }
       navigate(redirectTo);
     } catch (err) {
       toast.error(err.response?.data.message);
@@ -55,7 +58,6 @@ const Login = () => {
   };
 
   const formValidation = () => {
-    // Basic validation logic
     if (!formData.email) {
       setError((prev) => ({ ...prev, email: "Email is required." }))
       return false
@@ -81,8 +83,7 @@ const Login = () => {
           <Card className="w-full max-w-md bg-white shadow-none p-0 border-none">
             <CardHeader className="text-center pb-6">
               <div className="flex items-center justify-center gap-2 mb-6">
-                <div className="w-6 h-6 bg-[#60A5FA] rounded-full flex items-center justify-center">
-                </div>
+                <div className="w-6 h-6 bg-[#60A5FA] rounded-full flex items-center justify-center"></div>
                 <span className="text-xl font-semibold text-gray-900">Rhace</span>
               </div>
               <h1 className="text-2xl font-semibold text-gray-900 mb-2">Welcome Back</h1>
@@ -93,14 +94,17 @@ const Login = () => {
                 <Label htmlFor="email" className="text-sm font-medium text-gray-700">
                   Email
                 </Label>
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="john.doe@example.com"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
-                  className="w-full"
-                />
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john.doe@example.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange("email", e.target.value)}
+                    className="pl-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                  />
+                </div>
                 {error.email && <p className="text-sm text-red-600 mt-1">{error.email}</p>}
               </div>
               <div className="space-y-2">
@@ -108,13 +112,14 @@ const Login = () => {
                   Password
                 </Label>
                 <div className="relative">
+                  <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     placeholder="********"
                     onChange={(e) => handleInputChange("password", e.target.value)}
-                    className="w-full pr-10"
+                    className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
                   />
                   <button
                     type="button"
@@ -128,7 +133,7 @@ const Login = () => {
               </div>
               <div className="flex justify-end">
                 <a
-                  href="/auth/user/forgot-password"
+                  href="/auth/vendor/forgot-password"
                   className="text-sm text-blue-600 hover:underline font-medium"
                 >
                   Forgot password?
@@ -137,7 +142,7 @@ const Login = () => {
               <Button
                 disabled={!formData.email || !formData.password || isLoading}
                 onClick={handleLogin}
-                className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white font-medium py-2.5 mt-6"
+                className="w-full h-10 sm:h-12 rounded-md bg-[#0a646d] text-white text-sm sm:text-base font-light shadow-md hover:shadow-lg hover:bg-[#127a87] transition-colors duration-300 mt-6"
               >
                 {isLoading ? (
                   <span className="flex items-center gap-1">
@@ -151,7 +156,7 @@ const Login = () => {
             <CardFooter className="flex flex-col space-y-4 pt-6">
               <p className="text-sm text-center text-gray-600">
                 Don't Have An Account?{" "}
-                <a href="/auth/user/signup" className="text-blue-600 hover:underline font-medium">
+                <a href="/auth/vendor/signup" className="text-blue-600 hover:underline font-medium">
                   Sign up
                 </a>
               </p>
