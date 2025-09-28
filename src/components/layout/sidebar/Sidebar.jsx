@@ -101,7 +101,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate }) => {
           </nav>
 
           {/* Bottom items */}
-          <div className="px-4 py-4 border-t border-teal-700 space-y-1">
+          <div className="px py-4 border-t border-teal-700 space-y-1">
             {bottomItems.map((item) => (
               <button
                 key={item.label}
