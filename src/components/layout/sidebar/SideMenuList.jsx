@@ -1,3 +1,4 @@
+import { BookingsIcon, BranchesIcon, DashBoardIcon, PaymentIcon } from '@/assets/icons/icons';
 import { 
   LayoutDashboard,
   Calendar,
@@ -28,12 +29,11 @@ export const RestaurantList = {
 
 export const HotelList = {
   topItems: [
-    { icon: LayoutDashboard, label: 'Dashboard', path: '/hotel/dashboard' },
-    { icon: Calendar, label: 'Bookings', path: '/hotel/bookings' },
-    { icon: MapPin, label: 'Locations', path: '/hotel/locations' },
-    { icon: MenuIcon, label: 'Room Management', path: '/hotel/rooms' },
-    { icon: CreditCard, label: 'Payments', path: '/hotel/payments' },
-    { icon: Users, label: 'Staff', path: '/hotel/staff' },
+    { icon: DashBoardIcon, label: 'Dashboard', path: '/hotel/dashboard' },
+    { icon: BookingsIcon, label: 'Bookings', path: '/hotel/bookings' },
+    { icon: BranchesIcon, label: 'Room Management', path: '/hotel/rooms' },
+    { icon: PaymentIcon, label: 'Payments', path: '/hotel/payments' },
+   //  { icon: Users, label: 'Staff', path: '/hotel/staff' },
   ],
   bottomItems: [
     { icon: Settings, label: 'Settings', path: '/hotel/settings' },
