@@ -63,7 +63,74 @@ const Amenities = ({color ="#fff"}) => (
   </svg>
 );
 
-export {  Plate, Amenities };
+const DashBoardIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="17"
+    fill="none"
+    viewBox="0 0 18 17"
+  >
+    <path
+      fill="#E5E7EB"
+      d="M10.024 1.24a1.666 1.666 0 0 0-2.047 0L.99 6.673c-.626.49-.281 1.494.513 1.494h.83v6.666A1.667 1.667 0 0 0 4 16.5h3.334v-5a1.667 1.667 0 1 1 3.333 0v5H14a1.666 1.666 0 0 0 1.667-1.667V8.167h.83c.794 0 1.14-1.005.513-1.493z"
+    ></path>
+  </svg>
+);
+
+const BookingsIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    fill="none"
+    viewBox="0 0 16 16"
+  >
+    <path
+      fill="#F9FAFB"
+      d="M15.5 8v5.833a1.666 1.666 0 0 1-1.667 1.667H2.167A1.667 1.667 0 0 1 .5 13.833V8zM11.333.5a.833.833 0 0 1 .834.833v.834h1.666A1.666 1.666 0 0 1 15.5 3.833v2.5H.5v-2.5a1.667 1.667 0 0 1 1.667-1.666h1.666v-.834a.833.833 0 0 1 1.667 0v.834h5v-.834A.833.833 0 0 1 11.333.5"
+    ></path>
+  </svg>
+);
+
+const BranchesIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="17"
+    fill="none"
+    viewBox="0 0 18 17"
+  >
+    <path
+      fill="#E5E7EB"
+      d="M1.5 14.833h.834V4.3a1.25 1.25 0 0 1 .855-1.186L9.855.893A1.25 1.25 0 0 1 11.5 2.078v12.755h.834V7.325a.416.416 0 0 1 .498-.408l1.83.366a1.25 1.25 0 0 1 1.005 1.225v6.325h.833a.833.833 0 0 1 0 1.667h-15a.834.834 0 0 1 0-1.667"
+    ></path>
+  </svg>
+);
+
+const PaymentIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    fill="none"
+    viewBox="0 0 20 20"
+  >
+    <g clipPath="url(#clip0_2580_791)">
+      <path
+        fill="#E5E7EB"
+        d="M10 1.667a8.333 8.333 0 1 1 0 16.666 8.333 8.333 0 0 1 0-16.666M8.334 5h-.417a.833.833 0 0 0-.833.833v2.5h-.417a.833.833 0 0 0 0 1.667h.417v.833h-.417a.833.833 0 1 0 0 1.667h.417v1.667a.833.833 0 0 0 1.666 0V12.5h1.353l.79 1.976a.83.83 0 0 0 .774.524h.417a.833.833 0 0 0 .833-.833V12.5h.417a.833.833 0 0 0 0-1.667h-.417V10h.417a.833.833 0 0 0 0-1.667h-.417v-2.5a.833.833 0 1 0-1.667 0v2.5h-1.019L9.108 5.524A.83.83 0 0 0 8.334 5m2.916 5v.833h-.019L10.898 10zm-2.147 0 .333.833H8.75V10z"
+      ></path>
+    </g>
+    <defs>
+      <clipPath id="clip0_2580_791">
+        <path fill="#fff" d="M0 0h20v20H0z"></path>
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+export {  Plate, Amenities, DashBoardIcon, BookingsIcon, BranchesIcon, PaymentIcon  };
 
 
 

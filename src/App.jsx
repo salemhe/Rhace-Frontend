@@ -27,6 +27,10 @@ import VendorDashboard from "./pages/dashboard/Dashboard";
 import ReservationDashboard from "./pages/dashboard/restaurant/ReservationDashboard";
 import CreateReservation from "./pages/dashboard/restaurant/CreateReservation";
 import MenuDashboard from "./pages/dashboard/restaurant/MenuDashboard";
+import BookingTable from "./pages/vendor/hotel/bookings";
+import BookingManagement from "./pages/vendor/hotel/bookings";
+import AddRooms from "./pages/vendor/hotel/add-rooms/page";
+import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
 
 function App() {
   return (
@@ -70,6 +74,10 @@ function App() {
           <Route path="restaurant/menu" element={<MenuDashboard />} />
           <Route path="restaurant/reservation/new" element={<CreateReservation />} />
         </Route>
+        <Route path="hotel/dashboard" element={<VendorDashboard />} />
+        <Route path="hotel/bookings" element={<BookingManagement />} />
+        <Route path="hotel/addrooms" element={<AddRooms />} />
+        <Route path="hotel/rooms" element={<RoomsManagement />} />
         <Route path="/" element={<ReservationHomePage />} />
       </Route>
     </Routes>
