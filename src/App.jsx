@@ -24,6 +24,9 @@ import VendorResetPassword from "./pages/auth/VendorAuth/ResetPassword";
 import ResetPassword from "./pages/auth/UserAuth/ResetPassword";
 import Onboard from "./pages/auth/VendorAuth/Onboard";
 import VendorDashboard from "./pages/dashboard/Dashboard";
+import ReservationDashboard from "./pages/dashboard/restaurant/ReservationDashboard";
+import CreateReservation from "./pages/dashboard/restaurant/CreateReservation";
+import MenuDashboard from "./pages/dashboard/restaurant/MenuDashboard";
 
 function App() {
   return (
@@ -61,7 +64,12 @@ function App() {
           <Route path="/hotels/:id/reservations" element={<HotelReservation />} />
         </Route>
         <Route path="/hotels/:id" element={<HotelsPage />} />
-        <Route path="hotel/dashboard" element={<VendorDashboard />} />
+        <Route path="/dashboard" >
+          <Route path="" element={<VendorDashboard />}/>
+          <Route path="restaurant/reservation" element={<ReservationDashboard />} />
+          <Route path="restaurant/menu" element={<MenuDashboard />} />
+          <Route path="restaurant/reservation/new" element={<CreateReservation />} />
+        </Route>
         <Route path="/" element={<ReservationHomePage />} />
       </Route>
     </Routes>

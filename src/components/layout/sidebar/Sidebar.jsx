@@ -45,7 +45,7 @@ const useMenuConfig = () => {
   return { menuItems, bottomItems, businessType };
 };
 
-const Sidebar = ({ isOpen, onClose, onNavigate }) => {
+const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
   const { menuItems, bottomItems, businessType } = useMenuConfig();
   
   const handleItemClick = (item) => {
