@@ -4,6 +4,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@font-face{
+  font-family: "Inter";
+  src:local("Inter"),
+  url('./assets/fonts/Inter/Inter-VariableFont_opsz_wght.ttf') 
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -122,6 +128,7 @@
 
 body {
   box-sizing: border-box;
+  font-family: 'Inter', Arial, Helvetica, sans-serif;
 }
 
 .hide-scrollbar::-webkit-scrollbar {
