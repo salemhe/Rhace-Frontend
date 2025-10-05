@@ -14,6 +14,8 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 // import API from "@/app/lib/api/axios";
 // import { AxiosResponse } from 'axios';
 
+import blueori from "../../../../assets/blue-origin.png";
+import blueclub from "../../../../assets/clubs/image2.jpg";
 
 
 
@@ -23,7 +25,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 //   name: 'John Doe'
 // };
 
-const imageBaseUrl = "/uploads/rooms/"; // Change to your actual base path for images, or receive from API/config
+// const imageBaseUrl = "/uploads/rooms/"; // Change to your actual base path for images, or receive from API/config
 
 const RoomsManagement = () => {
   const [rooms, setRooms] = useState([]);
@@ -185,7 +187,7 @@ console.log(editingRoom?._id)
       description: "Cozy single room with a balcony.",
       isAvailable: true,
       maintenanceStatus: "available",
-      images: ["room1.jpg", "room1b.jpg"],
+      images: [blueori, blueclub],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
@@ -201,7 +203,7 @@ console.log(editingRoom?._id)
       description: "Deluxe double room with ocean view.",
       isAvailable: false,
       maintenanceStatus: "available",
-      images: ["room2.jpg"],
+      images: [blueori],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
@@ -217,7 +219,7 @@ console.log(editingRoom?._id)
       description: "Luxury suite with jacuzzi and living area.",
       isAvailable: true,
       maintenanceStatus: "maintenance",
-      images: [],
+      images: [blueori],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -719,7 +721,7 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
                   {room.images.map((img, idx) => (
                     <div key={idx} className="w-20 h-20 rounded overflow-hidden border">
                       <img
-                        src={img.startsWith("http") ? img : imageBaseUrl + img}
+                        src={img.startsWith("http") ? img : img}
                         alt={`Room image ${idx + 1}`}
                         className="object-cover w-full h-full"
                         
@@ -772,7 +774,7 @@ const ImageGalleryModal = ({
         </button>
         <div className="flex flex-col items-center">
           <img
-            src={images[current].startsWith("http") ? images[current] : imageBaseUrl + images[current]}
+            src={images[current].startsWith("http") ? images[current] :  images[current]}
             alt={`Room Image ${current + 1}`}
             className="max-h-96 rounded shadow"
            
@@ -787,7 +789,7 @@ const ImageGalleryModal = ({
                 } overflow-hidden`}
               >
                 <img
-                  src={img.startsWith("http") ? img : imageBaseUrl + img}
+                  src={img.startsWith("http") ? img :  img}
                   alt={`Preview ${idx + 1}`}
                   className="object-cover w-full h-full"
                   

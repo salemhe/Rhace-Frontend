@@ -199,38 +199,7 @@ const BookingManagement = () => {
           </div>
 
           {/* Pagination */}
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-            <div className="text-sm text-gray-700">
-              Page 1 of 30
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1">
-                {[1, 2, 3, '...', 10, 11, 12].map((page, index) => (
-                  <button
-                    key={index}
-                    className={`px-3 py-1 text-sm rounded ${
-                      page === 1
-                        ? 'bg-teal-600 text-white'
-                        : page === '...'
-                        ? 'text-gray-500'
-                        : 'text-gray-700 hover:bg-gray-100'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
-              </div>
-              <div className="flex items-center gap-1 ml-2">
-                <button className="p-1 rounded hover:bg-gray-100">
-                  <ChevronLeft size={16} className="text-gray-500" />
-                </button>
-                <button className="p-1 rounded hover:bg-gray-100">
-                  <ChevronRight size={16} className="text-gray-500" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+         </div>
       </div>
     </div>
     </DashboardLayout>
