@@ -1,16 +1,17 @@
-import { useState } from 'react';
-import Header from './headers/vendor-header';
+import React, { useState } from 'react';
 import Sidebar from './sidebar/Sidebar';
+import Header from './headers/vendor-header';
+import { useNavigate } from 'react-router';
 
 const DashboardLayout = ({ children, type, section, settings }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // const navigate = useNavigate()
+  const navigate = useNavigate()
 
 
   return (
     <div className="flex h-dvh bg-white">
       {/* Sidebar */}
-      <Sidebar type={type} section={section} settings={settings} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar  onNavigate={navigate} type={type} section={section} settings={settings} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       {/* Main content area */}
       <div className="flex-1 flex flex-col relative overflow-hidden">
