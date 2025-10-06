@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Eye, EyeOff, Lock, Mail } from "lucide-react"
+import { Eye, EyeOff, Loader2, Lock, Mail } from "lucide-react"
 import HeroImage from '../../../components/auth/HeroImage'
 import { authService } from "@/services/auth.service"
 import { useDispatch } from "react-redux"
@@ -45,8 +45,9 @@ const Login = () => {
       toast.success("Welcome back!");
       if (!user.vendor.isOnboarded) {
         navigate("/auth/vendor/onboarding")
+      } else {
+        navigate(redirectTo);
       }
-      navigate(redirectTo);
     } catch (err) {
       toast.error(err.response?.data.message);
       if (err.response.data.message === "Please verify your email with the OTP sent to your inbox.") {
