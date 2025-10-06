@@ -87,7 +87,8 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
             {menuItems.map((item) => (
               <button
                 key={item.label}
-                onClick={() => handleItemClick(item)}
+                onClick={() => {handleItemClick(item)
+                }}
                 className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
                   item.active
                     ? 'bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]'

@@ -1,24 +1,26 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/card';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import {
-  Bed,
   Building,
   Camera,
   Car,
   Coffee,
   Edit,
+  Edit2,
   Home,
   Mail,
   MapPin,
-  MoreHorizontal,
   Phone,
+  Plus,
+  User,
   Users,
+  Utensils,
   Wifi
 } from 'lucide-react';
 import { useState } from 'react';
@@ -85,16 +87,19 @@ export default function HotelBookingInterface({
           <CardContent className="space-y-6">
             {completeData.hotelInfo ? (
               <div className="flex items-start space-x-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
+               
+                <div className="flex-1 min-w-0">
+                  <div className="flex space-x-3 items-center mb-4">
+                     <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Home className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex-1 min-w-0">
                   <h3 className="text-xl font-semibold text-gray-900 mb-1">
                     {completeData.hotelInfo.hotelName}
                   </h3>
                   <p className="text-sm text-gray-600 mb-4">
                     {completeData.hotelInfo.hotelCategory}
                   </p>
+                  </div>
                   
                   <div className="flex flex-wrap gap-y-4 gap-x-14">
                     <div>
@@ -172,63 +177,74 @@ export default function HotelBookingInterface({
           <CardContent className="space-y-4">
             {completeData.roomTypes.length > 0 ? (
               completeData.roomTypes.map((room) => (
-                <div key={room.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start space-x-4">
-                    <div className="relative w-20 h-16 bg-gradient-to-br from-amber-400 to-orange-500 rounded-lg flex-shrink-0 overflow-hidden">
-                      <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                      <div className="absolute bottom-1 left-1 bg-black bg-opacity-60 text-white text-xs px-1 rounded flex items-center">
-                        <Camera className="w-3 h-3 mr-1" />
-                        +{room.images.length} photos
-                      </div>
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h4 className="text-lg font-semibold text-gray-900">{room.name}</h4>
-                          <p className="text-sm text-gray-600">{room.description || 'No description provided'}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xl font-bold text-gray-900">{formatPrice(room.pricePerNight)}</p>
-                          <p className="text-sm text-gray-500">/night</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center space-x-4 mb-3 text-sm text-gray-600">
-                        <Badge variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center">
-                          <Users className="w-4 h-4 mr-1" />
-                          {room.adultsCapacity} Adults
-                        </Badge>
-                        <Badge variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center">
-                          <Bed className="w-4 h-4 mr-1" />
-                          {room.childrenCapacity} Children
-                        </Badge>
-                        <Badge variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center">
-                          <Home className="w-4 h-4 mr-1" />
-                          {room.totalAvailableRooms} rooms
-                        </Badge>
-                      </div>
-                      
-                      <div className="mb-3">
-                        <p className="text-sm font-medium text-gray-700 mb-2">Amenities</p>
-                        <div className="flex flex-wrap gap-2">
-                          {room.amenities.slice(0, 4).map((amenity, index) => (
-                            <Badge key={index} variant="secondary" className="bg-gray-100 text-gray-700 hover:bg-gray-200 flex items-center">
-                              {amenityIcons[amenity] || <Home className="w-4 h-4" />}
-                              <span className="ml-1">{amenity}</span>
-                            </Badge>
-                          ))}
-                          {room.amenities.length > 4 && (
-                            <Badge variant="outline" className="text-gray-600">
-                              <MoreHorizontal className="w-4 h-4 mr-1" />
-                              +{room.amenities.length - 4} more
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                <div key={room.id} className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow">
+  <div className="flex items-start">
+    {/* Image Section */}
+    <div className="relative w-[200px] h-[240px] bg-gradient-to-br from-amber-400 to-orange-500 flex-shrink-0 overflow-hidden">
+      <div className="absolute inset-0 bg-black bg-opacity-20"></div>
+      <div className="absolute bottom-3 right-3 bg-white text-gray-700 text-sm px-3 py-1.5 rounded flex items-center font-medium">
+        <Camera className="w-4 h-4 mr-1.5" />
+        +{room.images.length} more photos
+      </div>
+    </div>
+    
+    {/* Content Section */}
+    <div className="flex-1 p-6">
+      {/* Header */}
+      <div className="flex items-start justify-between mb-1">
+        <div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-1">{room.name}</h3>
+          <p className="text-sm text-gray-600">{room.description || 'Luxury five Star Hotel'}</p>
+        </div>
+        <div className="text-right">
+          <p className="text-2xl font-bold text-gray-900">{formatPrice(room.pricePerNight)}</p>
+          <p className="text-sm text-gray-500">/night</p>
+        </div>
+      </div>
+      
+      {/* Capacity Badges */}
+      <div className="flex items-center space-x-4 my-4 text-sm text-gray-600">
+        <div className="flex items-center text-gray-600">
+          <Users className="w-4 h-4 mr-1.5" />
+          <span>{room.adultsCapacity} Adults</span>
+        </div>
+        <div className="flex items-center text-gray-600">
+          <User className="w-4 h-4 mr-1.5" />
+          <span>{room.childrenCapacity} {room.childrenCapacity === 1 ? 'Child' : 'Children'}</span>
+        </div>
+        <div className="flex items-center text-gray-600">
+          <Home className="w-4 h-4 mr-1.5" />
+          <span>{room.totalAvailableRooms} rooms</span>
+        </div>
+      </div>
+      
+      {/* Amenities Section */}
+      <div>
+        <p className="text-sm font-medium text-gray-700 mb-3">Amenities</p>
+        <div className="flex flex-wrap items-center gap-3">
+          {room.amenities.slice(0, 4).map((amenity, index) => (
+            <div key={index} className="flex items-center text-sm text-gray-700">
+              {amenityIcons[amenity] || <Home className="w-4 h-4" />}
+              <span className="ml-2">{amenity}</span>
+            </div>
+          ))}
+          {room.amenities.length > 4 && (
+            <div className="flex items-center text-sm text-gray-600">
+              <Plus className="w-4 h-4 mr-1" />
+              <span>+{room.amenities.length - 4} more</span>
+            </div>
+          )}
+        </div>
+      </div>
+      
+      {/* Edit Button */}
+      <button className="mt-4 flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
+        <Edit2 className="w-4 h-4 mr-1.5" />
+        Edit
+      </button>
+    </div>
+  </div>
+</div>
               ))
             ) : (
               <div className="text-center py-8 text-gray-500">
@@ -305,11 +321,11 @@ export default function HotelBookingInterface({
                 <div>
                   <label className="text-sm font-medium text-gray-500 mb-3 block">Payment Options</label>
                   <div className="flex flex-wrap gap-3 mb-4">
-                    {Object.entries(completeData.bookingPolicy.paymentOptions)
-                      .filter(([enabled]) => enabled)
+                    {Object.entries(completeData?.bookingPolicy?.paymentOptions ?? {})
+                      .filter(([, enabled]) => enabled)
                       .map(([option]) => (
                         <Badge key={option} variant="outline" className="px-3 py-1.5 flex items-center justify-center text-sm">
-                          {option === "payAtHotel" && <Amenities color="#067463"/>}
+                          {option === "payAtHotel" && <MapPin color="#067463" className="w-4 h-4 mr-1" />}
                           {getPaymentMethodLabel(option)}
                         </Badge>
                       ))}

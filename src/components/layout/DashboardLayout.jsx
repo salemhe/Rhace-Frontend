@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import Sidebar from './sidebar/Sidebar';
+import { useState } from 'react';
 import Header from './headers/vendor-header';
+import Sidebar from './sidebar/Sidebar';
 
 const DashboardLayout = ({ children, type, section, settings }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // const navigate = useNavigate()
+
 
   return (
     <div className="flex h-dvh bg-white">
