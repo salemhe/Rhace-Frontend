@@ -15,7 +15,7 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "flex items-center justify-between rounded-xl bg-white p-4",
+        "flex items-center justify-between w-full rounded-xl bg-white p-4",
         "sm:flex-col sm:items-start sm:gap-2",
         className
       )}

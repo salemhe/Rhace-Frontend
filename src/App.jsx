@@ -31,6 +31,8 @@ import BookingTable from "./pages/vendor/hotel/bookings";
 import BookingManagement from "./pages/vendor/hotel/bookings";
 import AddRooms from "./pages/vendor/hotel/add-rooms/page";
 import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
+import CreateMenu from "./pages/dashboard/restaurant/CreateMenu";
+import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
 
 function App() {
   return (
@@ -70,9 +72,11 @@ function App() {
         <Route path="/hotels/:id" element={<HotelsPage />} />
         <Route path="/dashboard" >
           <Route path="" element={<VendorDashboard />}/>
+          <Route path="payments" element={<PaymentDashboard />}/>
           <Route path="restaurant/reservation" element={<ReservationDashboard />} />
           <Route path="restaurant/menu" element={<MenuDashboard />} />
           <Route path="restaurant/reservation/new" element={<CreateReservation />} />
+          <Route path="restaurant/menu/new" element={<CreateMenu />} />
         </Route>
         <Route path="hotel/dashboard" element={<VendorDashboard />} />
         <Route path="hotel/bookings" element={<BookingManagement />} />
