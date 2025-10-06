@@ -32,7 +32,7 @@ const Otp = () => {
   const handleResend = async () => {
     try {
       setIsResending(true);
-      const res = await authService.resendOTP(email);
+      const res = await authService.vendorResendOTP(email);
       setShowModal(true);
       setCountdown(60);
       toast.success(res.message)
@@ -52,7 +52,7 @@ const Otp = () => {
         setIsloading(false);
         return;
       }
-      const res = await authService.verifyOTP(email, value);
+      const res = await authService.vendorVerifyOTP(email, value);
       toast.success(res.message)
       navigate(`/auth/vendor/login`)
     } catch (err) {

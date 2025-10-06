@@ -45,7 +45,7 @@ const useMenuConfig = () => {
   return { menuItems, bottomItems, businessType };
 };
 
-const Sidebar = ({ isOpen, onClose, onNavigate }) => {
+const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
   const { menuItems, bottomItems, businessType } = useMenuConfig();
   
   const handleItemClick = (item) => {
@@ -87,21 +87,22 @@ const Sidebar = ({ isOpen, onClose, onNavigate }) => {
             {menuItems.map((item) => (
               <button
                 key={item.label}
-                onClick={() => handleItemClick(item)}
-                className={`w-[90%] flex items-center pl-7 py-2 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
+                onClick={() => {handleItemClick(item)
+                }}
+                className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
                   item.active
                     ? 'bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]'
                     : 'text-teal-100 hover:bg-teal-700 hover:text-white'
                 }`}
               >
-                <item.icon className="w-5 h-5 mr-3" />
+                <item.icon className="w-5 h-5" />
                 {item.label}
               </button>
             ))}
           </nav>
 
           {/* Bottom items */}
-          <div className="px-4 py-4 border-t border-teal-700 space-y-1">
+          <div className="px py-4  space-y-1">
             {bottomItems.map((item) => (
               <button
                 key={item.label}

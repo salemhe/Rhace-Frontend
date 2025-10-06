@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { ArrowDown, ArrowUp } from "../ui/svg";
 
 export function StatCard({
   title,
@@ -6,6 +7,7 @@ export function StatCard({
   icon,
   change,
   comparison = "vs last week",
+  color,
   className,
 }) {
   const isPositive = change >= 0;
@@ -13,27 +15,29 @@ export function StatCard({
   return (
     <div
       className={cn(
-        "flex items-center justify-between rounded-xl border bg-white p-4 shadow-sm transition hover:shadow-md",
+        "flex items-center justify-between w-full rounded-xl bg-white p-4",
         "sm:flex-col sm:items-start sm:gap-2",
         className
       )}
     >
-      <div className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
-          {icon}
-        </div>
+      <div className="flex items-center gap-3 w-full justify-between">
         <div>
           <p className="text-sm text-gray-500">{title}</p>
           <h3 className="text-xl font-semibold">{value}</h3>
         </div>
+        <div className={`flex h-10 w-10 items-center border justify-center rounded-lg ${color === "blue" ? "border-[#4C98F1] bg-[#E3F0FF]" : color === "green" ? "border-[#7DFB79] bg-[#ECF9EC]" : color === "orange" ? "bg-[#FFF8DE] border-[#FFEDA9]" : "bg-[#FFD3FC] border-[#FFACF9]"}`}>
+          {icon}
+        </div>
       </div>
       <p
         className={cn(
-          "mt-2 text-sm font-medium",
-          isPositive ? "text-green-600" : "text-red-600"
+          "mt-2 text-sm font-medium flex items-center gap-1",
+          isPositive ? "text-[#37703F]" : "text-[#EF4444]"
         )}
       >
-        {isPositive ? "↑" : "↓"} {Math.abs(change)}%{" "}
+        <span className="flex items-center">
+          {isPositive ? <ArrowUp /> : <ArrowDown />} {Math.abs(change)}%{" "}
+        </span>
         <span className="text-gray-400 font-normal">{comparison}</span>
       </p>
     </div>

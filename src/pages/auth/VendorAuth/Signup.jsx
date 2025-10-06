@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { Eye, EyeOff, Lock, Mail, Store } from "lucide-react"
+import { Eye, EyeOff, Loader2, Lock, Mail, Store } from "lucide-react"
 import HeroImage from '../../../components/auth/HeroImage'
 import { authService } from "@/services/auth.service"
 import { toast } from "sonner"
