@@ -1,23 +1,7 @@
 import HeroImage from "@/components/auth/HeroImage"
-// import { Card } from "@/components/ui/card";
-
-// const Onboard = () => {
-
-//   return (
-//     <div className='w-full h-screen flex p-4 bg-white'>
-//       <HeroImage role='vendor' />
-//       <div className="h-screen overflow-auto flex-1 flex flex-col items-center justify-center">
-//         <Card className="w-full max-w-md p-0 shadow-none border-none">
-//         </Card>
-//       </div>
-//     </div>
-//   )
-// }
-
-// export default Onboard
 
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { Card, CardContent, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -46,6 +30,13 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import axios from "axios"
+import api from "@/lib/axios"
+import { useNavigate } from "react-router"
+import { authService } from "@/services/auth.service"
+
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
 const STEPS = [
   {
@@ -95,7 +86,7 @@ export function Onboard() {
   const [formData, setFormData] = useState({
     profileImages: [],
     businessDescription: "",
-    vendorCategory: "",
+    vendorType: "",
     phone: "",
     address: "",
     website: "",
@@ -103,7 +94,7 @@ export function Onboard() {
     bankCode: "",
     accountNumber: "",
     accountName: "",
-    priceRange: "",
+    priceRange: 1000,
     offer: "",
     openingTime: "",
     closingTime: "",
@@ -118,6 +109,9 @@ export function Onboard() {
   const [isVerifyingBank, setIsVerifyingBank] = useState(false)
   const [isLoading, setIsloading] = useState(false)
   const [bankVerified, setBankVerified] = useState(false)
+  const [banks, setBanks] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
   const updateFormData = (updates) => {
     setFormData((prev) => ({ ...prev, ...updates }))
@@ -127,48 +121,74 @@ export function Onboard() {
     async (files) => {
       const fileArray = Array.from(files).slice(0, 5) // Limit to 5 images
 
+      const uploadedUrls = []
+
       for (const file of fileArray) {
         const fileName = file.name
         setUploadProgress((prev) => ({ ...prev, [fileName]: 0 }))
 
-        const uploadPromise = new Promise((resolve) => {
-          let progress = 0
-          const interval = setInterval(() => {
-            progress += Math.random() * 30
-            if (progress >= 100) {
-              progress = 100
-              clearInterval(interval)
-              setUploadProgress((prev) => ({ ...prev, [fileName]: 100 }))
-              resolve(`https://res.cloudinary.com/demo/image/upload/${fileName}`)
-            } else {
-              setUploadProgress((prev) => ({ ...prev, [fileName]: progress }))
-            }
-          }, 200)
-        })
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('upload_preset', UPLOAD_PRESET)
 
-        await uploadPromise
+        try {
+          const response = await axios.post(
+            `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+            formData,
+            {
+              onUploadProgress: (progressEvent) => {
+                const progress = Math.round(
+                  (progressEvent.loaded * 100) / progressEvent.total
+                )
+                setUploadProgress((prev) => ({ ...prev, [fileName]: progress }))
+              },
+            }
+          )
+
+          const imageUrl = response.data.secure_url
+          uploadedUrls.push(imageUrl)
+        } catch (error) {
+          console.error('Upload failed for', fileName, error)
+          setUploadProgress((prev) => ({ ...prev, [fileName]: -1 })) // -1 to indicate failure
+        }
       }
 
-      updateFormData({ profileImages: [...formData.profileImages, ...fileArray] })
+      updateFormData({ profileImages: [...formData.profileImages, ...uploadedUrls] })
     },
-    [formData.profileImages],
+    [formData.profileImages]
   )
 
   const handleBankVerification = async () => {
     if (!formData.bankCode || !formData.accountNumber) return
 
     setIsVerifyingBank(true)
+    setBankVerified(false)
 
-    setTimeout(() => {
-      const bank = NIGERIAN_BANKS.find((b) => b.code === formData.bankCode)
-      updateFormData({
-        bankName: bank.name || "",
-        accountName: "Wisdom Ofogba Oghenetega", // Static account name for preview
+    try {
+      const response = await api.get('/payments/verify-account', {
+        params: {
+          account_number: formData.accountNumber,
+          bank_code: formData.bankCode,
+        },
       })
+
+      const { accountName } = response.data
+
+      updateFormData({
+        bankName: banks.find((b) => b.code === formData.bankCode)?.name || '',
+        accountName,
+      })
+
       setBankVerified(true)
+    } catch (error) {
+      console.error('Account verification failed:', error)
+      alert(error.response?.data?.error || 'Verification failed. Please try again.')
+      setBankVerified(false)
+    } finally {
       setIsVerifyingBank(false)
-    }, 2000)
+    }
   }
+
 
   const addTag = (field, value) => {
     const currentArray = formData[field]
@@ -188,14 +208,14 @@ export function Onboard() {
         return (
           formData.profileImages.length >= 5 &&
           formData.businessDescription.trim() &&
-          formData.vendorCategory &&
+          formData.vendorType &&
           formData.phone.trim() &&
           formData.address.trim()
         )
       case 2:
         return bankVerified && formData.accountName.trim()
       case 3:
-        return formData.priceRange.trim()
+        return formData.priceRange
       default:
         return false
     }
@@ -212,14 +232,46 @@ export function Onboard() {
       setCurrentStep(currentStep - 1)
     }
   }
+  const navigate = useNavigate()
 
   const handleSubmit = async () => {
     setIsloading(true)
-    setTimeout(() => {
+
+    try {
+      const response = await authService.vendorOnboard(formData)
+
+      // Handle response (optional: use response.data if needed)
+      toast.success("Completed Onboarding Successfully!")
+
+      // Optionally reset form or redirect
+      navigate(`/dashboard/${response.vendor.vendorType}`)
+      // resetFormData()
+    } catch (error) {
+      console.error('Onboarding failed:', error)
+
+      toast.error(
+        error.response?.data?.error || 'Something went wrong. Please try again.'
+      )
+    } finally {
       setIsloading(false)
-      toast.success("Completed Onboarding Succeasfully!")
-    }, 2000)
+    }
   }
+
+  useEffect(() => {
+    const fetchBanks = async () => {
+      try {
+        const response = await api.get('/payments/banks')
+        setBanks(response.data.data)
+      } catch (err) {
+        setError('Failed to load banks')
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchBanks()
+  }, [])
 
   return (
     <div className="w-full h-screen flex p-4 bg-white">
@@ -308,7 +360,7 @@ export function Onboard() {
                       </div>
                     ))}
 
-                    <p className="text-sm text-muted-foreground">{formData.profileImages.length}/5 images uploaded</p>
+                    <p className="text-sm text-muted-foreground">{formData.profileImages.length} images uploaded</p>
                   </div>
 
                   {/* Business Description */}
@@ -337,10 +389,10 @@ export function Onboard() {
                         <button
                           key={value}
                           type="button"
-                          onClick={() => updateFormData({ vendorCategory: value })}
+                          onClick={() => updateFormData({ vendorType: value })}
                           className={cn(
                             "p-4 rounded-lg border-2 transition-all flex gap-2 text-left hover:border-primary/50",
-                            formData.vendorCategory === value ? "border-primary bg-primary/5" : "border-border",
+                            formData.vendorType === value ? "border-primary bg-primary/5" : "border-border",
                           )}
                         >
                           <Icon className="w-6 h-6 text-primary" />
@@ -405,7 +457,7 @@ export function Onboard() {
                     <Select
                       value={formData.bankCode}
                       onValueChange={(value) => {
-                        const bank = NIGERIAN_BANKS.find((b) => b.code === value)
+                        const bank = banks.find((b) => b.code === value)
                         updateFormData({
                           bankCode: value,
                           bankName: bank?.name || "",
@@ -417,8 +469,8 @@ export function Onboard() {
                         <SelectValue placeholder="Choose your bank" />
                       </SelectTrigger>
                       <SelectContent>
-                        {NIGERIAN_BANKS.map((bank) => (
-                          <SelectItem key={bank.code} value={bank.code}>
+                        {banks.map((bank, i) => (
+                          <SelectItem key={i} value={bank.code}>
                             {bank.name}
                           </SelectItem>
                         ))}
@@ -485,17 +537,15 @@ export function Onboard() {
                       <DollarSign className="w-4 h-4" />
                       Price Range
                     </Label>
-                    <Select value={formData.priceRange} onValueChange={(value) => updateFormData({ priceRange: value })}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your price range" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low (₦1,000 - ₦5,000)</SelectItem>
-                        <SelectItem value="medium">Medium (₦5,000 - ₦15,000)</SelectItem>
-                        <SelectItem value="high">High (₦15,000 - ₦50,000)</SelectItem>
-                        <SelectItem value="premium">Premium (₦50,000+)</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      type="number"
+                      value={formData.priceRange}
+                      onChange={(e) => {
+                        const value = e.target.value
+                        updateFormData({ priceRange: value === '' ? '' : Number(value) })
+                      }}
+                    />
+
                   </div>
 
                   {/* General Offer */}
@@ -512,7 +562,7 @@ export function Onboard() {
                   </div>
 
                   {/* Category-specific fields */}
-                  {formData.vendorCategory === "restaurant" && (
+                  {formData.vendorType === "restaurant" && (
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -557,7 +607,7 @@ export function Onboard() {
                     </div>
                   )}
 
-                  {formData.vendorCategory === "club" && (
+                  {formData.vendorType === "club" && (
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">

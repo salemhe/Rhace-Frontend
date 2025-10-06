@@ -1,4 +1,4 @@
-import api from "@/lib/axios"
+import api from "@/lib/axios";
 class AuthService {
   async login(email, password) {
     const res = await api.post("/users/auth/login", { email, password });
@@ -14,13 +14,13 @@ class AuthService {
   }
 
   async verifyOTP(email, otp) {
-    const res = await api.post("/users/auth/verify-otp", {email, otp});
+    const res = await api.post("/users/auth/verify-otp", { email, otp });
     return res.data;
   }
 
   async resendOTP(email) {
     const res = await api.post("/users/auth/resend-otp", { email });
-    return res.data
+    return res.data;
   }
 
   async vendorLogin(email, password) {
@@ -30,8 +30,12 @@ class AuthService {
     return res.data;
   }
 
-  async vendorRegister(businessName, email, password) {
-    const res = await api.post("/vendors/auth/register", {businessName, email, password});
+  async vendorRegister({ businessName, email, password }) {
+    const res = await api.post("/vendors/auth/register", {
+      businessName,
+      email,
+      password,
+    });
     return res.data;
   }
 
@@ -41,7 +45,10 @@ class AuthService {
   }
 
   async resetPassword(token, password) {
-    const res = await api.post("/users/auth/reset-password", { token, password });
+    const res = await api.post("/users/auth/reset-password", {
+      token,
+      password,
+    });
     return res.data;
   }
 
@@ -51,7 +58,20 @@ class AuthService {
   }
 
   async vendorResetPassword(token, password) {
-    const res = await api.post("/vendors/auth/reset-password", { token, password });
+    const res = await api.post("/vendors/auth/reset-password", {
+      token,
+      password,
+    });
+    return res.data;
+  }
+
+  async vendorVerifyOTP(email, otp) {
+    const res = await api.post("/vendors/auth/verify-otp", { email, otp });
+    return res.data;
+  }
+
+  async vendorResendOTP(email) {
+    const res = await api.post("/vendors/auth/resend-otp", { email });
     return res.data;
   }
 

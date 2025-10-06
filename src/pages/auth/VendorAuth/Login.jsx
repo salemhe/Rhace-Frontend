@@ -45,8 +45,9 @@ const Login = () => {
       toast.success("Welcome back!");
       if (!user.vendor.isOnboarded) {
         navigate("/auth/vendor/onboarding")
+      } else {
+        navigate(redirectTo);
       }
-      navigate(redirectTo);
     } catch (err) {
       toast.error(err.response?.data.message);
       if (err.response.data.message === "Please verify your email with the OTP sent to your inbox.") {
