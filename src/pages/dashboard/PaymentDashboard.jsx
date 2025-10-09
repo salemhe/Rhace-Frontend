@@ -1,5 +1,5 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Add, Calendar, CardPay, Cash2, CheckCircle, Copy, Export, Eye, Eye2, EyeClose, Filter2, Group3, Pencil, Phone, Printer, XCircle } from '@/components/dashboard/ui/svg';
 import { StatCard } from '@/components/dashboard/stats/mainStats';
 import {
@@ -38,121 +38,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import DashboardButton from '@/components/dashboard/ui/DashboardButton';
 import FinancialDashboard from '@/components/dashboard/FinancialDashboard';
-
-const data = [
-  {
-    trxn_Id: "1829622",
-    customer_name: "Wisdom ofogba",
-    guests: 4,
-    date: "29/05/2025",
-    payment_method: "Bank Transfer",
-    payment_status: "Paid",
-  },
-  {
-    trxn_Id: "1829622",
-    customer_name: "Chris ofogba",
-    guests: 4,
-    date: "29/05/2025",
-    payment_method: "Bank Transfer",
-    payment_status: "Part-paid",
-  },
-]
-
-const columns = [
-  {
-    accessorKey: "date",
-    header: "Date",
-    cell: ({ row }) => {
-      const user = row.original
-      return (
-        <span className='text-[#111827] font-medium text-sm'>{user.date}</span>
-      )
-    },
-    filterFn: (row, columnId, value) => {
-      return value === "" || row.getValue(columnId) === value
-    },
-  },
-  {
-    accessorKey: "trxn_id",
-    header: "Transaction ID",
-    cell: ({ row }) => {
-      const user = row.original
-      return (
-        <span className='text-[#111827] font-medium text-sm'>{user.customer_name}</span>
-      )
-    },
-  },
-  {
-    accessorKey: "customer_name",
-    header: "Customer Name",
-    cell: ({ row }) => {
-      const user = row.original
-      return (
-        <div className="flex items-center gap-3">
-          <div className='rounded-full overflow-hidden relative size-9'>
-            <img src={user.customer_image} alt={user.customer_name} className='size-full object-cover' />
-          </div>
-          <span className='text-[#111827] font-medium text-sm'>{user.customer_name}</span>
-        </div>
-      )
-    },
-  },
-  {
-    accessorKey: "payment_method",
-    header: "Payment Method",
-    cell: ({ row }) => (
-      <span className='text-[#111827] font-medium text-sm'>{row.getValue("payment_method")}</span>
-    ),
-  },
-  {
-    accessorKey: "payment_status",
-    header: "Payment Status",
-    filterFn: (row, columnId, value) => {
-      return value === "" || row.getValue(columnId) === value
-    },
-    cell: ({ row }) => <div className={`${row.getValue("payment_status") === "Paid" ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
-      <div className={`${row.getValue("payment_status") === "Paid" ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full bg-[#37703F]`} />
-      {row.getValue("payment_status")}</div>
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      // const payment = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {/* <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem> */}
-            <DropdownMenuItem><Eye2 /> View Reservation</DropdownMenuItem>
-            <DropdownMenuItem><Pencil /> Edit Reservation</DropdownMenuItem>
-            <DropdownMenuItem><Phone /> Contact Customer</DropdownMenuItem>
-            <DropdownMenuItem><Printer /> Print Receipt</DropdownMenuItem>
-            <DropdownMenuItem><CheckCircle /> Mark as Completed</DropdownMenuItem>
-            <DropdownMenuItem><CheckCircle /> Mark as No-Show</DropdownMenuItem>
-            <DropdownMenuItem><Copy /> Dupllicate Reservation</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-[#EF4444]"><XCircle /> Cancel Reservation</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
-
+import { paymentService } from '@/services/payment.service';
+import { toast } from 'sonner';
 
 const PaymentDashboard = () => {
   const [hideTab, setHideTab] = useState(false);
@@ -165,9 +54,215 @@ const PaymentDashboard = () => {
   const [statusFilter, setStatusFilter] = useState("")
   const [dateFilter, setDateFilter] = useState("")
   const [globalFilter, setGlobalFilter] = useState("")
+  const [data, setData] = useState([])
+  const [stats, setStats] = useState({
+    "earnings": {
+      "thisYear": 0,
+      "lastYear": 0,
+      "yearChange": 0,
+      "thisWeek": 0,
+      "lastWeek": 0,
+      "weekChange": 0
+    },
+    "payments": {
+      "completed": {
+        "thisWeek": 0,
+        "lastWeek": 0,
+        "change": 0
+      },
+      "pending": {
+        "thisWeek": 0,
+        "lastWeek": 0,
+        "change": 0
+      }
+    }
+  });
+  const [trend, setTrends] = useState({ "trends": [], "totalEarnings": 0, "percentChange": 0 });
+  const [info, setInfo] = useState({
+    "bankCode": "N/A",
+    "accountNumber": "N/A",
+    "subaccountCode": "N/A",
+    "bankName": "N/A",
+    "accountName": "N/A",
+    "bankLogo": "N/A",
+    "balance": "N/A"
+  })
+  const [loading, setLoading] = useState({
+    data: true,
+    stats: true,
+    trend: true,
+    info: true
+  })
 
   const uniqueStatuses = Array.from(new Set(data.map(row => row.payment_status))).sort()
   const uniqueDates = Array.from(new Set(data.map(row => row.date))).sort()
+
+
+  const columns = [
+    {
+      accessorKey: "date",
+      header: "Date",
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <span className='text-[#111827] font-medium text-sm'>{user.date}</span>
+        )
+      },
+      filterFn: (row, columnId, value) => {
+        return value === "" || row.getValue(columnId) === value
+      },
+    },
+    {
+      accessorKey: "trxn_id",
+      header: "Transaction ID",
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <span className='text-[#111827] font-medium text-sm'>{user.trxn_Id}</span>
+        )
+      },
+    },
+    {
+      accessorKey: "customer_name",
+      header: "Customer Name",
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <div className="flex items-center gap-3">
+            <div className='rounded-full overflow-hidden relative size-9'>
+              <img src={user.customer_image} alt={user.customer_name} className='size-full object-cover' />
+            </div>
+            <span className='text-[#111827] font-medium text-sm'>{user.customer_name}</span>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "payment_method",
+      header: "Payment Method",
+      cell: ({ row }) => (
+        <span className='text-[#111827] font-medium text-sm'>{row.getValue("payment_method")}</span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Payment Status",
+      filterFn: (row, columnId, value) => {
+        return value === "" || row.getValue(columnId) === value
+      },
+      cell: ({ row }) => <div className={`${row.getValue("payment_status") === "Paid" ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
+        <div className={`${row.getValue("payment_status") === "Paid" ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full bg-[#37703F]`} />
+        {row.getValue("status")}</div>
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        // const payment = row.original
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {/* <DropdownMenuItem
+              onClick={() => navigator.clipboard.writeText(payment.id)}
+            >
+              Copy payment ID
+            </DropdownMenuItem> */}
+              <DropdownMenuItem><Eye2 /> View Reservation</DropdownMenuItem>
+              <DropdownMenuItem><Pencil /> Edit Reservation</DropdownMenuItem>
+              <DropdownMenuItem><Phone /> Contact Customer</DropdownMenuItem>
+              <DropdownMenuItem><Printer /> Print Receipt</DropdownMenuItem>
+              <DropdownMenuItem><CheckCircle /> Mark as Completed</DropdownMenuItem>
+              <DropdownMenuItem><CheckCircle /> Mark as No-Show</DropdownMenuItem>
+              <DropdownMenuItem><Copy /> Dupllicate Reservation</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-[#EF4444]"><XCircle /> Cancel Reservation</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    },
+  ]
+
+
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setLoading({
+          data: true
+        })
+        const res = await paymentService.getPayments();
+        setData(res)
+      } catch (error) {
+        console.error(error)
+        toast.error(error.response.message)
+      } finally {
+        setLoading({
+          data: false
+        })
+      }
+    }
+    const fetchPaymentStats = async () => {
+      try {
+        setLoading({
+          stats: true
+        })
+        const res = await paymentService.getPaymentStats();
+        setStats(res)
+      } catch (error) {
+        console.error(error)
+        toast.error(error.response.message)
+      } finally {
+        setLoading({
+          stats: false
+        })
+      }
+    }
+    const fetchTrends = async () => {
+      try {
+        setLoading({
+          trend: true
+        })
+        const res = await paymentService.getTrends();
+        setTrends(res)
+      } catch (error) {
+        console.error(error)
+        toast.error(error.response.message)
+      } finally {
+        setLoading({
+          trend: false
+        })
+      }
+    }
+    const fetchPaymentInfo = async () => {
+      try {
+        setLoading({
+          info: true
+        })
+        const res = await paymentService.getPaymentInfo();
+        setInfo(res)
+      } catch (error) {
+        console.error(error)
+        toast.error(error.response.message)
+      } finally {
+        setLoading({
+          info: false
+        })
+      }
+    }
+
+
+    fetchPayments()
+    fetchPaymentStats()
+    fetchTrends()
+    fetchPaymentInfo()
+  }, [])
 
 
   const table = useReactTable({
@@ -210,38 +305,38 @@ const PaymentDashboard = () => {
             <DashboardButton variant="secondary" text="Export" icon={<Export />} />
           </div>
         </div>
-        {!hideTab &&
+        {!hideTab && !loading.stats &&
           <div className='hidden md:grid grid-cols-4 border w-full rounded-2xl'>
             <div className='flex h-full items-center'>
-              <StatCard title="Total Earnings" value={`#${(2567456).toLocaleString('en-US', {
+              <StatCard title="Total Earnings" value={`#${stats.earnings.thisYear.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-              })}`} change={12} icon={<Calendar />} color="blue" />
+              })}`} change={stats.earnings.yearChange} icon={<Calendar />} color="blue" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
-              <StatCard title="Earnings this Week" value={`#${(523345).toLocaleString('en-US', {
+              <StatCard title="Earnings this Week" value={`#${stats.earnings.thisWeek.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-              })}`} change={8} icon={<CardPay />} color="green" />
+              })}`} change={stats.earnings.weekChange} icon={<CardPay />} color="green" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
-              <StatCard title="Completed Payments" value={`#${(372556).toLocaleString('en-US', {
+              <StatCard title="Completed Payments" value={`#${stats.payments.completed.thisWeek.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-              })}`} change={8} icon={<Cash2 className="text-[#CD16C3]" />} color="purple" />
+              })}`} change={stats.payments.completed.change} icon={<Cash2 className="text-[#CD16C3]" />} color="purple" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
             </div>
             <div className='flex w-full'>
-              <StatCard title="Pending Payments" value={`#${(152789).toLocaleString('en-US', {
+              <StatCard title="Pending Payments" value={`#${stats.payments.pending.thisWeek.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
-              })}`} change={-5} icon={<Cash2 className="text-[#E1B505]" />} color="orange" />
+              })}`} change={stats.payments.pending.change} icon={<Cash2 className="text-[#E1B505]" />} color="orange" />
             </div>
           </div>
         }
-        <FinancialDashboard />
+        <FinancialDashboard info={info} trend={trend} />
         <div>
           <div className="w-full border rounded-2xl">
             <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between p-4">
