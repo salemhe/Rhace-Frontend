@@ -1,11 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Upload, MapPin, X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -13,9 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { MapPin, Upload, X } from "lucide-react";
+import { useState } from "react";
 
 
-export function HotelSetupForm({ formData, setFormData }) {
+export function HotelSetupForm ({ formData, setFormData }) {
   const [previewUrls, setPreviewUrls] = useState([]);
   const [dragActive, setDragActive] = useState(false);
 
@@ -75,7 +75,7 @@ export function HotelSetupForm({ formData, setFormData }) {
     const newImages = [...(formData.images || [])];
     newImages.splice(index, 1);
     setFormData({ ...formData, images: newImages });
-    
+
     setPreviewUrls((prev) => {
       const newPreviews = [...prev];
       newPreviews.splice(index, 1);
@@ -174,18 +174,17 @@ export function HotelSetupForm({ formData, setFormData }) {
             </div>
           </div>
 
-         
+
         </div>
 
         {/* Right Column */}
         <div className="space-y-6 rounded-lg border p-8 bg-white h-max">
-           {/* Multiple Images Upload */}
+          {/* Multiple Images Upload */}
           <div className="space-y-2">
             <Label>Logo/Cover Image <span className="text-gray-400">(Optional)</span></Label>
             <div
-              className={`border-2 border-dashed rounded-lg p-6 text-center ${
-                dragActive ? "border-teal-500 bg-teal-50" : "border-gray-300"
-              }`}
+              className={`border-2 border-dashed rounded-lg p-6 text-center ${dragActive ? "border-teal-500 bg-teal-50" : "border-gray-300"
+                }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}

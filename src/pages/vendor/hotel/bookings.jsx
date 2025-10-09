@@ -1,16 +1,14 @@
-import React, { useState } from 'react';
-import { 
-  Search, 
-  ChevronDown, 
-  SlidersHorizontal, 
-  MoreHorizontal, 
-  Eye, 
-  Download, 
-  Plus,
-  ChevronLeft,
-  ChevronRight
-} from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import {
+  ChevronDown,
+  Download,
+  Eye,
+  MoreHorizontal,
+  Plus,
+  Search,
+  SlidersHorizontal
+} from 'lucide-react';
+import { useState } from 'react';
 
 const BookingManagement = () => {
   const [activeTab, setActiveTab] = useState('All');

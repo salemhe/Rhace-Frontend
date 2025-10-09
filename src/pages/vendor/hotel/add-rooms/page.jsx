@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from '@/components/ui/button';
+import { hotelService } from '@/services/hotel.service';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
 import Header from './components/Header';
@@ -8,7 +10,6 @@ import { BookingPolicyForm } from './components/booking-policy';
 import { HotelSetupForm } from './components/hotel-setup-form';
 import HotelBookingInterface from './components/rooms-confirmation';
 import { SetupSteps } from './components/setup-steps';
-import { Button } from '@/components/ui/button';
 
 
 export default function AddRooms() {
@@ -146,12 +147,42 @@ export default function AddRooms() {
 
     // Submit the complete form data
     console.log('Complete Hotel Data:', completeFormData);
-    
-    // Here you would typically send this to your API
-    // Example:
-    // await submitHotelData(completeFormData);
-    
-    alert('Hotel setup completed successfully!');
+
+    const hotelId = completeFormData.hotelInfo?.id || completeFormData.hotelInfo?.hotelId;
+    // if (!hotelId) {
+    //   alert('No hotel id available. Please ensure the hotel has been created and an id is present in hotel info.');
+    //   return;
+    // }
+
+    // Send each room type to the API
+    (async () => {
+      try {
+        const created = [];
+        for (const room of completeFormData.roomTypes) {
+          // Transform local room shape to API payload as needed
+          const payload = {
+            name: room.name,
+            description: room.description,
+            pricePerNight: room.pricePerNight,
+            adultsCapacity: room.adultsCapacity,
+            childrenCapacity: room.childrenCapacity,
+            totalAvailableRooms: room.totalAvailableRooms,
+            amenities: room.amenities,
+            images: room.images || []
+          };
+
+          // Create room type
+          const res = await hotelService.createRoomType(hotelId, payload);
+          created.push(res);
+        }
+
+        console.log('Created room types:', created);
+        alert('Hotel setup completed successfully!');
+      } catch (err) {
+        console.error('Error creating room types', err);
+        alert('An error occurred while creating room types. Check console for details.');
+      }
+    })();
   };
 
   // Save as draft functionality
