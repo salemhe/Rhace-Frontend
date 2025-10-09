@@ -281,7 +281,7 @@ export function Onboard() {
           <Card className="w-full max-w-lg bg-white shadow-none gap-3 p-0 border-none">
             <CardHeader className="text-left">
               <div className="flex items-center justify-center gap-2 mb-6">
-                <div className="w-6 h-6 bg-[#60A5FA] rounded-full flex items-center justify-center"></div>
+                <div className="w-6 h-6 bg-[#B3D1D2] rounded-full flex items-center justify-center"></div>
                 <span className="text-xl font-semibold text-gray-900">Rhace</span>
               </div>
               {currentStep === 1 && (
@@ -315,7 +315,7 @@ export function Onboard() {
                   <div key={step.id} className="flex items-center w-full">
                     <div
                       className={cn("w-full h-2 rounded-full transition-all", {
-                        "bg-primary": isCompleted || isActive,
+                        "bg-[#0A6C6D]": isCompleted || isActive,
                         "bg-border": !isCompleted && !isActive,
                       })}
                     />
@@ -329,7 +329,7 @@ export function Onboard() {
                   {/* Image Upload */}
                   <div className="space-y-4">
                     <Label className="text-base font-medium">Business Photos (Upload at least 5)</Label>
-                    <div className="border-2 border-dashed border-border rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
+                    <div className="border-2 border-dashed border-border  bg-white rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
                       <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-4" />
                       <p className="text-sm text-muted-foreground mb-4">
                         Drag and drop your images here, or click to browse
@@ -373,7 +373,10 @@ export function Onboard() {
                       placeholder="Tell customers what makes your business special..."
                       value={formData.businessDescription}
                       onChange={(e) => updateFormData({ businessDescription: e.target.value })}
-                      className="min-h-[120px] resize-none"
+                      className="min-h-[120px] resize-none w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white/50
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3" 
                     />
                   </div>
 
@@ -415,6 +418,10 @@ export function Onboard() {
                         placeholder="+234 800 000 0000"
                         value={formData.phone}
                         onChange={(e) => updateFormData({ phone: e.target.value })}
+                        className="w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white 
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                       />
                     </div>
 
@@ -429,6 +436,10 @@ export function Onboard() {
                         placeholder="https://yourwebsite.com"
                         value={formData.website}
                         onChange={(e) => updateFormData({ website: e.target.value })}
+                        className="w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                       />
                     </div>
                   </div>
@@ -443,7 +454,10 @@ export function Onboard() {
                       placeholder="Enter your complete business address..."
                       value={formData.address}
                       onChange={(e) => updateFormData({ address: e.target.value })}
-                      className="min-h-[80px] resize-none"
+                      className="min-h-[80px] resize-none w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white 
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                     />
                   </div>
                 </div>
@@ -493,11 +507,16 @@ export function Onboard() {
                           setBankVerified(false)
                         }}
                         maxLength={10}
+                        className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                       />
                       <Button
                         onClick={handleBankVerification}
                         disabled={!formData.bankCode || !formData.accountNumber || isVerifyingBank}
-                        variant="outline"
+                        // variant="outline"
+                        className="w-[100px] h-[25px] py-5 rounded-md bg-[#0A6C6D] text-white text-sm font-normal transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D]"
                       >
                         {isVerifyingBank ? (
                           <>
@@ -544,6 +563,10 @@ export function Onboard() {
                         const value = e.target.value
                         updateFormData({ priceRange: value === '' ? '' : Number(value) })
                       }}
+                      className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                     />
 
                   </div>
@@ -558,6 +581,10 @@ export function Onboard() {
                       placeholder="e.g., 20% off first booking, Free WiFi, etc."
                       value={formData.offer}
                       onChange={(e) => updateFormData({ offer: e.target.value })}
+                      className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                     />
                   </div>
 
@@ -574,6 +601,10 @@ export function Onboard() {
                             type="time"
                             value={formData.openingTime}
                             onChange={(e) => updateFormData({ openingTime: e.target.value })}
+                            className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                           />
                         </div>
                         <div className="space-y-2">
@@ -585,6 +616,10 @@ export function Onboard() {
                             type="time"
                             value={formData.closingTime}
                             onChange={(e) => updateFormData({ closingTime: e.target.value })}
+                            className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                           />
                         </div>
                       </div>
@@ -693,12 +728,12 @@ export function Onboard() {
                 </Button>
 
                 {currentStep < 3 ? (
-                  <Button onClick={handleNext} disabled={!canProceedToNext()} className="flex items-center gap-2">
+                  <Button onClick={handleNext} disabled={!canProceedToNext()} className="flex items-center gap-2 bg-[#0A6C6D]">
                     Continue
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 ) : (
-                  <Button onClick={handleSubmit} disabled={!canProceedToNext()} className="flex items-center gap-2">
+                  <Button onClick={handleSubmit} disabled={!canProceedToNext()} className="flex items-center gap-2 bg-[#0A6C6D]">
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -740,6 +775,10 @@ function TagInput({ label, placeholder, tags, onAdd, onRemove }) {
         value={inputValue}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
+        className="w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
       />
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
