@@ -97,7 +97,7 @@ const Signup = () => {
           <Card className="w-full max-w-md bg-white shadow-none p-0 border-none">
             <CardHeader className="text-center pb-6">
               <div className="flex items-center justify-center gap-2 mb-6">
-                <div className="w-6 h-6 bg-[#60A5FA] rounded-full flex items-center justify-center">
+                <div className="w-6 h-6 bg-[#B3D1D2] rounded-full flex items-center justify-center">
                 </div>
                 <span className="text-xl font-semibold text-gray-900">Rhace</span>
               </div>
@@ -110,14 +110,17 @@ const Signup = () => {
                   Business Name
                 </Label>
                 <div className="relative">
-                  <Store className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
-                  <Input
+                  {/* <Store className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} /> */}
+                  <input
                     id="businessName"
                     type="text"
                     value={formData.businessName}
-                    placeholder="John Doe"
+                    placeholder="Enter your buisness name"
                     onChange={(e) => handleInputChange("businessName", e.target.value)}
-                    className="pl-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                    className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+                        text-black text-sm placeholder-[#a0a3a8]
+                        focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                        hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                   />
                 </div>
                 {error.businessName && <p className="text-sm text-red-600 mt-1">{error.businessName}</p>}
@@ -127,14 +130,17 @@ const Signup = () => {
                   Email
                 </Label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
-                  <Input
+                  {/* <Mail className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} /> */}
+                  <input
                     id="email"
                     type="email"
-                    placeholder="john.doe@example.com"
+                    placeholder="Enter your business email"
                     value={formData.email}
                     onChange={(e) => handleInputChange("email", e.target.value)}
-                    className="pl-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                    className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+                        text-black text-sm placeholder-[#a0a3a8]
+                        focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                        hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                   />
                 </div>
                 {error.email && <p className="text-sm text-red-600 mt-1">{error.email}</p>}
@@ -144,14 +150,17 @@ const Signup = () => {
                   Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
-                  <Input
+                  {/* <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} /> */}
+                  <input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     value={formData.password}
                     placeholder="********"
                     onChange={(e) => handleInputChange("password", e.target.value)}
-                    className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                    className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+                        text-black text-sm placeholder-[#a0a3a8]
+                        focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                        hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                   />
                   <button
                     type="button"
@@ -168,14 +177,17 @@ const Signup = () => {
                   Confirm Password
                 </Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
-                  <Input
+                  {/* <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} /> */}
+                  <input
                     id="confirmPassword"
                     type={showConfirmPassword ? "text" : "password"}
                     value={formData.confirmPassword}
                     placeholder="********"
                     onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
-                    className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                    className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+                        text-black text-sm placeholder-[#a0a3a8]
+                        focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                        hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                   />
                   <button
                     type="button"
@@ -192,7 +204,7 @@ const Signup = () => {
                   <PasswordStrengthMeter strength={strength} />
                 </div>
               )}
-              <Button disabled={!formData.businessName || !formData.email || !formData.password || !formData.confirmPassword || strength < 3} onClick={handleRegister} className="w-full h-10 sm:h-12 rounded-md bg-[#0a646d] text-white text-sm sm:text-base font-light shadow-md hover:shadow-lg hover:bg-[#127a87] transition-colors duration-300">
+              <Button disabled={!formData.businessName || !formData.email || !formData.password || !formData.confirmPassword || strength < 3} onClick={handleRegister} className="w-full py-6 rounded-md bg-[#0A6C6D] text-white text-sm font-light transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D]">
                 {isLoading ? (
                   <span className="flex items-center gap-1">
                     Loading <Loader2 className="animate-spin" />
@@ -203,9 +215,9 @@ const Signup = () => {
               </Button>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-6">
-              <p className="text-sm text-center text-gray-600">
+              <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
                 Already Have An Account?{" "}
-                <a href="/auth/vendor/login" className="text-blue-600 hover:underline font-medium">
+                <a href="/auth/vendor/login" className="text-[#0a646d] hover:underline font-medium">
                   Sign In
                 </a>
               </p>

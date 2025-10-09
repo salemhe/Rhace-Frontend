@@ -41,23 +41,26 @@ const ForgotPassword = () => {
             </div>
             <div className="space-y-6">
               <div className="relative">
-                <Mail className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
-                <Input
+                {/* <Mail className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} /> */}
+                <input
                   id="email"
                   type="email"
-                  placeholder="john.doe@example.com"
+                  placeholder="Enter your business email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                  className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+                          text-black text-sm placeholder-[#a0a3a8]
+                          focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                 />
               </div>
 
-              <Button disabled={isLoading} onClick={handleSubmit} className="w-full h-10 sm:h-12 rounded-md bg-[#0a646d] text-white text-sm sm:text-base font-light shadow-md hover:shadow-lg hover:bg-[#127a87] transition-colors duration-300" size="lg">
+              <Button disabled={isLoading} onClick={handleSubmit} className="w-full py-6 rounded-md bg-[#0A6C6D] text-white text-sm font-light transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D]" size="lg">
                 {isLoading ? (<> Loading <Loader2 className="animate-spin" /></>) : "Send"}
               </Button>
             </div>
             <div className="text-center">
-              <a href="/auth/vendor/login" className="text-blue-600 hover:underline font-medium text-sm">Back to Login</a>
+              <a href="/auth/vendor/login" className="text-sm text-[#0A6C6D] hover:text-[#074f55] font-medium transition-all">Back to Login</a>
             </div>
           </CardContent>
         </Card>

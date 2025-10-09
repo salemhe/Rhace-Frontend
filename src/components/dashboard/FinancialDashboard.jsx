@@ -5,29 +5,23 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart"
-import DashboardButton from './ui/DashboardButton';
-import { Add } from './ui/svg';
+import moment from "moment";
+import { tr } from 'date-fns/locale';
 
-const FinancialDashboard = () => {
-    // Mock data to populate the dashboard
-    const availableBalance = '567,456.00';
+const FinancialDashboard = ({ info, trend }) => {
+    const availableBalance = info.balance;
     const currencySymbol = '#';
     const lastPaymentDate = 'May 31st, 2025';
-    const accountHolder = 'Joseph Eyebiokin';
-    const lastFourDigits = '123456';
-    const earningsValue = '104';
-    const earningsChange = '8%';
+    const accountHolder = info.accountName;
+    const lastFourDigits = info.accountNumber;
+    const earningsValue = trend.totalEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    const earningsChange = `${trend.percentChange}%`;
     const branches = ['Restaurant 1 - HQ'];
 
-    const chartData = [
-        { month: "January", desktop: 186 },
-        { month: "February", desktop: 305 },
-        { month: "March", desktop: 237 },
-        { month: "April", desktop: 73 },
-        { month: "May", desktop: 209 },
-        { month: "June", desktop: 214 },
-    ]
-
+    const chartData = trend.trends.map(item => ({
+        date: moment(item._id).format("MMM D"), // 'Jan 1'
+        earnings: item.totalEarnings
+    }));
     const chartConfig = {
         desktop: {
             label: "Desktop",
@@ -36,39 +30,40 @@ const FinancialDashboard = () => {
     }
 
     return (
-        <div className="flex flex-col lg:flex-row gap-5 max-w-5xl mx-auto p-4" >
+        <div className="flex flex-col lg:flex-row gap-5 mx-auto" >
 
             {/* 1. Account Summary Panel (Left) */}
-            < div className="flex-1 p-5 bg-white rounded-xl shadow-lg" >
+            < div className="flex-1 p-5 bg-white rounded-2xl border" >
                 <div className="flex justify-between items-start mb-5">
                     <div>
                         <h3 className="text-sm text-gray-500 font-medium mb-1">Available Balance</h3>
                         <div className="text-4xl font-extrabold text-gray-800">{currencySymbol}{availableBalance}</div>
                         <p className="text-xs text-gray-400 mt-1">Last payment processed on {lastPaymentDate}</p>
                     </div>
-                    <DashboardButton text="Withdraw" variant="primary" icon={<Add className="text-white size-5" />} />
                 </div>
 
                 {/* Zenith Bank Card */}
-                <div className="bg-gray-800 h-[200px] text-white p-4 rounded-lg mb-4" >
+                <div className="bg-[#1E1E1E] h-[178px] flex flex-col justify-between text-white p-4 rounded-lg mb-4" >
                     <div className="flex justify-between items-center mb-3">
                         <div className="flex items-center">
-                            <span className="text-3xl font-black mr-2 text-red-600">Z</span> {/* Zenith logo color */}
+                            <div className='relative w-10 h-10 mr-3'>
+                                <img src={info.bankLogo} alt={info.bankName} className='absolute size-full object-contain' />
+                            </div>
                             <div>
-                                <p className="text-sm font-bold m-0">Zenith Bank</p>
-                                <p className="text-xs text-green-400 m-0">✓ Verified Account</p>
+                                <p className="text-sm font-bold m-0">{info.bankName}</p>
+                                <p className="text-xs flex items-center gap-1"> <span className='size-2 flex rounded-full bg-[#37703F]' /> Verified Account</p>
                             </div>
                         </div>
-                        <button className="bg-gray-700 hover:bg-gray-600 text-white text-xs py-1 px-2 rounded-md transition duration-150 ease-in-out">
-                            Edit
-                        </button>
                     </div>
-                    <div className="text-xl font-medium my-4">*****{lastFourDigits}</div>
-                    <p className="text-sm m-0">{accountHolder}</p>
+                    <div>
+
+                        <div className="text-xl items-center flex font-medium">{lastFourDigits}</div>
+                        <p className="text-sm m-0">{accountHolder}</p>
+                    </div>
                 </div >
             </div >
 
-            <div className="flex-1 p-5 bg-white rounded-xl shadow-lg">
+            <div className="flex-1 p-5 bg-white rounded-2xl border">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-lg font-semibold text-gray-800">Earnings Trends</h3>
                     <div className="flex items-center space-x-3">
@@ -112,15 +107,15 @@ const FinancialDashboard = () => {
                     >
                         <CartesianGrid vertical={false} />
                         <XAxis
-                            dataKey="month"
+                            dataKey="date"
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}
-                            tickFormatter={(value) => value.slice(0, 3)}
+                            tickFormatter={(value) => value.slice(0, 5)}
                         />
                         <ChartTooltip
                             cursor={false}
-                            content={<ChartTooltipContent indicator="line" />}
+                            formatter={(value) => `₦${value.toLocaleString()}`}
                         />
                         <defs>
                             <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
@@ -137,7 +132,7 @@ const FinancialDashboard = () => {
                             </linearGradient>
                         </defs>
                         <Area
-                            dataKey="desktop"
+                            dataKey="earnings"
                             type="natural"
                             fill="url(#fillDesktop)"
                             fillOpacity={0.4}
