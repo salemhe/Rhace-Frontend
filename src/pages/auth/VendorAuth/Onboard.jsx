@@ -238,13 +238,13 @@ export function Onboard() {
     setIsloading(true)
 
     try {
-      const response = await authService.vendorOnboard(formData)
+      await authService.vendorOnboard(formData)
 
       // Handle response (optional: use response.data if needed)
       toast.success("Completed Onboarding Successfully!")
 
       // Optionally reset form or redirect
-      navigate(`/dashboard/${response.vendor.vendorType}`)
+      navigate(`/dashboard`)
       // resetFormData()
     } catch (error) {
       console.error('Onboarding failed:', error)

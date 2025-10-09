@@ -28,7 +28,7 @@ const Login = () => {
   })
 
   const [searchParams] = useSearchParams();
-  const redirectTo = searchParams.get("redirect") || "/";
+  const redirectTo = searchParams.get("redirect") || "/dashboard";
 
   const handleLogin = async () => {
     try {
