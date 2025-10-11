@@ -1,5 +1,5 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DashboardButton from '../../../components/dashboard/ui/DashboardButton'
 import { Add, ArrowsRight, Calendar, CardPay, Cash2, CheckCircle, Copy, Export, Eye, Eye2, EyeClose, Filter2, Group3, LayoutGrid, ListCheck3, Pencil, Phone, Printer, XCircle } from '@/components/dashboard/ui/svg';
 import { StatCard } from '@/components/dashboard/stats/mainStats';
@@ -40,325 +40,14 @@ import {
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { useNavigate } from 'react-router';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-const menuData = [
-  {
-    customer_name: {
-      customer_Id: "1829622",
-      customer_name: "Wisdom ofogba",
-      // customer_image: "/jjss.png"
-    },
-    guests: 5,
-    date_n_time: {
-
-      date: "June 5, 2025",
-      time: "11:00am",
-    },
-    meal_preselected: "Yes",
-    payment_status: "Paid",
-    reservation_status: "Upcoming",
-    price: 35000,
-    type: ["A la carte", "Brunch"],
-  }
-]
-
-const menuItemData = [
-  {
-    customer_name: {
-      customer_Id: "1829622",
-      customer_name: "Wisdom ofogba",
-      // customer_image: "/jjss.png"
-    },
-    guests: 4,
-    date_n_time: {
-
-      date: "June 5, 2025",
-      time: "11:00am",
-    },
-    meal_preselected: "Yes",
-    payment_status: "Paid",
-    reservation_status: "Upcoming",
-    price: 35000,
-  }
-]
+import { menuService } from '@/services/menu.service';
+import { toast } from 'sonner';
+import { Switch } from '@/components/ui/switch';
 
 const categories = [
   "All Menu",
   "All Menu Items"
 ]
-
-const menuColumns = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="bg-white"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "customer_name",
-    header: "Customer Name",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <div className='rounded-full overflow-hidden relative size-9'>
-          <img src={row.getValue("customer_name").customer_image} alt={row.getValue("customer_name").customer_name} className='size-full object-cover' />
-        </div>
-        <div className='flex flex-col'>
-          <span className='text-[#111827] font-medium text-sm'>{row.getValue("customer_name").customer_name}</span>
-          <span className='text-[#606368] text-xs capitalize'>ID #{row.getValue("customer_name").customer_Id}</span>
-        </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "date_n_time",
-    header: "Date & Time",
-    cell: ({ row }) => (
-      <div className='flex flex-col'>
-        <span className='text-[#111827] font-medium text-sm'>{row.getValue("date_n_time").date}</span>
-        <span className='text-[#606368] text-xs capitalize'>Time {row.getValue("date_n_time").time}</span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "guests",
-    header: () => {
-      return (
-        <div
-        >
-          No of Guests
-        </div>
-      )
-    },
-    cell: ({ row }) => <div>{row.getValue("guests")}</div>,
-  },
-  {
-    accessorKey: "meal_preselected",
-    header: () => {
-      return (
-        <div
-        >
-          Meal Preselected
-        </div>
-      )
-    },
-    cell: ({ row }) => <div className={`${row.getValue("meal_preselected") === "Yes" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("meal_preselected") === "Yes" ? <Check className='text-[#37703F] size-5' /> : <XIcon className='text-[#EF4444] size-5' />}{row.getValue("meal_preselected")}</div>,
-  },
-  {
-    accessorKey: "payment_status",
-    header: () => {
-      return (
-        <div
-        >
-          Payment Status
-        </div>
-      )
-    },
-    cell: ({ row }) => <div className={`${row.getValue("payment_status") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("payment_status")}</div>,
-  },
-  {
-    accessorKey: "reservation_status",
-    header: () => {
-      return (
-        <div
-        >
-          Reservation Status
-        </div>
-      )
-    },
-    cell: ({ row }) => <div className={`${row.getValue("reservation_status") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("reservation_status")}</div>,
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      // const payment = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {/* <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem> */}
-            <DropdownMenuItem><Eye2 /> View Reservation</DropdownMenuItem>
-            <DropdownMenuItem><Pencil /> Edit Reservation</DropdownMenuItem>
-            <DropdownMenuItem><Phone /> Contact Customer</DropdownMenuItem>
-            <DropdownMenuItem><Printer /> Print Receipt</DropdownMenuItem>
-            <DropdownMenuItem><CheckCircle /> Mark as Completed</DropdownMenuItem>
-            <DropdownMenuItem><CheckCircle /> Mark as No-Show</DropdownMenuItem>
-            <DropdownMenuItem><Copy /> Dupllicate Reservation</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-[#EF4444]"><XCircle /> Cancel Reservation</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
-
-const menuItemColumns = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="bg-white"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "customer_name",
-    header: "Customer Name",
-    cell: ({ row }) => (
-      <div className="flex items-center gap-3">
-        <div className='rounded-full overflow-hidden relative size-9'>
-          <img src={row.getValue("customer_name").customer_image} alt={row.getValue("customer_name").customer_name} className='size-full object-cover' />
-        </div>
-        <div className='flex flex-col'>
-          <span className='text-[#111827] font-medium text-sm'>{row.getValue("customer_name").customer_name}</span>
-          <span className='text-[#606368] text-xs capitalize'>ID #{row.getValue("customer_name").customer_Id}</span>
-        </div>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "date_n_time",
-    header: "Date & Time",
-    cell: ({ row }) => (
-      <div className='flex flex-col'>
-        <span className='text-[#111827] font-medium text-sm'>{row.getValue("date_n_time").date}</span>
-        <span className='text-[#606368] text-xs capitalize'>Time {row.getValue("date_n_time").time}</span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "guests",
-    header: () => {
-      return (
-        <div
-        >
-          No of Guests
-        </div>
-      )
-    },
-    cell: ({ row }) => <div>{row.getValue("guests")}</div>,
-  },
-  {
-    accessorKey: "meal_preselected",
-    header: () => {
-      return (
-        <div
-        >
-          Meal Preselected
-        </div>
-      )
-    },
-    cell: ({ row }) => <div className={`${row.getValue("meal_preselected") === "Yes" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("meal_preselected") === "Yes" ? <Check className='text-[#37703F] size-5' /> : <XIcon className='text-[#EF4444] size-5' />}{row.getValue("meal_preselected")}</div>,
-  },
-  {
-    accessorKey: "payment_status",
-    header: () => {
-      return (
-        <div
-        >
-          Payment Status
-        </div>
-      )
-    },
-    cell: ({ row }) => <div className={`${row.getValue("payment_status") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("payment_status")}</div>,
-  },
-  {
-    accessorKey: "reservation_status",
-    header: () => {
-      return (
-        <div
-        >
-          Reservation Status
-        </div>
-      )
-    },
-    cell: ({ row }) => <div className={`${row.getValue("reservation_status") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("reservation_status")}</div>,
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      // const payment = row.original
-
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {/* <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem> */}
-            <DropdownMenuItem><Eye2 /> View Reservation</DropdownMenuItem>
-            <DropdownMenuItem><Pencil /> Edit Reservation</DropdownMenuItem>
-            <DropdownMenuItem><Phone /> Contact Customer</DropdownMenuItem>
-            <DropdownMenuItem><Printer /> Print Receipt</DropdownMenuItem>
-            <DropdownMenuItem><CheckCircle /> Mark as Completed</DropdownMenuItem>
-            <DropdownMenuItem><CheckCircle /> Mark as No-Show</DropdownMenuItem>
-            <DropdownMenuItem><Copy /> Dupllicate Reservation</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-[#EF4444]"><XCircle /> Cancel Reservation</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
-    },
-  },
-]
-
 
 const MenuDashboard = () => {
   const [sorting, setSorting] = useState([])
@@ -368,10 +57,360 @@ const MenuDashboard = () => {
   const [columnVisibility, setColumnVisibility] = useState({})
   const [rowSelection, setRowSelection] = useState({})
   const [activeCategory, setActiveCategory] = useState("All Menu")
+  const [menus, setMenus] = useState([])
+  const [menuItems, setMenuItems] = useState([])
   const navigate = useNavigate()
 
-  const data = activeCategory === "All Menu Items" ? menuItemData : menuData
+
+
+  const menuColumns = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="bg-white"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "image",
+      header: "Image",
+      cell: ({ row }) => {
+        const m = row.original
+        return (
+          <div className='rounded-full overflow-hidden relative size-9'>
+            <img src={m.coverImage} alt={m.name} className='size-full object-cover' />
+          </div>
+        )
+      }
+    },
+    {
+      accessorKey: "menu_name",
+      header: "Menu Name",
+      cell: ({ row }) => {
+        const m = row.original
+        return (
+          <span className='text-[#111827] font-medium text-sm'>{m.name}</span>
+        )
+      }
+    },
+    {
+      accessorKey: "price",
+      header: "Price",
+      cell: ({ row }) => (
+        <span className='text-[#111827] font-medium text-sm'>#{row.getValue("price")}</span>
+      )
+    },
+    {
+      accessorKey: "meal_type",
+      header: "Meal Type",
+      cell: ({ row }) => {
+        const m = row.original
+        return (
+          <div>{m.menuType.join(", ")}</div>
+        )
+      },
+    },
+    {
+      accessorKey: "meal_times",
+      header: "Meal Times",
+      cell: ({ row }) => {
+        const m = row.original
+        return (
+          <div>{m.mealTimes.join(", ")}</div>
+        )
+      },
+    },
+    {
+      accessorKey: "items",
+      header: "Items",
+      cell: ({ row }) => (
+        <span className='text-[#111827] font-medium text-sm'>{row.getValue("items").length}</span>
+      )
+    },
+    {
+      accessorKey: "tags",
+      header: "Tags",
+      cell: ({ row }) => {
+        return (
+          <div className='flex gap-1'>
+            {row.getValue("tags").slice(0, 3).map((tag, i) => (
+              <div key={i} className='text-xs bg-[#E6F2F2] text-[#0A6C6D] px-2 py-1 rounded-full'>{tag}</div>
+            ))}
+          </div>
+        )
+      },
+    },
+
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const rowId = row.original._id; // or whatever uniquely identifies the row
+
+        const handleToggle = (checked) => {
+          setMenus(prev =>
+            prev.map(item =>
+              item._id === rowId
+                ? { ...item, status: checked ? "active" : "inactive" }
+                : item
+            )
+          );
+        };
+
+        return (
+          <div className="flex gap-1">
+            <Switch
+              checked={row.getValue("status") === "active"}
+              onCheckedChange={handleToggle}
+              aria-label="Toggle status"
+            />
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: () => {
+        // const payment = row.original
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {/* <DropdownMenuItem
+              onClick={() => navigator.clipboard.writeText(payment.id)}
+            >
+              Copy payment ID
+            </DropdownMenuItem> */}
+              <DropdownMenuItem><Eye2 /> View Reservation</DropdownMenuItem>
+              <DropdownMenuItem><Pencil /> Edit Reservation</DropdownMenuItem>
+              <DropdownMenuItem><Phone /> Contact Customer</DropdownMenuItem>
+              <DropdownMenuItem><Printer /> Print Receipt</DropdownMenuItem>
+              <DropdownMenuItem><CheckCircle /> Mark as Completed</DropdownMenuItem>
+              <DropdownMenuItem><CheckCircle /> Mark as No-Show</DropdownMenuItem>
+              <DropdownMenuItem><Copy /> Dupllicate Reservation</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-[#EF4444]"><XCircle /> Cancel Reservation</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    },
+  ]
+
+  const menuItemColumns = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="bg-white"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "image",
+      header: "Image",
+      cell: ({ row }) => {
+        const m = row.original
+        return (
+          <div className='rounded-full overflow-hidden relative size-9'>
+            <img src={m.coverImage} alt={m.name} className='size-full object-cover' />
+          </div>
+        )
+      }
+    },
+    {
+      accessorKey: "menu_name",
+      header: "Menu Name",
+      cell: ({ row }) => {
+        const m = row.original
+        return (
+          <span className='text-[#111827] font-medium text-sm'>{m.name}</span>
+        )
+      }
+    },
+    {
+      accessorKey: "price",
+      header: "Price",
+      cell: ({ row }) => (
+        <span className='text-[#111827] font-medium text-sm'>#{row.getValue("price")}</span>
+      )
+    },
+    {
+      accessorKey: "category",
+      header: "Category",
+      cell: ({ row }) => (
+        <span className='text-[#111827] font-medium text-sm'>{row.getValue("category")}</span>
+      )
+    },
+    {
+      accessorKey: "menu_assigned",
+      header: "Menu Assigned",
+      cell: ({ row }) => {
+        const m = row.original
+        const menuAssigned = menus
+          .filter(i => m.assignedMenus.includes(i.id))
+          .map(i => i.name);
+        return (
+          <div>{menuAssigned.join(", ")}</div>
+        )
+      },
+    },
+    {
+      accessorKey: "meal_times",
+      header: "Meal Times",
+      cell: ({ row }) => {
+        const m = row.original
+        return (
+          <div>{m.mealTimes.join(", ")}</div>
+        )
+      },
+    },
+    {
+      accessorKey: "tags",
+      header: "Tags",
+      cell: ({ row }) => {
+        return (
+          <div className='flex gap-1 items-center'>
+            <div className='flex gap-2'>
+              {row.getValue("tags").slice(0, 3).map((tag, i) => (
+                <div key={i} className='text-xs bg-[#F4F4F4] text-[#606368] border border-[#E5E7EB] p-2 rounded-md'>{tag}</div>
+              ))}
+            </div>
+            {row.getValue("tags").length > 3 && (
+              <span>
+                +{row.getValue("tags").length - 3} more
+              </span>
+            )}
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const rowId = row.original._id; // or whatever uniquely identifies the row
+
+        const handleToggle = (checked) => {
+          setMenuItems(prev =>
+            prev.map(item =>
+              item._id === rowId
+                ? { ...item, status: checked ? "active" : "inactive" }
+                : item
+            )
+          );
+        };
+
+        return (
+          <div className="flex gap-1">
+            <Switch
+              checked={row.getValue("status") === "active"}
+              onCheckedChange={handleToggle}
+              aria-label="Toggle status"
+            />
+          </div>
+        );
+      },
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: () => {
+        // const payment = row.original
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {/* <DropdownMenuItem
+              onClick={() => navigator.clipboard.writeText(payment.id)}
+            >
+              Copy payment ID
+            </DropdownMenuItem> */}
+              <DropdownMenuItem><Eye2 /> View Reservation</DropdownMenuItem>
+              <DropdownMenuItem><Pencil /> Edit Reservation</DropdownMenuItem>
+              <DropdownMenuItem><Phone /> Contact Customer</DropdownMenuItem>
+              <DropdownMenuItem><Printer /> Print Receipt</DropdownMenuItem>
+              <DropdownMenuItem><CheckCircle /> Mark as Completed</DropdownMenuItem>
+              <DropdownMenuItem><CheckCircle /> Mark as No-Show</DropdownMenuItem>
+              <DropdownMenuItem><Copy /> Dupllicate Reservation</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-[#EF4444]"><XCircle /> Cancel Reservation</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
+    },
+  ]
+
+  const data = activeCategory === "All Menu Items" ? menuItems : menus
   const columns = activeCategory === "All Menu Items" ? menuItemColumns : menuColumns
+
+  useEffect(() => {
+    async function fetchMenus() {
+      try {
+        const items = await menuService.getMenus()
+        setMenus(items.menus)
+      } catch (error) {
+        console.error(error)
+        toast.error("Failed to fetch menus")
+      }
+    }
+    async function fetchMenuItems() {
+      try {
+        const items = await menuService.getMenuItems()
+        setMenuItems(items.menuItems)
+      } catch (error) {
+        console.error(error)
+        toast.error("Failed to fetch menu items")
+      }
+    }
+    fetchMenus()
+    fetchMenuItems()
+  }, [])
 
   const table = useReactTable({
     data,
@@ -421,9 +460,9 @@ const MenuDashboard = () => {
                     <Search className='absolute left-2 text-[#606368] size-5' />
                     <Input
                       placeholder="Search by guest name or ID"
-                      value={(table.getColumn("customer_name")?.getFilterValue()) ?? ""}
+                      value={(table.getColumn("name")?.getFilterValue()) ?? ""}
                       onChange={(event) =>
-                        table.getColumn("customer_name")?.setFilterValue(event.target.value)
+                        table.getColumn("name")?.setFilterValue(event.target.value)
                       }
                       className="max-w-sm pl-10 border-[#DAE9E9] "
                     />
@@ -484,10 +523,10 @@ const MenuDashboard = () => {
                     <div className='my-1 w-0.5 bg-[#E5E7EB]' />
                     <TabsList className="bg-[#E5E7EB]">
                       <TabsTrigger value="list" className="group">
-                        <ListCheck3 className="group-data-[state=active]:text-[#111827] text-[#606368] size-5" />
+                        <ListCheck3 className="group-data-[state=active]:text-[#111827] text-[#606368] size-4" />
                       </TabsTrigger>
                       <TabsTrigger value="grid" className="group">
-                        <LayoutGrid className="group-data-[state=active]:text-[#111827] text-[#606368] size-5" />
+                        <LayoutGrid className="group-data-[state=active]:text-[#111827] text-[#606368] size-4" />
                       </TabsTrigger>
                     </TabsList>
                   </div>
@@ -552,33 +591,33 @@ const MenuDashboard = () => {
               </TabsContent>
               <TabsContent value="grid">
                 <div className='grid md:grid-cols-3 gap-6 lg:grid-cols-4'>
-                  {data.map((item, i) => (
+                  {data && data.map((item, i) => (
                     <div key={i} className='p-1 bg-white border rounded-xl h-full'>
                       <div className='relative rounded-xl h-[178px] overflow-hidden'>
-                        <img src={item.image} alt={item.title || "N/A"} className='size-full object-cover' />
+                        <img src={item.coverImage} alt={item.name || "N/A"} className='size-full object-cover hover:scale-105 transition-transform duration-200' />
                       </div>
                       <div className='p-2'>
                         {activeCategory === "All Menu Items" ? (
                           <div className='space-y-2'>
                             <div className='flex justify-between w-full'>
-                              <span>{item.title}</span>
-                              <a className='text-xs underline text-[#0A6C6D]' href={`/dashboard/restaurant/menu/${item.id}`}>View Menu</a>
+                              <span>{item.name}</span>
+                              <a className='text-xs underline text-[#0A6C6D]' href={`/dashboard/restaurant/menu/${item._id}`}>View Menu</a>
                             </div>
                             <div className='text-sm'>
-                              {item.detail}
+                              {item.description}
                             </div>
                           </div>
                         ) : (
                           <div className='space-y-2'>
                             <div className='flex justify-between w-full'>
-                              <span>{item.title}</span>
-                              <a className='text-xs underline text-[#0A6C6D]' href={`/dashboard/restaurant/menu/${item.id}`}>View Menu</a>
+                              <span>{item.name}</span>
+                              <a className='text-xs underline text-[#0A6C6D]' href={`/dashboard/restaurant/menu/items/${item._id}`}>View Menu</a>
                             </div>
                             <div className='text-sm'>
-                              <span>Menu Item:</span>{" "} {item.type.join(", ")}
+                              <span>Menu Item:</span>{" "} {item.menuType.join(", ")}
                             </div>
                             <div className='flex items-center justify-between w-full'>
-                              <span>{item.noOfItems} {item.noOfItems > 0 ? "items" : "item"}</span>
+                              <span>{item.items.length} {item.items.length > 0 ? "items" : "item"}</span>
                               <span>Updated {item.date} ago</span>
                             </div>
                           </div>
