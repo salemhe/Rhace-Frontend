@@ -12,34 +12,61 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
-import { Check, DownloadCloud, Loader2, Plus, Upload, X } from 'lucide-react';
-import React, { forwardRef, useState } from 'react'
+import { menuService } from '@/services/menu.service';
+import axios from 'axios';
+import { Check, CheckCircle, DownloadCloud, Loader2, Plus, Upload, X } from 'lucide-react';
+import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
 const CreateMenu = () => {
     const [step, setStep] = useState(0);
-    const [priceType, setPriceType] = useState("fixed");
     const [selectedItems, setSelectedItems] = useState([]);
+    const [menuItems, setMenuItems] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
     const [activeTab, setActiveTab] = useState('exist')
-    const [newItem, setNewItem] = useState({})
+    const [newItem, setNewItem] = useState({
+        name: "",
+        description: "",
+        category: "",
+        price: 0,
+        tags: [],
+        mealTimes: [],
+        discount: true,
+        discountPrice: 0,
+        coverImage: "",
+        addOns: false,
+        assignedMenus: [],
+        isVisible: true,
+    })
     const [loading, setLoading] = useState(false);
-    const [successModal, setSuccessModal] = useState(false)
+    const [successModal, setSuccessModal] = useState(false);
     const navigate = useNavigate();
     const initialTags = ["Spicy", "Popular", "Savory"];
     const [tags, setTags] = useState(initialTags);
-    const [selectedTags, setSelectedTags] = useState([]);
     const [newTag, setNewTag] = useState("");
+    const [createItem, setCreateItem] = useState(null);
+    const [formData, setFormData] = useState({
+        id: `menu-${Date.now()}`,
+        name: "",
+        description: "",
+        menuType: [],
+        mealTimes: [],
+        coverImage: "",
+        isAvailable: true,
+        pricingModel: "fixed",
+        price: 10000,
+        items: [],
+        isVisible: true,
+    })
 
-    const [price, setPrice] = useState(10000);
-    const [hasDiscount, setHasDiscount] = useState(true);
-    const [discountPrice, setDiscountPrice] = useState(2000);
+    const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+    const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
     const toggleTag = (t) => {
-        setSelectedTags((prev) =>
-            prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]
-        );
+        setNewItem((prev) => ({ ...prev, tags:
+            prev.tags.includes(t) ? prev.tags.filter((x) => x !== t) : [...prev.tags, t]
+        }));
     };
 
 
@@ -48,28 +75,49 @@ const CreateMenu = () => {
         if (!tags.includes(newTag.trim())) {
             setTags((t) => [...t, newTag.trim()]);
         }
-        setSelectedTags((s) => (s.includes(newTag.trim()) ? s : [...s, newTag.trim()]));
         setNewTag("");
     };
 
 
     const handleAdd = (item) => {
-        if (!selectedItems.find((i) => i.id === item.id)) {
+        if (!selectedItems.find((i) => i._id === item._id)) {
             setSelectedItems([...selectedItems, item]);
+            setFormData({ ...formData, items: [...formData.items, item._id] });
         }
     };
 
     const handleNext = async () => {
-        if (step < 1) {
-            if (activeTab === "new" && newItem && step === 1) {
-                setSelectedItems([...selectedItems, newItem]);
-                setNewItem({})
+        if (step <= 1) {
+            if (activeTab === "new" && step === 1) {
+                console.log(newItem)
+                if (newItem.name && newItem.category.length > 0 && newItem.tags.length > 0 && newItem.price > 0) {
+                    const createdItem = await menuService.createMenuItem({ ...newItem, assignedMenus: [formData.id] });
+                    setSelectedItems((prev) => [...prev, createdItem]);
+                    setCreateItem(createdItem._id);
+                    setFormData({ ...formData, items: [...formData.items, createdItem._id] });
+                    toast.success("Menu item created and added to menu")
+                    setNewItem({
+                        name: "",
+                        description: "",
+                        category: "",
+                        price: 0,
+                        tags: [],
+                        mealTimes: [],
+                        discount: true,
+                        discountPrice: 0,
+                        addOns: false,
+                        coverImage: "",
+                        assignedMenus: [],
+                        isVisible: true,
+                    })
+                }
             } else {
                 setStep(prev => prev + 1)
             }
         } else {
             try {
                 setLoading(true)
+                await menuService.createMenu(formData)
                 setSuccessModal(true)
             } catch (error) {
                 console.error(error)
@@ -79,6 +127,35 @@ const CreateMenu = () => {
             }
         }
     }
+
+    const handleImageUpload = useCallback(
+        async (files, setImage) => {
+            const file = files[0];
+            if (file.size > 5242880) {
+                alert("File size exceeds 5MB limit.");
+                return;
+            }
+
+            const fileName = file.name
+
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('upload_preset', UPLOAD_PRESET)
+
+            try {
+                const response = await axios.post(
+                    `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+                    formData,
+                )
+
+                const imageUrl = response.data.secure_url
+                setImage((prev) => ({ ...prev, coverImage: imageUrl }))
+            } catch (error) {
+                console.error('Upload failed for', fileName, error)
+            }
+        },
+        [formData.coverImage, newItem.images]
+    )
 
     const handleCancel = () => {
         if (step === 0) {
@@ -93,6 +170,7 @@ const CreateMenu = () => {
             setSelectedItems(selectedItems.filter((item) => item.id !== id));
         } else {
             setSelectedItems([])
+            setFormData({ ...formData, items: [] })
         }
     };
 
@@ -111,22 +189,50 @@ const CreateMenu = () => {
         },
     ]
 
-    const sampleMenu = [
-        {
-            category: "Starters",
-            items: [
-                { id: "1", name: "Buffalo wings", category: "Starters", price: 30000, description: "Description (if available)", tags: ["Spicy", "Popular", "Savory"] },
-                { id: "2", name: "Signature Burger", category: "Starters", price: 30000, tags: ["Spicy", "Popular"] },
-            ],
-        },
-        {
-            category: "Main Dish",
-            items: [
-                { id: "3", name: "Buffalo wings", category: "Main Dish", price: 30000 },
-                { id: "4", name: "Signature Burger", category: "Main Dish", price: 30000, tags: ["Savory"] },
-            ],
-        },
-    ];
+    useEffect(() => {
+        async function fetchMenuItems() {
+            try {
+                const items = await menuService.getMenuItems()
+                setMenuItems(items.menuItems)
+            } catch (error) {
+                console.error(error)
+                toast.error("Failed to fetch menu items")
+            }
+        }
+        fetchMenuItems()
+    }, [createItem])
+
+    const formattedItems = menuItems.reduce((acc, item) => {
+        const existingCategory = acc.find(group => group.category === item.category);
+
+        const itemData = {
+            _id: item._id,
+            name: item.name,
+            price: item.price,
+            description: item.description,
+            category: item.category,
+            tags: item.tags,
+            mealTime: item.mealTime,
+            discount: item.discount,
+            discountPrice: item.discountPrice,
+            addOns: item.addOns,
+            coverImage: item.coverImage,
+            assignedMenus: item.assignedMenus,
+            isVisible: item.isVisible,
+        };
+
+        if (existingCategory) {
+            existingCategory.items.push(itemData);
+        } else {
+            acc.push({
+                category: item.category,
+                items: [itemData]
+            });
+        }
+
+        return acc;
+    }, []);
+
 
     return (
         <div className='bg-[#F9FAFB] min-h-dvh pb-16'>
@@ -136,7 +242,7 @@ const CreateMenu = () => {
                     {/* Cover Image */}
                     <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
                         <img
-                            src="/food.jpg" // replace with your image
+                            src={formData.coverImage || "/food.jpg"}
                             alt="Joe's Platter"
                             className="object-cover w-full h-full"
                         />
@@ -144,11 +250,11 @@ const CreateMenu = () => {
 
                     {/* Content */}
                     <div className="flex flex-col">
-                        <p className="font-medium">Joe&apos;s Platter</p>
+                        <p className="font-medium">{formData.name || "Joe's Platter"}</p>
                         <p className="text-sm text-gray-500">
-                            <span className="mr-2">Menu Type: A la Carte, Buffet</span>
+                            <span className="mr-2">Menu Type: {formData.menuType.join(", ") || "A la Carte, Buffet"}</span>
                             <span className="mx-1">•</span>
-                            <span>Meal Time: All Day</span>
+                            <span>Meal Time: {formData.mealTimes.join(", ") || "All Day"}</span>
                         </p>
                     </div>
                 </div>
@@ -177,18 +283,30 @@ const CreateMenu = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="menuName">Menu name*</Label>
-                                    <Input id="menuName" placeholder="e.g Joe's Platter" maxLength={50} />
+                                    <Input id="menuName" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} placeholder="e.g Joe's Platter" maxLength={50} />
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="menuDescription">Menu Description (Optional)</Label>
-                                    <Textarea id="menuDescription" placeholder="Add a short description or notes about this menu" />
+                                    <Textarea id="menuDescription" value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} placeholder="Add a short description or notes about this menu" />
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Menu Type</Label>
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                         {["A la Carte", "Buffet", "Set Menu", "Tasting Menu", "Takeaway"].map((type) => (
                                             <div key={type} className="flex items-center space-x-2">
-                                                <Checkbox id={type} />
+                                                <Checkbox id={type} checked={formData.menuType.includes(type)} onCheckedChange={() => {
+                                                    if (formData.menuType.includes(type)) {
+                                                        setFormData({
+                                                            ...formData,
+                                                            menuType: formData.menuType.filter(t => t !== type)
+                                                        })
+                                                    } else {
+                                                        setFormData({
+                                                            ...formData,
+                                                            menuType: [...formData.menuType, type]
+                                                        })
+                                                    }
+                                                }} />
                                                 <Label htmlFor={type}>{type}</Label>
                                             </div>
                                         ))}
@@ -199,7 +317,19 @@ const CreateMenu = () => {
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                         {["Breakfast", "Brunch", "Lunch", "Dinner", "Late Night", "All Day"].map((meal) => (
                                             <div key={meal} className="flex items-center space-x-2">
-                                                <Checkbox id={meal} />
+                                                <Checkbox id={meal} checked={formData.mealTimes.includes(meal)} onCheckedChange={() => {
+                                                    if (formData.mealTimes.includes(meal)) {
+                                                        setFormData({
+                                                            ...formData,
+                                                            mealTimes: formData.mealTimes.filter(m => m !== meal)
+                                                        })
+                                                    } else {
+                                                        setFormData({
+                                                            ...formData,
+                                                            mealTimes: [...formData.mealTimes, meal]
+                                                        })
+                                                    }
+                                                }} />
                                                 <Label htmlFor={meal}>{meal}</Label>
                                             </div>
                                         ))}
@@ -207,13 +337,13 @@ const CreateMenu = () => {
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Price*</Label>
-                                    <RadioGroup value={priceType} onValueChange={setPriceType}>
+                                    <RadioGroup value={formData.pricingModel} onValueChange={() => setFormData({ ...formData, pricingModel: formData.pricingModel === "fixed" ? "perItem" : "fixed" })} className="grid grid-cols-1 gap-4">
                                         <div className="flex items-center space-x-2">
                                             <RadioGroupItem value="fixed" id="fixed" />
                                             <Label htmlFor="fixed">Fixed Price</Label>
                                         </div>
-                                        {priceType === "fixed" && (
-                                            <Input type="number" placeholder="₦ 10,000" className="mt-2 w-full" />
+                                        {formData.pricingModel === "fixed" && (
+                                            <Input value={formData.fixedPrice} onChange={(e) => setFormData({ ...formData, fixedPrice: e.target.value })} type="number" placeholder="₦ 10,000" className="mt-2 w-full" />
                                         )}
 
                                         <div className="flex items-center space-x-2 mt-3">
@@ -226,12 +356,31 @@ const CreateMenu = () => {
                             <div className='space-y-5'>
                                 <div className="space-y-2">
                                     <Label>Cover Image (Optional)</Label>
-                                    <div className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">
+                                    <label htmlFor='item-cover-image' className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">
                                         <DownloadCloud className="w-6 h-6 mb-2" />
                                         <p>Drag and drop an image here, or</p>
-                                        <Button variant="outline" size="sm" className="mt-2">Browse Files</Button>
+                                        <Button asChild variant="outline" size="sm" className="mt-2">
+                                            <label htmlFor="item-cover-image" className="cursor-pointer">Browse Files</label>
+                                        </Button>
                                         <p className="text-xs mt-1">JPG, PNG, or GIF • Max 5MB</p>
-                                    </div>
+                                        <input
+                                            type='file'
+                                            id='item-cover-image'
+                                            accept='image/*'
+                                            max={5242880}
+                                            onChange={(e) => e.target.files && handleImageUpload(e.target.files, setFormData)}
+                                            className='sr-only'
+                                        />
+                                    </label>
+                                    {formData.coverImage && (
+                                        <div className="w-32 h-32 rounded-md overflow-hidden">
+                                            <img
+                                                src={formData.coverImage}
+                                                alt="Cover"
+                                                className="object-cover w-full h-full"
+                                            />
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="space-y-1">
@@ -241,7 +390,7 @@ const CreateMenu = () => {
                                             <h3>Show menu on this app</h3>
                                             <p className="text-sm text-gray-500">Make this menu visible to customers</p>
                                         </div>
-                                        <Switch defaultChecked />
+                                        <Switch defaultChecked={formData.isVisible} onCheckedChange={(checked) => setFormData({ ...formData, isVisible: checked })} />
                                     </div>
                                 </div>
                             </div>
@@ -274,7 +423,7 @@ const CreateMenu = () => {
                             <div className='max-w-[650px] w-full mx-auto'>
 
                                 <TabsContent value="exist" className="space-y-5">
-                                    {sampleMenu.map((section) => (
+                                    {formattedItems.map((section) => (
                                         <Card key={section.category}>
                                             <CardHeader>
                                                 <CardTitle>{section.category}</CardTitle>
@@ -316,11 +465,11 @@ const CreateMenu = () => {
                                                 <div className='space-y-5'>
                                                     <div className="space-y-2">
                                                         <Label className=" text-xs" htmlFor="menuName">Menu Item name <span className='text-[#EF4444]'>*</span></Label>
-                                                        <Input id="menuName" placeholder="e.g Joe's Platter" maxLength={50} />
+                                                        <Input value={newItem.name} onChange={(e) => setNewItem({ ...newItem, name: e.target.value })} id="menuName" placeholder="e.g Joe's Platter" maxLength={50} />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <Label className=" text-xs" htmlFor="menuDescription">Menu Description (Optional)</Label>
-                                                        <Textarea id="menuDescription" placeholder="Add a short description or notes about this menu" />
+                                                        <Textarea value={newItem.description} onChange={(e) => setNewItem({ ...newItem, description: e.target.value })} id="menuDescription" placeholder="Add a short description or notes about this menu" />
                                                     </div>
                                                 </div>
                                             </div>
@@ -331,7 +480,7 @@ const CreateMenu = () => {
                                                 <div className='space-y-5'>
                                                     <div className="space-y-2">
                                                         <Label className="text-xs">Menu Category<span className='text-[#EF4444]'>*</span></Label>
-                                                        <RadioGroup value={priceType} onValueChange={setPriceType} className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                                        <RadioGroup value={newItem.category} onValueChange={(value) => setNewItem({ ...newItem, category: value })} className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                                             {["Starters", "Main Dish ", "Dessert", "Drink"].map((meal) => (
                                                                 <div key={meal} className="flex items-center space-x-2">
                                                                     <RadioGroupItem value={meal} id={meal} />
@@ -345,7 +494,13 @@ const CreateMenu = () => {
                                                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                                                             {["Breakfast", "Brunch", "Lunch", "Dinner", "Late Night", "All Day"].map((meal) => (
                                                                 <div key={meal} className="flex items-center space-x-2">
-                                                                    <Checkbox id={meal} />
+                                                                    <Checkbox defaultChecked={newItem.mealTimes.includes(meal)} id={meal} onCheckedChange={(checked) => {
+                                                                        if (checked) {
+                                                                            setNewItem({ ...newItem, mealTimes: [...newItem.mealTimes, meal] });
+                                                                        } else {
+                                                                            setNewItem({ ...newItem, mealTimes: newItem.mealTimes.filter(item => item !== meal) });
+                                                                        }
+                                                                    }} />
                                                                     <Label htmlFor={meal}>{meal}</Label>
                                                                 </div>
                                                             ))}
@@ -354,7 +509,7 @@ const CreateMenu = () => {
                                                     <div className="space-y-2">
                                                         <h3 className="font-semibold text-xs mb-4">Menu Assignment</h3>
                                                         <div className="border-2 border-dashed border-[#E0B300] rounded-md p-4 bg-yellow-50">
-                                                            <div className="font-medium text-sm">Joe's Potter</div>
+                                                            <div className="font-medium text-sm">{formData.name}</div>
                                                             <div className="text-xs text-gray-600 mt-1">Current menu - Item will be displayed here</div>
                                                         </div>
                                                     </div>
@@ -367,7 +522,7 @@ const CreateMenu = () => {
                                                                         type="button"
                                                                         key={t}
                                                                         onClick={() => toggleTag(t)}
-                                                                        className={`px-3 py-1 rounded-full text-xs border ${selectedTags.includes(t) ? "bg-gray-800 text-white" : "bg-white"
+                                                                        className={`px-3 py-1 rounded-full text-xs border ${newItem.tags.includes(t) ? "bg-gray-800 text-white" : "bg-white"
                                                                             }`}
                                                                     >
                                                                         {t}
@@ -399,54 +554,111 @@ const CreateMenu = () => {
                                                 <h2 className='text-[#111827] font-medium text-sm'>
                                                     Pricing
                                                 </h2>
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-                                                    <label className="text-sm font-medium">Price</label>
-                                                    <div className="md:col-span-2 flex gap-4 items-center">
-                                                        <div className="flex items-center gap-2 border rounded px-3 py-2 w-full">
-                                                            <span className="text-lg">₦</span>
-                                                            <input
-                                                                type="number"
-                                                                value={price}
-                                                                onChange={(e) => setPrice(Number(e.target.value))}
-                                                                className="w-full outline-none"
-                                                            />
-                                                        </div>
-
-
-                                                        <div className="flex items-center gap-2">
-                                                            <label className="flex items-center gap-2">
+                                                <div className="gap-2 items-center w-full flex">
+                                                    <div className="flex flex-col gap-4 items-start">
+                                                        <label className="text-sm font-medium">Price</label>
+                                                        <div className="md:col-span-2 flex gap-4 items-center">
+                                                            <div className="flex items-center gap-2 border rounded px-3 py-2 w-full">
+                                                                <span className="text-lg">₦</span>
                                                                 <input
-                                                                    type="checkbox"
-                                                                    checked={hasDiscount}
-                                                                    onChange={(e) => setHasDiscount(e.target.checked)}
-                                                                    className="h-5 w-5"
+                                                                    type="number"
+                                                                    value={newItem.price}
+                                                                    onChange={(e) => setNewItem({ ...newItem, price: Number(e.target.value) })}
+                                                                    className="w-full outline-none"
                                                                 />
-                                                                <span className="text-sm">Discount</span>
-                                                            </label>
-
-
-                                                            {hasDiscount && (
-                                                                <div className="flex items-center gap-2 border rounded px-3 py-2">
-                                                                    <span>₦</span>
-                                                                    <input
-                                                                        type="number"
-                                                                        value={discountPrice}
-                                                                        onChange={(e) => setDiscountPrice(Number(e.target.value))}
-                                                                        className="w-28 outline-none"
-                                                                    />
-                                                                </div>
-                                                            )}
+                                                            </div>
                                                         </div>
+
+
+                                                    </div>
+                                                    <div className="flex items-start flex-col gap-2">
+                                                        <label className="flex items-center gap-2">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={newItem.discount}
+                                                                onChange={(e) => setNewItem({ ...newItem, discount: e.target.checked })}
+                                                                className="h-5 w-5"
+                                                            />
+                                                            <span className="text-sm">Discount</span>
+                                                        </label>
+
+
+                                                        {newItem.discount && (
+                                                            <div className="flex items-center gap-2 border rounded px-3 py-2">
+                                                                <span>₦</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={newItem.discountPrice}
+                                                                    onChange={(e) => setNewItem({ ...newItem, discountPrice: Number(e.target.value) })}
+                                                                    className="w-28 outline-none"
+                                                                />
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
                                         <div className='space-y-6'>
-                                            <div className='px-5 py-6 bg-white rounded-2xl border border-[#E5E7EB] w-full space-y-4'>
+                                            <div htmlFor='item-cover-image' className='px-5 block py-6 bg-white rounded-2xl border border-[#E5E7EB] w-full space-y-4'>
                                                 <h2 className='text-[#111827] font-medium text-sm'>
                                                     Images
                                                 </h2>
-                                                <div></div>
+                                                <div className="space-y-2">
+                                                    <Label>Cover Image (Optional)</Label>
+                                                    <label htmlFor='item-cover-image' className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">
+                                                        <DownloadCloud className="w-6 h-6 mb-2" />
+                                                        <p>Drag and drop an image here, or</p>
+                                                        <Button asChild variant="outline" size="sm" className="mt-2">
+                                                            <label htmlFor="item-cover-image" className="cursor-pointer">Browse Files</label>
+                                                        </Button>
+                                                        <p className="text-xs mt-1">JPG, PNG, or GIF • Max 5MB</p>
+                                                        <input
+                                                            type='file'
+                                                            id='item-cover-image'
+                                                            accept='image/*'
+                                                            max={5242880}
+                                                            onChange={(e) => e.target.files && handleImageUpload(e.target.files, setNewItem)}
+                                                            className='sr-only'
+                                                        />
+                                                    </label>
+                                                    {newItem.coverImage && (
+                                                        <div className="w-32 h-32 rounded-md overflow-hidden">
+                                                            <img
+                                                                src={newItem.coverImage}
+                                                                alt="Cover"
+                                                                className="object-cover w-full h-full"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <div className='px-5 py-6 bg-white rounded-2xl border border-[#E5E7EB] w-full items-center flex gap-4 justify-between'>
+                                                <h2 className='text-[#111827] font-medium text-sm'>
+                                                    Add-ons & Variants
+                                                </h2>
+                                                <div className="flex items-center space-x-2">
+                                                    <Checkbox defaultChecked={newItem.addOns} onCheckedChange={(value) => setNewItem({ ...newItem, addOns: value })} id="addons-variants" />
+                                                    <Label htmlFor="addons-variants">Enable Add-ons</Label>
+                                                </div>
+                                            </div>
+                                            <div className="w-full rounded-lg bg-transparent p-4">
+                                                <div className="flex flex-col space-y-2">
+                                                    <Label className="text-sm font-medium text-foreground">Menu Availability</Label>
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex flex-col">
+                                                            <span className="text-base font-medium text-foreground">
+                                                                Show item on menu
+                                                            </span>
+                                                            <span className="text-sm text-muted-foreground">
+                                                                Make this menu item visible
+                                                            </span>
+                                                        </div>
+                                                        <Switch
+                                                            checked={newItem.isVisible}
+                                                            onCheckedChange={(value) => setNewItem({ ...newItem, isVisible: value })}
+                                                        />
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -454,7 +666,6 @@ const CreateMenu = () => {
                             </div>
                         </Tabs >
                     )}
-
                 </div>
                 {step === 1 && selectedItems.length > 0 && (
                     <div className='bg-[#F4F4F4] w-3/7 border-l space-y-5 p-8 min-h-dvh border-[#E5E7EB]'>
@@ -489,6 +700,17 @@ const CreateMenu = () => {
                 <DashboardButton onClick={handleCancel} variant="secondary" className="px-6 w-[158px] text-sm text-[#606368]" text={step === 0 ? "Cancel" : "Back"} />
                 <DashboardButton onClick={handleNext} disabled={selectedItems.length === 0 && step > 0 && activeTab !== "new" || loading} icon={loading && <Loader2 className="animate-spin size-5" />} variant="primary" className="px-6 w-[384px] text-sm" text={loading ? "Loading" : step === 0 ? "Continue to Meal Selection" : activeTab === "new" ? "Add Item to Menu" : "Save & Finish Menu"} />
             </div>
+            {successModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white rounded-lg p-6 w-11/12 max-w-md mx-auto">
+                        <div className="flex flex-col items-center">
+                            <CheckCircle className="text-green-500 size-10 mb-4" />
+                            <h2 className="text-2xl font-semibold mb-2">Menu Created!</h2>
+                            <p className="text-gray-600 mb-4 text-center">Your menu has been successfully created and is now live on your restaurant&apos;s app.</p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }
@@ -501,13 +723,13 @@ const DraggableBox = forwardRef(({ isDragging, item, handleClear }, ref) => (
         className={`text-center rounded ${isDragging ? 'cursor-grabbing' : 'cursor-grab'
             }`}
     >
-        <div key={item.id} className="border border-[#E5E7EB] bg-[#F9FAFB] h-full flex items-center rounded-md gap-3 p-3 cursor-grab">
+        <div key={item._id} className="border border-[#E5E7EB] bg-[#F9FAFB] h-full flex items-center rounded-md gap-3 p-3 cursor-grab">
             <div>
                 <DragDrop className="stroke-[#606368]" />
             </div>
             <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
                 <img
-                    src="/food.jpg" // replace with your image
+                    src={item.coverImage || "/food.jpg"} // replace with your image
                     alt={item.name}
                     className="object-cover w-full h-full"
                 />
