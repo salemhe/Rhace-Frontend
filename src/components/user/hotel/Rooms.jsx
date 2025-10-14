@@ -36,7 +36,7 @@ const Rooms =  () => {
           <h1 className="text-2xl font-bold text-gray-900 mb-6">Select Room Type</h1>
           
           {/* Tabs */}
-          <div className="flex space-x-1 bg-white rounded-lg p-1 ">
+          <div className="flex space-x-1 bg-white overflow-auto w-full rounded-lg p-1 ">
             {tabs.map((tab) => (
               <button
                 key={tab}

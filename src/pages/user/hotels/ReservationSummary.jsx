@@ -177,7 +177,7 @@ export default function ReservationSummary() {
                     <div className=" divide-y">
                       <div
                         className={`flex p-4 rounded-t-2xl justify-between items-center ${proposedPayment === totalPrice
-                          ? "border border-red-500"
+                          ? "border "
                           : ""
                           }`}
                         onClick={() => {

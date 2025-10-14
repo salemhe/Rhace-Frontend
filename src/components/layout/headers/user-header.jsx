@@ -1,12 +1,16 @@
-import { Bell, ChevronDown, ChevronUp, Heart, Menu, X } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
+import { cn } from '@/lib/utils';
+import { Bell, ChevronDown, ChevronUp, Heart } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 const UserHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [pathname, setPathname] = useState('/');
   const dropdownRef = useRef(null);
-
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authUser, setAuthUser] = useState(null);
+  const navigates = useNavigate()
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Bookings / Reservations", href: "/bookings" },
@@ -39,8 +43,75 @@ const UserHeader = () => {
     };
   }, [isMenuOpen]);
 
+  // Initialize auth state from localStorage and listen for cross-tab changes
+  useEffect(() => {
+    const readAuthFromStorage = () => {
+      try {
+        // common keys the app might use
+        const candidateKeys = ['auth', 'authToken', 'authUser', 'authData'];
+        for (const key of candidateKeys) {
+          const raw = localStorage.getItem(key);
+          if (!raw) continue;
+          // If value is JSON (object with user/isAuthenticated), parse it
+          try {
+            const parsed = JSON.parse(raw);
+            return { key, parsed };
+          } catch {
+            // not JSON -> treat as token string
+            return { key, token: raw };
+          }
+        }
+      } catch {
+        // ignore
+      }
+      return null;
+    };
+
+    const init = () => {
+      const auth = readAuthFromStorage();
+      if (!auth) {
+        setIsAuthenticated(false);
+        setAuthUser(null);
+        return;
+      }
+
+      if (auth.token) {
+        // token-only storage implies authenticated
+        setIsAuthenticated(true);
+        setAuthUser(null);
+        return;
+      }
+
+      const parsed = auth.parsed;
+      // if the stored object uses nested 'user' or direct fields
+      const user = parsed?.user || parsed?.userData || parsed;
+      const isAuthFlag = parsed?.isAuthenticated || parsed?.isAuth || false;
+
+      setIsAuthenticated(!!(isAuthFlag || user));
+      setAuthUser(user || null);
+    };
+
+    init();
+
+    const handleStorage = (e) => {
+      if (!e.key) {
+        // some browsers send null key for clear() events; re-init
+        init();
+        return;
+      }
+      const watched = ['auth', 'authToken', 'authUser', 'authData'];
+      if (watched.includes(e.key)) {
+        init();
+      }
+    };
+
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const navigate = (path) => {
     setPathname(path);
+    navigates(path);
     console.log('Navigating to:', path);
   };
 
@@ -61,9 +132,9 @@ const UserHeader = () => {
             {navItems.map((item, idx) => {
               const isActive = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
               return (
-                <a 
-                  href={item.href} 
-                  key={idx} 
+                <a
+                  href={item.href}
+                  key={idx}
                   className={`transition-colors duration-200 text-base font-bold px-3 py-2 relative group ${scrolled ? 'text-gray-900' : 'text-white'}`}
                 >
                   {item.name}
@@ -81,12 +152,12 @@ const UserHeader = () => {
             <button className={`hidden md:flex p-2 rounded-full transition-colors duration-200 ${scrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'}`}>
               <Bell className="w-5 h-5" />
             </button>
-            
+
             {/* Profile Dropdown */}
             <div className="relative" ref={dropdownRef}>
-              <button 
-                onClick={() => setIsMenuOpen(!isMenuOpen)} 
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors duration-200 ${scrolled ? 'outline outline-1 outline-gray-200 hover:bg-gray-50' : 'outline outline-1 outline-white/30 hover:bg-white/10'}`}
+              <button
+                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors duration-200 ${scrolled ? 'outline outline-gray-200 hover:bg-gray-50' : 'outline outline-white/30 hover:bg-white/10'}`}
               >
                 <img
                   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
@@ -99,10 +170,16 @@ const UserHeader = () => {
                   <ChevronDown className={`w-5 h-5 ${scrolled ? 'text-gray-700' : 'text-white'}`} />
                 )}
               </button>
-              
+
               {isMenuOpen && (
                 <div className="absolute top-full right-0 mt-2 w-72 z-50">
-                  <UserProfileMenu onClose={() => setIsMenuOpen(false)} navigate={navigate} />
+                  <UserProfileMenu
+                    onClose={() => setIsMenuOpen(false)}
+                    navigate={navigate}
+                    isAuthenticated={isAuthenticated}
+                    setIsAuthenticated={setIsAuthenticated}
+                    user={authUser}
+                  />
                 </div>
               )}
             </div>
@@ -115,12 +192,34 @@ const UserHeader = () => {
 
 export default UserHeader;
 
-function UserProfileMenu({ onClose, navigate }) {
+function UserProfileMenu ({ onClose, navigate, isAuthenticated, setIsAuthenticated, user }) {
   const handleNavigation = (path) => {
     if (navigate) {
       navigate(path);
       if (onClose) onClose();
     }
+  };
+
+  const handleSignOut = () => {
+    console.log('Signing out...');
+    try {
+      // clear common auth keys — adapt to your app's real keys
+      const keys = ['auth', 'authToken', 'authUser', 'authData', 'token'];
+      for (const k of keys) {
+        try { localStorage.removeItem(k); } catch { /* ignore */ }
+      }
+    } catch {
+      // ignore storage errors
+    }
+    if (typeof setIsAuthenticated === 'function') setIsAuthenticated(false);
+    if (onClose) onClose();
+    // optionally navigate to homepage after sign out
+    if (navigate) navigate('/');
+  };
+
+  const handleSignIn = () => {
+    // direct the user to the sign-in page
+    handleNavigation('/auth/user/login');
   };
 
   return (
@@ -129,16 +228,16 @@ function UserProfileMenu({ onClose, navigate }) {
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <img
-            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+            src={user?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'}
             alt="Profile"
             className="w-12 h-12 rounded-full object-cover"
           />
           <div>
             <h2 className="text-base font-semibold text-gray-900">
-              Hi, Eyebiokin Joseph
+              Hi, {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Guest'}
             </h2>
             <p className="text-xs text-gray-600">
-              Eyebiokinjoseph1@gmail.com
+              {user?.email || 'Not signed in'}
             </p>
           </div>
         </div>
@@ -164,23 +263,29 @@ function UserProfileMenu({ onClose, navigate }) {
       {/* Divider */}
       <div className="border-t border-gray-200"></div>
 
-      {/* Sign Out */}
+      {/* Sign In / Sign Out */}
       <div className="py-1">
         <button
           onClick={() => {
-            console.log('Signing out...');
-            if (onClose) onClose();
+            if (isAuthenticated) {
+              handleSignOut();
+            } else {
+              handleSignIn();
+            }
           }}
-          className="w-full text-left px-4 py-3 text-red-500 font-medium hover:bg-red-50 transition-colors text-sm"
+          className={cn(
+            "w-full text-left px-4 py-3 font-medium hover:bg-red-50 transition-colors text-sm",
+            isAuthenticated ? 'text-red-500' : 'text-gray-700'
+          )}
         >
-          Sign Out
+          {isAuthenticated ? 'Sign Out' : 'Sign In'}
         </button>
       </div>
     </div>
   );
 }
 
-function MenuItem({ text, onClick }) {
+function MenuItem ({ text, onClick }) {
   return (
     <button
       onClick={onClick}
