@@ -1,7 +1,12 @@
 import React from 'react';
 import { Search, Bell, Menu, User, ChevronDown } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 const Header = ({ onMenuClick }) => {
+  const vendorType = useSelector((state) => state.vendor.type);
+  const vendorDetails = useSelector((state) => state.vendor.details);
+
+  console.log(vendorDetails)
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-6 relative">
       {/* Mobile menu button */}
