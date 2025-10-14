@@ -85,7 +85,7 @@ const navigate = useNavigate();
                     <Loader2 className="animate-spin" /> Loading
                   </>
                 ) : (
-                  "Reserve Table"
+                  "Reserve Room"
                 )}
               </Button>
             </div>
@@ -97,7 +97,7 @@ const navigate = useNavigate();
           className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
           onClick={handlePopup}
         >
-          Reserve Table
+          Reserve Room
         </Button>
       </div>
     </div>

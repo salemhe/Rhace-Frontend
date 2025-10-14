@@ -21,6 +21,7 @@ const DatePicker = ({
   value,
   onChange,
   className,
+  title = "Select date"
 }) => {
   const [open, setOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(value || new Date());
@@ -82,7 +83,7 @@ const DatePicker = ({
             )}
           >
             <Label htmlFor="date" className="text-black">
-              Date
+              {title}
             </Label>
             {value ? format(value, "do MMM, yyyy") : "Select date"}
           </Button>

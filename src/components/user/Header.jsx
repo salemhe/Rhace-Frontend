@@ -270,7 +270,7 @@ const Header = () => {
                 <a href="/" className="flex items-center space-x-2">
                   <span className="w-6 h-6 bg-blue-400 rounded-full inline-block" />
                   <span className={`text-2xl font-bold ${scrolled || !isHomePage ? 'text-gray-900' : 'text-[#F9FAFB]'}`}>
-                    Bookies
+                    Rhace
                   </span>
                 </a>
               </div>

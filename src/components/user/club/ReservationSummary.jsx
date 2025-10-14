@@ -96,7 +96,7 @@ export default function ReservationSummary({ id }) {
               <div className="flex items-center gap-1">
                 <Star className="h-4 w-4 fill-[#F0AE02] text-[#F0AE02]" />
                 <span className="text-[12px] md:text-sm font-medium">
-                  {vendor?.rating || "4.8"} (
+                  {vendor?.rating || "5.8"} (
                   {vendor?.reviews.toLocaleString() || "1,000"} reviews)
                 </span>
               </div>
@@ -179,7 +179,7 @@ export default function ReservationSummary({ id }) {
                     <div className=" divide-y">
                       <div
                         className={`flex p-4 rounded-t-2xl justify-between items-center ${proposedPayment === totalPrice
-                            ? "border border-red-500"
+                            ? "border"
                             : ""
                           }`}
                         onClick={() => {
@@ -193,7 +193,7 @@ export default function ReservationSummary({ id }) {
                       </div>
                       <div
                         className={`flex p-4 rounded-b-2xl justify-between items-center ${proposedPayment === totalPrice / 2
-                            ? "border border-red-500"
+                            ? "border "
                             : ""
                           }`}
                         onClick={() => {

@@ -2,117 +2,77 @@ import { cn } from '@/lib/utils';
 import { Bell, ChevronDown, ChevronUp, Heart } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
+import { useDispatch, useSelector } from 'react-redux';
+import { logout } from '@/redux/slices/authSlice';
 
 const UserHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [pathname, setPathname] = useState('/');
   const dropdownRef = useRef(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [authUser, setAuthUser] = useState(null);
-  const navigates = useNavigate()
+  const dispatch = useDispatch();
+  const navigates = useNavigate();
+
+  // Redux user
+  const user = useSelector((state) => state.auth);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Navbar links
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Bookings / Reservations", href: "/bookings" },
     { name: "Offers", href: "#" },
   ];
 
+  // Scroll behavior
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
-    };
-
+    const handleScroll = () => setScrolled(window.scrollY > 10);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close dropdown when clicking outside
+  // Detect click outside for dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsMenuOpen(false);
       }
     };
-
-    if (isMenuOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-    };
+    if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen]);
 
-  // Initialize auth state from localStorage and listen for cross-tab changes
+  // Fetch user data (same logic from Header)
   useEffect(() => {
-    const readAuthFromStorage = () => {
+    const fetchUserData = async () => {
       try {
-        // common keys the app might use
-        const candidateKeys = ['auth', 'authToken', 'authUser', 'authData'];
-        for (const key of candidateKeys) {
-          const raw = localStorage.getItem(key);
-          if (!raw) continue;
-          // If value is JSON (object with user/isAuthenticated), parse it
-          try {
-            const parsed = JSON.parse(raw);
-            return { key, parsed };
-          } catch {
-            // not JSON -> treat as token string
-            return { key, token: raw };
-          }
+        setLoading(true);
+        if (user.isAuthenticated) {
+          setProfile(user.user);
+        } else {
+          setProfile(null);
         }
-      } catch {
-        // ignore
-      }
-      return null;
-    };
-
-    const init = () => {
-      const auth = readAuthFromStorage();
-      if (!auth) {
-        setIsAuthenticated(false);
-        setAuthUser(null);
-        return;
-      }
-
-      if (auth.token) {
-        // token-only storage implies authenticated
-        setIsAuthenticated(true);
-        setAuthUser(null);
-        return;
-      }
-
-      const parsed = auth.parsed;
-      // if the stored object uses nested 'user' or direct fields
-      const user = parsed?.user || parsed?.userData || parsed;
-      const isAuthFlag = parsed?.isAuthenticated || parsed?.isAuth || false;
-
-      setIsAuthenticated(!!(isAuthFlag || user));
-      setAuthUser(user || null);
-    };
-
-    init();
-
-    const handleStorage = (e) => {
-      if (!e.key) {
-        // some browsers send null key for clear() events; re-init
-        init();
-        return;
-      }
-      const watched = ['auth', 'authToken', 'authUser', 'authData'];
-      if (watched.includes(e.key)) {
-        init();
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
       }
     };
+    fetchUserData();
+  }, [user]);
 
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+  // Handle logout (same as Header)
+  const handleLogout = async () => {
+    console.log("Attempting to logout");
+    dispatch(logout());
+    setProfile(null);
+  };
 
+  // Navigate helper
   const navigate = (path) => {
     setPathname(path);
     navigates(path);
-    console.log('Navigating to:', path);
   };
 
   return (
@@ -159,11 +119,15 @@ const UserHeader = () => {
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors duration-200 ${scrolled ? 'outline outline-gray-200 hover:bg-gray-50' : 'outline outline-white/30 hover:bg-white/10'}`}
               >
-                <img
-                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
-                  alt="Profile"
-                  className="w-6 h-6 rounded-full object-cover"
-                />
+                {loading ? (
+                  <div className="w-6 h-6 bg-gray-300 rounded-full animate-pulse" />
+                ) : (
+                  <img
+                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+                    alt="Profile"
+                    className="w-6 h-6 rounded-full object-cover"
+                  />
+                )}
                 {isMenuOpen ? (
                   <ChevronUp className={`w-5 h-5 ${scrolled ? 'text-gray-700' : 'text-white'}`} />
                 ) : (
@@ -176,9 +140,9 @@ const UserHeader = () => {
                   <UserProfileMenu
                     onClose={() => setIsMenuOpen(false)}
                     navigate={navigate}
-                    isAuthenticated={isAuthenticated}
-                    setIsAuthenticated={setIsAuthenticated}
-                    user={authUser}
+                    isAuthenticated={user.isAuthenticated}
+                    handleLogout={handleLogout}
+                    user={profile}
                   />
                 </div>
               )}
@@ -192,35 +156,13 @@ const UserHeader = () => {
 
 export default UserHeader;
 
-function UserProfileMenu ({ onClose, navigate, isAuthenticated, setIsAuthenticated, user }) {
+function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, user }) {
   const handleNavigation = (path) => {
-    if (navigate) {
-      navigate(path);
-      if (onClose) onClose();
-    }
-  };
-
-  const handleSignOut = () => {
-    console.log('Signing out...');
-    try {
-      // clear common auth keys — adapt to your app's real keys
-      const keys = ['auth', 'authToken', 'authUser', 'authData', 'token'];
-      for (const k of keys) {
-        try { localStorage.removeItem(k); } catch { /* ignore */ }
-      }
-    } catch {
-      // ignore storage errors
-    }
-    if (typeof setIsAuthenticated === 'function') setIsAuthenticated(false);
+    if (navigate) navigate(path);
     if (onClose) onClose();
-    // optionally navigate to homepage after sign out
-    if (navigate) navigate('/');
   };
 
-  const handleSignIn = () => {
-    // direct the user to the sign-in page
-    handleNavigation('/auth/user/login');
-  };
+  const handleSignIn = () => handleNavigation('/auth/user/login');
 
   return (
     <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
@@ -228,7 +170,7 @@ function UserProfileMenu ({ onClose, navigate, isAuthenticated, setIsAuthenticat
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
           <img
-            src={user?.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'}
+            src={'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'}
             alt="Profile"
             className="w-12 h-12 rounded-full object-cover"
           />
@@ -251,7 +193,6 @@ function UserProfileMenu ({ onClose, navigate, isAuthenticated, setIsAuthenticat
         <MenuItem text="Payments/Transaction" onClick={() => handleNavigation('/payments')} />
       </div>
 
-      {/* Divider */}
       <div className="border-t border-gray-200"></div>
 
       {/* Menu Items Section 2 */}
@@ -260,7 +201,6 @@ function UserProfileMenu ({ onClose, navigate, isAuthenticated, setIsAuthenticat
         <MenuItem text="Help Center" onClick={() => handleNavigation('/help')} />
       </div>
 
-      {/* Divider */}
       <div className="border-t border-gray-200"></div>
 
       {/* Sign In / Sign Out */}
@@ -268,10 +208,11 @@ function UserProfileMenu ({ onClose, navigate, isAuthenticated, setIsAuthenticat
         <button
           onClick={() => {
             if (isAuthenticated) {
-              handleSignOut();
+              handleLogout();
             } else {
               handleSignIn();
             }
+            if (onClose) onClose();
           }}
           className={cn(
             "w-full text-left px-4 py-3 font-medium hover:bg-red-50 transition-colors text-sm",
@@ -285,7 +226,7 @@ function UserProfileMenu ({ onClose, navigate, isAuthenticated, setIsAuthenticat
   );
 }
 
-function MenuItem ({ text, onClick }) {
+function MenuItem({ text, onClick }) {
   return (
     <button
       onClick={onClick}

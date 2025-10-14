@@ -1,33 +1,65 @@
-import { ArrowLeft, MapPin, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useReservations } from "@/contexts/club/ReservationContext";
+import { format } from "date-fns";
+import { ArrowLeft, Check, Edit, MapPin, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router";
 import ReservationHeader from "../../../components/user/hotel/ReservationHeader";
 import DatePicker from "../../../components/user/ui/datepicker";
 import { GuestPicker } from "../../../components/user/ui/guestpicker";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { format } from "date-fns";
-import { useNavigate } from "react-router";
-import { useState } from "react";
 import PaymentPage from "../../../components/user/ui/Payment";
 
-export default function ReservationSummary() {
+export default function ReservationSummary () {
   const [popupOpen, setPopupOpen] = useState(false)
+  const [editRoom, setEditRoom] = useState(false);
+  const [roomName, setRoomName] = useState("Superion Deluxe Room");
+  const [pricePerNight, setPricePerNight] = useState(150000);
+  const [bedType, setBedType] = useState("1 master bed");
+  const [guestsAllowed, setGuestsAllowed] = useState(2);
+  const [tempRoom, setTempRoom] = useState({});
+  const [nights, setNights] = useState(2);
+  const [searchParams] = useSearchParams();
+  const [checkInDate, setCheckInDate] = useState(null);
+  const [checkOutDate, setCheckOutDate] = useState(null);
+  const [guestCount, setGuestCount] = useState(1);
+  const [specialRequest, setSpecialRequest] = useState("");
+  const [proposedPayment, setProposedPayment] = useState("full");
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    const dateParam = searchParams.get("date");
+    const date2Param = searchParams.get("date2");
+    const guestsParam = searchParams.get("guests");
+    const requestParam = searchParams.get("specialRequest");
+
+    if (dateParam) {
+      setCheckInDate(new Date(dateParam));
+    }
+    if (date2Param) {
+      setCheckOutDate(new Date(date2Param));
+    }
+    if (guestsParam) {
+      setGuestCount(Number(guestsParam));
+    }
+    if (requestParam) {
+      setSpecialRequest(requestParam);
+    }
+  }, [searchParams]);
   const {
-    guestCount,
-    setSpecialRequest,
-    specialRequest,
-    setGuestCount,
+    // guestCount,
+    // setSpecialRequest,
+    // specialRequest,
+    // setGuestCount,
     setPage,
     date,
     setDate,
     vendor,
-    totalPrice,
-    setProposedPayment,
-    proposedPayment,
+    // setProposedPayment,
+    // proposedPayment,
     handleSubmit
   } = useReservations();
-  const navigate = useNavigate();
 
   const handleContinue = () => {
     handleSubmit
@@ -102,45 +134,121 @@ export default function ReservationSummary() {
                   <h3 className="text-lg font-semibold">Booking Details</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-                  <DatePicker value={date} onChange={setDate} />
-                  <DatePicker value={date} onChange={setDate} />
+                  <DatePicker title="Check In Date" value={date || checkInDate} onChange={setDate} />
+                  <DatePicker title="Check out Date" value={date || checkOutDate} onChange={setDate} />
                   <GuestPicker value={guestCount} onChange={setGuestCount} />
+                </div>
+                <div className="p-4">
+                  <label className="text-xs text-gray-600">Nights</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={nights}
+                    onChange={(e) => setNights(Number(e.target.value))}
+                    className="w-24 mt-2 border rounded-lg p-2 text-sm"
+                  />
                 </div>
               </div>
             </div>
             <div className="rounded-2xl bg-white border">
               <div className=" divide-y">
-                <div className="flex p-4">
+                <div className="flex p-4 justify-between items-center">
                   <h3 className="text-lg font-semibold">Room Summary</h3>
+                  <button
+                    onClick={() => {
+                      if (!editRoom) {
+                        // entering edit mode: store temps
+                        setTempRoom({ roomName, pricePerNight, bedType, guestsAllowed });
+                        setEditRoom(true);
+                      } else {
+                        // save and leave edit mode
+                        setEditRoom(false);
+                      }
+                    }}
+                    className="flex items-center gap-2 text-sm text-[#0A6C6D]"
+                    aria-label={editRoom ? "Save room summary" : "Edit room summary"}
+                  >
+                    {editRoom ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                    {editRoom ? "Save" : "Edit"}
+                  </button>
                 </div>
                 <div className="space-y-4 p-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Room Name</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        Superion Deluxe Room
-                      </p>
+                      {!editRoom ? (
+                        <p className="text-sm font-medium text-gray-900">{roomName}</p>
+                      ) : (
+                        <input
+                          type="text"
+                          value={roomName}
+                          onChange={(e) => setRoomName(e.target.value)}
+                          className="w-full border rounded-lg p-2 text-sm"
+                        />
+                      )}
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Price per Night</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        #150,000
-                      </p>
+                      {!editRoom ? (
+                        <p className="text-sm font-medium text-gray-900">#{pricePerNight.toLocaleString()}</p>
+                      ) : (
+                        <input
+                          type="number"
+                          value={pricePerNight}
+                          onChange={(e) => setPricePerNight(Number(e.target.value))}
+                          className="w-full border rounded-lg p-2 text-sm"
+                        />
+                      )}
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Bed Type</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        1 master bed
-                      </p>
+                      {!editRoom ? (
+                        <p className="text-sm font-medium text-gray-900">{bedType}</p>
+                      ) : (
+                        <input
+                          type="text"
+                          value={bedType}
+                          onChange={(e) => setBedType(e.target.value)}
+                          className="w-full border rounded-lg p-2 text-sm"
+                        />
+                      )}
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Guests Allowed</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        2
-                      </p>
+                      {!editRoom ? (
+                        <p className="text-sm font-medium text-gray-900">{guestsAllowed}</p>
+                      ) : (
+                        <input
+                          type="number"
+                          value={guestsAllowed}
+                          min={1}
+                          onChange={(e) => setGuestsAllowed(Number(e.target.value))}
+                          className="w-full border rounded-lg p-2 text-sm"
+                        />
+                      )}
                     </div>
                   </div>
-                  <div className="text-sm text-[#0A6C6D] underline">Free cancellation until 24h before check-in</div>
+                  <div className="flex items-center justify-between">
+                    <div className="text-sm text-[#0A6C6D] underline">Free cancellation until 24h before check-in</div>
+                    {editRoom && (
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            // revert
+                            setRoomName(tempRoom.roomName);
+                            setPricePerNight(tempRoom.pricePerNight);
+                            setBedType(tempRoom.bedType);
+                            setGuestsAllowed(tempRoom.guestsAllowed);
+                            setEditRoom(false);
+                          }}
+                          className="text-sm text-gray-500 px-3 py-1 rounded-lg border"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -176,35 +284,26 @@ export default function ReservationSummary() {
                   <div className="rounded-2xl bg-white border">
                     <div className=" divide-y">
                       <div
-                        className={`flex p-4 rounded-t-2xl justify-between items-center ${proposedPayment === totalPrice
-                          ? "border "
-                          : ""
-                          }`}
+                        className={`flex p-4 rounded-t-2xl justify-between items-center ${proposedPayment === pricePerNight * nights ? "border " : ""}`}
                         onClick={() => {
-                          setProposedPayment(totalPrice);
+                          setProposedPayment(pricePerNight * nights);
                         }}
                       >
                         <h3 className="text-lg font-semibold">
-                          Pay #150,000 now
+                          Pay #{(pricePerNight * nights).toLocaleString()} now
                         </h3>
                         <div></div>
                       </div>
                       <div
                         className={`flex p-4 rounded-b-2xl justify-between items-center`}
                         onClick={() => {
-                          setProposedPayment(totalPrice / 2);
+                          setProposedPayment(Math.round((pricePerNight * nights) / 2));
                         }}
                       >
                         <div className="space-y-1">
-                          <h3 className="text-[#111827]">
-                            Pay part now, rest later
-                          </h3>
+                          <h3 className="text-[#111827]">Pay part now, rest later</h3>
                           <p>
-                            Pay #75,000 now, and #75,000 on{" "}
-                            {date
-                              ? format(date, "do MMM, yyyy")
-                              : "the day of your arrival"}
-                            . No extra fees
+                            Pay #{Math.round((pricePerNight * nights) / 2).toLocaleString()} now, and #{Math.round((pricePerNight * nights) / 2).toLocaleString()} on {date ? format(date, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
                           </p>
                         </div>
                         <div></div>
@@ -220,15 +319,13 @@ export default function ReservationSummary() {
                 <div className="mb-3 space-y-2 text-sm">
                   <p className="text-[#111827]">Price Details</p>
                   <div className="flex items-center justify-between">
-                    <p className="text-[#606368]">#150,000 / 2 nights</p>
-                    <p className="text-[#111827]">
-                      #300,000
-                    </p>
+                    <p className="text-[#606368]">#{pricePerNight.toLocaleString()} / {nights} {nights === 1 ? 'night' : 'nights'}</p>
+                    <p className="text-[#111827]">#{(pricePerNight * nights).toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
                   <p>Sub Total</p>
-                  <p>#300,000</p>
+                  <p>#{(pricePerNight * nights).toLocaleString()}</p>
                 </div>
               </div>
             </div>
