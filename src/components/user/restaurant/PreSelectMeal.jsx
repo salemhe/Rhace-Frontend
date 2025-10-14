@@ -10,6 +10,7 @@ import { useReservations } from "@/contexts/restaurant/ReservationContext";
 import { toast } from "sonner";
 import { MenusData } from "@/lib/api";
 import { useNavigate } from "react-router";
+import { menuService } from "@/services/menu.service";
 export default function PreSelectMeal({ id }) {
   const {
     activeTab,
@@ -36,7 +37,7 @@ export default function PreSelectMeal({ id }) {
     },
     {
       name: "Main Course",
-      value: "Main Course",
+      value: "Main Dish ",
     },
     {
       name: "Appetizers",
@@ -55,9 +56,10 @@ export default function PreSelectMeal({ id }) {
   const fetchMenuItems = async () => {
     setLoading(true);
     try {
-      const data = MenusData;
+      const data = await menuService.getMenuItems(id);
+      console.log(data)
       setMenuItems(
-        data.map((item) => ({
+        data.menuItems.map((item) => ({
           ...item,
           selected: false,
           quantity: 0,
@@ -277,7 +279,7 @@ export default function PreSelectMeal({ id }) {
                       <div className="flex gap-2">
                         <div className={`relative h-24 w-32 sm:h-32 flex-shrink-0 `}>
                           <img
-                            src={item.itemImage || "/placeholder.svg"}
+                            src={item.coverImage || "/placeholder.svg"}
                             alt={item.dishName}
                             className={`object-cover rounded-2xl size-full border-3 md:border-0 ${item.selected ? "border-[#1E3A8A]" : "border-transparent"}`}
                           />

@@ -80,9 +80,6 @@ const SvgIcon3= ({ isActive }) => (
   return (
     <div
       className="max-h-[500px] h-[500px]"
-      // style={{
-      //   backgroundImage: `linear-gradient(#20053299 0%, #20053299 60%), url(${Restaurant})`,
-      // }}
     >
       <UserHeader />
             <div className="relative min-h-[400px] sm:min-h-[400px]">
@@ -166,72 +163,20 @@ const SvgIcon3= ({ isActive }) => (
 
        {activeTab === "restaurants" &&(
         <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* {isLoading ? (
-            <div className="flex justify-center items-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-700"></div>
-              <span className="ml-2 text-gray-600">Loading restaurants...</span>
-            </div>
-          ) : vendors.filter(v => v.businessType?.toLowerCase() === "restaurant").length > 0 ? (
-            <TableGrid 
-              title='Top Rated Restaurants' 
-              restaurants={vendors
-                .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "restaurant"))
-                .map(vendor => convertToTableGridRestaurant(convertVendorsToRestaurants([vendor])[0]))
-              } 
-            />
-          ) : (
-            <div className="text-center py-12">
-              <p className="text-gray-600">No restaurants found</p>
-            </div>
-          )} */}
-
-          
           <TableGrid title="Popular Searches" />
-          <TableGrid title="In High Demand" />
-          <TableGrid title="Your History" />
+          {/* <TableGrid title="In High Demand" />
+          <TableGrid title="Your History" /> */}
 
          </div>
           
       ) }
        {activeTab === "hotels" && (
         <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* {
-           vendors
-              .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "hotel")).length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No hotels found</p>
-              </div>
-           ) : (
-             <TableGridTwo 
-            title="Popular Guest House Searches"
-            restaurants={vendors
-              .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "hotel"))
-              .map(vendor => convertToTableGridRestaurant(convertVendorsToRestaurants([vendor])[0]))
-            }
-          />
-           )
-          } */}
            <TableGridTwo title="Popular Searches" />
         </div>
       ) }
       {activeTab === "clubs" && (
          <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* {
-           vendors
-              .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "hotel")).length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-600">No hotels found</p>
-              </div>
-           ) : (
-             <TableGridTwo 
-            title="Popular Guest House Searches"
-            restaurants={vendors
-              .filter(v => v.onboarded === true && (v.businessType?.toLowerCase() === "hotel"))
-              .map(vendor => convertToTableGridRestaurant(convertVendorsToRestaurants([vendor])[0]))
-            }
-          />
-           )
-          } */}
            <TableGridThree title="Popular Clubs" />
         </div>
       )}

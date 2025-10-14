@@ -33,58 +33,62 @@ import AddRooms from "./pages/vendor/hotel/add-rooms/page";
 import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
 import CreateMenu from "./pages/dashboard/restaurant/CreateMenu";
 import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<Layout />}>
 
-        <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFound />} />
 
-        <Route path="/auth">
-          <Route path="user">
-            <Route path="signup" element={<Signup />} />
-            <Route path="login" element={<Login />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
-            <Route path="reset-password" element={<ResetPassword />} />
-            <Route path="otp" element={<Otp />} />
+          <Route path="/auth">
+            <Route path="user">
+              <Route path="signup" element={<Signup />} />
+              <Route path="login" element={<Login />} />
+              <Route path="forgot-password" element={<ForgotPassword />} />
+              <Route path="reset-password" element={<ResetPassword />} />
+              <Route path="otp" element={<Otp />} />
+            </Route>
+            <Route path="vendor">
+              <Route path="signup" element={<VendorSignup />} />
+              <Route path="login" element={<VendorLogin />} />
+              <Route path="forgot-password" element={<VendorForgotPassword />} />
+              <Route path="otp" element={<VendorOtp />} />
+              <Route path="reset-password" element={<VendorResetPassword />} />
+              <Route path="onboarding" element={<Onboard />} />
+            </Route>
           </Route>
-          <Route path="vendor">
-            <Route path="signup" element={<VendorSignup />} />
-            <Route path="login" element={<VendorLogin />} />
-            <Route path="forgot-password" element={<VendorForgotPassword />} />
-            <Route path="otp" element={<VendorOtp />} />
-            <Route path="reset-password" element={<VendorResetPassword />} />
-            <Route path="onboarding" element={<Onboard />} />
+          <Route path="/restaurants/:id" element={<RestaurantsPage />} />
+          <Route element={<ReservationLayout />}>
+            <Route path="/restaurants/:id/reservations" element={<Reservation />} />
+            <Route path="/restaurants/pre-payment/:id" element={<PrePaymentPage />} />
           </Route>
+          <Route path="/restaurants/completed/:id" element={<CompletedPage />} />
+          <Route path="/clubs/:id" element={<ClubPage />} />
+          <Route element={<ClubReservationLayout />}>
+            <Route path="/clubs/:id/reservations" element={<ClubReservation />} />
+            <Route path="/hotels/:id/reservations" element={<HotelReservation />} />
+          </Route>
+          <Route path="/hotels/:id" element={<HotelsPage />} />
+          <Route path="/dashboard" >
+            <Route path="" element={<VendorDashboard />} />
+            <Route path="payments" element={<PaymentDashboard />} />
+            <Route path="restaurant/reservation" element={<ReservationDashboard />} />
+            <Route path="restaurant/menu" element={<MenuDashboard />} />
+            <Route path="restaurant/reservation/new" element={<CreateReservation />} />
+            <Route path="restaurant/menu/new" element={<CreateMenu />} />
+          </Route>
+          <Route path="hotel/dashboard" element={<VendorDashboard />} />
+          <Route path="hotel/bookings" element={<BookingManagement />} />
+          <Route path="hotel/addrooms" element={<AddRooms />} />
+          <Route path="hotel/rooms" element={<RoomsManagement />} />
+          <Route path="/" element={<ReservationHomePage />} />
         </Route>
-        <Route path="/restaurants/:id" element={<RestaurantsPage />} />
-        <Route element={<ReservationLayout />}>
-          <Route path="/restaurants/:id/reservations" element={<Reservation />} />
-          <Route path="/restaurants/pre-payment/:id" element={<PrePaymentPage />} />
-        </Route>
-        <Route path="/restaurants/completed/:id" element={<CompletedPage />} />
-        <Route path="/clubs/:id" element={<ClubPage />} />
-        <Route element={<ClubReservationLayout />}>
-          <Route path="/clubs/:id/reservations" element={<ClubReservation />} />
-          <Route path="/hotels/:id/reservations" element={<HotelReservation />} />
-        </Route>
-        <Route path="/hotels/:id" element={<HotelsPage />} />
-        <Route path="/dashboard" >
-          <Route path="" element={<VendorDashboard />}/>
-          <Route path="payments" element={<PaymentDashboard />}/>
-          <Route path="restaurant/reservation" element={<ReservationDashboard />} />
-          <Route path="restaurant/menu" element={<MenuDashboard />} />
-          <Route path="restaurant/reservation/new" element={<CreateReservation />} />
-          <Route path="restaurant/menu/new" element={<CreateMenu />} />
-        </Route>
-        <Route path="hotel/dashboard" element={<VendorDashboard />} />
-        <Route path="hotel/bookings" element={<BookingManagement />} />
-        <Route path="hotel/addrooms" element={<AddRooms />} />
-        <Route path="hotel/rooms" element={<RoomsManagement />} />
-        <Route path="/" element={<ReservationHomePage />} />
-      </Route>
-    </Routes>
+      </Routes>
+    </>
   );
 }
 
