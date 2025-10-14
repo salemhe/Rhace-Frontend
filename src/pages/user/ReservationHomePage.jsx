@@ -108,7 +108,7 @@ const SvgIcon3= ({ isActive }) => (
                   <h1 className=" text-3xl md:text-5xl font-bold text-white mb-2 sm:mb-1 leading-snug mt-4[40px] sm:mt-6 lg:mt-8">
                     Find your Perfect Table
                   </h1>
-                  <p className="text-gray-50 font-['Inter'] w-56 leading-none text-xs sm:text-base font-normal md:text-xl  mb-5 sm:mb-8]">
+                  <p className="text-xs font-normal sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
                     Discover and reserve the best restaurants in your city
                   </p>
                 </>
