@@ -1,102 +1,192 @@
-import React, { useEffect, useState } from 'react';
-import { Search, MapPin, User, Menu, X, Heart, Clock, Bell } from 'lucide-react';
-
-import { useLocation, useNavigate } from "react-router-dom";
+import { Bell, ChevronDown, ChevronUp, Heart, Menu, X } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
 
 const UserHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const {pathname } = useLocation();
-  const navigate = useNavigate();
-   const navItems = [
+  const [pathname, setPathname] = useState('/');
+  const dropdownRef = useRef(null);
+
+  const navItems = [
     { name: "Home", href: "/" },
-    // { name: "Restaurants", href: "/userDashboard/search" },
     { name: "Bookings / Reservations", href: "/bookings" },
     { name: "Offers", href: "#" },
   ];
 
-    useEffect(() => {
+  useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 10) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(window.scrollY > 10);
     };
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    if (isMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isMenuOpen]);
+
+  const navigate = (path) => {
+    setPathname(path);
+    console.log('Navigating to:', path);
+  };
+
   return (
-    <header className={`fixed top-0 z-90 w-full transition-all duration-300 ${scrolled ? 'bg-[#F9FAFB] ' : 'bg-transparent text-white '}`}>
+    <header className={`fixed top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-transparent text-white'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="w-[26px]  h-[26px] bg-[#60A5FA] rounded-full flex items-center justify-center">
+            <div className="w-[26px] h-[26px] bg-blue-400 rounded-full flex items-center justify-center">
               <span className="text-white font-bold text-lg"></span>
             </div>
-            <span className="text-2xl font-bold">Rhace</span>
+            <span className={`text-2xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>Rhace</span>
           </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex space-x-8">
             {navItems.map((item, idx) => {
-              const isActive =
-                      item.href === "/"
-                        ? pathname === "/"
-                        : pathname?.startsWith(item.href);
+              const isActive = item.href === "/" ? pathname === "/" : pathname?.startsWith(item.href);
               return (
-            <a href={item.href} key={idx} className="transition-colors duration-200  text-[1rem]  font-bold px-3 py-2 
-                          relative group">{item.name}
-              <span
-                          className={`absolute h-0.5 w-0 bg-blue-500 left-1/2 -translate-x-1/2 bottom-0 rounded-full
-                          ${isActive ? 'w-[24px] h-2' : 'group-hover:w-[24px] h-2'} transition-all duration-300`}
-                        />
-            </a>)})}
+                <a 
+                  href={item.href} 
+                  key={idx} 
+                  className={`transition-colors duration-200 text-base font-bold px-3 py-2 relative group ${scrolled ? 'text-gray-900' : 'text-white'}`}
+                >
+                  {item.name}
+                  <span className={`absolute h-0.5 bg-blue-500 left-1/2 -translate-x-1/2 bottom-0 rounded-full transition-all duration-300 ${isActive ? 'w-6' : 'w-0 group-hover:w-6'}`} />
+                </a>
+              );
+            })}
           </nav>
 
           {/* User Actions */}
-          <div className="hidden md:flex items-center space-x-4">
-            <button className="p-2 hover:bg-purple-700 rounded-full transition-colors duration-200">
+          <div className="flex items-center space-x-4">
+            <button className={`hidden md:flex p-2 rounded-full transition-colors duration-200 ${scrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'}`}>
               <Heart className="w-5 h-5" />
             </button>
-            <button className="p-2 hover:bg-purple-700 rounded-full transition-colors duration-200">
+            <button className={`hidden md:flex p-2 rounded-full transition-colors duration-200 ${scrolled ? 'text-gray-700 hover:bg-gray-100' : 'text-white hover:bg-white/10'}`}>
               <Bell className="w-5 h-5" />
             </button>
-            <button onClick={() => navigate("/auth/user/signup")} className="flex items-center space-x-2 outline  outline-offset-[-1px] outline-gray-200 px-4 py-2 rounded-full transition-colors duration-200">
-              <User className="w-5 h-5" />
-              <span>Sign In</span>
-            </button>
-          </div>
-
-          {/* Mobile menu button */}
-          <button
-            className="md:hidden p-2 hover:bg-purple-700 rounded-full transition-colors duration-200"
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-          >
-            {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-          </button>
-        </div>
-
-        {/* Mobile Navigation */}
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-purple-700">
-            <nav className="flex flex-col space-y-4">
-              <a href="#" className="hover:text-purple-300 transition-colors duration-200">Home</a>
-              <a href="#" className="hover:text-purple-300 transition-colors duration-200">Restaurants</a>
-              <a href="#" className="hover:text-purple-300 transition-colors duration-200">Reservations</a>
-              <a href="#" className="hover:text-purple-300 transition-colors duration-200">About</a>
-              <button onClick={() => navigate("/auth/user/signup")} className="flex items-center space-x-2 bg-purple-700 hover:bg-purple-600 px-4 py-2 rounded-full transition-colors duration-200 w-fit">
-                <User className="w-5 h-5" />
-                <span>Sign In</span>
+            
+            {/* Profile Dropdown */}
+            <div className="relative" ref={dropdownRef}>
+              <button 
+                onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors duration-200 ${scrolled ? 'outline outline-1 outline-gray-200 hover:bg-gray-50' : 'outline outline-1 outline-white/30 hover:bg-white/10'}`}
+              >
+                <img
+                  src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+                  alt="Profile"
+                  className="w-6 h-6 rounded-full object-cover"
+                />
+                {isMenuOpen ? (
+                  <ChevronUp className={`w-5 h-5 ${scrolled ? 'text-gray-700' : 'text-white'}`} />
+                ) : (
+                  <ChevronDown className={`w-5 h-5 ${scrolled ? 'text-gray-700' : 'text-white'}`} />
+                )}
               </button>
-            </nav>
+              
+              {isMenuOpen && (
+                <div className="absolute top-full right-0 mt-2 w-72 z-50">
+                  <UserProfileMenu onClose={() => setIsMenuOpen(false)} navigate={navigate} />
+                </div>
+              )}
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </header>
   );
 };
 
 export default UserHeader;
+
+function UserProfileMenu({ onClose, navigate }) {
+  const handleNavigation = (path) => {
+    if (navigate) {
+      navigate(path);
+      if (onClose) onClose();
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+      {/* Profile Header */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center gap-3">
+          <img
+            src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+            alt="Profile"
+            className="w-12 h-12 rounded-full object-cover"
+          />
+          <div>
+            <h2 className="text-base font-semibold text-gray-900">
+              Hi, Eyebiokin Joseph
+            </h2>
+            <p className="text-xs text-gray-600">
+              Eyebiokinjoseph1@gmail.com
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Menu Items Section 1 */}
+      <div className="py-1">
+        <MenuItem text="Messages" onClick={() => handleNavigation('/messages')} />
+        <MenuItem text="Bookings/Reservation" onClick={() => handleNavigation('/bookings')} />
+        <MenuItem text="Wishlist" onClick={() => handleNavigation('/wishlist')} />
+        <MenuItem text="Payments/Transaction" onClick={() => handleNavigation('/payments')} />
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-200"></div>
+
+      {/* Menu Items Section 2 */}
+      <div className="py-1">
+        <MenuItem text="Account" onClick={() => handleNavigation('/account')} />
+        <MenuItem text="Help Center" onClick={() => handleNavigation('/help')} />
+      </div>
+
+      {/* Divider */}
+      <div className="border-t border-gray-200"></div>
+
+      {/* Sign Out */}
+      <div className="py-1">
+        <button
+          onClick={() => {
+            console.log('Signing out...');
+            if (onClose) onClose();
+          }}
+          className="w-full text-left px-4 py-3 text-red-500 font-medium hover:bg-red-50 transition-colors text-sm"
+        >
+          Sign Out
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MenuItem({ text, onClick }) {
+  return (
+    <button
+      onClick={onClick}
+      className="w-full text-left px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors text-sm font-medium"
+    >
+      {text}
+    </button>
+  );
+}

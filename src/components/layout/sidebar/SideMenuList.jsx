@@ -22,7 +22,7 @@ export const RestaurantList = {
     { icon: Users, label: 'Staff', path: '/restaurant/staff' },
   ],
   bottomItems: [
-    { icon: Settings, label: 'Settings', path: '/restaurant/settings' },
+    { icon: Settings, label: 'Settings', path: 'settings' },
     { icon: LogOut, label: 'Logout', path: '/logout' },
   ]
 };
@@ -36,7 +36,7 @@ export const HotelList = {
    //  { icon: Users, label: 'Staff', path: '/hotel/staff' },
   ],
   bottomItems: [
-    { icon: Settings, label: 'Settings', path: '/hotel/settings' },
+    { icon: Settings, label: 'Settings', path: 'settings' },
     { icon: LogOut, label: 'Logout', path: '/logout' },
   ]
 };
@@ -51,7 +51,7 @@ export const ClubList = {
     { icon: Users, label: 'Members', path: '/club/members' },
   ],
   bottomItems: [
-    { icon: Settings, label: 'Settings', path: '/club/settings' },
+    { icon: Settings, label: 'Settings', path: 'settings' },
     { icon: LogOut, label: 'Logout', path: '/logout' },
   ]
 };

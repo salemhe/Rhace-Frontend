@@ -33,6 +33,7 @@ import AddRooms from "./pages/vendor/hotel/add-rooms/page";
 import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
 import CreateMenu from "./pages/dashboard/restaurant/CreateMenu";
 import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
+import Settings from "./pages/vendor/settings/settings";
 
 function App() {
   return (
@@ -83,6 +84,7 @@ function App() {
         <Route path="hotel/addrooms" element={<AddRooms />} />
         <Route path="hotel/rooms" element={<RoomsManagement />} />
         <Route path="/" element={<ReservationHomePage />} />
+        <Route path="/settings" element={<Settings/>} />
       </Route>
     </Routes>
   );

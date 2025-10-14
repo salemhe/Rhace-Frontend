@@ -1,20 +1,18 @@
-"use client";
-
 import { Button } from '@/components/ui/button';
 import { hotelService } from '@/services/hotel.service';
 import { Plus } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import Header from './components/Header';
-import { AddRoomType } from './components/add-rooms';
+import  AddRoomType  from './components/add-rooms';
 import { BookingPolicyForm } from './components/booking-policy';
 import { HotelSetupForm } from './components/hotel-setup-form';
 import HotelBookingInterface from './components/rooms-confirmation';
 import { SetupSteps } from './components/setup-steps';
 
 
-export default function AddRooms() {
+export default function AddRooms () {
   const [currentStep, setCurrentStep] = useState(1);
-  
+
   // Unified state for all form data
   const [completeFormData, setCompleteFormData] = useState({
     hotelInfo: null,
@@ -61,7 +59,7 @@ export default function AddRooms() {
   // Handle room type operations
   const handleAddRoomType = () => {
     const newRoomId = `${completeFormData.roomTypes.length + 1}`;
-    const newRoom= {
+    const newRoom = {
       id: newRoomId,
       name: `Room Type ${completeFormData.roomTypes.length + 1}`,
       description: '',
@@ -72,7 +70,7 @@ export default function AddRooms() {
       amenities: ['Wi-Fi', 'TV', 'AC'],
       images: []
     };
-    
+
     setCompleteFormData(prev => ({
       ...prev,
       roomTypes: [...prev.roomTypes, newRoom]
@@ -86,7 +84,7 @@ export default function AddRooms() {
         ...prev,
         roomTypes: prev.roomTypes.filter(room => room.id !== roomId)
       }));
-      
+
       // Handle accordion state
       if (openAccordion === `room-${roomId}`) {
         const remainingRooms = completeFormData.roomTypes.filter(room => room.id !== roomId);
@@ -97,23 +95,20 @@ export default function AddRooms() {
     }
   };
 
-  const handleInputChange = (
-    roomId,
-    field,
-    value
-  ) => {
-    setCompleteFormData(prev => ({
-      ...prev,
-      roomTypes: prev.roomTypes.map(room => 
-        room.id === roomId ? { ...room, [field]: value } : room
-      )
-    }));
-  };
+  const handleInputChange = useCallback((roomId, field, value) => {
+  setCompleteFormData(prev => ({
+    ...prev,
+    roomTypes: prev.roomTypes.map(room =>
+      room.id === roomId ? { ...room, [field]: value } : room
+    )
+  }));
+}, []);
+
 
   const handleAmenityToggle = (roomId, amenity) => {
     setCompleteFormData(prev => ({
       ...prev,
-      roomTypes: prev.roomTypes.map(room => 
+      roomTypes: prev.roomTypes.map(room =>
         room.id === roomId ? {
           ...room,
           amenities: room.amenities.includes(amenity)
@@ -148,7 +143,7 @@ export default function AddRooms() {
     // Submit the complete form data
     console.log('Complete Hotel Data:', completeFormData);
 
-    const hotelId = completeFormData.hotelInfo?.id || completeFormData.hotelInfo?.hotelId;
+    const hotelId = completeFormData.hotelInfo?.id || "68e7c2451d66272d3364cc56";
     // if (!hotelId) {
     //   alert('No hotel id available. Please ensure the hotel has been created and an id is present in hotel info.');
     //   return;
@@ -168,7 +163,8 @@ export default function AddRooms() {
             childrenCapacity: room.childrenCapacity,
             totalAvailableRooms: room.totalAvailableRooms,
             amenities: room.amenities,
-            images: room.images || []
+            images: room.images || [],
+            totalUnits: 5
           };
 
           // Create room type
@@ -179,8 +175,31 @@ export default function AddRooms() {
         console.log('Created room types:', created);
         alert('Hotel setup completed successfully!');
       } catch (err) {
-        console.error('Error creating room types', err);
-        alert('An error occurred while creating room types. Check console for details.');
+        // More detailed error logging for debugging 403 responses
+        if (err?.response) {
+          console.error('Error creating room types - response:', {
+            status: err.response.status,
+            data: err.response.data,
+            headers: err.response.headers,
+          });
+        } else if (err?.request) {
+          console.error('Error creating room types - no response received', err.request);
+        } else {
+          console.error('Error creating room types -', err.message || err);
+        }
+
+        // Log the token currently in localStorage (if any) to help diagnose auth issues
+        try {
+          console.log('Stored tokens:', {
+            token: localStorage.getItem('token'),
+            auth_token: localStorage.getItem('auth_token'),
+            vendor_token: localStorage.getItem('vendor-token') || localStorage.getItem('vendor_token'),
+          });
+        } catch {
+          // ignore
+        }
+
+        alert('An error occurred while creating room types. See console for details.');
       }
     })();
   };
@@ -234,31 +253,31 @@ export default function AddRooms() {
       <div className="max-w-6xl mx-auto  pt-24 px-6">
         {/* Progress Steps */}
         <SetupSteps currentStep={currentStep} />
-        
+
         {/* Form Container */}
         <div className="">
           {currentStep === 1 && (
-            <HotelSetupForm 
-    formData={completeFormData.hotelInfo || {
-      hotelName: '',
-      phoneNumber: '',
-      countryCode: '+234',
-      emailAddress: '',
-      address: '',
-      additionalAddressDetail: '',
-      branchCode: `HTL-${Math.floor(Math.random() * 100000)}`,
-      hotelType: 'Apartment',
-      hotelCategory: 'Standard',
-      images: []
-    }}
-    setFormData={(data) => {
-      setCompleteFormData(prev => ({
-        ...prev,
-        hotelInfo: data
-      }));
-    }}
-    // onSubmit={handleHotelSetupSubmit}
-  />
+            <HotelSetupForm
+              formData={completeFormData.hotelInfo || {
+                hotelName: '',
+                phoneNumber: '',
+                countryCode: '+234',
+                emailAddress: '',
+                address: '',
+                additionalAddressDetail: '',
+                branchCode: `HTL-${Math.floor(Math.random() * 100000)}`,
+                hotelType: 'Apartment',
+                hotelCategory: 'Standard',
+                images: []
+              }}
+              setFormData={(data) => {
+                setCompleteFormData(prev => ({
+                  ...prev,
+                  hotelInfo: data
+                }));
+              }}
+            // onSubmit={handleHotelSetupSubmit}
+            />
           )}
 
           {currentStep === 2 && (
@@ -280,48 +299,48 @@ export default function AddRooms() {
           {currentStep === 3 && (
             <div className=" ">
               <BookingPolicyForm
-  onSubmit={handleBookingPolicySubmit}
-  formData={
-    completeFormData.bookingPolicy || {
-      checkInTime: "2:00 PM",
-      roomTypeName: "e.g Luxury room",
-      advanceBookingHours: 24,
-      cancellationType: "2",
-      freeCancellationHours: 48,
-      customPolicyNote: "",
-      paymentOptions: {
-        fullPaymentRequired: true,
-        allowPartPayment: true,
-        payAtHotel: false,
-      },
-      paymentInstructions: "",
-    }
-  }
-  setFormData={(update) =>
-    setCompleteFormData((prev) => ({
-      ...prev,
-      bookingPolicy:
-        typeof update === "function"
-          ? update(prev.bookingPolicy )
-          : update,
-    }))
-  }
-  initialData={completeFormData.bookingPolicy}
-/>
+                onSubmit={handleBookingPolicySubmit}
+                formData={
+                  completeFormData.bookingPolicy || {
+                    checkInTime: "2:00 PM",
+                    roomTypeName: "e.g Luxury room",
+                    advanceBookingHours: 24,
+                    cancellationType: "2",
+                    freeCancellationHours: 48,
+                    customPolicyNote: "",
+                    paymentOptions: {
+                      fullPaymentRequired: true,
+                      allowPartPayment: true,
+                      payAtHotel: false,
+                    },
+                    paymentInstructions: "",
+                  }
+                }
+                setFormData={(update) =>
+                  setCompleteFormData((prev) => ({
+                    ...prev,
+                    bookingPolicy:
+                      typeof update === "function"
+                        ? update(prev.bookingPolicy)
+                        : update,
+                  }))
+                }
+                initialData={completeFormData.bookingPolicy}
+              />
 
             </div>
           )}
 
           {currentStep === 4 && (
-            <HotelBookingInterface onEditStep={(step) => setCurrentStep(step)} 
+            <HotelBookingInterface onEditStep={(step) => setCurrentStep(step)}
               completeData={completeFormData}
               onFinalSubmit={handleFinalSubmit}
             />
           )}
         </div>
-        
+
       </div>
-      
+
       <div className="flex flex-row items-center justify-between px-10 py-2 bg-white mt-8 ">
         <Button
           variant="outline"
@@ -349,7 +368,7 @@ export default function AddRooms() {
               </>
             )}
           </Button>
-        
+
           <Button
             variant="secondary"
             size="default"

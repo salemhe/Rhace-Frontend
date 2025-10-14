@@ -1,4 +1,3 @@
-"use client";
 
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -8,9 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Edit, Plus, Trash2, Upload } from 'lucide-react';
-import { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
- const defaultAmenities = [
+const defaultAmenities = [
   'Wi-Fi',
   'TV',
   'AC',
@@ -20,10 +19,24 @@ import { useState } from 'react';
   'Breakfast',
   'Safe'
 ];
-export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAccordion, setOpenAccordion, handleAmenityToggle, handleInputChange,  }) {
- 
+const AddRoomType = React.memo(({ onSubmit, roomTypes, handleDeleteRoomType, openAccordion, setOpenAccordion, handleAmenityToggle, handleInputChange, }) => {
 
   const [customAmenities, setCustomAmenities] = useState({});
+  const fileInputRefs = useRef({});
+
+  // Cleanup created object URLs if any (best-effort)
+  useEffect(() => {
+    const refs = fileInputRefs.current;
+    return () => {
+      // revoke any created object URLs stored on refs
+      if (!refs) return;
+      Object.values(refs).forEach((input) => {
+        if (input && input._objectUrls) {
+          input._objectUrls.forEach(url => URL.revokeObjectURL(url));
+        }
+      });
+    };
+  }, []);
 
 
 
@@ -38,7 +51,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
     }
   };
 
-  
+
   const handleDrag = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -47,7 +60,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
   const handleDrop = (e, roomId) => {
     e.preventDefault();
     e.stopPropagation();
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const files = Array.from(e.dataTransfer.files).slice(0, 5);
       const room = roomTypes.find(r => r.id === roomId);
@@ -65,10 +78,16 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
       if (room) {
         const newImages = [...room.images, ...files].slice(0, 5);
         handleInputChange(roomId, 'images', newImages);
+        // track object urls for cleanup (best-effort)
+        const input = fileInputRefs.current && fileInputRefs.current[roomId];
+        if (input) {
+          input._objectUrls = (input._objectUrls || []).concat(files.filter(f => f instanceof File).map(f => URL.createObjectURL(f)));
+          // we don't use these URLs directly here (the preview will create its own), but storing allows cleanup
+        }
       }
     }
   };
-   const roomTypesStringArray = roomTypes.map(roomType => roomType.name); // or .type
+  const roomTypesStringArray = roomTypes.map(roomType => roomType.name); // or .type
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -81,7 +100,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
       {/* Left Column - Hotel Classification */}
       <div className="space-y-6">
         <h3 className="text-lg font-medium text-gray-900">Hotel Classification</h3>
-        
+
         {/* Room Type Name */}
         <div className="space-y-2">
           <Label htmlFor={`roomName-${room.id}`} className="text-sm font-medium text-gray-700">
@@ -101,7 +120,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
           <Label htmlFor={`roomDescription-${room.id}`} className="text-sm font-medium text-gray-700">
             Room Description <span className="text-gray-400">(Optional)</span>
           </Label>
-          <Textarea
+           <Textarea
             id={`roomDescription-${room.id}`}
             placeholder="Add a short description or notes about this menu"
             value={room.description}
@@ -120,8 +139,12 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
             <Input
               id={`pricePerNight-${room.id}`}
               type="number"
-              value={room.pricePerNight}
-              onChange={(e) => handleInputChange(room.id, 'pricePerNight', parseInt(e.target.value))}
+              value={room.pricePerNight ?? ''}
+              onChange={(e) => {
+                const val = e.target.value;
+                const num = val === '' ? 0 : Number(val);
+                handleInputChange(room.id, 'pricePerNight', Number.isNaN(num) ? 0 : num);
+              }}
               className="w-full pl-8"
             />
           </div>
@@ -132,7 +155,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
           <Label htmlFor={`adultsCapacity-${room.id}`} className="text-sm font-medium text-gray-700">
             Adults Capacity
           </Label>
-          <Select value={room.adultsCapacity.toString()} onValueChange={(value) => handleInputChange(room.id, 'adultsCapacity', parseInt(value))}>
+          <Select value={(room.adultsCapacity ?? 1).toString()} onValueChange={(value) => handleInputChange(room.id, 'adultsCapacity', Number(value))}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -149,7 +172,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
           <Label htmlFor={`childrenCapacity-${room.id}`} className="text-sm font-medium text-gray-700">
             Children Capacity
           </Label>
-          <Select value={room.childrenCapacity.toString()} onValueChange={(value) => handleInputChange(room.id, 'childrenCapacity', parseInt(value))}>
+          <Select value={(room.childrenCapacity ?? 0).toString()} onValueChange={(value) => handleInputChange(room.id, 'childrenCapacity', Number(value))}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -166,7 +189,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
           <Label htmlFor={`totalRooms-${room.id}`} className="text-sm font-medium text-gray-700">
             Total Available Unit
           </Label>
-          <Select value={room.totalAvailableRooms.toString()} onValueChange={(value) => handleInputChange(room.id, 'totalAvailableRooms', parseInt(value))}>
+          <Select value={(room.totalAvailableRooms ?? 1).toString()} onValueChange={(value) => handleInputChange(room.id, 'totalAvailableRooms', Number(value))}>
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
@@ -184,7 +207,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
         {/* Room Amenities */}
         <div className="space-y-4">
           <h3 className="text-lg font-medium text-gray-900">Room Amenities</h3>
-          
+
           <div className="flex items-center flex-wrap space-x-4 gap-3">
             {defaultAmenities.map((amenity) => (
               <div key={amenity} className="flex items-center space-x-2">
@@ -207,7 +230,12 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
               value={customAmenities[room.id] || ''}
               onChange={(e) => setCustomAmenities(prev => ({ ...prev, [room.id]: e.target.value }))}
               className="flex-1"
-              onKeyPress={(e) => e.key === 'Enter' && handleAddCustomAmenity(room.id)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddCustomAmenity(room.id);
+                }
+              }}
             />
             <Button type="button" variant="outline" size="sm" onClick={() => handleAddCustomAmenity(room.id)}>
               <Edit className="h-4 w-4" />
@@ -237,7 +265,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
               </div>
               <div>
                 <p className="text-gray-600 mb-2">Drag and drop an image here, or</p>
-                <Button type="button" variant="outline" size="sm" onClick={() => document.getElementById(`roomFileInput-${room.id}`)?.click()}>
+                <Button type="button" variant="outline" size="sm" onClick={() => fileInputRefs.current[room.id]?.click()}>
                   Browse Files
                 </Button>
                 <input
@@ -247,6 +275,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
                   multiple
                   onChange={(e) => handleFileSelect(e, room.id)}
                   className="hidden"
+                  ref={(el) => (fileInputRefs.current[room.id] = el)}
                 />
               </div>
               <p className="text-xs text-gray-500">JPG, PNG OR GIF • Max 5MB</p>
@@ -259,7 +288,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
               {room.images.map((image, index) => (
                 <div key={index} className="relative">
                   <img
-                    src={URL.createObjectURL(image)}
+                    src={typeof image === 'string' ? image : (image instanceof File ? URL.createObjectURL(image) : String(image))}
                     alt={`Room image ${index + 1}`}
                     className="w-full h-24 object-cover rounded-lg border"
                   />
@@ -278,9 +307,9 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
                 </div>
               ))}
               {room.images.length < 5 && (
-                <div 
+                <div
                   className="h-24 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-teal-500"
-                  onClick={() => document.getElementById(`roomFileInput-${room.id}`)?.click()}
+                  onClick={() => fileInputRefs.current[room.id]?.click()}
                 >
                   <div className="text-center">
                     <Plus className="h-6 w-6 text-gray-400 mx-auto mb-1" />
@@ -295,25 +324,23 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
     </div>
   );
 
- 
+
 
   return (
     <div className="bg-whit rounded-lg borde">
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Accordion 
-          type="single" 
-          value={openAccordion} 
+        <Accordion
+          type="single"
+          value={openAccordion}
           onValueChange={setOpenAccordion}
           className="w-full space-y-8"
         >
           {roomTypes.map((room) => (
-            <AccordionItem key={room.id} value={`room-${room.id}`} 
-               className={`border rounded-lg shadow-sm ${
-               openAccordion === `room-${room.id}` ? 'bg-white' : 'bg-[#e6f2f2]'
-               }`}
-         >
-              <AccordionTrigger className={`px-6 py-0 hover:no-underline ${
-               openAccordion === `room-${room.id}` ? 'hidden' : 'flex items-center justify-between'}`}>
+            <AccordionItem key={room.id} value={`room-${room.id}`}
+              className={`border rounded-lg shadow-sm ${openAccordion === `room-${room.id}` ? 'bg-white' : 'bg-[#e6f2f2]'
+                }`}
+            >
+              <AccordionTrigger className={`px-6 py-0 hover:no-underline ${openAccordion === `room-${room.id}` ? 'hidden' : 'flex items-center justify-between'}`}>
                 <div className="flex items-center justify-between w-full">
                   <div className="flex items-center gap-3">
                     <span className="text-lg font-medium text-gray-900">{room.name}</span>
@@ -333,7 +360,7 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
-                   
+
                   </div>
                 </div>
               </AccordionTrigger>
@@ -346,4 +373,6 @@ export function AddRoomType({ onSubmit, roomTypes, handleDeleteRoomType, openAcc
       </form>
     </div>
   );
-}
+})
+
+export default AddRoomType;

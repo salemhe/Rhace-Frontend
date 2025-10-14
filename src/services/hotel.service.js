@@ -7,8 +7,29 @@ class HotelService {
    * @param {object} roomData
    */
   async createRoomType(hotelId, roomData) {
-    const res = await api.post(`/hotels/${hotelId}/roomtypes`, roomData);
-    return res.data;
+    try {
+      const res = await api.post(`/hotels/${hotelId}/roomtypes`, roomData);
+      return res.data;
+    } catch (error) {
+      // Surface more useful debugging information for 4xx/5xx responses
+      if (error.response) {
+        // Backend responded with a status code outside 2xx
+        // Log status and body to help diagnose 403 forbidden reasons
+        // (e.g. missing/invalid token, insufficient permissions)
+  console.error('[hotel.service] createRoomType failed', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        });
+      } else if (error.request) {
+        // No response received
+  console.error('[hotel.service] createRoomType no response received', error.request);
+      } else {
+        // Something happened setting up the request
+  console.error('[hotel.service] createRoomType error', error.message);
+      }
+      throw error;
+    }
   }
 
   /**
