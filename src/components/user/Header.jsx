@@ -1,7 +1,4 @@
-import { useEffect, useState } from "react";
-import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useLocation } from "react-router";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,12 +6,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ChevronDown } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router";
 // import AccountTypeModal from "./AccountTypeModal";
 // import { AuthService } from "@/app/lib/api/services/userAuth.service";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 // import { SearchSectionTwo } from "./SearchSection";
-import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/redux/slices/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { SearchSectionTwo } from "../SearchSection";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -24,10 +25,10 @@ const Header = () => {
   const [isHomePage, setIsHomePage] = useState(pathname === '/');
   const [isSearchPage, setIsSearchPage] = useState(pathname.startsWith('/search'));
   const [isLoginSlug, setIsLoginSlug] = useState(pathname.startsWith('-login'));
-  const[ishotelPaymentPage, setIsHotelPaymentPage] = useState(pathname.startsWith('/hotels/:id/payment'));
+  const [ishotelPaymentPage, setIsHotelPaymentPage] = useState(pathname.startsWith('/hotels/:id/payment'));
   const [onboarding, setOnboarding] = useState(pathname === '/onboarding');
-  const[isverifyStaffPage, setIsVerifyStaffPage] = useState(pathname.startsWith('/verify-staff'));
-  const  user = useSelector((state) => state.auth);
+  const [isverifyStaffPage, setIsVerifyStaffPage] = useState(pathname.startsWith('/verify-staff'));
+  const user = useSelector((state) => state.auth);
 
 
   // Check if the current path is a login slug
@@ -46,7 +47,7 @@ const Header = () => {
 
   // Auth state management
   const [profile, setProfile] = useState(null);
-    const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
 
   const navItems = [
     { name: "Home", href: "/" },
@@ -116,7 +117,7 @@ const Header = () => {
               <ChevronDown size={18} className="text-gray-600" />
             </div>
           </DropdownMenuTrigger>
-    
+
           <DropdownMenuContent align="end" className="w-72 bg-gray-50 rounded-2xl">
             {/* Header */}
             <div className="flex items-center px-4 py-4">
@@ -133,25 +134,25 @@ const Header = () => {
                 <p className="text-xs text-gray-500">{profile.email}</p>
               </div>
             </div>
-    
+
             <DropdownMenuSeparator />
-    
+
             {/* Primary links */}
-                <DropdownMenuItem asChild className="  px-4 py-2">
-                  <a href="/messages">Messages</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="  px-4 py-2">
-                  <a href="/bookings">Bookings/Reservation</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="  px-4 py-2" >
-                  <a href="/wishlist">Wishlist</a>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild className="  px-4 py-2">
-                  <a href="/payments">Payments/Transaction</a>
-                </DropdownMenuItem>
-    
+            <DropdownMenuItem asChild className="  px-4 py-2">
+              <a href="/messages">Messages</a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="  px-4 py-2">
+              <a href="/bookings">Bookings/Reservation</a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="  px-4 py-2" >
+              <a href="/wishlist">Wishlist</a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild className="  px-4 py-2">
+              <a href="/payments">Payments/Transaction</a>
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
-    
+
             {/* Secondary links */}
             <DropdownMenuItem asChild className="  px-4 py-2">
               <a href="/account">Account</a>
@@ -159,9 +160,9 @@ const Header = () => {
             <DropdownMenuItem asChild className="  px-4 py-2">
               <a href="/help">Help Center</a>
             </DropdownMenuItem>
-    
+
             <DropdownMenuSeparator />
-    
+
             {/* Sign out */}
             <DropdownMenuItem
               onClick={handleLogout}
@@ -173,7 +174,7 @@ const Header = () => {
         </DropdownMenu>
       );
     }
-    
+
 
     return (
       <>
@@ -261,7 +262,7 @@ const Header = () => {
   };
 
   return (
-     hideNavigation ? (
+    hideNavigation ? (
       <nav className={`fixed top-0 z-90 w-full transition-all duration-300 ${scrolled || !isHomePage ? 'bg-[#F9FAFB] ' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between h-16 items-center">
@@ -302,7 +303,7 @@ const Header = () => {
                 </div>
               ) : (
                 <div className="sm:flex hidden">
-          <SearchSectionTwo onSearch={handleSearch} />
+                  <SearchSectionTwo onSearch={handleSearch} />
                 </div>
               )
             }
@@ -341,7 +342,7 @@ const Header = () => {
           </div>
         </div>
       </nav>
-    ): null
+    ) : null
   );
 };
 
