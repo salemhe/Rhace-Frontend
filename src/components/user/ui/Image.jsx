@@ -42,7 +42,7 @@ const Images = ({
         {images.slice(0, 5).map((image, i) => (
           <div key={i} className={`relative ${imageStyle(i)}`}>
             <img
-              src={image.url || "/hero-bg.png"}
+              src={image || "/hero-bg.png"}
               className="object-cover cursor-pointer hover:opacity-80 duration-300 size-full"
               alt={`${name} Image ${i + 1}`}
             //   fill
@@ -74,7 +74,7 @@ const Images = ({
 
             <div className="relative w-full h-full">
               <img
-                src={images[currentImageIndex].url}
+                src={images[currentImageIndex]}
                 alt={`${name} - Image ${currentImageIndex + 1}`}
                 className="object-contain size-full"
                 quality={100}

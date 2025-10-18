@@ -10,6 +10,8 @@ import MapComponent from "@/components/user/ui/mapComponent";
 import { Mail, MapPin, Phone, Star } from "lucide-react";
 import { useParams } from "react-router";
 import { RestaurantData } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { userService } from "@/services/user.service";
 
 const fetchRestaurant = () => {
     return RestaurantData
@@ -17,8 +19,42 @@ const fetchRestaurant = () => {
 
 const RestaurantsPage = () => {
     const { id } = useParams();
-    const data = fetchRestaurant();
-    const restaurant = data.data[0];
+    const [restaurant, setRestaurant] = useState({
+        _id: "",
+        businessName: "",
+        address: "",
+        phone: "",
+        email: "",
+        profileImages: [""],
+        rating: 0,
+        reviews: 256,
+        cuisine: "",
+        openingHours: "",
+        priceRange: "",
+        amenities: [""],
+        menu: [
+            {
+                name: "",
+                description:
+                    "",
+            },
+        ],
+        openingTime: "",
+        closingTime: "",
+        cuisines: [""],
+        businessDescription:
+            "",
+        availableSlots: [""]
+    })
+
+    useEffect(() => {
+        const fetchRestaurant = async () => {
+            const res = await userService.getVendor("restaurant", id)
+            console.log(res)
+            setRestaurant(res.data[0])
+        }
+        fetchRestaurant();
+    }, [])
 
     return (
         <>

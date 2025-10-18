@@ -20,6 +20,16 @@ class PaymentService {
     const res = await api.get("/payments/payment-info")
     return res.data;
   }
+
+  async initializePayment({ amount, email, vendorId, bookingId, customerName, type }) {
+    const res = await api.post("/payments/initialize", { amount, email, vendorId, bookingId, customerName, type })
+    return res.data;
+  }
+
+  async verifyPayment(reference) {
+    const res = await api.post("/payments/verify", { reference})
+    return res.data;
+  }
 }
 
 export const paymentService = new PaymentService();

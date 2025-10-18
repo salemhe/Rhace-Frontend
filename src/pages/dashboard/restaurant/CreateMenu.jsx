@@ -18,8 +18,19 @@ import { Check, CheckCircle, DownloadCloud, Loader2, Plus, Upload, X } from 'luc
 import React, { forwardRef, useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
+import { DragDropContext, Draggable, Droppable } from 'react-beautiful-dnd';
 
 const CreateMenu = () => {
+    const handleDragEnd = (result) => {
+        if (!result.destination) return;
+
+        const items = Array.from(selectedItems);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        setSelectedItems(items); // Use your actual state setter here
+    };
+
     const [step, setStep] = useState(0);
     const [selectedItems, setSelectedItems] = useState([]);
     const [menuItems, setMenuItems] = useState([]);
@@ -64,8 +75,9 @@ const CreateMenu = () => {
     const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
     const toggleTag = (t) => {
-        setNewItem((prev) => ({ ...prev, tags:
-            prev.tags.includes(t) ? prev.tags.filter((x) => x !== t) : [...prev.tags, t]
+        setNewItem((prev) => ({
+            ...prev, tags:
+                prev.tags.includes(t) ? prev.tags.filter((x) => x !== t) : [...prev.tags, t]
         }));
     };
 
@@ -430,7 +442,7 @@ const CreateMenu = () => {
                                             </CardHeader>
                                             <CardContent className="space-y-3">
                                                 {section.items.map((item) => (
-                                                    <div key={item.id} className="flex items-center justify-between border rounded-md p-3">
+                                                    <div key={item._id} className="flex items-center justify-between border rounded-md p-3">
                                                         <div className="space-y-1">
                                                             <p className="font-medium">{item.name}</p>
                                                             {item.description && (
@@ -676,20 +688,48 @@ const CreateMenu = () => {
                                 <p className="text-xs text-gray-500">Drag to reorder items in your menu</p>
                             </CardHeader>
                             <CardContent className="space-y-3 p-0">
-                                {selectedItems.map((item) => (
-                                    <DraggableBox isDragging={isDragging} item={item} handleClear={handleClear} />
-                                ))}
-                                <div className="pt-3">
-                                    <p className='flex justify-between items-center'>Total Items: <span>{selectedItems.length}</span></p>
-                                    <Button
-                                        variant="outline"
-                                        size="sm"
-                                        className="mt-2 w-full"
-                                        onClick={() => handleClear()}
-                                    >
-                                        Clear All
-                                    </Button>
-                                </div>
+                                <DragDropContext onDragEnd={handleDragEnd}>
+                                    <Droppable droppableId="preview-list">
+                                        {(provided, snapshot) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.droppableProps}
+                                                className="space-y-3"
+                                                style={{
+                                                    background: snapshot.isDraggingOver ? 'lightblue' : 'lightgrey',
+                                                    padding: 8,
+                                                    borderRadius: 4,
+                                                    minHeight: 100,
+                                                    width: '100%', // ✅ Important: keeps items from overflowing
+                                                    boxSizing: 'border-box',
+                                                }}
+                                            >
+                                                {selectedItems.map((item, index) => (
+                                                    <DraggableBox
+                                                        key={item._id}
+                                                        item={item}
+                                                        index={index}
+                                                        handleClear={handleClear}
+                                                    />
+                                                ))}
+                                                {provided.placeholder}
+                                            </div>
+                                        )}
+                                    </Droppable>
+
+                                    <div className="pt-3">
+                                        <p className='flex justify-between items-center'>Total Items: <span>{selectedItems.length}</span></p>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            className="mt-2 w-full"
+                                            onClick={() => handleClear()}
+                                        >
+                                            Clear All
+                                        </Button>
+                                    </div>
+                                </DragDropContext>
+
                             </CardContent>
                         </Card>
                     </div>
@@ -716,36 +756,49 @@ const CreateMenu = () => {
 }
 
 export default CreateMenu
+const DraggableBox = ({ item, index, handleClear }) => (
+    <Draggable draggableId={item._id} index={index}>
+        {(provided, snapshot) => (
+            <div
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+                {...provided.dragHandleProps}
+                className="w-full"
+                style={{
+                    userSelect: 'none',
+                    margin: '0 0 8px 0',
+                    width: '100%', // ✅ Prevents it from expanding
+                    ...provided.draggableProps.style, // ✅ Always merge this
+                }}
 
-const DraggableBox = forwardRef(({ isDragging, item, handleClear }, ref) => (
-    <div
-        ref={ref}
-        className={`text-center rounded ${isDragging ? 'cursor-grabbing' : 'cursor-grab'
-            }`}
-    >
-        <div key={item._id} className="border border-[#E5E7EB] bg-[#F9FAFB] h-full flex items-center rounded-md gap-3 p-3 cursor-grab">
-            <div>
-                <DragDrop className="stroke-[#606368]" />
-            </div>
-            <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
-                <img
-                    src={item.coverImage || "/food.jpg"} // replace with your image
-                    alt={item.name}
-                    className="object-cover w-full h-full"
-                />
-            </div>
-            <div className='w-full'>
-                <div className='flex items-center justify-between'>
-                    <p className="font-medium">{item.name}</p>
-                    <div className='cursor-pointer' onClick={() => handleClear(item.id)}>
-                        <Delete2 className="text-[#606368]" />
+            >
+                <div className={`text-center rounded ${snapshot.isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}>
+                    <div className="border border-[#E5E7EB] bg-[#F9FAFB] h-full flex items-center rounded-md gap-3 p-3 cursor-grab">
+                        <div>
+                            <DragDrop className="stroke-[#606368]" />
+                        </div>
+                        <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
+                            <img
+                                src={item.coverImage || "/food.jpg"}
+                                alt={item.name}
+                                className="object-cover w-full h-full"
+                            />
+                        </div>
+                        <div className='w-full'>
+                            <div className='flex items-center justify-between'>
+                                <p className="font-medium">{item.name}</p>
+                                <div className='cursor-pointer' onClick={() => handleClear(item.id)}>
+                                    <Delete2 className="text-[#606368]" />
+                                </div>
+                            </div>
+                            <div className='flex items-center justify-between'>
+                                <p className="text-xs text-gray-500">Category: {item.category}</p>
+                                <span className="font-semibold">₦{item.price.toLocaleString()}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div className='flex items-center justify-between'>
-                    <p className="text-xs text-gray-500">Category: {item.category}</p>
-                    <span className="font-semibold">₦{item.price.toLocaleString()}</span>
-                </div>
             </div>
-        </div>
-    </div>
-));
+        )}
+    </Draggable>
+);
