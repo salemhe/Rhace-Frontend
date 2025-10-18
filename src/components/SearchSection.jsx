@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { useNavigate } from "react-router";
+import { SearchAutocomplete } from "./AutoComplete";
 import { DateDropdown } from "./DateDropdown";
 import { GuestDropdown } from "./GuestDropdown";
 import { TimeDropdown } from "./TimeDropdown";
@@ -100,8 +101,8 @@ const SearchSection = ({ activeTab, onSearch }) => {
             <button
               type="submit"
               className={`flex items-center gap-2 cursor-pointer text-white rounded-full px-6 py-3 transition w-full sm:w-auto justify-center ${activeTab === "restaurants"
-                  ? "bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]"
-                  : "bg-gradient-to-b from-blue-800 to-violet-500 hover:from-blue-900 hover:to-violet-600"
+                ? "bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]"
+                : "bg-gradient-to-b from-blue-800 to-violet-500 hover:from-blue-900 hover:to-violet-600"
                 }`}
             >
               <FiSearch className="w-5 h-5" />
@@ -185,12 +186,17 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
             <label className="text-xs text-text-secondary text-left mb-1">
               Restaurant/Cuisine
             </label>
-            <input
+            {/* <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Enter Restaurant or Cuisine"
               className="w-full bg-transparent focus:outline-none text-text-primary placeholder:text-text-secondary text-sm sm:text-base"
+            /> */}
+            <SearchAutocomplete
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Enter Restaurant or Cuisine"
             />
           </div>
 

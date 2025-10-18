@@ -1,4 +1,3 @@
-import * as React from "react";
 
 
 
@@ -19,10 +18,10 @@ const SvgIcon = () => (
   </svg>
 );
 
-export default  SvgIcon
+export default SvgIcon
 
 
-const Plate = ({color = "#fff"}) => (
+const Plate = ({ color = "#fff" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="21"
@@ -47,9 +46,9 @@ const Plate = ({color = "#fff"}) => (
 );
 
 
-const Amenities = ({color ="#fff"}) => (
-   
-<svg
+const Amenities = ({ color = "#fff" }) => (
+
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width="17"
     height="16"
@@ -78,6 +77,23 @@ const DashBoardIcon = () => (
   </svg>
 );
 
+const LogoutIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="17"
+    height="18"
+    fill="none"
+    viewBox="0 0 17 18"
+  >
+    <path
+      fill="#E5E7EB"
+      fillRule="evenodd"
+      d="M3 .667a2.5 2.5 0 0 0-2.5 2.5v11.666a2.5 2.5 0 0 0 2.5 2.5h5a2.5 2.5 0 0 0 2.5-2.5V3.167A2.5 2.5 0 0 0 8 .667zm8.578 4.41a.833.833 0 0 1 1.178 0l3.333 3.334a.833.833 0 0 1 0 1.178l-3.333 3.334a.833.833 0 0 1-1.178-1.179l1.91-1.91H6.333a.833.833 0 1 1 0-1.667h7.155l-1.91-1.911a.833.833 0 0 1 0-1.178"
+      clipRule="evenodd"
+    ></path>
+  </svg>
+);
+
 const BookingsIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -93,6 +109,22 @@ const BookingsIcon = () => (
   </svg>
 );
 
+const MenuIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    fill="none"
+    viewBox="0 0 16 16"
+  >
+    <path
+      fill="#E5E7EB"
+      fillRule="evenodd"
+      d="M5.5 1.333A.833.833 0 0 1 6.333.5h3.334a.833.833 0 0 1 0 1.667h-.834v.862c4.534.409 7.509 5.11 5.775 9.447a.83.83 0 0 1-.775.524H2.167a.83.83 0 0 1-.774-.524c-1.735-4.337 1.24-9.038 5.774-9.447v-.862h-.834a.833.833 0 0 1-.833-.834m-5 13.334a.833.833 0 0 1 .833-.834h13.334a.833.833 0 0 1 0 1.667H1.333a.833.833 0 0 1-.833-.833"
+      clipRule="evenodd"
+    ></path>
+  </svg>
+);
 const BranchesIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -130,7 +162,22 @@ const PaymentIcon = () => (
   </svg>
 );
 
-export {  Plate, Amenities, DashBoardIcon, BookingsIcon, BranchesIcon, PaymentIcon  };
+const SettingIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    fill="none"
+    viewBox="0 0 16 16"
+  >
+    <path
+      fill="#E5E7EB"
+      d="M11.333 10.5c1.089 0 2.015.696 2.359 1.667h.975a.834.834 0 0 1 0 1.666h-.975a2.501 2.501 0 0 1-4.717 0H1.333a.834.834 0 0 1 0-1.666h7.642a2.5 2.5 0 0 1 2.358-1.667m-6.666-5a2.5 2.5 0 0 1 2.301 1.523l.056.144h7.643a.833.833 0 0 1 .097 1.66l-.097.006H7.025a2.501 2.501 0 0 1-4.66.144l-.057-.144h-.975a.833.833 0 0 1-.097-1.66l.097-.006h.975A2.5 2.5 0 0 1 4.667 5.5m6.666-5c1.089 0 2.015.696 2.359 1.667h.975a.833.833 0 0 1 0 1.666h-.975a2.501 2.501 0 0 1-4.717 0H1.333a.833.833 0 1 1 0-1.666h7.642A2.5 2.5 0 0 1 11.333.5"
+    ></path>
+  </svg>
+);
+
+export { Amenities, BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, Plate, SettingIcon };
 
 
 

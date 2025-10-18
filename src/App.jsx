@@ -77,18 +77,22 @@ function App() {
         <Route path="search" element={<SearchContent />} />
         <Route path="/dashboard" >
           <Route path="" element={<VendorDashboard />}/>
-          <Route path="payments" element={<PaymentDashboard />}/>
+          <Route path="restaurant/payments" element={<PaymentDashboard />}/>
           <Route path="restaurant/reservation" element={<ReservationDashboard />} />
           <Route path="restaurant/menu" element={<MenuDashboard />} />
           <Route path="restaurant/reservation/new" element={<CreateReservation />} />
           <Route path="restaurant/menu/new" element={<CreateMenu />} />
+          
+        <Route path="restaurant/settings" element={<Settings/>} />
         </Route>
         <Route path="hotel/dashboard" element={<VendorDashboard />} />
         <Route path="hotel/bookings" element={<BookingManagement />} />
         <Route path="hotel/addrooms" element={<AddRooms />} />
         <Route path="hotel/rooms" element={<RoomsManagement />} />
+        <Route path="hotel/payments" element={<PaymentDashboard />}/>
         <Route path="/" element={<ReservationHomePage />} />
-        <Route path="/settings" element={<Settings/>} />
+        <Route path="hotel/settings" element={<Settings/>} />
+        <Route path="clubs/settings" element={<Settings/>} />
       </Route>
     </Routes>
   );
