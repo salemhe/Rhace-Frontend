@@ -95,6 +95,7 @@ function App() {
         <Route path="/settings" element={<Settings/>} />
       </Route>
     </Routes>
+    </>
   );
 }
 
