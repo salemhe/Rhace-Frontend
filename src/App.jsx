@@ -36,13 +36,17 @@ import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
 import Settings from "./pages/vendor/settings/settings";
 import BookingsPage from "./pages/user/Bookings";
 import SearchContent from "./pages/user/Search";
+import ScrollToTop from "./components/ScrollToTop";
+import ConfirmPage from "./pages/user/restaurant/Confirmation";
 
 function App() {
   return (
-    <Routes>
-      <Route element={<Layout />}>
+    <>
+      <ScrollToTop />
+      <Routes>
+        <Route element={<Layout />}>
 
-        <Route path="*" element={<NotFound />} />
+          <Route path="*" element={<NotFound />} />
 
         <Route path="/auth">
           <Route path="user">

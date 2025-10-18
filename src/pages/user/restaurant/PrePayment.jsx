@@ -3,13 +3,41 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ReservationHeader from "@/components/user/restaurant/ReservationHeader";
 import { RestaurantBooking } from "@/lib/api";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PaymentPage from "@/components/user/ui/Payment";
+import { toast } from "sonner";
+import { userService } from "@/services/user.service";
+import { useParams } from "react-router";
 
 export default function PrePaymentPage() {
     const [popupOpen, setPopupOpen] = useState(false)
-    const booking = RestaurantBooking[0]
-    const categories = [...new Set(booking.meals.map((meal) => meal.category))];
+    const { id } = useParams();
+    const [booking, setBooking] = useState();
+    const [isLoading, setIsLoading] = useState(true)
+    const categories = isLoading ? [] : [...new Set(booking.menus.map((meal) => meal.menu.category))];
+
+    useEffect(() => {
+        const fetchReservation = async () => {
+            try {
+
+                const res = await userService.fetchReservations({ bookingId: id });
+                setBooking(res.data[0])
+            } catch (err) {
+                toast.error(err.response.data.message)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        fetchReservation()
+    }, [])
+
+    if (isLoading) {
+        return (
+            <div className="w-full h-screen flex items-center justify-center">
+                <p className="text-lg">Loading...</p>
+            </div>
+        )
+    }
     return (
         <div className="min-h-screen bg-gray-50 ">
             <ReservationHeader title="Reservation Details" index={3} />
@@ -53,7 +81,7 @@ export default function PrePaymentPage() {
                             </h3>
                             <p className="text-gray-900 mb-4 font-bold">
                                 <span className="">Amount to pay:</span> ₦
-                                {booking.totalPrice.toLocaleString()}
+                                {booking.totalAmount.toLocaleString()}
                             </p>
 
                             <div className="flex gap-3 flex-col md:flex-row w-full">
@@ -80,14 +108,14 @@ export default function PrePaymentPage() {
                         <h3 className="font-semibold text-gray-900 mb-4">Order Summary</h3>
 
                         {/* Starters with background */}
-                        {booking.meals.length > 0 &&
+                        {booking.menus.length > 0 &&
                             categories.map((category, i) => (
                                 <div key={i} className="bg-gray-50 rounded-xl border mb-4">
                                     <h4 className="font-medium text-gray-700 p-3">{category}</h4>
                                     <hr className="border-gray-200" />
                                     <div className="space-y-3 p-3">
-                                        {booking.meals
-                                            .filter((meal) => meal.category === category)
+                                        {booking.menus
+                                            .filter((meal) => meal.menu.category === category)
                                             .map((meal, index) => (
                                                 <div
                                                     key={index}
@@ -95,7 +123,7 @@ export default function PrePaymentPage() {
                                                 >
                                                     <div className="flex-1">
                                                         <p className="font-medium text-gray-900">
-                                                            {meal.name}
+                                                            {meal.menu.name}
                                                         </p>
                                                         <p className="text-sm text-gray-600">
                                                             {meal.specialRequest}
@@ -103,7 +131,7 @@ export default function PrePaymentPage() {
                                                     </div>
                                                     <div className="text-right ml-4">
                                                         <p className="font-medium text-gray-900">
-                                                            ₦{meal.price.toLocaleString()}
+                                                            ₦{meal.menu.price.toLocaleString()}
                                                         </p>
                                                         <p className="text-sm text-gray-600">
                                                             Qty: {meal.quantity}
@@ -131,14 +159,14 @@ export default function PrePaymentPage() {
                                     Sub Total
                                 </span>
                                 <span className="text-lg font-semibold text-gray-900">
-                                    ₦{booking.totalPrice.toLocaleString()}
+                                    ₦{booking.totalAmount.toLocaleString()}
                                 </span>
                             </div>
                         </div>
                     </CardContent>
                 </Card>
             </div>
-            {popupOpen && <PaymentPage type="restaurants" id={booking._id} setPopupOpen={setPopupOpen} />}
+            {popupOpen && <PaymentPage type="restaurants" booking={booking} id={booking._id} setPopupOpen={setPopupOpen} />}
         </div>
     );
 }

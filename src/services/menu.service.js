@@ -11,8 +11,8 @@ class MenuService {
         return res.data;
     }
 
-    async getMenuItems() {
-        const res = await api.get("/menus/items");
+    async getMenuItems(id) {
+        const res = await api.get(`/menus/items?userId=${id}`);
         return res.data;
     }
 
@@ -21,8 +21,8 @@ class MenuService {
         return res.data;
     }
 
-    async getMenus() {
-        const res = await api.get("/menus");
+    async getMenus(id) {
+        const res = await api.get(`/menus?userId=${id}`);
         return res.data;
     }
 }
