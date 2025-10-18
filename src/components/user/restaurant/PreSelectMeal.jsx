@@ -49,7 +49,7 @@ export default function PreSelectMeal({ id }) {
     },
     {
       name: "Drinks",
-      value: "Drinks",
+      value: "Drink",
     },
   ];
 

@@ -42,6 +42,7 @@ import DashboardButton from '@/components/dashboard/ui/DashboardButton';
 import FinancialDashboard from '@/components/dashboard/FinancialDashboard';
 import { paymentService } from '@/services/payment.service';
 import { toast } from 'sonner';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 const PaymentDashboard = () => {
   const [hideTab, setHideTab] = useState(false);
@@ -118,7 +119,7 @@ const PaymentDashboard = () => {
       cell: ({ row }) => {
         const user = row.original
         return (
-          <span className='text-[#111827] font-medium text-sm'>{user.trxn_Id}</span>
+          <span className='text-[#111827] font-medium text-sm'>#{user._id.slice(0, 8).toUpperCase()}</span>
         )
       },
     },
@@ -129,19 +130,19 @@ const PaymentDashboard = () => {
         const user = row.original
         return (
           <div className="flex items-center gap-3">
-            <div className='rounded-full overflow-hidden relative size-9'>
-              <img src={user.customer_image} alt={user.customer_name} className='size-full object-cover' />
-            </div>
+            <Avatar>
+              <AvatarFallback>{user.customer_name.split(" ").map((i) => (i.slice(0, 1).toUpperCase()))}</AvatarFallback>
+            </Avatar>
             <span className='text-[#111827] font-medium text-sm'>{user.customer_name}</span>
           </div>
         )
       },
     },
     {
-      accessorKey: "payment_method",
+      accessorKey: "paymentMethod",
       header: "Payment Method",
       cell: ({ row }) => (
-        <span className='text-[#111827] font-medium text-sm'>{row.getValue("payment_method")}</span>
+        <span className='text-[#111827] font-medium text-sm'>{row.getValue("paymentMethod").split("_").join(" ").toUpperCase()}</span>
       ),
     },
     {
@@ -150,8 +151,8 @@ const PaymentDashboard = () => {
       filterFn: (row, columnId, value) => {
         return value === "" || row.getValue(columnId) === value
       },
-      cell: ({ row }) => <div className={`${row.getValue("payment_status") === "Paid" ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
-        <div className={`${row.getValue("payment_status") === "Paid" ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full bg-[#37703F]`} />
+      cell: ({ row }) => <div className={`${row.getValue("status") === "Paid" ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
+        <div className={`${row.getValue("status") === "Paid" ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full bg-[#37703F]`} />
         {row.getValue("status")}</div>
     },
     {
@@ -301,7 +302,7 @@ const PaymentDashboard = () => {
         <div className='md:flex hidden justify-between items-center'>
           <h2 className='text-[#111827] font-semibold'>Payments & Earnings</h2>
           <div className='flex gap-6'>
-            <DashboardButton onClick={() => setHideTab(!hideTab)} variant="secondary" text="Hide tabs" icon={hideTab ? <Eye /> : <EyeClose />} />
+            <DashboardButton onClick={() => setHideTab(!hideTab)} variant="secondary" text={hideTab ? "View Tabs" : "Hide tabs"} icon={hideTab ? <Eye /> : <EyeClose />} />
             <DashboardButton variant="secondary" text="Export" icon={<Export />} />
           </div>
         </div>

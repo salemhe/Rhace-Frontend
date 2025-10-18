@@ -1,8 +1,8 @@
-"use client";
-
 import { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
+import { userService } from "@/services/user.service";
+import { useSelector } from 'react-redux';
 
 const ReservationContext = createContext(
   undefined
@@ -24,6 +24,7 @@ export function ReservationsProvider({
   const [vendor, setVendor] = useState(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
 
   const occasions = ["Birthday", "Casual", "Business", "Anniversary", "Other"];
 
@@ -56,35 +57,39 @@ export function ReservationsProvider({
 
       // Prepare reservation data
       const reservationData = {
-        _id: "1",
+        // _id: "1",
         reservationType: "restaurant",
-        customerEmail: "testmail@mail.com",
-        customerName: `${"Wisdom"} ${"Ofogba"}`.trim() || "testmail@mail.com",
+        customerName: `${user.firstName} ${user.lastName}`.trim(),
+        customerEmail: user.email,
+        customerId: user._id,
         date: date.toISOString(),
         time,
         guests: parsedGuestCount,
         seatingPreference,
         specialOccasion: selectedOccasion || "other",
         specialRequest,
-        additionalNote,
-        meals: selectedMeals.map(item => ({
-          id: item._id,
-          name: item.dishName,
-          price: item.price || 0,
+        mealPreselected: selectedMeals.length > 0,
+        // additionalNote,
+        menus: selectedMeals.map(item => ({
+          menu: item._id,
           quantity: item.quantity || 1,
           specialRequest: item.specialRequest || "",
-          category: item.category,
         })),
-        totalPrice,
-        vendorId: vendor._id,
-        businessName: vendor.businessName,
+        totalAmount: totalPrice,
+        vendor: vendor._id,
         location: vendor.address,
-        image: vendor.profileImages?.[0]?.url,
+        image: vendor.profileImages?.[0],
       };
+
+      const res = await userService.createReservation(reservationData);
+
+      const reservationResponse = res.data;
+
+
       toast.success("Reservation submitted successfully!");
 
       // Navigate to confirmation page
-      navigate(`/restaurants/completed/${reservationData._id}`);
+      navigate(`/restaurants/completed/${reservationResponse._id}`);
 
     } catch (error) {
       console.error("Error submitting reservation:", error);

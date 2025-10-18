@@ -34,6 +34,7 @@ import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
 import CreateMenu from "./pages/dashboard/restaurant/CreateMenu";
 import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
 import ScrollToTop from "./components/ScrollToTop";
+import ConfirmPage from "./pages/user/restaurant/Confirmation";
 
 function App() {
   return (
@@ -67,6 +68,7 @@ function App() {
             <Route path="/restaurants/pre-payment/:id" element={<PrePaymentPage />} />
           </Route>
           <Route path="/restaurants/completed/:id" element={<CompletedPage />} />
+          <Route path="/restaurants/confirmation/:id" element={<ConfirmPage />} />
           <Route path="/clubs/:id" element={<ClubPage />} />
           <Route element={<ClubReservationLayout />}>
             <Route path="/clubs/:id/reservations" element={<ClubReservation />} />
