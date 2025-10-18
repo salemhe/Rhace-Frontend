@@ -71,6 +71,7 @@ function App() {
           <Route path="/restaurants/pre-payment/:id" element={<PrePaymentPage />} />
         </Route>
         <Route path="/restaurants/completed/:id" element={<CompletedPage />} />
+        <Route path="/restaurants/confirmation/:id" element={<ConfirmPage />} />
         <Route path="/clubs/:id" element={<ClubPage />} />
         <Route element={<ClubReservationLayout />}>
           <Route path="/clubs/:id/reservations" element={<ClubReservation />} />

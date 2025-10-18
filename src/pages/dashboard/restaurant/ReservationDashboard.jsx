@@ -43,24 +43,6 @@ import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { userService } from '@/services/user.service';
 
-const data = [
-  {
-    customer_name: {
-      customer_Id: "1829622",
-      customer_name: "Wisdom ofogba",
-      // customer_image: "/jjss.png"
-    },
-    guests: 4,
-    date_n_time: {
-
-      date: "June 5, 2025",
-      time: "11:00am",
-    },
-    meal_preselected: "Yes",
-    payment_status: "Paid",
-    reservation_status: "Upcoming",
-  },
-]
 
 const categories = [
   "All",
@@ -70,6 +52,22 @@ const categories = [
   "No Shows",
 ]
 
+const ReservationDashboard = () => {
+  const [hideTab, setHideTab] = useState(false);
+  const [sorting, setSorting] = useState([])
+  const [columnFilters, setColumnFilters] = useState(
+    []
+  )
+  const [columnVisibility, setColumnVisibility] = useState({})
+  const [rowSelection, setRowSelection] = useState({})
+  const [activeCategory, setActiveCategory] = useState("All")
+  const navigate = useNavigate()
+  const vendor = useSelector((state) => state.auth.vendor);
+  const [data, setData] = useState([])
+  const [isLoading, setIsLoading] = useState(true);
+  // const socketRef = useRef(null);\
+
+  
 const columns = [
   {
     id: "select",
@@ -95,29 +93,34 @@ const columns = [
     enableHiding: false,
   },
   {
-    accessorKey: "customer_name",
+    accessorKey: "customerName",
     header: "Customer Name",
-    cell: ({ row }) => (
+    cell: ({ row }) => {
+      const user = row.original;
+      return (
       <div className="flex items-center gap-3">
         <div className='rounded-full overflow-hidden relative size-9'>
-          <img src={row.getValue("customer_name").customer_image} alt={row.getValue("customer_name").customer_name} className='size-full object-cover' />
+          {/* <img src={row.getValue("customerName")} alt={row.getValue("customerName")} className='size-full object-cover' /> */}
         </div>
         <div className='flex flex-col'>
-          <span className='text-[#111827] font-medium text-sm'>{row.getValue("customer_name").customer_name}</span>
-          <span className='text-[#606368] text-xs capitalize'>ID #{row.getValue("customer_name").customer_Id}</span>
+          <span className='text-[#111827] font-medium text-sm'>{row.getValue("customerName")}</span>
+          <span className='text-[#606368] text-xs capitalize'>ID #{user._id.slice(0, 8)}</span>
         </div>
       </div>
-    ),
+    )}
   },
   {
     accessorKey: "date_n_time",
     header: "Date & Time",
-    cell: ({ row }) => (
+    cell: ({ row }) => {
+      const user = row.original
+      const date = new Date(user.date)
+      return (
       <div className='flex flex-col'>
-        <span className='text-[#111827] font-medium text-sm'>{row.getValue("date_n_time").date}</span>
-        <span className='text-[#606368] text-xs capitalize'>Time {row.getValue("date_n_time").time}</span>
+        <span className='text-[#111827] font-medium text-sm'>{date.toISOString().split('T')[0]}</span>
+        <span className='text-[#606368] text-xs capitalize'>Time {user.time}</span>
       </div>
-    ),
+    )},
   },
   {
     accessorKey: "guests",
@@ -132,7 +135,7 @@ const columns = [
     cell: ({ row }) => <div>{row.getValue("guests")}</div>,
   },
   {
-    accessorKey: "meal_preselected",
+    accessorKey: "mealPreselected",
     header: () => {
       return (
         <div
@@ -141,11 +144,11 @@ const columns = [
         </div>
       )
     },
-    cell: ({ row }) => <div className={`${row.getValue("meal_preselected") === "Yes" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("meal_preselected") === "Yes" ? <Check className='text-[#37703F] size-5' /> : <XIcon className='text-[#EF4444] size-5' />}{row.getValue("meal_preselected")}</div>,
+    cell: ({ row }) => <div className={`${row.getValue("mealPreselected") === "Yes" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 w-max rounded-full`}>
+      {row.getValue("mealPreselected") === "Yes" ? <Check className='text-[#37703F] size-5' /> : <XIcon className='text-[#EF4444] size-5' />}{row.getValue("mealPreselected")}</div>,
   },
   {
-    accessorKey: "payment_status",
+    accessorKey: "paymentStatus",
     header: () => {
       return (
         <div
@@ -154,11 +157,11 @@ const columns = [
         </div>
       )
     },
-    cell: ({ row }) => <div className={`${row.getValue("payment_status") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("payment_status")}</div>,
+    cell: ({ row }) => <div className={` w-max ${row.getValue("paymentStatus") === "success" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
+      {row.getValue("paymentStatus")}</div>,
   },
   {
-    accessorKey: "reservation_status",
+    accessorKey: "reservationStatus",
     header: () => {
       return (
         <div
@@ -167,8 +170,8 @@ const columns = [
         </div>
       )
     },
-    cell: ({ row }) => <div className={`${row.getValue("reservation_status") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("reservation_status")}</div>,
+    cell: ({ row }) => <div className={`w-max ${row.getValue("reservationStatus") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
+      {row.getValue("reservationStatus")}</div>,
   },
   {
     id: "actions",
@@ -207,18 +210,6 @@ const columns = [
 ]
 
 
-const ReservationDashboard = () => {
-  const [hideTab, setHideTab] = useState(false);
-  const [sorting, setSorting] = useState([])
-  const [columnFilters, setColumnFilters] = useState(
-    []
-  )
-  const [columnVisibility, setColumnVisibility] = useState({})
-  const [rowSelection, setRowSelection] = useState({})
-  const [activeCategory, setActiveCategory] = useState("All")
-  const navigate = useNavigate()
-  const vendor = useSelector((state) => state.auth.vendor);
-  // const socketRef = useRef(null);
 
 
   const table = useReactTable({
@@ -259,7 +250,8 @@ const ReservationDashboard = () => {
 
         if (message.type === 'new_reservation') {
           // Show toast, update state, or refetch data here
-          alert(`New reservation from ${message.data.customerName}`);
+          toast.success(`New reservation from ${message.data.customerName}`);
+          setData((prev) => [...prev, message.data]);
         }
       } catch (error) {
         console.error('❌ Failed to parse message:', error);
@@ -283,16 +275,25 @@ const ReservationDashboard = () => {
     const fetchReservations = async () => {
       try {
         const res = await userService.fetchReservations({ vendorId: vendor._id })
-        console.log(res)
+        setData(res.data)
       } catch (error) {
         console.error(error)
         toast.error(error.response.data.message)
+      } finally {
+        setIsLoading(false)
       }
     }
     fetchReservations()
-  })
+  }, [])
 
 
+  if (isLoading) {
+    return (
+      <div className='w-full h-screen flex items-center justify-center'>
+        <p className='animate-pulse text-lg'>Loading...</p>
+      </div>
+    )
+  }
 
   return (
     <DashboardLayout type="restaurant" section="Reservations">
@@ -342,9 +343,9 @@ const ReservationDashboard = () => {
                   <Search className='absolute left-2 text-[#606368] size-5' />
                   <Input
                     placeholder="Search by guest name or ID"
-                    value={(table.getColumn("customer_name")?.getFilterValue()) ?? ""}
+                    value={(table.getColumn("customerName")?.getFilterValue()) ?? ""}
                     onChange={(event) =>
-                      table.getColumn("customer_name")?.setFilterValue(event.target.value)
+                      table.getColumn("customerName")?.setFilterValue(event.target.value)
                     }
                     className="max-w-sm pl-10 bg-[#F9FAFB] border-[#DAE9E9] "
                   />
