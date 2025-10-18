@@ -38,6 +38,14 @@ import BookingsPage from "./pages/user/Bookings";
 import SearchContent from "./pages/user/Search";
 import ScrollToTop from "./components/ScrollToTop";
 import ConfirmPage from "./pages/user/restaurant/Confirmation";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminVendors from "./pages/admin/Vendors";
+import AdminUsers from "./pages/admin/Users";
+import AdminReservations from "./pages/admin/Reservations";
+import AdminPayments from "./pages/admin/Payments";
+import AdminReports from "./pages/admin/Reports";
+import AdminSettings from "./pages/admin/Settings";
 
 function App() {
   return (
@@ -71,6 +79,7 @@ function App() {
           <Route path="/restaurants/pre-payment/:id" element={<PrePaymentPage />} />
         </Route>
         <Route path="/restaurants/completed/:id" element={<CompletedPage />} />
+        <Route path="/restaurants/confirmation/:id" element={<ConfirmPage />} />
         <Route path="/clubs/:id" element={<ClubPage />} />
         <Route element={<ClubReservationLayout />}>
           <Route path="/clubs/:id/reservations" element={<ClubReservation />} />
