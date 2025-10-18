@@ -1,5 +1,5 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import React, { useState } from 'react'
+import React, { useState, useRef, useEffect } from 'react'
 import DashboardButton from '../../../components/dashboard/ui/DashboardButton'
 import { Add, Calendar, CardPay, Cash2, CheckCircle, Copy, Export, Eye, Eye2, EyeClose, Filter2, Group3, Pencil, Phone, Printer, XCircle } from '@/components/dashboard/ui/svg';
 import { StatCard } from '@/components/dashboard/stats/mainStats';
@@ -39,6 +39,9 @@ import {
 } from "@/components/ui/table"
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { useNavigate } from 'react-router';
+import { useSelector } from 'react-redux';
+import { toast } from 'sonner';
+import { userService } from '@/services/user.service';
 
 const data = [
   {
@@ -214,6 +217,9 @@ const ReservationDashboard = () => {
   const [rowSelection, setRowSelection] = useState({})
   const [activeCategory, setActiveCategory] = useState("All")
   const navigate = useNavigate()
+  const vendor = useSelector((state) => state.auth.vendor);
+  // const socketRef = useRef(null);
+
 
   const table = useReactTable({
     data,
@@ -234,6 +240,59 @@ const ReservationDashboard = () => {
     },
   })
 
+  const socketRef = useRef(null);
+
+  useEffect(() => {
+    const vendorId = vendor._id; // Replace with real vendor ID
+    const socket = new WebSocket(`ws://localhost:5000?type=vendor&id=${vendorId}`);
+
+    socketRef.current = socket;
+
+    socket.onopen = () => {
+      console.log('✅ WebSocket connected');
+    };
+
+    socket.onmessage = (event) => {
+      try {
+        const message = JSON.parse(event.data);
+        console.log('📩 Message from server:', message);
+
+        if (message.type === 'new_reservation') {
+          // Show toast, update state, or refetch data here
+          alert(`New reservation from ${message.data.customerName}`);
+        }
+      } catch (error) {
+        console.error('❌ Failed to parse message:', error);
+      }
+    };
+
+    socket.onerror = (err) => {
+      console.error('⚠️ WebSocket error:', err);
+    };
+
+    socket.onclose = () => {
+      console.log('🔌 WebSocket closed');
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const res = await userService.fetchReservations({ vendorId: vendor._id })
+        console.log(res)
+      } catch (error) {
+        console.error(error)
+        toast.error(error.response.data.message)
+      }
+    }
+    fetchReservations()
+  })
+
+
 
   return (
     <DashboardLayout type="restaurant" section="Reservations">
@@ -241,7 +300,7 @@ const ReservationDashboard = () => {
         <div className='md:flex hidden justify-between items-center'>
           <h2 className='text-[#111827] font-semibold'>Reservation List</h2>
           <div className='flex gap-6'>
-            <DashboardButton onClick={() => setHideTab(!hideTab)} variant="secondary" text="Hide tabs" icon={hideTab ? <Eye /> : <EyeClose />} />
+            <DashboardButton onClick={() => setHideTab(!hideTab)} variant="secondary" text={hideTab ? "Open tabs" : "Hide tabs"} icon={hideTab ? <Eye /> : <EyeClose />} />
             <DashboardButton variant="secondary" text="Export" icon={<Export />} />
             <DashboardButton onClick={() => navigate("/dashboard/restaurant/reservation/new")} variant="primary" text="New Reservation" icon={<Add fill="#fff" />} />
           </div>
