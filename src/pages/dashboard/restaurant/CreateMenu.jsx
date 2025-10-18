@@ -15,7 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { menuService } from '@/services/menu.service';
 import axios from 'axios';
 import { Check, CheckCircle, DownloadCloud, Loader2, Plus, Upload, X } from 'lucide-react';
-import React, { forwardRef, useCallback, useEffect, useState } from 'react'
+import React, {  useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
@@ -64,8 +64,9 @@ const CreateMenu = () => {
     const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
     const toggleTag = (t) => {
-        setNewItem((prev) => ({ ...prev, tags:
-            prev.tags.includes(t) ? prev.tags.filter((x) => x !== t) : [...prev.tags, t]
+        setNewItem((prev) => ({
+            ...prev, tags:
+                prev.tags.includes(t) ? prev.tags.filter((x) => x !== t) : [...prev.tags, t]
         }));
     };
 
@@ -430,7 +431,7 @@ const CreateMenu = () => {
                                             </CardHeader>
                                             <CardContent className="space-y-3">
                                                 {section.items.map((item) => (
-                                                    <div key={item.id} className="flex items-center justify-between border rounded-md p-3">
+                                                    <div key={item._id} className="flex items-center justify-between border rounded-md p-3">
                                                         <div className="space-y-1">
                                                             <p className="font-medium">{item.name}</p>
                                                             {item.description && (
@@ -713,39 +714,40 @@ const CreateMenu = () => {
             )}
         </div>
     )
-}
+};
 
-export default CreateMenu
+export default CreateMenu;
 
-const DraggableBox = forwardRef(({ isDragging, item, handleClear }, ref) => (
-    <div
-        ref={ref}
-        className={`text-center rounded ${isDragging ? 'cursor-grabbing' : 'cursor-grab'
-            }`}
-    >
-        <div key={item._id} className="border border-[#E5E7EB] bg-[#F9FAFB] h-full flex items-center rounded-md gap-3 p-3 cursor-grab">
-            <div>
-                <DragDrop className="stroke-[#606368]" />
-            </div>
-            <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
-                <img
-                    src={item.coverImage || "/food.jpg"} // replace with your image
-                    alt={item.name}
-                    className="object-cover w-full h-full"
-                />
-            </div>
-            <div className='w-full'>
-                <div className='flex items-center justify-between'>
-                    <p className="font-medium">{item.name}</p>
-                    <div className='cursor-pointer' onClick={() => handleClear(item.id)}>
-                        <Delete2 className="text-[#606368]" />
-                    </div>
+const DraggableBox = ({ isDragging, item, handleClear }) => {
+    return (
+        <div
+            className={`text-center rounded ${isDragging ? 'cursor-grabbing' : 'cursor-grab'
+                }`}
+        >
+            <div key={item._id} className="border border-[#E5E7EB] bg-[#F9FAFB] h-full flex items-center rounded-md gap-3 p-3 cursor-grab">
+                <div>
+                    <DragDrop className="stroke-[#606368]" />
                 </div>
-                <div className='flex items-center justify-between'>
-                    <p className="text-xs text-gray-500">Category: {item.category}</p>
-                    <span className="font-semibold">₦{item.price.toLocaleString()}</span>
+                <div className="w-12 h-12 rounded-md overflow-hidden flex-shrink-0">
+                    <img
+                        src={item.coverImage || "/food.jpg"} // replace with your image
+                        alt={item.name}
+                        className="object-cover w-full h-full"
+                    />
+                </div>
+                <div className='w-full'>
+                    <div className='flex items-center justify-between'>
+                        <p className="font-medium">{item.name}</p>
+                        <div className='cursor-pointer' onClick={() => handleClear(item.id)}>
+                            <Delete2 className="text-[#606368]" />
+                        </div>
+                    </div>
+                    <div className='flex items-center justify-between'>
+                        <p className="text-xs text-gray-500">Category: {item.category}</p>
+                        <span className="font-semibold">₦{item.price.toLocaleString()}</span>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-));
+    )
+};

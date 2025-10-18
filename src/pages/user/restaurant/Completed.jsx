@@ -2,12 +2,39 @@ import { Check, Mail, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router";
 import { RestaurantBooking } from "@/lib/api";
+import { useEffect, useState } from "react";
+import { userService } from "@/services/user.service";
+import { toast } from "sonner";
 
 export default function CompletedPage() {
   const navigate = useNavigate()
   const { id } = useParams();
-  const data = RestaurantBooking[0];
-  const categories = [...new Set(data.meals.map((meal) => meal.category))];
+  const [data, setData] = useState();
+  const [isLoading, setIsLoading] = useState(true)
+  const categories = isLoading ? [] : [...new Set(data.menus.map((meal) => meal.menu.category))];
+
+  useEffect(() => {
+    const fetchReservation = async () => {
+      try {
+
+        const res = await userService.fetchReservations({ bookingId: id });
+        setData(res.data[0])
+      } catch (err) {
+        toast.error(err.response.data.message)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchReservation()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p className="text-lg">Loading...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-6 md:px-6 md:py-8">
@@ -45,7 +72,7 @@ export default function CompletedPage() {
             <div>
               <p className="text-sm text-gray-600 mb-1">Restaurant</p>
               <p className="text-base font-medium text-gray-900 mb-1">
-                {data.businessName || "hey"}
+                {data.vendor.businessName || "hey"}
               </p>
               <p className="text-sm text-gray-600">{data.location}</p>
             </div>
@@ -67,14 +94,7 @@ export default function CompletedPage() {
                   day: "numeric",
                 })}{" "}
                 •{" "}
-                {new Date(`1970-01-01T${data.time}`).toLocaleTimeString(
-                  undefined,
-                  {
-                    hour: "numeric",
-                    minute: "2-digit",
-                    hour12: true,
-                  }
-                )}
+                {data.time}
               </p>
             </div>
             <div>
@@ -85,7 +105,7 @@ export default function CompletedPage() {
         </div>
 
         {/* Meal Selection */}
-        {data.meals.length > 0 && (
+        {data.menus.length > 0 && (
           <div className="bg-white rounded-2xl border p-5 space-y-4 border-gray-200 mb-6">
             <h2 className="text-lg font-semibold text-[#111827]">
               Your Meal Selection
@@ -100,8 +120,8 @@ export default function CompletedPage() {
                     {category}
                   </h3>
                   <div className="space-y-4 py-4 px-5">
-                    {data.meals
-                      .filter((meal) => meal.category === category)
+                    {data.menus
+                      .filter((meal) => meal.menu.category === category)
                       .map((meal, index) => (
                         <div
                           key={index}
@@ -109,7 +129,7 @@ export default function CompletedPage() {
                         >
                           <div>
                             <p className="font-medium text-[#111827]">
-                              {meal.name}
+                              {meal.menu.name}
                             </p>
                             <p className="text-sm text-[#606368]">
                               {meal.specialRequest}
@@ -176,7 +196,6 @@ export default function CompletedPage() {
           </Button>
           <form
             action={async () => {
-              "use server";
               navigate(`/restaurants/pre-payment/${id}`);
             }}
             className="flex-1"

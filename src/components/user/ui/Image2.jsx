@@ -112,7 +112,7 @@ const Images2 = ({
                 </div>
                 <div className="w-full h-full relative overflow-hidden ">
                     <img
-                        src={images[currentImageIndex]?.url || "/hero-bg.png"}
+                        src={images[currentImageIndex] || "/hero-bg.png"}
                         alt={`${name} Image ${currentImageIndex + 1}`}
                         // fills
                         className="object-cover transition-opacity duration-700 size-full"

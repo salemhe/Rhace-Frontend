@@ -1,15 +1,15 @@
-"use client";
 import PreSelectMeal from "@/components/user/restaurant/PreSelectMeal";
 import ReservationDetails from "@/components/user/restaurant/ReservationDetails";
 import { useReservations } from "@/contexts/restaurant/ReservationContext";
 import React from "react";
-import { useLocation } from "react-router";
+import { useLocation, useParams } from "react-router";
 
 function useSearchParams() {
   return new URLSearchParams(useLocation().search);
 }
 
-const Reservation = ({ id }) => {
+const Reservation = () => {
+  const { id } = useParams();
   const { page } = useReservations();
 const searchParams = useSearchParams();
 const date = searchParams.get("date");

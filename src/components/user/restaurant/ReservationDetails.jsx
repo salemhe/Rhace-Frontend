@@ -8,10 +8,10 @@ import ReservationHeader from "./ReservationHeader";
 import { TimePicker } from "../ui/timepicker";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
-import { RestaurantData } from "@/lib/api";
 import DatePicker from "../ui/datepicker";
 import { GuestPicker } from "../ui/guestpicker";
 import { useNavigate } from "react-router";
+import { userService } from "@/services/user.service";
 
 export default function ReservationDetails({
   id,
@@ -40,7 +40,8 @@ export default function ReservationDetails({
   const fetchVendor = async () => {
     try {
       setLoading(true);
-      const response = RestaurantData;
+      const response = await userService.getVendor("restaurant", id);
+      console.log(response)
       setVendor(response.data[0]);
     } catch (error) {
       console.error("Error fetching vendor:", error);
@@ -122,7 +123,7 @@ export default function ReservationDetails({
           <div className="flex gap-4">
             <div className="relative size-[64px] md:w-32 md:h-24 rounded-2xl overflow-hidden flex-shrink-0">
               <img
-                src={vendor?.profileImages?.[0]?.url || "/hero-bg.png"}
+                src={vendor?.profileImages?.[0] || "/hero-bg.png"}
                 alt="Restaurant interior"
                 className="object-cover size-full"
               />

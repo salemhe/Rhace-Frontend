@@ -1,57 +1,22 @@
 import { useCallback, useEffect, useState } from "react";
 import { FiChevronRight, FiChevronsDown, FiHeart, FiStar } from "react-icons/fi";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import blueori from "../assets/blue-origin.png";
 import blueclub from "../assets/clubs/image2.jpg";
 import rest from "../assets/restaurant.jpg";
 import { Button } from "./ui/button";
+import { userService } from "@/services/user.service";
 
-
-const DUMMY_DATA = Array.from({ length: 8 }, (_, i) => ({
-  id: i + 1,
-  name: "Kapaddocia",
-  image: rest,
-  rating: 4.8,
-  reviews: 1000,
-  cuisine: "International, Turkish, Contemporary",
-  location: "Lagos, Ikeja",
-  badge: i % 2 === 0 ? "Guest's Recommended" : undefined,
-}));
-
-const DUMMY_HOTEL_DATA = Array.from({ length: 8 }, (_, i) => ({
-  id: i + 1,
-  name: "Kapaddocia",
-  image: blueori,
-  rating: 4.8,
-  reviews: 1000,
-  cuisine: "International, Turkish, Contemporary",
-  location: "Lagos, Ikeja",
-  badge: i % 2 === 0 ? "Guest's Recommended" : undefined,
-  price: 1000,
-  discount: 10,
-}));
-const DUMMY_CLUB_DATA = Array.from({ length: 8 }, (_, i) => ({
-  id: i + 1,
-  name: "Rhythm Lounge",
-  image: blueclub,
-  rating: 4.8,
-  reviews: 1000,
-  cuisine: ["Afrobeat", "Live DJ", "Ladies Night"], // <-- array
-  location: "Lagos, Ikeja",
-  badge: i % 2 === 0 ? "Guest's Recommended" : undefined,
-  price: 1000,
-  discount: "few slots left",
-}));
-
-const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
+const TableGrid = ({ title }) => {
   const [currentIndices, setCurrentIndices] = useState({});
   const [resetTimeouts, setResetTimeouts] = useState({});
   const [isHovering, setIsHovering] = useState({});
+  const [restaurants, setRestaurants] = useState([])
   const navigate = useNavigate();
 
   const getImagesForRestaurant = (restaurant) => {
     if (restaurant?.profileImages && restaurant?.profileImages?.length > 1) {
-      return restaurant?.profileImages?.map(image => image.url);
+      return restaurant?.profileImages?.map(image => typeof image === 'string' ? image : image.url);
     }
     // Only return single image if there's only one or no profile images
     return restaurant.image ? [restaurant.image] : ['/placeholder.jpg'];
@@ -118,6 +83,17 @@ const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
       Object.values(resetTimeouts).forEach(timeout => clearTimeout(timeout));
     };
   }, [resetTimeouts]);
+
+  useEffect(() => {
+    const fetchRestaurant = async () => {
+      const res = await userService.getVendor("restaurant")
+      console.log(res)
+      setRestaurants(res.data)
+    }
+    fetchRestaurant();
+  }, [])
+
+
   return (
     <div className="mb-[92px]">
       <Button
@@ -138,11 +114,9 @@ const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
           const hovering = isHovering[restaurantId];
 
           return (
-            <div
+            <Link
               key={restaurantId}
-              onClick={() => {
-                navigate(`/restaurants/${restaurant._id}`);
-              }}
+              to={`/restaurants/${restaurant._id}`}
               className="h-80 px-2 cursor-pointer pt-2 pb-4 flex flex-col bg-white rounded-[20px] border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
             >
               {/* Image Section */}
@@ -159,10 +133,10 @@ const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
                     <img
                       key={index}
                       src={image}
-                      alt={restaurant.name}
+                      alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all duration-300 ease-out ${
+                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${
                         multipleImages
                           ? `will-change-transform ${hovering ? "brightness-105" : ""}`
                           : "hover:scale-105"
@@ -225,15 +199,15 @@ const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {restaurant.name}
+                    {restaurant.businessName}
                   </h3>
                 </div>
                 <div className="mt-2 space-y-1">
-                  <p className="text-sm text-gray-500">{restaurant.cuisine}</p>
-                  <p className="text-sm text-gray-500">{restaurant.location}</p>
+                  <p className="text-sm text-gray-500">{restaurant.cuisines}</p>
+                  <p className="text-sm text-gray-500">{restaurant.address}</p>
                 </div>
               </div>
-            </div>
+            </Link>
           );
         })}
       </div>
@@ -242,7 +216,7 @@ const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
       <div className="flex sm:hidden gap-4 overflow-x-auto scrollbar-hide">
         {restaurants.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
-          const restaurantId = restaurant._id || String(restaurant.id);
+          const restaurantId = restaurant._id || String(restaurant._id);
           const currentIndex = currentIndices[restaurantId] || 0;
           const multipleImages = hasMultipleImages(restaurant);
           const hovering = isHovering[restaurantId];
@@ -269,10 +243,10 @@ const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
                     <img
                       key={index}
                       src={image}
-                      alt={restaurant.name}
+                      alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all duration-300 ease-out ${
+                      className={`absolute transition-all object-cover size-full duration-300 ease-out ${
                         multipleImages
                           ? `will-change-transform ${hovering ? "brightness-105" : ""}`
                           : "hover:scale-105"
@@ -294,9 +268,9 @@ const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                 </div>
 
-                {restaurant.badge && (
+                {restaurant.offer && (
                   <span className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm px-3 py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg">
-                    {restaurant.badge}
+                    {restaurant.offer}
                   </span>
                 )}
 
@@ -333,12 +307,12 @@ const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
                     </span>
                   </div>
                   <h3 className="text-base font-semibold text-gray-900">
-                    {restaurant.name}
+                    {restaurant.businessName}
                   </h3>
                 </div>
                 <div className="mt-2 space-y-1">
-                  <p className="text-xs text-gray-500">{restaurant.cuisine}</p>
-                  <p className="text-xs text-gray-500">{restaurant.location}</p>
+                  <p className="text-xs text-gray-500">{restaurant.cuisines}</p>
+                  <p className="text-xs text-gray-500">{restaurant.address}</p>
                 </div>
               </div>
             </div>
@@ -359,10 +333,11 @@ const TableGrid = ({ title, restaurants = DUMMY_DATA }) => {
 
 export default TableGrid;
 
-export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
+export const TableGridTwo = ({ title }) => {
   const [currentIndices, setCurrentIndices] = useState({});
   const [resetTimeouts, setResetTimeouts] = useState({});
   const [isHovering, setIsHovering] = useState({});
+  const [restaurants, setRestaurants] = useState([])
   const navigate = useNavigate();
   
   const getImagesForRestaurant = (restaurant) => {
@@ -379,7 +354,7 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
   }, []);
 
   const handleMouseEnter = (restaurantId) => {
-    const restaurant = DUMMY_HOTEL_DATA.find(r => r.id === restaurantId);
+    const restaurant = restaurant.find(r => r.id === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: true }));
@@ -395,7 +370,7 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
   };
 
   const handleMouseMove = useCallback((e, restaurantId) => {
-    const restaurant = DUMMY_HOTEL_DATA.find(r => r.id === restaurantId);
+    const restaurant = restaurant.find(r => r.id === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -411,7 +386,7 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
   }, [hasMultipleImages]);
 
   const handleMouseLeave = useCallback((restaurantId) => {
-    const restaurant = DUMMY_HOTEL_DATA.find(r => r.id === restaurantId);
+    const restaurant = restaurant.find(r => r.id === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: false }));
@@ -435,6 +410,15 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
     };
   }, [resetTimeouts]);
 
+    useEffect(() => {
+    const fetchRestaurant = async () => {
+      const res = await userService.getVendor("hotel")
+      console.log(res)
+      setRestaurants(res.data)
+    }
+    fetchRestaurant();
+  }, [])
+
   return (
     <div className="mb-[92px]">
       <Button variant="outline" className="flex justify-between items-center mb-6 text-gray-900 text-sm font-medium leading-none">
@@ -445,13 +429,13 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
       <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
-          const currentIndex = currentIndices[restaurant.id || 0];
+          const currentIndex = currentIndices[restaurant._id || 0];
           const multipleImages = hasMultipleImages(restaurant);
-          const hovering = isHovering[restaurant.id || 0];
+          const hovering = isHovering[restaurant._id || 0];
 
           return (
             <div
-              key={restaurant.id}
+              key={restaurant._id}
               onClick={() => {
                 navigate(`/hotels/${restaurant._id}`);
               }}
@@ -459,16 +443,16 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
             >
               <div 
                 className={`relative h-52 w-full  cursor-pointer`}
-                onMouseEnter={() => handleMouseEnter(restaurant.id || 0)}
-                onMouseMove={multipleImages ? (e) => handleMouseMove(e, restaurant.id || 0) : undefined}
-                onMouseLeave={() => handleMouseLeave(restaurant.id || 0)}
+                onMouseEnter={() => handleMouseEnter(restaurant._id || 0)}
+                onMouseMove={multipleImages ? (e) => handleMouseMove(e, restaurant._id || 0) : undefined}
+                onMouseLeave={() => handleMouseLeave(restaurant._id || 0)}
               >
                 <div className="relative h-full w-full overflow-hidden rounded-xl">
                   {images.map((image, index) => (
                     <img
                       key={index}
-                      src={typeof image === 'string' ? image : image.url}
-                      alt={restaurant.name}
+                      src={typeof image === 'string' ? image : image}
+                      alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
                       className={`absolute transition-all duration-300 ease-out ${
@@ -490,39 +474,15 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                 </div>
 
-                {restaurant.badge && (
+                {restaurant.offer && (
                   <span className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm px-3 py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white">
-                    {restaurant.badge}
+                    {restaurant.offer}
                   </span>
                 )}
 
                 <button className="absolute top-2 right-2 text-white cursor-pointer text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
                   <FiHeart />
                 </button>
-{/* 
-                {multipleImages && (
-                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1.5">
-                    {images.map((_, index) => (
-                      <span
-                        key={index}
-                        className={`block rounded-full transition-all duration-300 ease-out ${
-                          index === currentIndex 
-                            ? 'bg-white scale-125 w-6 h-2 shadow-md' 
-                            : 'bg-white/70 w-2 h-2 hover:bg-white/90'
-                        }`}
-                      />
-                    ))}
-                  </div>
-                )} */}
-
-                {/* {multipleImages && hovering && (
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-black/20">
-                    <div 
-                      className="h-full bg-white/80 transition-all duration-200 ease-out"
-                      style={{ width: `${((currentIndex + 1) / images.length) * 100}%` }}
-                    />
-                  </div>
-                )} */}
               </div>
 
               <div className="p-4 flex-1 flex flex-col justify-between">
@@ -537,17 +497,17 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
                     </span>
                   </div>
                   <h3 className="text-lg font-semibold text-gray-900">
-                    {restaurant.name}
+                    {restaurant.businessName}
                   </h3>
                 </div>
                 <div className="mt-2 space-y-1">
-                  <p className="text-sm text-gray-500">{restaurant.cuisine}</p>
-                  <p className="text-sm text-gray-500">{restaurant.location}</p>
+                  <p className="text-sm text-gray-500">{restaurant.cuisines}</p>
+                  <p className="text-sm text-gray-500">{restaurant.address}</p>
                 </div>
                 <div className="mt-2">
                   <div className="flex justify-between items-center">
                     <div className="flex justify-start items-center gap-1">
-                      <div className="justify-start text-gray-900 text-sm font-medium font-['Inter'] leading-none">${restaurant.price}</div>
+                      <div className="justify-start text-gray-900 text-sm font-medium font-['Inter'] leading-none">${restaurant.priceRange}</div>
                       <div className="justify-start text-zinc-600 text-xs font-normal font-['Inter'] leading-none">/night</div>
                     </div>
                     <div className="h-7 px-2 rounded-lg outline-1 outline-offset-[-1px] outline-yellow-500 inline-flex flex-col justify-center items-center gap-2">
@@ -575,13 +535,13 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
       <div className="flex sm:hidden gap-4 overflow-x-auto scrollbar-hide">
         {restaurants.map((restaurant) => {
          const images = getImagesForRestaurant(restaurant);
-          const currentIndex = currentIndices[restaurant.id || 0];
+          const currentIndex = currentIndices[restaurant._id || 0];
           const multipleImages = hasMultipleImages(restaurant);
-          const hovering = isHovering[restaurant.id || 0];
+          const hovering = isHovering[restaurant._id || 0];
 
           return (
             <div
-              key={restaurant.id}
+              key={restaurant._id}
               onClick={() => {
                 navigate(`/hotels/${restaurant._id}`);
               }}
@@ -590,18 +550,18 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
               {/* Same content inside box, no cutoff */}
               <div
                 className="relative h-44 w-full cursor-pointer"
-                onMouseEnter={() => handleMouseEnter(restaurant.id || 0)}
+                onMouseEnter={() => handleMouseEnter(restaurant._id || 0)}
                 onMouseMove={
-                  multipleImages ? (e) => handleMouseMove(e, restaurant.id || 0) : undefined
+                  multipleImages ? (e) => handleMouseMove(e, restaurant._id || 0) : undefined
                 }
-                onMouseLeave={() => handleMouseLeave(restaurant.id || 0)}
+                onMouseLeave={() => handleMouseLeave(restaurant._id || 0)}
               >
                 <div className="relative h-full w-full overflow-hidden rounded-xl">
                   {images.map((image, index) => (
                     <img
                       key={index}
                        src={typeof image === 'string' ? image : image.url}
-                      alt={restaurant.name}
+                      alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
                       className={`absolute transition-all duration-300 ease-out ${
@@ -626,9 +586,9 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                 </div>
 
-                {restaurant.badge && (
+                {restaurant.offer && (
                   <span className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm px-3 py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg">
-                    {restaurant.badge}
+                    {restaurant.offer}
                   </span>
                 )}
 
@@ -665,12 +625,12 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
                     </span>
                   </div>
                   <h3 className="text-base font-semibold text-gray-900">
-                    {restaurant.name}
+                    {restaurant.businessName}
                   </h3>
                 </div>
                 <div className="mt-2 space-y-1">
-                  <p className="text-xs text-gray-500">{restaurant.cuisine}</p>
-                  <p className="text-xs text-gray-500">{restaurant.location}</p>
+                  <p className="text-xs text-gray-500">{restaurant.cuisines}</p>
+                  <p className="text-xs text-gray-500">{restaurant.address}</p>
                 </div>
               </div>
             </div>
@@ -687,10 +647,11 @@ export const TableGridTwo = ({ title, restaurants = DUMMY_HOTEL_DATA }) => {
     </div>
   );
 };
-export const TableGridThree = ({ title, restaurants = DUMMY_CLUB_DATA }) => {
+export const TableGridThree = ({ title }) => {
   const [currentIndices, setCurrentIndices] = useState({});
   const [resetTimeouts, setResetTimeouts] = useState({});
   const [isHovering, setIsHovering] = useState({});
+  const [restaurants, setRestaurants] = useState([]);
   const navigate = useNavigate();
   
   const getImagesForRestaurant = (restaurant) => {
@@ -707,7 +668,7 @@ export const TableGridThree = ({ title, restaurants = DUMMY_CLUB_DATA }) => {
   }, []);
 
   const handleMouseEnter = (restaurantId) => {
-    const restaurant = DUMMY_HOTEL_DATA.find(r => r.id === restaurantId);
+    const restaurant = restaurant.find(r => r.id === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: true }));
@@ -732,7 +693,7 @@ const cuisineColorPalette = [
 ];
 
   const handleMouseMove = useCallback((e, restaurantId) => {
-    const restaurant = DUMMY_HOTEL_DATA.find(r => r.id === restaurantId);
+    const restaurant = restaurant.find(r => r.id === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -748,7 +709,7 @@ const cuisineColorPalette = [
   }, [hasMultipleImages]);
 
   const handleMouseLeave = useCallback((restaurantId) => {
-    const restaurant = DUMMY_HOTEL_DATA.find(r => r.id === restaurantId);
+    const restaurant = restaurant.find(r => r.id === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: false }));
@@ -771,6 +732,15 @@ const cuisineColorPalette = [
       Object.values(resetTimeouts).forEach(timeout => clearTimeout(timeout));
     };
   }, [resetTimeouts]);
+
+    useEffect(() => {
+    const fetchRestaurant = async () => {
+      const res = await userService.getVendor("club")
+      console.log(res)
+      setRestaurants(res.data)
+    }
+    fetchRestaurant();
+  }, [])
 
   return (
     <div className="mb-[92px]">
@@ -796,16 +766,16 @@ const cuisineColorPalette = [
             >
               <div 
                 className={`relative h-52 w-full  cursor-pointer`}
-                onMouseEnter={() => handleMouseEnter(restaurant.id || 0)}
-                onMouseMove={multipleImages ? (e) => handleMouseMove(e, restaurant.id || 0) : undefined}
-                onMouseLeave={() => handleMouseLeave(restaurant.id || 0)}
+                onMouseEnter={() => handleMouseEnter(restaurant._id || 0)}
+                onMouseMove={multipleImages ? (e) => handleMouseMove(e, restaurant._id || 0) : undefined}
+                onMouseLeave={() => handleMouseLeave(restaurant._id || 0)}
               >
                 <div className="relative h-full w-full overflow-hidden rounded-xl">
                   {images.map((image, index) => (
                     <img
                       key={index}
                       src={typeof image === 'string' ? image : image.url}
-                      alt={restaurant.name}
+                      alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
                       className={`absolute transition-all duration-300 ease-out ${
@@ -870,23 +840,21 @@ const cuisineColorPalette = [
               
 
                   <div className="inline-flex flex-wrap gap-2 mt-2">
-  {(Array.isArray(restaurant.cuisine) 
-    ? restaurant.cuisine 
-    : restaurant.cuisine.split(",").map(c => c.trim())
-  ).map((cuisine, index) => {
-    const classes = cuisineColorPalette[index % cuisineColorPalette.length];
-    return (
-      <div
-        key={index}
-        className={`px-2 py-1 rounded-sm outline-1  ${classes} text-xs text-zinc-600  font-medium font-['Inter'] leading-none`}
-      >
-        {cuisine}
-      </div>
-    );
-  })}
-</div>
-
-
+                    {(Array.isArray(restaurant.cuisine) 
+                      ? restaurant.cuisine 
+                      : restaurant.cuisine.split(",").map(c => c.trim())
+                    ).map((cuisine, index) => {
+                      const classes = cuisineColorPalette[index % cuisineColorPalette.length];
+                      return (
+                        <div
+                          key={index}
+                          className={`px-2 py-1 rounded-sm outline-1  ${classes} text-xs text-zinc-600  font-medium font-['Inter'] leading-none`}
+                        >
+                          {cuisine}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="mt-2 justify-between flex">
                   
