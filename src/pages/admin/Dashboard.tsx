@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { StatCard } from "@/components/statcard";
+import { StatCard } from "@/components/Statcard";
 import { useEffect, useState } from "react";
 import { getDashboardKPIs, getRecentTransactions, getRevenueTrends, getTodaysReservations, getTopVendors } from "@/services/admin.service";
 

@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { StatCard } from "@/components/statcard";
+import { StatCard } from "@/components/Statcard";
 import { Wallet, TrendingUp, CheckCircle, Clock, ArrowUpRight, ArrowDownRight, MoreVertical, Search, SlidersHorizontal, Edit, Plus, ChevronLeft, ChevronRight, CreditCard } from "lucide-react";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { getPayouts, getVendorEarnings } from "@/services/admin.service";

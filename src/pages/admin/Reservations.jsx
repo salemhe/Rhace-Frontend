@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { StatCard } from "@/components/statcard.jsx";
+import { StatCard } from "@/components/Statcard";
 import { getReservations, getReservationCounters } from "@/services/admin.service";
 import {
   DropdownMenu,
