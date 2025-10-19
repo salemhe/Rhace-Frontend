@@ -1,8 +1,5 @@
-import * as React from "react";
 
-
-
-const SvgIcon = () => (
+const FoodIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="18"
@@ -19,10 +16,7 @@ const SvgIcon = () => (
   </svg>
 );
 
-export default  SvgIcon
-
-
-const Plate = ({color = "#fff"}) => (
+const Plate = ({ color = "#fff" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="21"
@@ -47,9 +41,9 @@ const Plate = ({color = "#fff"}) => (
 );
 
 
-const Amenities = ({color ="#fff"}) => (
-   
-<svg
+const Amenities = ({ color = "#fff" }) => (
+
+  <svg
     xmlns="http://www.w3.org/2000/svg"
     width="17"
     height="16"
@@ -78,6 +72,23 @@ const DashBoardIcon = () => (
   </svg>
 );
 
+const LogoutIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="17"
+    height="18"
+    fill="none"
+    viewBox="0 0 17 18"
+  >
+    <path
+      fill="#E5E7EB"
+      fillRule="evenodd"
+      d="M3 .667a2.5 2.5 0 0 0-2.5 2.5v11.666a2.5 2.5 0 0 0 2.5 2.5h5a2.5 2.5 0 0 0 2.5-2.5V3.167A2.5 2.5 0 0 0 8 .667zm8.578 4.41a.833.833 0 0 1 1.178 0l3.333 3.334a.833.833 0 0 1 0 1.178l-3.333 3.334a.833.833 0 0 1-1.178-1.179l1.91-1.91H6.333a.833.833 0 1 1 0-1.667h7.155l-1.91-1.911a.833.833 0 0 1 0-1.178"
+      clipRule="evenodd"
+    ></path>
+  </svg>
+);
+
 const BookingsIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -93,6 +104,22 @@ const BookingsIcon = () => (
   </svg>
 );
 
+const MenuIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    fill="none"
+    viewBox="0 0 16 16"
+  >
+    <path
+      fill="#E5E7EB"
+      fillRule="evenodd"
+      d="M5.5 1.333A.833.833 0 0 1 6.333.5h3.334a.833.833 0 0 1 0 1.667h-.834v.862c4.534.409 7.509 5.11 5.775 9.447a.83.83 0 0 1-.775.524H2.167a.83.83 0 0 1-.774-.524c-1.735-4.337 1.24-9.038 5.774-9.447v-.862h-.834a.833.833 0 0 1-.833-.834m-5 13.334a.833.833 0 0 1 .833-.834h13.334a.833.833 0 0 1 0 1.667H1.333a.833.833 0 0 1-.833-.833"
+      clipRule="evenodd"
+    ></path>
+  </svg>
+);
 const BranchesIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -123,14 +150,45 @@ const PaymentIcon = () => (
       ></path>
     </g>
     <defs>
-      <clipPath id="clip0_2580_791">
+      <clipPath id="clip0_2580_791)">
         <path fill="#fff" d="M0 0h20v20H0z"></path>
       </clipPath>
     </defs>
   </svg>
 );
 
-export {  Plate, Amenities, DashBoardIcon, BookingsIcon, BranchesIcon, PaymentIcon  };
+const UsersIcon = (props) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="15"
+    fill="none"
+    viewBox="0 0 20 15"
+  >
+    <path
+      fill="#E5E7EB"
+      d="M10 8a7.1 7.1 0 0 1 4.012 1.24c.986.687 1.821 1.708 1.821 2.807 0 .604-.257 1.104-.663 1.476-.382.35-.88.578-1.393.733-1.026.31-2.377.41-3.777.41s-2.75-.1-3.777-.41c-.513-.155-1.011-.383-1.394-.733a1.96 1.96 0 0 1-.662-1.475c0-1.099.835-2.12 1.82-2.808A7.1 7.1 0 0 1 10 8m5.833.833c.87 0 1.66.288 2.245.694.533.373 1.089.992 1.089 1.747 0 .431-.188.789-.467 1.044-.255.235-.57.372-.857.459-.392.118-.855.179-1.335.206.102-.288.159-.6.159-.936 0-1.279-.8-2.365-1.694-3.12q.425-.093.86-.094m-11.666 0q.447.002.86.095c-.894.754-1.694 1.84-1.694 3.12 0 .335.057.647.159.934-.48-.026-.942-.087-1.334-.205-.288-.087-.603-.224-.859-.459a1.4 1.4 0 0 1-.466-1.043c0-.754.555-1.374 1.09-1.747a3.96 3.96 0 0 1 2.244-.695m11.25-5a2.083 2.083 0 1 1 0 4.167 2.083 2.083 0 0 1 0-4.167m-10.834 0a2.083 2.083 0 1 1 0 4.167 2.083 2.083 0 0 1 0-4.167M10 .5a3.333 3.333 0 1 1 0 6.666A3.333 3.333 0 0 1 10 .5"
+    ></path>
+  </svg>
+);
+
+const SettingsIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    fill="none"
+    viewBox="0 0 20 20"
+  >
+    <path
+      fill="#fff"
+      d="M10 1.667a8.333 8.333 0 1 1 0 16.666 8.333 8.333 0 0 1 0-16.666M8.334 5h-.417a.833.833 0 0 0-.833.833v2.5h-.417a.833.833 0 0 0 0 1.667h.417v.833h-.417a.833.833 0 1 0 0 1.667h.417v1.667a.833.833 0 0 0 1.666 0V12.5h1.353l.79 1.976a.83.83 0 0 0 .774.524h.417a.833.833 0 0 0 .833-.833V12.5h.417a.833.833 0 0 0 0-1.667h-.417V10h.417a.833.833 0 0 0 0-1.667h-.417v-2.5a.833.833 0 1 0-1.667 0v2.5h-1.019L9.108 5.524A.83.83 0 0 0 8.334 5m2.916 5v.833h-.019L10.898 10zm-2.147 0 .333.833H8.75V10z"
+    ></path>
+  </svg>
+);
 
 
 
+export default UsersIcon;
+
+export { FoodIcon, Plate, Amenities, DashBoardIcon, BookingsIcon, BranchesIcon, PaymentIcon, SettingsIcon, LogoutIcon };
