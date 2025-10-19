@@ -1,51 +1,6 @@
 import { Building2, ChevronDown, Clock } from "lucide-react";
 import { InputField, SectionCard, SelectField, TimeInput, ToggleSwitch } from "./part/settingsComp";
 
-// Branch Configuration Header Component
-export const BranchConfigHeader = ({ selectedBranch, setSelectedBranch, branchEnabled, setBranchEnabled }) => (
-  <SectionCard title="Branch Configuration">
-    <p className="text-sm text-gray-600 mb-6">Configure specific settings to each branch</p>
-    
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-4 flex-1">
-        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-          <Building2 className="w-6 h-6 text-gray-600" />
-        </div>
-        <div className="relative flex-1 max-w-md">
-          <select
-            value={selectedBranch}
-            onChange={(e) => setSelectedBranch(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg appearance-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-          >
-            <option>Restaurant 1 - Headquarter</option>
-            <option>Restaurant 2 - Downtown</option>
-            <option>Restaurant 3 - Mall</option>
-          </select>
-          <ChevronDown className="absolute right-3 top-3 w-5 h-5 text-gray-400 pointer-events-none" />
-        </div>
-      </div>
-
-      <div className="flex items-center gap-4">
-        <div className="text-right">
-          <p className="text-sm font-medium text-gray-900">Branch Status</p>
-          <p className="text-xs text-gray-600">Enable or disable booking for this branch</p>
-        </div>
-        <ToggleSwitch
-          enabled={branchEnabled}
-          onToggle={() => setBranchEnabled(!branchEnabled)}
-        />
-      </div>
-    </div>
-
-    {branchEnabled && (
-      <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
-        <p className="text-sm text-amber-800">
-          This branch has 12 active bookings for the upcoming week. Disabling bookings will not affect existing reservations.
-        </p>
-      </div>
-    )}
-  </SectionCard>
-);
 
 
 const OpeningHoursRow = ({ day, hours, onUpdateTime, onToggle }) => (

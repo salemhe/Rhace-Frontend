@@ -1,9 +1,35 @@
-import React from 'react';
-import { Search, Bell, Menu, User, ChevronDown } from 'lucide-react';
+import { Bell, ChevronDown, Menu, User } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const Header = ({ onMenuClick }) => {
   const vendor = useSelector((state) => state.auth.vendor);
+
+  const vendor = useSelector((state) => state.auth);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Update profile from redux auth state synchronously to avoid using an
+    // async effect directly (avoids some lint warnings) and to keep the
+    // component resilient when `vendor` is null/undefined.
+    setLoading(true);
+    try {
+      if (vendor && vendor.isAuthenticated) {
+        setProfile(vendor.vendor ?? null);
+      } else {
+        setProfile(null);
+      }
+    } catch (error) {
+      // keep console.error for easier debugging
+      console.error(error);
+      setProfile(null);
+    } finally {
+      setLoading(false);
+    }
+  }, [vendor]);
+
+  console.log(profile);
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-6 relative">
       {/* Mobile menu button */}
@@ -15,7 +41,7 @@ const Header = ({ onMenuClick }) => {
       </button>
 
       {/* Search bar */}
-      <div
+      {/* <div
         className="
           flex-1 max-w-xs
           lg:absolute lg:left-1/2 lg:transform lg:-translate-x-1/2 lg:max-w-2xl
@@ -30,7 +56,7 @@ const Header = ({ onMenuClick }) => {
               focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
           />
         </div>
-      </div>
+      </div> */}
 
       {/* Right side items */}
       <div className="ml-auto flex items-center space-x-4">
@@ -46,8 +72,8 @@ const Header = ({ onMenuClick }) => {
             <User className="w-5 h-5 text-white" />
           </div>
           <div className="hidden md:block">
-            <div className="text-sm font-medium text-gray-900">{vendor.businessName}</div>
-            <div className="text-xs text-gray-500">{vendor.vendorType}</div>
+            <div className="text-sm font-medium text-gray-900">{profile?.businessName ?? 'Vendor'}</div>
+            <div className="text-xs text-gray-500">{profile?.role ?? ''}</div>
           </div>
           <ChevronDown className="w-4 h-4 text-gray-500" />
         </div>

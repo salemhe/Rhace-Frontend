@@ -1,10 +1,10 @@
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { Building2, Calendar, DollarSign, Home, Shield, Users } from 'lucide-react';
 import { useState } from 'react';
-import { BranchConfigHeader, OpeningHours, ReservationPreferences } from './BranchSettingsTab';
+import { OpeningHours, ReservationPreferences } from './BranchSettingsTab';
 import { BusinessInformation, BusinessLogo } from './part/BusinessInfo';
 import { ContactInformation } from './part/ContactInfo';
-import { ActionButtons,  PlaceholderTab, TabsNavigation } from './part/settingsComp';
+import { ActionButtons, PlaceholderTab, TabsNavigation } from './part/settingsComp';
 
 
 // Main Component
@@ -37,11 +37,6 @@ const Settings = () => {
 
    const tabs = [
       { id: 'general', label: 'General Info', icon: Home },
-      { id: 'branch', label: 'Branch Settings', icon: Building2 },
-      { id: 'reservation', label: 'Reservation Rules', icon: Calendar },
-      { id: 'staff', label: 'Staff Access', icon: Users },
-      { id: 'payment', label: 'Payment & Payouts', icon: DollarSign },
-      { id: 'security', label: 'Security', icon: Shield }
    ];
 
    const toggleDayEnabled = (day) => {
@@ -95,17 +90,8 @@ const Settings = () => {
                      <div className="md:w-[49%]">
                         <BusinessLogo />
                      </div>
-                  </div>
-               )}
 
-               {activeTab === 'branch' && (
-                  <div className="space-y-6">
-                     <BranchConfigHeader
-                        selectedBranch={selectedBranch}
-                        setSelectedBranch={setSelectedBranch}
-                        branchEnabled={branchEnabled}
-                        setBranchEnabled={setBranchEnabled}
-                     />
+                      <div className="space-y-6">
                      <OpeningHours
                         openingHours={openingHours}
                         updateTime={updateTime}
@@ -126,40 +112,8 @@ const Settings = () => {
                         setCutoffTime={setCutoffTime}
                      />
                   </div>
+                  </div>
                )}
-
-               {activeTab === 'reservation' && (
-                  <PlaceholderTab
-                     icon={Calendar}
-                     title="Reservation Rules"
-                     description="Configure reservation policies and rules"
-                  />
-               )}
-
-               {activeTab === 'staff' && (
-                  <PlaceholderTab
-                     icon={Users}
-                     title="Staff Access"
-                     description="Manage staff members and permissions"
-                  />
-               )}
-
-               {activeTab === 'payment' && (
-                  <PlaceholderTab
-                     icon={DollarSign}
-                     title="Payment & Payouts"
-                     description="Configure payment methods and payout settings"
-                  />
-               )}
-
-               {activeTab === 'security' && (
-                  <PlaceholderTab
-                     icon={Shield}
-                     title="Security"
-                     description="Manage security settings and authentication"
-                  />
-               )}
-
                <ActionButtons onReset={handleReset} onSave={handleSave} />
             </div>
          </div>
