@@ -238,4 +238,4 @@ const SettingsIcon = () => (
 
 export default UsersIcon;
 
-export { FoodIcon, Plate, Amenities, DashBoardIcon, BookingsIcon, BranchesIcon, PaymentIcon, SettingsIcon, LogoutIcon };
+export { FoodIcon, Plate, Amenities, DashBoardIcon, BookingsIcon, BranchesIcon, PaymentIcon, SettingsIcon, LogoutIcon, GuestsIcon, PrepaidIcon, PendingPaymentIcon, MenuIcon };

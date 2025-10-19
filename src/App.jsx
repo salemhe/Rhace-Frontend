@@ -2,15 +2,8 @@ import { Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 
 // Layouts
-import Layout from "./pages/layouts/Layout";
-import ReservationLayout from "./pages/layouts/ReservationLayout";
-import ClubReservationLayout from "./pages/layouts/ClubReservationLayout";
 import HotelReservationLayout from "./pages/layouts/HotelReservationLayout";
 import AdminLayout from "./components/layout/AdminLayout";
-
-// User Auth
-import { Route, Routes } from "react-router-dom";
-import ScrollToTop from "./components/ScrollToTop";
 
 // Auth - User
 import Login from "./pages/auth/UserAuth/Login";
@@ -32,12 +25,6 @@ import Layout from "./pages/layouts/Layout";
 import ReservationLayout from "./pages/layouts/ReservationLayout";
 import ClubReservationLayout from "./pages/layouts/ClubReservationLayout";
 
-// User Pages - Restaurant
-import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
-import Reservation from "./pages/user/restaurant/Reservation";
-import VendorResetPassword from "./pages/auth/VendorAuth/ResetPassword";
-import Onboard from "./pages/auth/VendorAuth/Onboard";
-
 // Pages
 import ReservationHomePage from "./pages/user/ReservationHomePage";
 import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
@@ -52,15 +39,7 @@ import ClubReservation from "./pages/user/club/Reservation";
 import HotelsPage from "./pages/user/hotels/HotelsPage";
 import HotelReservation from "./pages/user/hotels/ReservationSummary";
 
-// User Pages - General
-import ReservationHomePage from "./pages/user/ReservationHomePage";
-import BookingsPage from "./pages/user/Bookings";
-import SearchContent from "./pages/user/Search";
-import NotFound from "./pages/user/NotFound";
-
 // Dashboard - Restaurant
-import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
-import HotelReservation from "./pages/user/hotels/ReservationSummary";
 import BookingsPage from "./pages/user/Bookings";
 import SearchContent from "./pages/user/Search";
 import NotFound from "./pages/user/NotFound";
@@ -86,14 +65,10 @@ import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
 
 // Settings
 import Settings from "./pages/vendor/settings/settings";
-import VendorDashboard from "./pages/dashboard/Dashboard";
 import ClubDashboard from "./pages/vendor/club/Dashboard";
 import HotelDashboard from "./pages/vendor/hotel/Dashboard";
 import ClubReservationTable from "./pages/vendor/club/reservations";
 
-// ==================== APP COMPONENT ====================
-import ConfirmPage from "./pages/user/restaurant/Confirmation";
-import AdminLayout from "./components/layout/AdminLayout";
 
 // Admin
 import AdminDashboard from "./pages/admin/Dashboard";
@@ -103,7 +78,6 @@ import AdminReservations from "./pages/admin/Reservations";
 import AdminPayments from "./pages/admin/Payments";
 import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
-// ==================== ROUTE CONFIGURATION ====================
 
 const authRoutes = {
   user: [

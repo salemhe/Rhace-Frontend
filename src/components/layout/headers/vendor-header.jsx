@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const Header = ({ onMenuClick }) => {
-  const vendor = useSelector((state) => state.auth.vendor);
+  // const vendor = useSelector((state) => state.auth.vendor);
 
   const vendor = useSelector((state) => state.auth);
   const [profile, setProfile] = useState(null);
