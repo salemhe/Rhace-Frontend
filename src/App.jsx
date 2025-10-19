@@ -64,6 +64,16 @@ import ClubDashboard from "./pages/vendor/club/Dashboard";
 import HotelDashboard from "./pages/vendor/hotel/Dashboard";
 import ClubReservationTable from "./pages/vendor/club/reservations";
 
+// ==================== APP COMPONENT ====================
+import ConfirmPage from "./pages/user/restaurant/Confirmation";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminVendors from "./pages/admin/Vendors";
+import AdminUsers from "./pages/admin/Users";
+import AdminReservations from "./pages/admin/Reservations";
+import AdminPayments from "./pages/admin/Payments";
+import AdminReports from "./pages/admin/Reports";
+import AdminSettings from "./pages/admin/Settings";
 // ==================== ROUTE CONFIGURATION ====================
 
 const authRoutes = {
@@ -140,7 +150,7 @@ const clubVendorRoutes = [
   { path: "/club/settings", element: <Settings /> },
 ];
 
-// ==================== APP COMPONENT ====================
+
 
 function App() {
   return (

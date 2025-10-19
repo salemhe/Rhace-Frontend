@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   user: null,
   vendor: null,
+  admin: null,
   isAuthenticated: false,
 };
 
@@ -18,6 +19,13 @@ const authSlice = createSlice({
     setVendor: (state, action) => {
       state.vendor = action.payload;
       state.user = null; // clear user if vendor logs in
+      state.admin = null; // clear admin if vendor logs in
+      state.isAuthenticated = true;
+    },
+    setAdmin: (state, action) => {
+      state.admin = action.payload;
+      state.user = null; // clear user if admin logs in
+      state.vendor = null; // clear vendor if admin logs in
       state.isAuthenticated = true;
     },
     logout: (state) => {
@@ -26,10 +34,11 @@ const authSlice = createSlice({
       console.log("Logging out!")
       state.user = null;
       state.vendor = null;
+      state.admin = null;
       state.isAuthenticated = false;
     },
   },
 });
 
-export const { setUser, setVendor, logout } = authSlice.actions;
+export const { setUser, setVendor, setAdmin, logout } = authSlice.actions;
 export default authSlice.reducer;
