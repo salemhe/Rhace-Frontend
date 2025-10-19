@@ -104,7 +104,7 @@ const Images2 = ({
                     {images.map((_, index) => (
                         <button
                             key={index}
-                            className={`w-2.5 h-2.5 rounded-full ${currentImageIndex === index ? "bg-white w-7.5" : "bg-gray-400"
+                            className={`w-2.5 h-2.5 rounded-full transition-all duration-200 ${currentImageIndex === index ? "bg-white w-7.5" : "bg-gray-400"
                                 }`}
                             onClick={() => setCurrentImageIndex(index)}
                         />

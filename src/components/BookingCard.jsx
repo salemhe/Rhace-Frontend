@@ -1,8 +1,10 @@
 import { useState } from "react";
 
 import { Building2, Calendar, Download, Edit, Eye, Home, MapPin, MoreVertical, Trash2, Users, X } from 'lucide-react';
+import { useNavigate } from "react-router";
 function BookingCard ({ booking, onEdit, onDelete }) {
   const [showDropdown, setShowDropdown] = useState(false);
+  const navigate = useNavigate();
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -29,7 +31,7 @@ function BookingCard ({ booking, onEdit, onDelete }) {
   };
 
   const getButtonText = (status) => {
-    if (status === 'Completed' || status === 'Cancelled') {
+    if (status === 'success' || status === 'Cancelled') {
       return 'Leave Review';
     }
     return 'View Details';
@@ -53,8 +55,8 @@ function BookingCard ({ booking, onEdit, onDelete }) {
       <div className="flex flex-col sm:flex-row gap-4 p-4 sm:p-5">
         <div className="w-full sm:w-40 h-40 sm:h-32 flex-shrink-0">
           <img
-            src={booking.image_url}
-            alt={booking.property_name}
+            src={booking.vendor.profileImages[0]}
+            alt={booking.vendor.businessName}
             className="w-full h-full object-cover rounded-lg"
           />
         </div>
@@ -62,25 +64,27 @@ function BookingCard ({ booking, onEdit, onDelete }) {
         <div className="flex-1 relative  min-w-0">
           <div className="flex items-start justify-between gap-3 mb-3">
             <h3 className="text-lg font-semibold text-gray-900 truncate">
-              {booking.property_name}
+              {booking.vendor.businessName}
             </h3>
 
           </div>
 
           <div className="space-y-2 mb-4">
             <div className="flex items-center gap-2 text-gray-700">
-              {booking.property_type === 'Hotels' ? (
+              {booking.reservationType === 'Hotels' ? (
                 <Building2 className="w-4 h-4 flex-shrink-0" />
               ) : (
                 <Home className="w-4 h-4 flex-shrink-0" />
               )}
-              <span className="text-sm">{booking.property_type}</span>
+              <span className="text-sm">{booking.reservationType.split("R")[0]}</span>
             </div>
 
             <div className="flex items-center gap-2 text-gray-700">
               <Calendar className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm">
-                {formatDate(booking.check_in)} - {formatDate(booking.check_out)}
+                {booking.reservationType.split("R")[0] === "restaurant" ? formatDate(booking.date) : booking.reservationType.split("R")[0] === "hotel" ? 
+                `${formatDate(booking.check_in)} - ${formatDate(booking.check_out)}` : ""
+                }
               </span>
             </div>
 
@@ -104,28 +108,31 @@ function BookingCard ({ booking, onEdit, onDelete }) {
       <div className="flex flex-col border-t p-2  sm:flex-row items-start sm:items-center justify-between gap-3">
             <span
               className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-                booking.status
+                booking.paymentStatus
               )}`}
             >
-              {booking.status}
+              {booking.paymentStatus}
             </span>
 
             <button
               className="px-6 py-2 rounded-full text-sm font-medium transition-colors w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white"
+              onClick={() => {
+                navigate(`/restaurants/confirmation/${booking._id}`)
+              }}
             >
-              {getButtonText(booking.status)}
+              {getButtonText(booking.paymentStatus)}
             </button>
           </div>
       <div className="flex border border-[#B9C2DB] items-center bg-[#E9EBF3] absolute top-0 right-0 rounded-bl-xl gap-2 flex-shrink-0">
         <button
-          onClick={() => onEdit?.(booking.id)}
+          onClick={() => onEdit?.(booking._id)}
           className="p-2 hover:bg-gray-100 rounded-bl-lg transition-colors"
           aria-label="Edit booking"
         >
           <Edit className="w-5 h-5 text-gray-600" />
         </button>
         <button
-          onClick={() => onDelete?.(booking.id)}
+          onClick={() => onDelete?.(booking._id)}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Delete booking"
         >

@@ -15,7 +15,7 @@ import {
   useReactTable,
   // VisibilityState,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Check, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal, MoreVertical, Search, XIcon } from "lucide-react"
+import { ArrowUpDown, Check, ChevronDown, ChevronLeft, ChevronRight, Clock, Mail, MoreHorizontal, MoreVertical, Search, XIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -42,6 +42,8 @@ import { useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { userService } from '@/services/user.service';
+// import { formatCustomDate } from '@/utils/formatDate';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 
 const categories = [
@@ -65,149 +67,159 @@ const ReservationDashboard = () => {
   const vendor = useSelector((state) => state.auth.vendor);
   const [data, setData] = useState([])
   const [isLoading, setIsLoading] = useState(true);
+  const [showPopup, setShowPopup] = useState({
+    display: false,
+    details: {}
+  });
   // const socketRef = useRef(null);\
 
-  
-const columns = [
-  {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-        className="bg-white"
-      />
-    ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
-  },
-  {
-    accessorKey: "customerName",
-    header: "Customer Name",
-    cell: ({ row }) => {
-      const user = row.original;
-      return (
-      <div className="flex items-center gap-3">
-        <div className='rounded-full overflow-hidden relative size-9'>
-          {/* <img src={row.getValue("customerName")} alt={row.getValue("customerName")} className='size-full object-cover' /> */}
-        </div>
-        <div className='flex flex-col'>
-          <span className='text-[#111827] font-medium text-sm'>{row.getValue("customerName")}</span>
-          <span className='text-[#606368] text-xs capitalize'>ID #{user._id.slice(0, 8)}</span>
-        </div>
-      </div>
-    )}
-  },
-  {
-    accessorKey: "date_n_time",
-    header: "Date & Time",
-    cell: ({ row }) => {
-      const user = row.original
-      const date = new Date(user.date)
-      return (
-      <div className='flex flex-col'>
-        <span className='text-[#111827] font-medium text-sm'>{date.toISOString().split('T')[0]}</span>
-        <span className='text-[#606368] text-xs capitalize'>Time {user.time}</span>
-      </div>
-    )},
-  },
-  {
-    accessorKey: "guests",
-    header: () => {
-      return (
-        <div
-        >
-          No of Guests
-        </div>
-      )
-    },
-    cell: ({ row }) => <div>{row.getValue("guests")}</div>,
-  },
-  {
-    accessorKey: "mealPreselected",
-    header: () => {
-      return (
-        <div
-        >
-          Meal Preselected
-        </div>
-      )
-    },
-    cell: ({ row }) => <div className={`${row.getValue("mealPreselected") === "Yes" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 w-max rounded-full`}>
-      {row.getValue("mealPreselected") === "Yes" ? <Check className='text-[#37703F] size-5' /> : <XIcon className='text-[#EF4444] size-5' />}{row.getValue("mealPreselected")}</div>,
-  },
-  {
-    accessorKey: "paymentStatus",
-    header: () => {
-      return (
-        <div
-        >
-          Payment Status
-        </div>
-      )
-    },
-    cell: ({ row }) => <div className={` w-max ${row.getValue("paymentStatus") === "success" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("paymentStatus")}</div>,
-  },
-  {
-    accessorKey: "reservationStatus",
-    header: () => {
-      return (
-        <div
-        >
-          Reservation Status
-        </div>
-      )
-    },
-    cell: ({ row }) => <div className={`w-max ${row.getValue("reservationStatus") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-      {row.getValue("reservationStatus")}</div>,
-  },
-  {
-    id: "actions",
-    enableHiding: false,
-    cell: ({ row }) => {
-      // const payment = row.original
 
-      return (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVertical />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {/* <DropdownMenuItem
+  const columns = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+          className="bg-white"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      accessorKey: "customerName",
+      header: "Customer Name",
+      cell: ({ row }) => {
+        const user = row.original;
+        return (
+          <div className="flex items-center gap-3">
+            <Avatar>
+              <AvatarFallback>{user.customerName.split(" ").map((i) => (i.slice(0, 1).toUpperCase()))}</AvatarFallback>
+            </Avatar>
+
+            <div className='flex flex-col'>
+              <span className='text-[#111827] font-medium text-sm'>{row.getValue("customerName")}</span>
+              <span className='text-[#606368] text-xs capitalize'>ID #{user._id.slice(0, 8)}</span>
+            </div>
+          </div>
+        )
+      }
+    },
+    {
+      accessorKey: "date_n_time",
+      header: "Date & Time",
+      cell: ({ row }) => {
+        const user = row.original
+        const date = new Date(user.date)
+        return (
+          <div className='flex flex-col'>
+            <span className='text-[#111827] font-medium text-sm'>{date.toISOString().split('T')[0]}</span>
+            <span className='text-[#606368] text-xs capitalize'>Time {user.time}</span>
+          </div>
+        )
+      },
+    },
+    {
+      accessorKey: "guests",
+      header: () => {
+        return (
+          <div
+          >
+            No of Guests
+          </div>
+        )
+      },
+      cell: ({ row }) => <div>{row.getValue("guests")}</div>,
+    },
+    {
+      accessorKey: "mealPreselected",
+      header: () => {
+        return (
+          <div
+          >
+            Meal Preselected
+          </div>
+        )
+      },
+      cell: ({ row }) => <div className={`${row.getValue("mealPreselected") ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 w-max rounded-full`}>
+        {row.getValue("mealPreselected") ? <Check className='text-[#37703F] size-5' /> : <XIcon className='text-[#EF4444] size-5' />}{row.getValue("mealPreselected") ? "Yes" : "No"}</div>,
+    },
+    {
+      accessorKey: "paymentStatus",
+      header: () => {
+        return (
+          <div
+          >
+            Payment Status
+          </div>
+        )
+      },
+      cell: ({ row }) => <div className={` w-max ${row.getValue("paymentStatus") === "success" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
+        {row.getValue("paymentStatus")}</div>,
+    },
+    {
+      accessorKey: "reservationStatus",
+      header: () => {
+        return (
+          <div
+          >
+            Reservation Status
+          </div>
+        )
+      },
+      cell: ({ row }) => <div className={`w-max ${row.getValue("reservationStatus") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
+        {row.getValue("reservationStatus")}</div>,
+    },
+    {
+      id: "actions",
+      enableHiding: false,
+      cell: ({ row }) => {
+        const booking = row.original
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreVertical />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {/* <DropdownMenuItem
               onClick={() => navigator.clipboard.writeText(payment.id)}
             >
               Copy payment ID
             </DropdownMenuItem> */}
-            <DropdownMenuItem><Eye2 /> View Reservation</DropdownMenuItem>
-            <DropdownMenuItem><Pencil /> Edit Reservation</DropdownMenuItem>
-            <DropdownMenuItem><Phone /> Contact Customer</DropdownMenuItem>
-            <DropdownMenuItem><Printer /> Print Receipt</DropdownMenuItem>
-            <DropdownMenuItem><CheckCircle /> Mark as Completed</DropdownMenuItem>
-            <DropdownMenuItem><CheckCircle /> Mark as No-Show</DropdownMenuItem>
-            <DropdownMenuItem><Copy /> Dupllicate Reservation</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-[#EF4444]"><XCircle /> Cancel Reservation</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      )
+              <DropdownMenuItem onClick={() => setShowPopup({
+                display: true,
+                details: booking
+              })}><Eye2 /> View Reservation</DropdownMenuItem>
+              <DropdownMenuItem><Pencil /> Edit Reservation</DropdownMenuItem>
+              <DropdownMenuItem><Phone /> Contact Customer</DropdownMenuItem>
+              <DropdownMenuItem><Printer /> Print Receipt</DropdownMenuItem>
+              <DropdownMenuItem><CheckCircle /> Mark as Completed</DropdownMenuItem>
+              <DropdownMenuItem><CheckCircle /> Mark as No-Show</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigator.clipboard.writeText(booking.id)}><Copy /> Dupllicate Reservation</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-[#EF4444]"><XCircle /> Cancel Reservation</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )
+      },
     },
-  },
-]
+  ]
 
 
 
@@ -546,6 +558,134 @@ const columns = [
           </div>
         </div>
       </div>
+      {showPopup.display && (
+        <div className='inset-0 fixed top-0 left-o w-full h-screen overflow-y-auto bg-black/80'>
+          <div className="bg-gray-50 px-4 max-w-4xl mx-auto rounded-lg my-10 py-6 md:px-6 md:py-8">
+            <div className="max-w-4xl mx-auto">
+              {/* Reservation Details */}
+              <div className="bg-white rounded-2xl border border-gray-200 mb-6">
+                <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                  Reservation Details
+                </h2>
+
+                {/* HR tag after Reservation Details */}
+                <hr className="border-gray-200 mb-4" />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 px-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Restaurant</p>
+                    <p className="text-base font-medium text-gray-900 mb-1">
+                      {showPopup.details.vendor.businessName || "hey"}
+                    </p>
+                    <p className="text-sm text-gray-600">{showPopup.details.location}</p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Reservation ID</p>
+                    <p className="font-medium text-gray-900">
+                      #{showPopup.details._id.slice(0, 8).toUpperCase()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 mb-4">
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Date & Time</p>
+                    <p className="font-medium text-gray-900">
+                      {new Date(showPopup.details.date).toLocaleDateString(undefined, {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}{" "}
+                      •{" "}
+                      {showPopup.details.time}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600 mb-1">Guests</p>
+                    <p className="font-medium text-gray-900">{showPopup.details.guests} Guests</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Meal Selection */}
+              {showPopup.details.menus.length > 0 && (
+                <div className="rounded-2xl border border-gray-200 mb-6 bg-white shadow-sm p-5">
+                  <div>
+                    <h2 className="font-semibold text-gray-900 mb-2">
+                      Your Selection ({showPopup.details.menus.length} {showPopup.details.menus.length > 1 ? "items" : "item"})
+                    </h2>
+                    <ul className="divide-y divide-gray-100">
+                      {showPopup.details.menus.map((item, index) => (
+                        <li key={index} className="flex justify-between py-2">
+                          <span className="text-gray-700">
+                            {item.quantity}x {item.menu.name}
+                          </span>
+                          <span className="text-gray-900 font-medium">
+                            ₦{item.menu.price.toLocaleString()}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="border-t border-gray-200 my-4"></div>
+
+                  <div className="flex justify-between items-center">
+                    <p className="font-medium text-gray-800">Amount paid</p>
+                    <p className="font-semibold text-[#37703F] text-lg">
+                      ₦{showPopup.details.totalAmount.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Info Cards - Changed to green background */}
+              <div className="bg-[#E7F0F0] border border-[#B3D1D2] rounded-2xl p-4 mb-8">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Mail className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+                    <p className="text-sm">
+                      You will receive a confirmation email with your reservation
+                      details
+                    </p>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+                    <p className="text-sm">Please, arrive 10 mins early</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col md:flex-row w-full gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPopup({ display: false, details: {}})
+                  }}
+                  className="flex-1 h-10 text-sm rounded-xl font-medium px-6 border-gray-300"
+                >
+                  Close
+                </Button>
+                <form
+                  action={async () => {
+                    navigate(`/bookings`);
+                  }}
+                  className="flex-1"
+                >
+                  <Button
+                    type="submit"
+                    className="w-full h-10 text-sm font-medium rounded-xl px-6 bg-[#0A6C6D] hover:bg-teal-800"
+                  >
+                    Done
+                  </Button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   )
 }
