@@ -4,7 +4,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
 import { cn } from '@/lib/utils';
 
-const VendorDashboard = () => {
+const ClubDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);
   const [timeFilter, setTimeFilter] = useState('Weekly');
   const [revenueFilter, setRevenueFilter] = useState('Weekly');
@@ -548,4 +548,4 @@ const VendorDashboard = () => {
   );
 };
 
-export default VendorDashboard;
+export default ClubDashboard;

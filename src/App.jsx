@@ -1,43 +1,146 @@
-import { Routes, Route } from "react-router-dom";
-import ReservationHomePage from "./pages/user/ReservationHomePage";
-import NotFound from "./pages/user/NotFound";
-import Signup from "./pages/auth/UserAuth/Signup";
+import { Route, Routes } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
+
+// Auth - User
 import Login from "./pages/auth/UserAuth/Login";
+import Signup from "./pages/auth/UserAuth/Signup";
 import ForgotPassword from "./pages/auth/UserAuth/ForgotPassword";
+import ResetPassword from "./pages/auth/UserAuth/ResetPassword";
 import Otp from "./pages/auth/UserAuth/Otp";
-import VendorSignup from "./pages/auth/VendorAuth/Signup";
+
+// Auth - Vendor
 import VendorLogin from "./pages/auth/VendorAuth/Login";
+import VendorSignup from "./pages/auth/VendorAuth/Signup";
 import VendorForgotPassword from "./pages/auth/VendorAuth/ForgotPassword";
+import VendorResetPassword from "./pages/auth/VendorAuth/ResetPassword";
 import VendorOtp from "./pages/auth/VendorAuth/Otp";
-import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
-import Reservation from "./pages/user/restaurant/Reservation";
-import ClubReservation from "./pages/user/club/Reservation";
-import HotelReservation from "./pages/user/hotels/ReservationSummary";
+import Onboard from "./pages/auth/VendorAuth/Onboard";
+
+// Layouts
+import Layout from "./pages/layouts/Layout";
 import ReservationLayout from "./pages/layouts/ReservationLayout";
 import ClubReservationLayout from "./pages/layouts/ClubReservationLayout";
+
+// User Pages - Restaurant
+import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
+import Reservation from "./pages/user/restaurant/Reservation";
 import PrePaymentPage from "./pages/user/restaurant/PrePayment";
 import CompletedPage from "./pages/user/restaurant/Completed";
+
+// User Pages - Club
 import ClubPage from "./pages/user/club/ClubPage";
+import ClubReservation from "./pages/user/club/Reservation";
+
+// User Pages - Hotel
 import HotelsPage from "./pages/user/hotels/HotelsPage";
-import Layout from "./pages/layouts/Layout";
-import VendorResetPassword from "./pages/auth/VendorAuth/ResetPassword";
-import ResetPassword from "./pages/auth/UserAuth/ResetPassword";
-import Onboard from "./pages/auth/VendorAuth/Onboard";
-import VendorDashboard from "./pages/dashboard/Dashboard";
-import ReservationDashboard from "./pages/dashboard/restaurant/ReservationDashboard";
-import CreateReservation from "./pages/dashboard/restaurant/CreateReservation";
-import MenuDashboard from "./pages/dashboard/restaurant/MenuDashboard";
-import BookingTable from "./pages/vendor/hotel/bookings";
-import BookingManagement from "./pages/vendor/hotel/bookings";
-import AddRooms from "./pages/vendor/hotel/add-rooms/page";
-import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
-import CreateMenu from "./pages/dashboard/restaurant/CreateMenu";
-import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
-import Settings from "./pages/vendor/settings/settings";
+import HotelReservation from "./pages/user/hotels/ReservationSummary";
+
+// User Pages - General
+import ReservationHomePage from "./pages/user/ReservationHomePage";
 import BookingsPage from "./pages/user/Bookings";
 import SearchContent from "./pages/user/Search";
-import ScrollToTop from "./components/ScrollToTop";
-import ConfirmPage from "./pages/user/restaurant/Confirmation";
+import NotFound from "./pages/user/NotFound";
+
+// Dashboard - Restaurant
+import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
+import ReservationDashboard from "./pages/dashboard/restaurant/ReservationDashboard";
+import MenuDashboard from "./pages/dashboard/restaurant/MenuDashboard";
+import CreateReservation from "./pages/dashboard/restaurant/CreateReservation";
+import CreateMenu from "./pages/dashboard/restaurant/CreateMenu";
+
+// Vendor - Club
+import BottleServiceManager from "./pages/vendor/club/AddBottleSet";
+import { DrinksTable } from "./pages/vendor/club/DrinksTable";
+
+// Vendor - Hotel
+import AddRooms from "./pages/vendor/hotel/add-rooms/page";
+import BookingManagement from "./pages/vendor/hotel/bookings";
+import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
+
+// Vendor - Settings
+import Settings from "./pages/vendor/settings/settings";
+import VendorDashboard from "./pages/dashboard/Dashboard";
+import ClubDashboard from "./pages/vendor/club/Dashboard";
+import HotelDashboard from "./pages/vendor/hotel/Dashboard";
+import ClubReservationTable from "./pages/vendor/club/reservations";
+
+// ==================== ROUTE CONFIGURATION ====================
+
+const authRoutes = {
+  user: [
+    { path: "signup", element: <Signup /> },
+    { path: "login", element: <Login /> },
+    { path: "forgot-password", element: <ForgotPassword /> },
+    { path: "reset-password", element: <ResetPassword /> },
+    { path: "otp", element: <Otp /> },
+  ],
+  vendor: [
+    { path: "signup", element: <VendorSignup /> },
+    { path: "login", element: <VendorLogin /> },
+    { path: "forgot-password", element: <VendorForgotPassword /> },
+    { path: "reset-password", element: <VendorResetPassword /> },
+    { path: "otp", element: <VendorOtp /> },
+    { path: "onboarding", element: <Onboard /> },
+  ],
+};
+
+const restaurantRoutes = [
+  { path: "/restaurants/:id", element: <RestaurantsPage /> },
+  { path: "/restaurants/completed/:id", element: <CompletedPage /> },
+];
+
+const restaurantReservationRoutes = [
+  { path: "/restaurants/:id/reservations", element: <Reservation /> },
+  { path: "/restaurants/pre-payment/:id", element: <PrePaymentPage /> },
+];
+
+const clubRoutes = [
+  { path: "/clubs/:id", element: <ClubPage /> },
+];
+
+const clubReservationRoutes = [
+  { path: "/clubs/:id/reservations", element: <ClubReservation /> },
+  { path: "/hotels/:id/reservations", element: <HotelReservation /> },
+];
+
+const hotelRoutes = [
+  { path: "/hotels/:id", element: <HotelsPage /> },
+];
+
+const userGeneralRoutes = [
+  { path: "/bookings", element: <BookingsPage /> },
+  { path: "/search", element: <SearchContent /> },
+];
+
+const dashboardRestaurantRoutes = [
+  { path: "", element: <VendorDashboard /> },
+  { path: "restaurant/payments", element: <PaymentDashboard /> },
+  { path: "restaurant/reservation", element: <ReservationDashboard /> },
+  { path: "restaurant/reservation/new", element: <CreateReservation /> },
+  { path: "restaurant/menu", element: <MenuDashboard /> },
+  { path: "restaurant/menu/new", element: <CreateMenu /> },
+  { path: "restaurant/settings", element: <Settings /> },
+];
+
+const hotelVendorRoutes = [
+  { path: "/hotel/dashboard", element: <HotelDashboard /> },
+  { path: "/hotel/bookings", element: <BookingManagement /> },
+  { path: "/hotel/addrooms", element: <AddRooms /> },
+  { path: "/hotel/rooms", element: <RoomsManagement /> },
+  { path: "/hotel/payments", element: <PaymentDashboard /> },
+  { path: "/hotel/settings", element: <Settings /> },
+];
+
+const clubVendorRoutes = [
+  { path: "/club/dashboard", element: <ClubDashboard /> },
+  { path: "/club/drinks", element: <DrinksTable /> },
+  { path: "/club/reservations", element: <ClubReservationTable /> },
+  { path: "/club/payments", element: <PaymentDashboard /> },
+  { path: "/club/add-drinks", element: <BottleServiceManager /> },
+  { path: "/club/settings", element: <Settings /> },
+];
+
+// ==================== APP COMPONENT ====================
 
 function App() {
   return (
@@ -45,60 +148,76 @@ function App() {
       <ScrollToTop />
       <Routes>
         <Route element={<Layout />}>
+          {/* Home */}
+          <Route path="/" element={<ReservationHomePage />} />
 
+          {/* Authentication */}
+          <Route path="/auth">
+            <Route path="user">
+              {authRoutes.user.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
+            <Route path="vendor">
+              {authRoutes.vendor.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
+          </Route>
+
+          {/* Restaurants */}
+          {restaurantRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+          <Route element={<ReservationLayout />}>
+            {restaurantReservationRoutes.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element} />
+            ))}
+          </Route>
+
+          {/* Clubs */}
+          {clubRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+
+          {/* Hotels */}
+          {hotelRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+
+          {/* Club & Hotel Reservations */}
+          <Route element={<ClubReservationLayout />}>
+            {clubReservationRoutes.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element} />
+            ))}
+          </Route>
+
+          {/* User General */}
+          {userGeneralRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+
+          {/* Dashboard - Restaurant */}
+          <Route path="/dashboard">
+            {dashboardRestaurantRoutes.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element} />
+            ))}
+          </Route>
+
+          {/* Vendor - Hotel */}
+          {hotelVendorRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+
+          {/* Vendor - Club */}
+          {clubVendorRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+
+          {/* 404 */}
           <Route path="*" element={<NotFound />} />
-
-        <Route path="/auth">
-          <Route path="user">
-            <Route path="signup" element={<Signup />} />
-            <Route path="login" element={<Login />} />
-            <Route path="forgot-password" element={<ForgotPassword />} />
-            <Route path="reset-password" element={<ResetPassword />} />
-            <Route path="otp" element={<Otp />} />
-          </Route>
-          <Route path="vendor">
-            <Route path="signup" element={<VendorSignup />} />
-            <Route path="login" element={<VendorLogin />} />
-            <Route path="forgot-password" element={<VendorForgotPassword />} />
-            <Route path="otp" element={<VendorOtp />} />
-            <Route path="reset-password" element={<VendorResetPassword />} />
-            <Route path="onboarding" element={<Onboard />} />
-          </Route>
         </Route>
-        <Route path="/restaurants/:id" element={<RestaurantsPage />} />
-        <Route element={<ReservationLayout />}>
-          <Route path="/restaurants/:id/reservations" element={<Reservation />} />
-          <Route path="/restaurants/pre-payment/:id" element={<PrePaymentPage />} />
-        </Route>
-        <Route path="/restaurants/completed/:id" element={<CompletedPage />} />
-        <Route path="/clubs/:id" element={<ClubPage />} />
-        <Route element={<ClubReservationLayout />}>
-          <Route path="/clubs/:id/reservations" element={<ClubReservation />} />
-          <Route path="/hotels/:id/reservations" element={<HotelReservation />} />
-        </Route>
-        <Route path="/hotels/:id" element={<HotelsPage />} />
-        <Route path="bookings" element={<BookingsPage />} />
-        <Route path="search" element={<SearchContent />} />
-        <Route path="/dashboard" >
-          <Route path="" element={<VendorDashboard />}/>
-          <Route path="restaurant/payments" element={<PaymentDashboard />}/>
-          <Route path="restaurant/reservation" element={<ReservationDashboard />} />
-          <Route path="restaurant/menu" element={<MenuDashboard />} />
-          <Route path="restaurant/reservation/new" element={<CreateReservation />} />
-          <Route path="restaurant/menu/new" element={<CreateMenu />} />
-          
-        <Route path="restaurant/settings" element={<Settings/>} />
-        </Route>
-        <Route path="hotel/dashboard" element={<VendorDashboard />} />
-        <Route path="hotel/bookings" element={<BookingManagement />} />
-        <Route path="hotel/addrooms" element={<AddRooms />} />
-        <Route path="hotel/rooms" element={<RoomsManagement />} />
-        <Route path="hotel/payments" element={<PaymentDashboard />}/>
-        <Route path="/" element={<ReservationHomePage />} />
-        <Route path="hotel/settings" element={<Settings/>} />
-        <Route path="clubs/settings" element={<Settings/>} />
-      </Route>
-    </Routes>
+      </Routes>
     </>
   );
 }

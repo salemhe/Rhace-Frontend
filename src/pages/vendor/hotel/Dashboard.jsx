@@ -4,7 +4,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
 import { cn } from '@/lib/utils';
 
-const VendorDashboard = () => {
+const HotelDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);
   const [timeFilter, setTimeFilter] = useState('Weekly');
   const [revenueFilter, setRevenueFilter] = useState('Weekly');
@@ -47,6 +47,7 @@ const VendorDashboard = () => {
       change: 8,
       changeType: 'positive',
       icon: GuestsIcon,
+      iconColors: "#CD16C3",
       bgColor: 'bg-purple-50',
       iconColor: 'text-purple-600'
     },
@@ -56,6 +57,7 @@ const VendorDashboard = () => {
       change: 5,
       changeType: 'negative',
       icon: PendingPaymentIcon,
+      iconColors:"#E1B505",
       bgColor: 'bg-yellow-50',
       iconColor: 'text-yellow-600'
     }
@@ -251,7 +253,7 @@ const VendorDashboard = () => {
               </p>
               </div>
               <div className={cn("flex items-start justify-between mb-3")}>
-                <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}>
+                <div className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`} style={{ border: `1.5px solid ${stat.iconColors}` }}>
                   <stat.icon className={`w-6 h-6 ${stat.iconColor}`} colors={stat.iconColors} />
                 </div>
               </div>
@@ -548,4 +550,4 @@ const VendorDashboard = () => {
   );
 };
 
-export default VendorDashboard;
+export default HotelDashboard;

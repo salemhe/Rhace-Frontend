@@ -122,7 +122,7 @@ export const SearchAutocomplete = ({
       />
 
       {isOpen && filteredSuggestions.length > 0 && (
-        <div className="absolute top-full left- w-64 right-1 mt-2 bg-white rounded-2xl shadow-2xl z-50 max-h-[400px] overflow-y-auto w scrollbar-hide whitespace-nowrap border border-gray-100">
+        <div className="absolute top-full left- w-64 right-1 mt-2 bg-white rounded-2xl shadow-2xl z-50 max-h-[400px] overflow-y-auto w hide-scrollbar whitespace-nowrap border border-gray-100">
           <div className="p-4">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">
               Suggested Restaurants

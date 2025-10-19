@@ -22,6 +22,7 @@ const authSlice = createSlice({
     },
     logout: (state) => {
       localStorage.removeItem("token")
+      localStorage.removeItem("persist:root")
       console.log("Logging out!")
       state.user = null;
       state.vendor = null;

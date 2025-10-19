@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { Bell, ChevronDown, ChevronUp, Heart } from 'lucide-react';
+import { Bell, ChevronDown, ChevronUp, Heart, User } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
@@ -122,11 +122,12 @@ const UserHeader = () => {
                 {loading ? (
                   <div className="w-6 h-6 bg-gray-300 rounded-full animate-pulse" />
                 ) : (
-                  <img
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
-                    alt="Profile"
-                    className="w-6 h-6 rounded-full object-cover"
-                  />
+                  // <img
+                  //   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+                  //   alt="Profile"
+                  //   className="w-6 h-6 rounded-full object-cover"
+                  // />
+                  <User className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />
                 )}
                 {isMenuOpen ? (
                   <ChevronUp className={`w-5 h-5 ${scrolled ? 'text-gray-700' : 'text-white'}`} />
@@ -169,11 +170,12 @@ function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, use
       {/* Profile Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          <img
+          {/* <img
             src={'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'}
             alt="Profile"
             className="w-12 h-12 rounded-full object-cover"
-          />
+          /> */}
+          <User className="w-12 h-12 text-gray-400 bg-gray-200 rounded-full p-2" />
           <div>
             <h2 className="text-base font-semibold text-gray-900">
               Hi, {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Guest'}

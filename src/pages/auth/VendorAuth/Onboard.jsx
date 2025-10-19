@@ -705,8 +705,8 @@ export function Onboard() {
                             <SelectValue placeholder="Select age requirement" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="16+">16 years and above</SelectItem>
-                            <SelectItem value="18+">18 years and above</SelectItem>
+                            <SelectItem value="16">16 years and above</SelectItem>
+                            <SelectItem value="18">18 years and above</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
