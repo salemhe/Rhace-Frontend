@@ -59,7 +59,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
   };
   
   const getBusinessName = () => {
-    return businessType === 'hotel' ? 'Hotel 1 - HQ' : 'Restaurant 1 - HQ';
+    return type === 'hotel' ? 'Hotel 1 - HQ' : type === 'restaurant' ? 'Restaurant 1 - HQ' : 'Club 1 - HQ';
   };
 
   return (

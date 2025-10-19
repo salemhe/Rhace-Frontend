@@ -43,6 +43,7 @@ import FinancialDashboard from '@/components/dashboard/FinancialDashboard';
 import { paymentService } from '@/services/payment.service';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { useSelector } from 'react-redux';
 
 const PaymentDashboard = () => {
   const [hideTab, setHideTab] = useState(false);
@@ -56,6 +57,7 @@ const PaymentDashboard = () => {
   const [dateFilter, setDateFilter] = useState("")
   const [globalFilter, setGlobalFilter] = useState("")
   const [data, setData] = useState([])
+  const vendor = useSelector((state) => state.auth.vendor);
   const [stats, setStats] = useState({
     "earnings": {
       "thisYear": 0,
@@ -297,7 +299,7 @@ const PaymentDashboard = () => {
 
 
   return (
-    <DashboardLayout section="Payments $ Earnings">
+    <DashboardLayout type={vendor.vendorType} section="Payments $ Earnings">
       <div className='md:p-6 md:mb-12 space-y-6'>
         <div className='md:flex hidden justify-between items-center'>
           <h2 className='text-[#111827] font-semibold'>Payments & Earnings</h2>

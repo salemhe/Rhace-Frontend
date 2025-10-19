@@ -3,10 +3,7 @@ import { Search, Bell, Menu, User, ChevronDown } from 'lucide-react';
 import { useSelector } from 'react-redux';
 
 const Header = ({ onMenuClick }) => {
-  const vendorType = useSelector((state) => state.vendor.type);
-  const vendorDetails = useSelector((state) => state.vendor.details);
-
-  console.log(vendorDetails)
+  const vendor = useSelector((state) => state.auth.vendor);
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-6 relative">
       {/* Mobile menu button */}
@@ -49,8 +46,8 @@ const Header = ({ onMenuClick }) => {
             <User className="w-5 h-5 text-white" />
           </div>
           <div className="hidden md:block">
-            <div className="text-sm font-medium text-gray-900">Joseph Eyebiokin</div>
-            <div className="text-xs text-gray-500">Admin</div>
+            <div className="text-sm font-medium text-gray-900">{vendor.businessName}</div>
+            <div className="text-xs text-gray-500">{vendor.vendorType}</div>
           </div>
           <ChevronDown className="w-4 h-4 text-gray-500" />
         </div>
