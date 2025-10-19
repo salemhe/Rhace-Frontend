@@ -38,6 +38,14 @@ import BookingsPage from "./pages/user/Bookings";
 import SearchContent from "./pages/user/Search";
 import ScrollToTop from "./components/ScrollToTop";
 import ConfirmPage from "./pages/user/restaurant/Confirmation";
+import AdminLayout from "./components/layout/AdminLayout";
+import AdminDashboard from "./pages/admin/Dashboard";
+import AdminVendors from "./pages/admin/Vendors";
+import AdminUsers from "./pages/admin/Users";
+import AdminReservations from "./pages/admin/Reservations";
+import AdminPayments from "./pages/admin/Payments";
+import AdminReports from "./pages/admin/Reports";
+import AdminSettings from "./pages/admin/Settings";
 
 function App() {
   return (
@@ -93,6 +101,15 @@ function App() {
         <Route path="hotel/addrooms" element={<AddRooms />} />
         <Route path="hotel/rooms" element={<RoomsManagement />} />
         <Route path="/" element={<ReservationHomePage />} />
+      </Route>
+      <Route element={<AdminLayout />}>
+        <Route path="/admin/dashboard" element={<AdminDashboard />} />
+        <Route path="/admin/vendors" element={<AdminVendors />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
+        <Route path="/admin/reservations" element={<AdminReservations />} />
+        <Route path="/admin/payments" element={<AdminPayments />} />
+        <Route path="/admin/reports" element={<AdminReports />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
         <Route path="/settings" element={<Settings/>} />
       </Route>
     </Routes>

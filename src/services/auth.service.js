@@ -79,6 +79,13 @@ class AuthService {
     const res = await api.post("/vendors/auth/onboard", vendorData);
     return res.data;
   }
+
+  async adminLogin(email, password) {
+    const res = await api.post("/vendors/auth/login", { email, password });
+    const { token } = res.data;
+    localStorage.setItem("token", token);
+    return res.data;
+  }
 }
 
 export const authService = new AuthService();
