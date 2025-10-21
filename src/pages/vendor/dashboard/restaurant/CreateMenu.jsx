@@ -16,6 +16,7 @@ import { menuService } from '@/services/menu.service';
 import axios from 'axios';
 import { Check, CheckCircle, DownloadCloud, Loader2, Plus, Upload, X } from 'lucide-react';
 import React, {  useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
@@ -25,6 +26,7 @@ const CreateMenu = () => {
     const [menuItems, setMenuItems] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
     const [activeTab, setActiveTab] = useState('exist')
+    const vendor = useSelector((state) => state.auth.vendor);
     const [newItem, setNewItem] = useState({
         name: "",
         description: "",
@@ -193,7 +195,7 @@ const CreateMenu = () => {
     useEffect(() => {
         async function fetchMenuItems() {
             try {
-                const items = await menuService.getMenuItems()
+                const items = await menuService.getMenuItems(vendor._id)
                 setMenuItems(items.menuItems)
             } catch (error) {
                 console.error(error)
@@ -702,7 +704,7 @@ const CreateMenu = () => {
                 <DashboardButton onClick={handleNext} disabled={selectedItems.length === 0 && step > 0 && activeTab !== "new" || loading} icon={loading && <Loader2 className="animate-spin size-5" />} variant="primary" className="px-6 w-[384px] text-sm" text={loading ? "Loading" : step === 0 ? "Continue to Meal Selection" : activeTab === "new" ? "Add Item to Menu" : "Save & Finish Menu"} />
             </div>
             {successModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-11/12 max-w-md mx-auto">
                         <div className="flex flex-col items-center">
                             <CheckCircle className="text-green-500 size-10 mb-4" />
