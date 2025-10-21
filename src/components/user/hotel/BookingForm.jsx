@@ -12,7 +12,7 @@ import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { GuestPicker } from "../ui/guestpicker";
 
-const HotelBookingForm = ({ id }) => {
+const HotelBookingForm = ({ id, selectedRoom }) => {
   const [date, setDate] = useState();
   const [date2, setDate2] = useState();
   const [request, setRequest] = useState("");
@@ -26,6 +26,7 @@ const HotelBookingForm = ({ id }) => {
       date: date ? date.toISOString() : "",
       guests,
       specialRequest: request,
+      roomId: selectedRoom._id
     });
 
     try {
@@ -75,20 +76,22 @@ const HotelBookingForm = ({ id }) => {
 
   return (
     <div className="p-4 rounded-2xl bg-[#ffffff] border border-[#E5E7EB]" data-booking-form>
-      <div className="w-96 h-7 inline-flex justify-between items-center">
-        <div className="flex justify-start items-center gap-1">
-          <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-relaxed">#150,000</div>
-          <div className="justify-start text-zinc-600 text-sm font-normal font-['Inter'] leading-tight">/night</div>
-        </div>
-        <div className="h-7 px-2 rounded-lg  outline-1 outline-offset-[-1px] outline-yellow-500 inline-flex flex-col justify-center items-center gap-2">
-          <div className="inline-flex justify-start items-center gap-1.5">
-            <div className="w-4 h-4 relative overflow-hidden">
-              <SvgIcon />
+      {selectedRoom._id && (
+        <div className="w-96 h-7 inline-flex justify-between items-center">
+          <div className="flex justify-start items-center gap-1">
+            <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-relaxed">#{selectedRoom.pricePerNight.toLocaleString()}</div>
+            <div className="justify-start text-zinc-600 text-sm font-normal font-['Inter'] leading-tight">/night</div>
+          </div>
+          <div className="h-7 px-2 rounded-lg  outline-1 outline-offset-[-1px] outline-yellow-500 inline-flex flex-col justify-center items-center gap-2">
+            <div className="inline-flex justify-start items-center gap-1.5">
+              <div className="w-4 h-4 relative overflow-hidden">
+                <SvgIcon />
+              </div>
+              <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">20% off</div>
             </div>
-            <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">20% off</div>
           </div>
         </div>
-      </div>
+      )}
       <div className="w-96 justify-start text-zinc-600 text-sm font-bold font-['Inter'] leading-tight">Prices includes all fees</div>
       <form onSubmit={handleSubmit} className="space-y-6 mt-6">
         <div className="flex flex-col md:flex-row w-full gap-4">
@@ -156,7 +159,7 @@ const HotelBookingForm = ({ id }) => {
         </div>
         <Button
           type="submit"
-          disabled={!date || !date2 || isLoading}
+          disabled={!date || !date2 || isLoading || !selectedRoom._id}
           className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
         >
           {isLoading ? (

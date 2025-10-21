@@ -1,6 +1,6 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import React, { useEffect, useState } from 'react'
-import DashboardButton from '../../../components/dashboard/ui/DashboardButton'
+import DashboardButton from '@/components/dashboard/ui/DashboardButton'
 import { Add, ArrowsRight, Calendar, CardPay, Cash2, CheckCircle, Copy, Export, Eye, Eye2, EyeClose, Filter2, Group3, LayoutGrid, ListCheck3, Pencil, Phone, Printer, XCircle } from '@/components/dashboard/ui/svg';
 import { StatCard } from '@/components/dashboard/stats/mainStats';
 import {

@@ -1,7 +1,7 @@
 import React from "react";
 import { Button } from "../../ui/button";
 import { ArrowLeft } from "lucide-react";
-import { useReservations } from "@/contexts/club/ReservationContext";
+import { useReservations } from "@/contexts/hotel/ReservationContext";
 import { useNavigate } from "react-router";
 
 const ReservationHeader = ({

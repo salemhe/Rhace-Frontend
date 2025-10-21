@@ -51,7 +51,7 @@ const Login = () => {
         if (!user.vendor.isOnboarded) {
           navigate("/auth/vendor/onboarding")
         } else {
-          navigate(redirectTo);
+          navigate(redirectTo === "/dashboard" ? `/dashboard/${user.vendor.vendorType}` : "/dashboard");
         }
       }
     } catch (err) {

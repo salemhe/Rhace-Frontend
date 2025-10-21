@@ -3,8 +3,7 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const Header = ({ onMenuClick }) => {
-  const vendorType = useSelector((state) => state.vendor.type);
-  const vendorDetails = useSelector((state) => state.vendor.details);
+  // const vendor = useSelector((state) => state.auth.vendor);
 
   const vendor = useSelector((state) => state.auth);
   const [profile, setProfile] = useState(null);
@@ -29,10 +28,6 @@ const Header = ({ onMenuClick }) => {
       setLoading(false);
     }
   }, [vendor]);
-
-  console.log(profile);
-
-  console.log(vendorDetails)
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-6 relative">
       {/* Mobile menu button */}

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Hotel, Mail, MapPin, Phone, Star } from "lucide-react";
 import HotelInfo from "../../../components/user/hotel/HotelInfo";
 import HotelSaveCopy from "@/components/user/ui/SaveCopy";
@@ -7,20 +7,54 @@ import Images from "@/components/user/ui/Image";
 import Images2 from "@/components/user/ui/Image2";
 import Footer from "@/components/user/Footer";
 import { useParams } from "react-router";
-import { HotelData } from "@/lib/api";
 import HotelBookingForm from "@/components/user/hotel/BookingForm";
 import MapComponent from "@/components/user/ui/mapComponent";
 import HotelBookingPopup from "@/components/user/hotel/BookiingPopup";
 import Header from "@/components/user/Header";
+import { userService } from "@/services/user.service";
 
-const fetchHotel = () => {
-    return HotelData.data[0]
-}
- const HotelsPage = () => {
+const HotelsPage = () => {
   const [activeTab, setActiveTab] = useState("property_details");
 
   const { id } = useParams();
-  const hotel = fetchHotel();
+  const [hotel, setHotel] = useState({})
+  const [isLoading, setIsLoading] = useState(true);
+    const [show, setShow] = useState(false);
+    const [selectedRoom, setSelectedRoom] = useState({
+    _id: "",
+    adultsCapacity: 0,
+    amenities: [],
+    childrenCapacity: 0,
+    description: "",
+    hotelId: "",
+    images: [],
+    name: "",
+    pricePerNight: 0,
+    totalUnits: 0,
+  });
+
+  useEffect(() => {
+    const fetchHotel = async () => {
+      try {
+        const res = await userService.getVendor("hotel", id)
+        console.log(res)
+        setHotel(res.data[0])
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchHotel();
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p className="text-lg animate-pulse">Loading...</p>
+      </div>
+    )
+  }
 
   return (
     <>
@@ -43,7 +77,7 @@ const fetchHotel = () => {
                   />
                   {activeTab === "rooms" && (
                     <div className="hidden md:block">
-                    <HotelBookingForm id={id} restaurant={hotel} />
+                      <HotelBookingForm selectedRoom={selectedRoom} id={id} restaurant={hotel} />
                     </div>
                   )}
                 </div>
@@ -77,6 +111,9 @@ const fetchHotel = () => {
                 data={hotel}
                 activeTab={activeTab}
                 setActiveTab={setActiveTab}
+                selectedRoom={selectedRoom}
+                setShow={setShow}
+                setSelectedRoom={setSelectedRoom}
               />
             </div>
           </div>
@@ -86,7 +123,7 @@ const fetchHotel = () => {
             <div className="space-y-8 px-4 md:px-0">
               <div className="hidden md:block">
 
-              <HotelBookingForm id={id} restaurant={hotel} />
+                <HotelBookingForm selectedRoom={selectedRoom} id={id} restaurant={hotel} />
               </div>
 
               <div className="rounded-2xl bg-[#E7F0F0] border border-[#E5E7EB] p-1">
@@ -137,7 +174,7 @@ const fetchHotel = () => {
             </div>
           )}
         </div>
-        <HotelBookingPopup id={id} />
+        <HotelBookingPopup activeTab={activeTab} show={show} setShow={setShow} selectedRoom={selectedRoom} id={id} />
       </main>
       <div className="hidden md:block">
         <Footer />

@@ -13,12 +13,9 @@ import { RestaurantData } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
 
-const fetchRestaurant = () => {
-    return RestaurantData
-}
-
 const RestaurantsPage = () => {
     const { id } = useParams();
+    const [isLoading, setIsLoading] = useState(true);
     const [restaurant, setRestaurant] = useState({
         _id: "",
         businessName: "",
@@ -49,12 +46,26 @@ const RestaurantsPage = () => {
 
     useEffect(() => {
         const fetchRestaurant = async () => {
-            const res = await userService.getVendor("restaurant", id)
-            console.log(res)
-            setRestaurant(res.data[0])
+            try {
+                const res = await userService.getVendor("restaurant", id)
+                console.log(res)
+                setRestaurant(res.data[0])
+            } catch (error) {
+                console.error(error)
+            } finally {
+                setIsLoading(false)
+            }
         }
         fetchRestaurant();
     }, [])
+
+    if (isLoading) {
+        return (
+            <div className="w-full h-screen flex items-center justify-center">
+                <p className="text-lg animate-pulse">Loading...</p>
+            </div>
+        )
+    }
 
     return (
         <>

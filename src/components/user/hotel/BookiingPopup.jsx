@@ -8,8 +8,8 @@ import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
 
-const HotelBookingPopup = ({ id }) => {
-  const [show, setShow] = useState(false);
+const HotelBookingPopup = ({ id, activeTab, show, setShow, selectedRoom, setActiveTab }) => {
+
   const [date, setDate] = useState();
   const [date2, setDate2] = useState();
   const [request, setRequest] = useState("");
@@ -24,6 +24,7 @@ const navigate = useNavigate();
       date2: date2 ? date2.toISOString() : "",
       guests,
       specialRequest: request,
+      roomId: selectedRoom._id
     });
     navigate(`/hotels/${id}/reservations?${params.toString()}`);
     e.preventDefault();
@@ -47,10 +48,6 @@ const navigate = useNavigate();
       setIsLoading(false);
     }
   };
-  const handlePopup = () => {
-    setShow(true);
-  };
-
   return (
     <div className="md:hidden">
       {show && (
@@ -92,14 +89,17 @@ const navigate = useNavigate();
           </form>
         </div>
       )}
-      <div className="flex fixed bottom-0 left-0 w-full bg-white p-4 border-t border-[#E5E7EB]">
+      {activeTab !==  "rooms" && (
+
+        <div className="flex fixed bottom-0 left-0 w-full bg-white p-4 border-t border-[#E5E7EB]">
         <Button
           className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
-          onClick={handlePopup}
-        >
+          onClick={() => setActiveTab("rooms")}
+          >
           Reserve Room
         </Button>
       </div>
+        )}
     </div>
   );
 };

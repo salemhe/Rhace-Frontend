@@ -1,31 +1,51 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useReservations } from "@/contexts/club/ReservationContext";
+import { useReservations } from "@/contexts/hotel/ReservationContext";
 import { format } from "date-fns";
 import { ArrowLeft, Check, Edit, MapPin, Star } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router";
+import { useNavigate, useParams, useSearchParams } from "react-router";
 import ReservationHeader from "../../../components/user/hotel/ReservationHeader";
 import DatePicker from "../../../components/user/ui/datepicker";
 import { GuestPicker } from "../../../components/user/ui/guestpicker";
 import PaymentPage from "../../../components/user/ui/Payment";
+import { userService } from "@/services/user.service";
+import { hotelService } from "@/services/hotel.service";
 
-export default function ReservationSummary () {
+export default function ReservationSummary() {
   const [popupOpen, setPopupOpen] = useState(false)
   const [editRoom, setEditRoom] = useState(false);
   const [roomName, setRoomName] = useState("Superion Deluxe Room");
   const [pricePerNight, setPricePerNight] = useState(150000);
   const [bedType, setBedType] = useState("1 master bed");
   const [guestsAllowed, setGuestsAllowed] = useState(2);
-  const [tempRoom, setTempRoom] = useState({});
-  const [nights, setNights] = useState(2);
+
   const [searchParams] = useSearchParams();
-  const [checkInDate, setCheckInDate] = useState(null);
-  const [checkOutDate, setCheckOutDate] = useState(null);
-  const [guestCount, setGuestCount] = useState(1);
-  const [specialRequest, setSpecialRequest] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const { id } = useParams();
   const [proposedPayment, setProposedPayment] = useState("full");
+  const {
+    guestCount,
+    setGuestCount,
+    specialRequest,
+    setSpecialRequest,
+    setNights,
+    nights,
+    booking,
+    setPage,
+    checkInDate,
+    handleSubmit,
+    checkOutDate,
+    setCheckOutDate,
+    room,
+    setRoom,
+    setCheckInDate,
+    roomId,
+    setRoomId,
+    setVendor,
+    vendor,
+  } = useReservations();
 
   const navigate = useNavigate();
   useEffect(() => {
@@ -33,6 +53,7 @@ export default function ReservationSummary () {
     const date2Param = searchParams.get("date2");
     const guestsParam = searchParams.get("guests");
     const requestParam = searchParams.get("specialRequest");
+    const requestRoomIdParam = searchParams.get("roomId");
 
     if (dateParam) {
       setCheckInDate(new Date(dateParam));
@@ -46,24 +67,54 @@ export default function ReservationSummary () {
     if (requestParam) {
       setSpecialRequest(requestParam);
     }
+    if (requestRoomIdParam) {
+      setRoomId(requestRoomIdParam);
+    }
   }, [searchParams]);
-  const {
-    // guestCount,
-    // setSpecialRequest,
-    // specialRequest,
-    // setGuestCount,
-    setPage,
-    date,
-    setDate,
-    vendor,
-    // setProposedPayment,
-    // proposedPayment,
-    handleSubmit
-  } = useReservations();
 
-  const handleContinue = () => {
-    handleSubmit
-    setPopupOpen(true)
+
+  const [loading, setLoading] = useState(true);
+
+  const fetchVendor = async () => {
+    try {
+      setLoading(true);
+      const response = await userService.getVendor("hotel", id);
+      console.log(response)
+      setVendor(response.data[0]);
+    } catch (error) {
+      console.error("Error fetching vendor:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const fetchRoom = async () => {
+    try {
+      setIsLoading(true);
+      const response = await hotelService.getRoomType(id, roomId);
+      setRoom(response[0]);
+    } catch (error) {
+      console.error("Error fetching room:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchVendor();
+    fetchRoom();
+  }, []);
+
+  const handleContinue = async () => {
+    await handleSubmit();
+    setPopupOpen(true);
+  };
+
+  if (loading || isLoading) {
+    return (
+      <div className="w-full h-screen flex items-center justify-center">
+        <p className="text-lg animate-pulse">Loading...</p>
+      </div>
+    )
   }
 
   return (
@@ -99,7 +150,7 @@ export default function ReservationSummary () {
           <div className="flex gap-4">
             <div className="relative size-[64px] md:w-32 md:h-24 rounded-2xl overflow-hidden flex-shrink-0">
               <img
-                src={vendor?.profileImages?.[0]?.url || "/hero-bg.png"}
+                src={vendor?.profileImages?.[0] || "/hero-bg.png"}
                 alt="Restaurant interior"
                 className="object-cover size-full"
               />
@@ -134,8 +185,8 @@ export default function ReservationSummary () {
                   <h3 className="text-lg font-semibold">Booking Details</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-                  <DatePicker title="Check In Date" value={date || checkInDate} onChange={setDate} />
-                  <DatePicker title="Check out Date" value={date || checkOutDate} onChange={setDate} />
+                  <DatePicker title="Check In Date" value={checkInDate} onChange={setCheckInDate} />
+                  <DatePicker title="Check out Date" value={checkOutDate} onChange={setCheckOutDate} />
                   <GuestPicker value={guestCount} onChange={setGuestCount} />
                 </div>
                 <div className="p-4">
@@ -154,30 +205,13 @@ export default function ReservationSummary () {
               <div className=" divide-y">
                 <div className="flex p-4 justify-between items-center">
                   <h3 className="text-lg font-semibold">Room Summary</h3>
-                  <button
-                    onClick={() => {
-                      if (!editRoom) {
-                        // entering edit mode: store temps
-                        setTempRoom({ roomName, pricePerNight, bedType, guestsAllowed });
-                        setEditRoom(true);
-                      } else {
-                        // save and leave edit mode
-                        setEditRoom(false);
-                      }
-                    }}
-                    className="flex items-center gap-2 text-sm text-[#0A6C6D]"
-                    aria-label={editRoom ? "Save room summary" : "Edit room summary"}
-                  >
-                    {editRoom ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
-                    {editRoom ? "Save" : "Edit"}
-                  </button>
                 </div>
                 <div className="space-y-4 p-4">
                   <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Room Name</p>
                       {!editRoom ? (
-                        <p className="text-sm font-medium text-gray-900">{roomName}</p>
+                        <p className="text-sm font-medium text-gray-900">{room.name}</p>
                       ) : (
                         <input
                           type="text"
@@ -190,7 +224,7 @@ export default function ReservationSummary () {
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Price per Night</p>
                       {!editRoom ? (
-                        <p className="text-sm font-medium text-gray-900">#{pricePerNight.toLocaleString()}</p>
+                        <p className="text-sm font-medium text-gray-900">#{room.pricePerNight.toLocaleString()}</p>
                       ) : (
                         <input
                           type="number"
@@ -216,7 +250,7 @@ export default function ReservationSummary () {
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Guests Allowed</p>
                       {!editRoom ? (
-                        <p className="text-sm font-medium text-gray-900">{guestsAllowed}</p>
+                        <p className="text-sm font-medium text-gray-900">{room.adultsCapacity}</p>
                       ) : (
                         <input
                           type="number"
@@ -236,10 +270,10 @@ export default function ReservationSummary () {
                           type="button"
                           onClick={() => {
                             // revert
-                            setRoomName(tempRoom.roomName);
-                            setPricePerNight(tempRoom.pricePerNight);
-                            setBedType(tempRoom.bedType);
-                            setGuestsAllowed(tempRoom.guestsAllowed);
+                            setRoomName(room.name);
+                            setPricePerNight(room.pricePerNight);
+                            setBedType(room.bedType);
+                            setGuestsAllowed(room.adultsCount);
                             setEditRoom(false);
                           }}
                           className="text-sm text-gray-500 px-3 py-1 rounded-lg border"
@@ -284,26 +318,26 @@ export default function ReservationSummary () {
                   <div className="rounded-2xl bg-white border">
                     <div className=" divide-y">
                       <div
-                        className={`flex p-4 rounded-t-2xl justify-between items-center ${proposedPayment === pricePerNight * nights ? "border " : ""}`}
+                        className={`flex p-4 rounded-t-2xl justify-between items-center ${proposedPayment === room.pricePerNight * nights ? "border " : ""}`}
                         onClick={() => {
-                          setProposedPayment(pricePerNight * nights);
+                          setProposedPayment(room.pricePerNight * nights);
                         }}
                       >
                         <h3 className="text-lg font-semibold">
-                          Pay #{(pricePerNight * nights).toLocaleString()} now
+                          Pay #{(room.pricePerNight * nights).toLocaleString()} now
                         </h3>
                         <div></div>
                       </div>
                       <div
                         className={`flex p-4 rounded-b-2xl justify-between items-center`}
                         onClick={() => {
-                          setProposedPayment(Math.round((pricePerNight * nights) / 2));
+                          setProposedPayment(Math.round((room.pricePerNight * nights) / 2));
                         }}
                       >
                         <div className="space-y-1">
                           <h3 className="text-[#111827]">Pay part now, rest later</h3>
                           <p>
-                            Pay #{Math.round((pricePerNight * nights) / 2).toLocaleString()} now, and #{Math.round((pricePerNight * nights) / 2).toLocaleString()} on {date ? format(date, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
+                            Pay #{Math.round((room.pricePerNight * nights) / 2).toLocaleString()} now, and #{Math.round((room.pricePerNight * nights) / 2).toLocaleString()} on {checkInDate ? format(checkInDate, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
                           </p>
                         </div>
                         <div></div>
@@ -319,13 +353,13 @@ export default function ReservationSummary () {
                 <div className="mb-3 space-y-2 text-sm">
                   <p className="text-[#111827]">Price Details</p>
                   <div className="flex items-center justify-between">
-                    <p className="text-[#606368]">#{pricePerNight.toLocaleString()} / {nights} {nights === 1 ? 'night' : 'nights'}</p>
-                    <p className="text-[#111827]">#{(pricePerNight * nights).toLocaleString()}</p>
+                    <p className="text-[#606368]">#{room.pricePerNight.toLocaleString()} / {nights} {nights === 1 ? 'night' : 'nights'}</p>
+                    <p className="text-[#111827]">#{(room.pricePerNight * nights).toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
                   <p>Sub Total</p>
-                  <p>#{(pricePerNight * nights).toLocaleString()}</p>
+                  <p>#{(room.pricePerNight * nights).toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -346,15 +380,13 @@ export default function ReservationSummary () {
           <Button
             className="bg-teal-600 hover:bg-teal-700 px-8 w-full max-w-xs rounded-xl cursor-pointer"
             onClick={handleContinue}
-            disabled={!date || !guestCount}
+            disabled={!checkInDate || !guestCount}
           >
             Complete Reservations
           </Button>
         </div>
       </div>
-      {popupOpen &&
-        <PaymentPage id={"1"} type="clubs" setPopupOpen={setPopupOpen} />
-      }
+      {popupOpen && <PaymentPage type="restaurants" booking={booking} id={booking._id} setPopupOpen={setPopupOpen} />}
     </div>
   );
 }
