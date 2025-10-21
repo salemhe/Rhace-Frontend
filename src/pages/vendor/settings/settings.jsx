@@ -5,6 +5,7 @@ import { OpeningHours, ReservationPreferences } from './BranchSettingsTab';
 import { BusinessInformation, BusinessLogo } from './part/BusinessInfo';
 import { ContactInformation } from './part/ContactInfo';
 import { ActionButtons, PlaceholderTab, TabsNavigation } from './part/settingsComp';
+import { useSelector } from 'react-redux';
 
 
 // Main Component
@@ -34,6 +35,7 @@ const Settings = () => {
    const [defaultCapacity, setDefaultCapacity] = useState(80);
    const [leadTime, setLeadTime] = useState('2 hours before');
    const [cutoffTime, setCutoffTime] = useState('21:00');
+   const vendor = useSelector((state) => state.auth.vendor);
 
    const tabs = [
       { id: 'general', label: 'General Info', icon: Home },
@@ -65,7 +67,7 @@ const Settings = () => {
 
    return (
 
-      <DashboardLayout>
+      <DashboardLayout type={vendor?.vendorType} section="settings" settings={true}>
          <div className="min-h-screen bg-gray-50">
             <TabsNavigation activeTab={activeTab} setActiveTab={setActiveTab} tabs={tabs} />
 

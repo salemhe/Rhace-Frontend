@@ -7,6 +7,9 @@ import RoomModal from './RoomModal';
 import RoomTable from './RoomTable';
 import ViewToggle from './ViewToggle';
 import { useNavigate } from 'react-router';
+import { hotelService } from '@/services/hotel.service';
+import { toast } from 'sonner';
+import { useSelector } from 'react-redux';
 
 
 const RoomsManagementComponent = () => {
@@ -17,6 +20,8 @@ const RoomsManagementComponent = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(undefined);
+  const [isLoading, setIsLoading] = useState(true);
+  const vendor = useSelector((state) => state.auth.vendor);
   const navigate = useNavigate();
 
   const handleEditRoom = (room) => {
@@ -26,7 +31,7 @@ const RoomsManagementComponent = () => {
 
   const handleAddRoom = () => {
     setEditingRoom(undefined);
-    navigate('/hotel/addrooms');
+    navigate('/dashboard/hotel/addrooms');
   };
 
   const handleDeleteRoom = async (roomId) => {
@@ -72,108 +77,133 @@ const RoomsManagementComponent = () => {
     setIsEditModalOpen(false);
   };
 
-  useEffect(() => {
-    const dummyRooms = [
-      {
-        _id: "1",
-        roomNumber: "101",
-        roomType: "single",
-        type: "standard",
-        price: 50,
-        capacity: 1,
-        amenities: ["WiFi", "AC"],
-        features: ["Balcony"],
-        description: "Cozy single room with a balcony.",
-        isAvailable: true,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "2",
-        roomNumber: "202",
-        roomType: "double",
-        type: "deluxe",
-        price: 120,
-        capacity: 2,
-        amenities: ["WiFi", "Mini Bar", "TV"],
-        features: ["Ocean View", "Terrace"],
-        description: "Deluxe double room with ocean view.",
-        isAvailable: false,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "3",
-        roomNumber: "303",
-        roomType: "suite",
-        type: "premium",
-        price: 250,
-        capacity: 4,
-        amenities: ["WiFi", "AC", "Room Service", "Smart TV"],
-        features: ["Jacuzzi", "Living Area", "Garden View"],
-        description: "Luxury suite with jacuzzi and living area.",
-        isAvailable: true,
-        maintenanceStatus: "maintenance",
-        images: ["https://images.pexels.com/photos/262048/pexels-photo-262048.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "4",
-        roomNumber: "104",
-        roomType: "double",
-        type: "standard",
-        price: 80,
-        capacity: 2,
-        amenities: ["WiFi", "AC", "TV"],
-        features: ["City View"],
-        description: "Comfortable double room with city view.",
-        isAvailable: true,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/271618/pexels-photo-271618.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "5",
-        roomNumber: "205",
-        roomType: "family",
-        type: "deluxe",
-        price: 180,
-        capacity: 5,
-        amenities: ["WiFi", "AC", "Mini Bar", "Smart TV", "Safe"],
-        features: ["Two Bedrooms", "Living Area", "Balcony"],
-        description: "Spacious family room with separate bedrooms.",
-        isAvailable: true,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/1743231/pexels-photo-1743231.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "6",
-        roomNumber: "306",
-        roomType: "suite",
-        type: "premium",
-        price: 300,
-        capacity: 3,
-        amenities: ["WiFi", "AC", "Mini Bar", "Smart TV", "Room Service", "Safe"],
-        features: ["Ocean View", "Terrace", "Living Area", "Kitchenette"],
-        description: "Premium suite with stunning ocean view and kitchenette.",
-        isAvailable: false,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
+  // useEffect(() => {
+  //   const dummyRooms = [
+  //     {
+  //       _id: "1",
+  //       roomNumber: "101",
+  //       roomType: "single",
+  //       type: "standard",
+  //       price: 50,
+  //       capacity: 1,
+  //       amenities: ["WiFi", "AC"],
+  //       features: ["Balcony"],
+  //       description: "Cozy single room with a balcony.",
+  //       isAvailable: true,
+  //       maintenanceStatus: "available",
+  //       images: ["https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg"],
+  //       createdAt: new Date().toISOString(),
+  //       updatedAt: new Date().toISOString()
+  //     },
+  //     {
+  //       _id: "2",
+  //       roomNumber: "202",
+  //       roomType: "double",
+  //       type: "deluxe",
+  //       price: 120,
+  //       capacity: 2,
+  //       amenities: ["WiFi", "Mini Bar", "TV"],
+  //       features: ["Ocean View", "Terrace"],
+  //       description: "Deluxe double room with ocean view.",
+  //       isAvailable: false,
+  //       maintenanceStatus: "available",
+  //       images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg"],
+  //       createdAt: new Date().toISOString(),
+  //       updatedAt: new Date().toISOString()
+  //     },
+  //     {
+  //       _id: "3",
+  //       roomNumber: "303",
+  //       roomType: "suite",
+  //       type: "premium",
+  //       price: 250,
+  //       capacity: 4,
+  //       amenities: ["WiFi", "AC", "Room Service", "Smart TV"],
+  //       features: ["Jacuzzi", "Living Area", "Garden View"],
+  //       description: "Luxury suite with jacuzzi and living area.",
+  //       isAvailable: true,
+  //       maintenanceStatus: "maintenance",
+  //       images: ["https://images.pexels.com/photos/262048/pexels-photo-262048.jpeg"],
+  //       createdAt: new Date().toISOString(),
+  //       updatedAt: new Date().toISOString()
+  //     },
+  //     {
+  //       _id: "4",
+  //       roomNumber: "104",
+  //       roomType: "double",
+  //       type: "standard",
+  //       price: 80,
+  //       capacity: 2,
+  //       amenities: ["WiFi", "AC", "TV"],
+  //       features: ["City View"],
+  //       description: "Comfortable double room with city view.",
+  //       isAvailable: true,
+  //       maintenanceStatus: "available",
+  //       images: ["https://images.pexels.com/photos/271618/pexels-photo-271618.jpeg"],
+  //       createdAt: new Date().toISOString(),
+  //       updatedAt: new Date().toISOString()
+  //     },
+  //     {
+  //       _id: "5",
+  //       roomNumber: "205",
+  //       roomType: "family",
+  //       type: "deluxe",
+  //       price: 180,
+  //       capacity: 5,
+  //       amenities: ["WiFi", "AC", "Mini Bar", "Smart TV", "Safe"],
+  //       features: ["Two Bedrooms", "Living Area", "Balcony"],
+  //       description: "Spacious family room with separate bedrooms.",
+  //       isAvailable: true,
+  //       maintenanceStatus: "available",
+  //       images: ["https://images.pexels.com/photos/1743231/pexels-photo-1743231.jpeg"],
+  //       createdAt: new Date().toISOString(),
+  //       updatedAt: new Date().toISOString()
+  //     },
+  //     {
+  //       _id: "6",
+  //       roomNumber: "306",
+  //       roomType: "suite",
+  //       type: "premium",
+  //       price: 300,
+  //       capacity: 3,
+  //       amenities: ["WiFi", "AC", "Mini Bar", "Smart TV", "Room Service", "Safe"],
+  //       features: ["Ocean View", "Terrace", "Living Area", "Kitchenette"],
+  //       description: "Premium suite with stunning ocean view and kitchenette.",
+  //       isAvailable: false,
+  //       maintenanceStatus: "available",
+  //       images: ["https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg"],
+  //       createdAt: new Date().toISOString(),
+  //       updatedAt: new Date().toISOString()
+  //     }
+  //   ];
 
-    setRooms(dummyRooms);
-  }, []);
+  //   setRooms(dummyRooms);
+  // }, []);
+
+    useEffect(() => {
+      const fetchRoomTypes = async () => {
+        try {
+          const res = await hotelService.getRoomTypes(vendor._id)
+          console.log(res)
+          setRooms(res)
+        } catch (error) {
+          console.error(error)
+          toast.error(error.response.data.message)
+        } finally {
+          setIsLoading(false)
+        }
+      }
+      fetchRoomTypes()
+    }, [])
+  
+  
+    if (isLoading) {
+      return (
+        <div className='w-full h-screen flex items-center justify-center'>
+          <p className='animate-pulse text-lg'>Loading...</p>
+        </div>
+      )
+    }
 
   return (
     <div className="min-h-screen text-gray-900 p-4 sm:p-0">

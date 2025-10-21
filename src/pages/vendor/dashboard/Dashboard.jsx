@@ -3,6 +3,7 @@ import { Calendar, Users, DollarSign, User, Clock, X, ChevronRight, ExternalLink
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
 import { cn } from '@/lib/utils';
+import { useSelector } from 'react-redux';
 
 const VendorDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);
@@ -10,6 +11,7 @@ const VendorDashboard = () => {
   const [revenueFilter, setRevenueFilter] = useState('Weekly');
   const [sourceFilter, setSourceFilter] = useState('Weekly');
   const [currentTime, setCurrentTime] = useState(new Date());
+  const vendor = useSelector((state) => state.auth.vendor);
 
   // Update current time every minute
   useEffect(() => {
@@ -205,7 +207,7 @@ const VendorDashboard = () => {
   };
 
   return (
-  <DashboardLayout>
+  <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
       <div className="min-h-screen bg-gray-50 p-6">
       
       <div className="max-w-7xl mx-auto space-y-6">

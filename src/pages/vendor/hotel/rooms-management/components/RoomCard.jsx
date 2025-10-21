@@ -43,7 +43,7 @@ const RoomCard = ({ room,  onViewDetails, }) => {
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">{room.roomNumber}</h3>
-            <p className="text-sm text-gray-500">{room.type} ({room.roomType})</p>
+            <p className="text-sm text-gray-500">{room.type} ({room.name})</p>
           </div>
           
         </div>
@@ -51,7 +51,7 @@ const RoomCard = ({ room,  onViewDetails, }) => {
 
         <div className="flex justify-between items-center pt-3 border-t border-gray-100">
          <div className="text-left">
-            <p className="text-xl font-bold text-[#111827]">${room.price}</p>
+            <p className="text-xl font-bold text-[#111827]">#{room.pricePerNight.toLocaleString()}</p>
           </div>
           <button
             onClick={() => onViewDetails(room)}

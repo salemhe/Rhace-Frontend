@@ -28,8 +28,6 @@ const Header = ({ onMenuClick }) => {
       setLoading(false);
     }
   }, [vendor]);
-
-  console.log(profile);
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-6 relative">
       {/* Mobile menu button */}

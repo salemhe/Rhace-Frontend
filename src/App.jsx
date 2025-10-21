@@ -45,12 +45,12 @@ import SearchContent from "./pages/user/Search";
 import NotFound from "./pages/user/NotFound";
 
 // Vendor Dashboard
-import VendorDashboard from "./pages/dashboard/Dashboard";
-import PaymentDashboard from "./pages/dashboard/PaymentDashboard";
-import ReservationDashboard from "./pages/dashboard/restaurant/ReservationDashboard";
-import MenuDashboard from "./pages/dashboard/restaurant/MenuDashboard";
-import CreateReservation from "./pages/dashboard/restaurant/CreateReservation";
-import CreateMenu from "./pages/dashboard/restaurant/CreateMenu";
+import VendorDashboard from "./pages/vendor/dashboard/Dashboard";
+import PaymentDashboard from "./pages/vendor/dashboard/PaymentDashboard";
+import ReservationDashboard from "./pages/vendor/dashboard/restaurant/ReservationDashboard";
+import MenuDashboard from "./pages/vendor/dashboard/restaurant/MenuDashboard";
+import CreateReservation from "./pages/vendor/dashboard/restaurant/CreateReservation";
+import CreateMenu from "./pages/vendor/dashboard/restaurant/CreateMenu";
 
 // Vendor - Club
 import BottleServiceManager from "./pages/vendor/club/AddBottleSet";
@@ -78,6 +78,8 @@ import AdminReservations from "./pages/admin/Reservations";
 import AdminPayments from "./pages/admin/Payments";
 import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
+import ProtectedRoute from "./components/ProtectedRoutes";
+import UserProtectedRoute from "./components/UserProtectedRoute";
 
 const authRoutes = {
   user: [
@@ -100,6 +102,7 @@ const authRoutes = {
 const restaurantRoutes = [
   { path: "/restaurants/:id", element: <RestaurantsPage /> },
   { path: "/restaurants/completed/:id", element: <CompletedPage /> },
+  { path: "/restaurants/confirmation/:id", element: <ConfirmPage /> },
 ];
 
 const restaurantReservationRoutes = [
@@ -113,11 +116,14 @@ const clubRoutes = [
 
 const clubReservationRoutes = [
   { path: "/clubs/:id/reservations", element: <ClubReservation /> },
-  { path: "/hotels/:id/reservations", element: <HotelReservation /> },
 ];
 
 const hotelRoutes = [
   { path: "/hotels/:id", element: <HotelsPage /> },
+];
+
+const hotelReservationRoutes = [
+  { path: "/hotels/:id/reservations", element: <HotelReservation /> },
 ];
 
 const userGeneralRoutes = [
@@ -125,8 +131,18 @@ const userGeneralRoutes = [
   { path: "/search", element: <SearchContent /> },
 ];
 
+const adminRoutes = [
+  { path: "admin", element: <AdminDashboard /> },
+  { path: "admin/vendors", element: <AdminVendors /> },
+  { path: "admin/users", element: <AdminUsers /> },
+  { path: "admin/reservations", element: <AdminReservations /> },
+  { path: "admin/payments", element: <AdminPayments /> },
+  { path: "admin/reports", element: <AdminReports /> },
+  { path: "admin/settings", element: <AdminSettings /> },
+];
+
 const dashboardRestaurantRoutes = [
-  { path: "", element: <VendorDashboard /> },
+  { path: "restaurant", element: <VendorDashboard /> },
   { path: "restaurant/payments", element: <PaymentDashboard /> },
   { path: "restaurant/reservation", element: <ReservationDashboard /> },
   { path: "restaurant/reservation/new", element: <CreateReservation /> },
@@ -136,21 +152,21 @@ const dashboardRestaurantRoutes = [
 ];
 
 const hotelVendorRoutes = [
-  { path: "/hotel/dashboard", element: <HotelDashboard /> },
-  { path: "/hotel/bookings", element: <BookingManagement /> },
-  { path: "/hotel/addrooms", element: <AddRooms /> },
-  { path: "/hotel/rooms", element: <RoomsManagement /> },
-  { path: "/hotel/payments", element: <PaymentDashboard /> },
-  { path: "/hotel/settings", element: <Settings /> },
+  { path: "hotel", element: <HotelDashboard /> },
+  { path: "hotel/bookings", element: <BookingManagement /> },
+  { path: "hotel/addrooms", element: <AddRooms /> },
+  { path: "hotel/rooms", element: <RoomsManagement /> },
+  { path: "hotel/payments", element: <PaymentDashboard /> },
+  { path: "hotel/settings", element: <Settings /> },
 ];
 
 const clubVendorRoutes = [
-  { path: "/club/dashboard", element: <ClubDashboard /> },
-  { path: "/club/drinks", element: <DrinksTable /> },
-  { path: "/club/reservations", element: <ClubReservationTable /> },
-  { path: "/club/payments", element: <PaymentDashboard /> },
-  { path: "/club/add-drinks", element: <BottleServiceManager /> },
-  { path: "/club/settings", element: <Settings /> },
+  { path: "club", element: <ClubDashboard /> },
+  { path: "club/drinks", element: <DrinksTable /> },
+  { path: "club/reservations", element: <ClubReservationTable /> },
+  { path: "club/payments", element: <PaymentDashboard /> },
+  { path: "club/add-drinks", element: <BottleServiceManager /> },
+  { path: "club/settings", element: <Settings /> },
 ];
 
 
@@ -180,53 +196,69 @@ function App() {
           </Route>
 
           {/* Restaurants */}
-          {restaurantRoutes.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
-          <Route element={<ReservationLayout />}>
-            {restaurantReservationRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
-          </Route>
-
-          {/* Clubs */}
           {clubRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />
           ))}
 
-          {/* Hotels */}
+          {restaurantRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
           {hotelRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />
           ))}
+          <Route element={<UserProtectedRoute />}>
+            {/* Hotels */}
+            <Route element={<HotelReservationLayout />}>
+              {hotelReservationRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
 
-          {/* Club & Hotel Reservations */}
-          <Route element={<ClubReservationLayout />}>
-            {clubReservationRoutes.map((route) => (
+            {/* Club & Hotel Reservations */}
+            <Route element={<ClubReservationLayout />}>
+              {clubReservationRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
+            <Route element={<ReservationLayout />}>
+              {restaurantReservationRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
+            {/* User General */}
+            {userGeneralRoutes.map((route) => (
               <Route key={route.path} path={route.path} element={route.element} />
             ))}
           </Route>
+          <Route element={<ProtectedRoute />}>
+            {/* Admin Layout */}
+            <Route path="/dashboard">
+              {/* Admin Routes */}
+              {adminRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
+            {/* Dashboard - Restaurant */}
+            <Route path="/dashboard">
+              {dashboardRestaurantRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
 
-          {/* User General */}
-          {userGeneralRoutes.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
+            {/* Vendor - Hotel */}
+            <Route path="/dashboard">
+              {hotelVendorRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
 
-          {/* Dashboard - Restaurant */}
-          <Route path="/dashboard">
-            {dashboardRestaurantRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
+            {/* Vendor - Club */}
+            <Route path="/dashboard">
+              {clubVendorRoutes.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
           </Route>
-
-          {/* Vendor - Hotel */}
-          {hotelVendorRoutes.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
-
-          {/* Vendor - Club */}
-          {clubVendorRoutes.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
 
           {/* 404 */}
           <Route path="*" element={<NotFound />} />

@@ -2,28 +2,13 @@ import { logout } from '@/redux/slices/authSlice';
 import { X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { ClubList, HotelList, RestaurantList } from './SideMenuList';
-
-
-// Hook to determine business type from route
-const useBusinessType = () => {
-  const location = useLocation();
-  if (location.pathname.startsWith('/restaurant')) {
-    return 'restaurant';
-  } else if (location.pathname.startsWith('/hotel')) {
-    return 'hotel';
-  } else if (location.pathname.startsWith('/club')) {
-    return 'club';
-  }
-  return 'restaurant'; // default fallback
-};
 
 
 
 // Hook to get current menu configuration
-const useMenuConfig = () => {
-  const businessType = useBusinessType();
+const useMenuConfig = (businessType) => {
   const location = useLocation();
 
   const getMenuList = () => {
@@ -51,10 +36,11 @@ const useMenuConfig = () => {
 };
 
 const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
-  const { menuItems, bottomItems, businessType } = useMenuConfig();
+  const { menuItems, bottomItems, businessType } = useMenuConfig(type);
   const [loading, setLoading] = useState(false);
   const vendor = useSelector((state) => state.auth);
   const [profile, setProfile] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchvendorData = async () => {
@@ -81,6 +67,9 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
     if (item.label === 'Logout') {
       console.log('Sidebar: logging out');
       dispatch(logout());
+      setTimeout(() => {
+        navigate('/auth/vendor/login');
+      }, 500);
       setProfile(null);
       if (onNavigate) onNavigate(item.path);
       if (onClose && window.innerWidth < 1024) onClose();
@@ -128,7 +117,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
                 onClick={() => {
                   handleItemClick(item)
                 }}
-                className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${item.active
+                className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${location.pathname === item.path 
                     ? 'bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]'
                     : 'text-teal-100 hover:bg-teal-700 hover:text-white'
                   }`}

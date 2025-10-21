@@ -1,6 +1,6 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import React, { useState, useRef, useEffect } from 'react'
-import DashboardButton from '../../../components/dashboard/ui/DashboardButton'
+import DashboardButton from '@/components/dashboard/ui/DashboardButton'
 import { Add, Calendar, CardPay, Cash2, CheckCircle, Copy, Export, Eye, Eye2, EyeClose, Filter2, Group3, Pencil, Phone, Printer, XCircle } from '@/components/dashboard/ui/svg';
 import { StatCard } from '@/components/dashboard/stats/mainStats';
 import {
@@ -244,44 +244,64 @@ const ReservationDashboard = () => {
   })
 
   const socketRef = useRef(null);
+  const reconnectTimeout = useRef(null);
 
   useEffect(() => {
-    const vendorId = vendor._id; // Replace with real vendor ID
-    const socket = new WebSocket(`ws://localhost:5000?type=vendor&id=${vendorId}`);
+    if (!vendor?._id) return;
 
-    socketRef.current = socket;
+    const connect = () => {
+      const socket = new WebSocket(`wss://rhace-backend-1.onrender.com?type=vendor&id=${vendor._id}`);
+      socketRef.current = socket;
 
-    socket.onopen = () => {
-      console.log('✅ WebSocket connected');
-    };
+      socket.onopen = () => {
+        console.log('✅ WebSocket connected');
+      };
 
-    socket.onmessage = (event) => {
-      try {
-        const message = JSON.parse(event.data);
-        console.log('📩 Message from server:', message);
+      socket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          console.log('📩 Message from server:', message);
 
-        if (message.type === 'new_reservation') {
-          // Show toast, update state, or refetch data here
-          toast.success(`New reservation from ${message.data.customerName}`);
-          setData((prev) => [...prev, message.data]);
+          if (message.type === 'new_reservation') {
+            toast.success(`🆕 New reservation from ${message.data.customerName}`);
+            setData((prev) => [...prev, message.data]);
+          }
+        } catch (error) {
+          console.error('❌ Failed to parse message:', error);
         }
-      } catch (error) {
-        console.error('❌ Failed to parse message:', error);
-      }
+      };
+
+      socket.onerror = (err) => {
+        console.error('⚠️ WebSocket error:', err);
+      };
+
+      socket.onclose = (e) => {
+        console.warn(`🔌 WebSocket closed (code: ${e.code})`);
+        socketRef.current = null;
+
+        // Try reconnecting after delay
+        if (e.code !== 1000) {
+          reconnectTimeout.current = setTimeout(() => {
+            console.log('🔁 Reconnecting WebSocket...');
+            connect();
+          }, 3000); // 3 seconds
+        }
+      };
     };
 
-    socket.onerror = (err) => {
-      console.error('⚠️ WebSocket error:', err);
-    };
-
-    socket.onclose = () => {
-      console.log('🔌 WebSocket closed');
-    };
+    connect();
 
     return () => {
-      socket.close();
+      if (socketRef.current) {
+        socketRef.current.close(1000, 'Component unmounted');
+        socketRef.current = null;
+      }
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
     };
-  }, []);
+  }, [vendor?._id]);
+
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -662,7 +682,7 @@ const ReservationDashboard = () => {
                 <Button
                   variant="outline"
                   onClick={() => {
-                    setShowPopup({ display: false, details: {}})
+                    setShowPopup({ display: false, details: {} })
                   }}
                   className="flex-1 h-10 text-sm rounded-xl font-medium px-6 border-gray-300"
                 >

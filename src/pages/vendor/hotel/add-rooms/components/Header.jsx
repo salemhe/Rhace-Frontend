@@ -105,7 +105,7 @@ function Header({title}) {
              <div className="rounded-full  bg-[#b3d1d2] w-7 h-7"></div> <span>Rhace</span> 
             </h3>
             <div className="font-semibold space-x-2 flex items-center justify-center text-[16px]/[21px] tracking-[0.25px] text-[#111827]">
-              <ArrowLeft onClick={() => {navigate("/hotel/rooms")}}/> <span>{title}</span> 
+              <ArrowLeft onClick={() => {navigate("/dashboard/hotel/rooms")}}/> <span>{title}</span> 
             </div>
           </div>
         </div>

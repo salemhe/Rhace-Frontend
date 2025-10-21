@@ -7,7 +7,7 @@ const SaveCopy = ({ id }) => {
   const handleCopy = () => {
     navigator.clipboard
       .writeText(
-        `https://hotel-booking-application-omega.vercel.app/restaurants/${id}`
+        `https://rhace-frontend.vercel.app/restaurants/${id}`
       )
       .then(() => toast.success("Link copied to clipboard!"))
       .catch(() => {
