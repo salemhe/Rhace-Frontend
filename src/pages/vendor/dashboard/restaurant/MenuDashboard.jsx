@@ -43,6 +43,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { menuService } from '@/services/menu.service';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
+import { useSelector } from 'react-redux';
 
 const categories = [
   "All Menu",
@@ -60,6 +61,7 @@ const MenuDashboard = () => {
   const [menus, setMenus] = useState([])
   const [menuItems, setMenuItems] = useState([])
   const navigate = useNavigate()
+  const vendor = useSelector(state => state.auth.vendor)
 
 
 
@@ -392,7 +394,7 @@ const MenuDashboard = () => {
   useEffect(() => {
     async function fetchMenus() {
       try {
-        const items = await menuService.getMenus()
+        const items = await menuService.getMenus(vendor._id);
         setMenus(items.menus)
       } catch (error) {
         console.error(error)

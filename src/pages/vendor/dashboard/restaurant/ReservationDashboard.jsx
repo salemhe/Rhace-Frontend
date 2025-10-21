@@ -250,7 +250,7 @@ const ReservationDashboard = () => {
     if (!vendor?._id) return;
 
     const connect = () => {
-      const socket = new WebSocket(`wss://rhace-backend-1.onrender.com?type=vendor&id=${vendor._id}`);
+      const socket = new WebSocket(`wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`);
       socketRef.current = socket;
 
       socket.onopen = () => {
