@@ -13,14 +13,14 @@ const CategoryFilter = ({
         <div className="flex mb-4 flex-wrap">
             {categories.map((category) => (
                 <button
-                    key={category}
-                    onClick={() => onCategoryChange(category)}
-                    className={`px-4 py-2 rounded-full min-w-max text-sm cursor-pointer ${activeCategory === category
+                    key={category.name}
+                    onClick={() => onCategoryChange(category.category)}
+                    className={`px-4 py-2 rounded-full min-w-max text-sm cursor-pointer ${activeCategory === category.category
                         ? "bg-[#0A6C6D] text-white"
                         : "bg-transparent text-gray-700"
                         }`}
                 >
-                    {category}
+                    {category.name}
                 </button>
             ))}
         </div>
@@ -58,7 +58,26 @@ export default function RestaurantMenu({ id }) {
         fetchMenus();
     }, []);
 
-    const categories = ["All", "Starters", "Main Course", "Appetizer", "Dessert", "Drinks"];
+    const categories = [
+        {
+            name: "All",
+            category: "All",
+        }, {
+            name: "Starters",
+            category: "Starters",
+        }, {
+            name: "Main Course",
+            category: "Main Dish ",
+        }, {
+            name: "Appetizer",
+            category: "Appetizer",
+        }, {
+            name: "Dessert",
+            category: "Dessert",
+        }, {
+            name: "Drinks",
+            category: "Drink"
+        }];
     const filteredItems =
         activeCategory === "All"
             ? menuItems
