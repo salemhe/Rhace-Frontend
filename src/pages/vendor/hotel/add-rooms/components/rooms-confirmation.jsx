@@ -14,9 +14,7 @@ import {
   Edit,
   Edit2,
   Home,
-  Mail,
   MapPin,
-  Phone,
   Plus,
   User,
   Users,
@@ -38,7 +36,6 @@ const amenityIcons = {
 
 export default function HotelBookingInterface ({
   completeData,
-  onFinalSubmit,
   onEditStep
 }) {
   const [confirmed, setConfirmed] = useState(false);
@@ -47,13 +44,6 @@ export default function HotelBookingInterface ({
     return `₦${price.toLocaleString()}`;
   };
 
-  const handleFinalSubmit = () => {
-    if (!confirmed) {
-      alert('Please confirm that all hotel details are correct before proceeding.');
-      return;
-    }
-    onFinalSubmit();
-  };
 
   // Helper function to get payment method labels
   const getPaymentMethodLabel = (key) => {
@@ -65,97 +55,22 @@ export default function HotelBookingInterface ({
     return labels[key] || key;
   };
 
+  // Helper function to get image URL (handles File objects and strings)
+  const getImageUrl = (image) => {
+    if (!image) return '/food.jpg'; // Default fallback image
+    
+    if (typeof image === 'string') {
+      return image; // Already a URL
+    } else if (image instanceof File) {
+      return URL.createObjectURL(image); // Convert File to blob URL for preview
+    }
+    
+    return '/food.jpg'; // Fallback
+  };
+
   return (
     <div className="min-h-screen py-8">
       <div className="max-w-4xl mx-auto px-4 space-y-6">
-
-        {/* Hotel Information Section */}
-        <Card className="shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between border-b space-y-0 pb-4">
-            <CardTitle className="text-lg font-medium text-gray-900">Hotel Information</CardTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-teal-600 hover:text-teal-700"
-              onClick={() => onEditStep(1)}
-            >
-              <Edit className="w-4 h-4 mr-1" />
-              Edit
-            </Button>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {completeData.hotelInfo ? (
-              <div className="flex items-start space-x-4">
-
-                <div className="flex-1 min-w-0">
-                  <div className="flex space-x-3 items-center mb-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-teal-500 to-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <Home className="w-6 h-6 text-white" />
-                    </div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-1">
-                      {completeData.hotelInfo.hotelName}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-4">
-                      {completeData.hotelInfo.hotelCategory}
-                    </p>
-                  </div>
-
-                  <div className="flex flex-wrap gap-y-4 gap-x-14">
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Hotel Type</label>
-                      <p className="text-sm text-gray-900">{completeData.hotelInfo.hotelType}</p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Branch Code</label>
-                      <p className="text-sm text-gray-900">{completeData.hotelInfo.branchCode}</p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Contact Email</label>
-                      <p className="text-sm text-gray-900 flex items-center">
-                        <Mail className="w-4 h-4 mr-1 text-gray-400" />
-                        {completeData.hotelInfo.contactEmail}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Contact Phone</label>
-                      <p className="text-sm text-gray-900 flex items-center">
-                        <Phone className="w-4 h-4 mr-1 text-gray-400" />
-                        {completeData.hotelInfo.contactPhone}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Location</label>
-                      <p className="text-sm text-gray-900 flex items-center">
-                        <MapPin className="w-4 h-4 mr-1 text-gray-400" />
-                        {completeData.hotelInfo.location}
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Address</label>
-                      <p className="text-sm text-gray-900">{completeData.hotelInfo.address}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <p>Hotel information not completed</p>
-                <Button
-                  variant="outline"
-                  className="mt-2"
-                  onClick={() => onEditStep(1)}
-                >
-                  Complete Hotel Information
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Room Type Section */}
         <Card className="shadow-sm">
@@ -167,7 +82,7 @@ export default function HotelBookingInterface ({
               variant="ghost"
               size="sm"
               className="text-teal-600 hover:text-teal-700"
-              onClick={() => onEditStep(2)}
+              onClick={() => onEditStep(1)}
             >
               <Edit className="w-4 h-4 mr-1" />
               Edit
@@ -180,11 +95,18 @@ export default function HotelBookingInterface ({
                   <div className="flex items-start">
                     {/* Image Section */}
                     <div className="relative w-[200px] h-[240px] bg-gradient-to-br from-amber-400 to-orange-500 flex-shrink-0 overflow-hidden">
-                      <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-                      <div className="absolute bottom-3 right-3 bg-white text-gray-700 text-sm px-3 py-1.5 rounded flex items-center font-medium">
-                        <Camera className="w-4 h-4 mr-1.5" />
-                        +{room.images.length} more photos
-                      </div>
+                      <img
+                        src={room.images && room.images.length > 0 ? getImageUrl(room.images[0]) : '/food.jpg'}
+                        alt={room.name}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-black/20"></div>
+                      {room.images && room.images.length > 1 && (
+                        <div className="absolute bottom-3 right-3 bg-white text-gray-700 text-sm px-3 py-1.5 rounded flex items-center font-medium">
+                          <Camera className="w-4 h-4 mr-1.5" />
+                          +{room.images.length - 1} more photos
+                        </div>
+                      )}
                     </div>
 
                     {/* Content Section */}
@@ -237,7 +159,10 @@ export default function HotelBookingInterface ({
                       </div>
 
                       {/* Edit Button */}
-                      <button className="mt-4 flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium">
+                      <button 
+                        onClick={() => onEditStep(1)}
+                        className="mt-4 flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+                      >
                         <Edit2 className="w-4 h-4 mr-1.5" />
                         Edit
                       </button>
@@ -251,7 +176,7 @@ export default function HotelBookingInterface ({
                 <Button
                   variant="outline"
                   className="mt-2"
-                  onClick={() => onEditStep(2)}
+                  onClick={() => onEditStep(1)}
                 >
                   Add Room Types
                 </Button>
@@ -268,7 +193,7 @@ export default function HotelBookingInterface ({
               variant="ghost"
               size="sm"
               className="text-teal-600 hover:text-teal-700"
-              onClick={() => onEditStep(3)}
+              onClick={() => onEditStep(2)}
             >
               <Edit className="w-4 h-4 mr-1" />
               Edit
@@ -346,7 +271,7 @@ export default function HotelBookingInterface ({
                 <Button
                   variant="outline"
                   className="mt-2"
-                  onClick={() => onEditStep(3)}
+                  onClick={() => onEditStep(2)}
                 >
                   Configure Booking Policy
                 </Button>
@@ -369,7 +294,7 @@ export default function HotelBookingInterface ({
         </Card>
 
         {/* Final Submit Button */}
-        <div className="flex justify-center pt-6">
+        {/* <div className="flex justify-center pt-6">
           <Button
             onClick={handleFinalSubmit}
             disabled={!confirmed}
@@ -378,7 +303,7 @@ export default function HotelBookingInterface ({
           >
             Publish Hotel
           </Button>
-        </div>
+        </div> */}
       </div>
     </div>
   );

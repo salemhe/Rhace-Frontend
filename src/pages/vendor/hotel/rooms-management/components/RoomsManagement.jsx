@@ -1,12 +1,14 @@
+import { fetchRoomTypes, selectRoomTypes } from '@/redux/slices/vendorSlice';
 import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 import ImageGalleryModal from './ImageGalleryModal';
 import RoomCard from './RoomCard';
 import RoomDetailsModal from './RoomDetailsModal';
 import RoomModal from './RoomModal';
 import RoomTable from './RoomTable';
 import ViewToggle from './ViewToggle';
-import { useNavigate } from 'react-router';
 
 
 const RoomsManagementComponent = () => {
@@ -73,107 +75,54 @@ const RoomsManagementComponent = () => {
   };
 
   useEffect(() => {
-    const dummyRooms = [
-      {
-        _id: "1",
-        roomNumber: "101",
-        roomType: "single",
-        type: "standard",
-        price: 50,
-        capacity: 1,
-        amenities: ["WiFi", "AC"],
-        features: ["Balcony"],
-        description: "Cozy single room with a balcony.",
-        isAvailable: true,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/164595/pexels-photo-164595.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "2",
-        roomNumber: "202",
-        roomType: "double",
-        type: "deluxe",
-        price: 120,
-        capacity: 2,
-        amenities: ["WiFi", "Mini Bar", "TV"],
-        features: ["Ocean View", "Terrace"],
-        description: "Deluxe double room with ocean view.",
-        isAvailable: false,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/271624/pexels-photo-271624.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "3",
-        roomNumber: "303",
-        roomType: "suite",
-        type: "premium",
-        price: 250,
-        capacity: 4,
-        amenities: ["WiFi", "AC", "Room Service", "Smart TV"],
-        features: ["Jacuzzi", "Living Area", "Garden View"],
-        description: "Luxury suite with jacuzzi and living area.",
-        isAvailable: true,
-        maintenanceStatus: "maintenance",
-        images: ["https://images.pexels.com/photos/262048/pexels-photo-262048.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "4",
-        roomNumber: "104",
-        roomType: "double",
-        type: "standard",
-        price: 80,
-        capacity: 2,
-        amenities: ["WiFi", "AC", "TV"],
-        features: ["City View"],
-        description: "Comfortable double room with city view.",
-        isAvailable: true,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/271618/pexels-photo-271618.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "5",
-        roomNumber: "205",
-        roomType: "family",
-        type: "deluxe",
-        price: 180,
-        capacity: 5,
-        amenities: ["WiFi", "AC", "Mini Bar", "Smart TV", "Safe"],
-        features: ["Two Bedrooms", "Living Area", "Balcony"],
-        description: "Spacious family room with separate bedrooms.",
-        isAvailable: true,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/1743231/pexels-photo-1743231.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        _id: "6",
-        roomNumber: "306",
-        roomType: "suite",
-        type: "premium",
-        price: 300,
-        capacity: 3,
-        amenities: ["WiFi", "AC", "Mini Bar", "Smart TV", "Room Service", "Safe"],
-        features: ["Ocean View", "Terrace", "Living Area", "Kitchenette"],
-        description: "Premium suite with stunning ocean view and kitchenette.",
-        isAvailable: false,
-        maintenanceStatus: "available",
-        images: ["https://images.pexels.com/photos/1457842/pexels-photo-1457842.jpeg"],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ];
-
-    setRooms(dummyRooms);
   }, []);
+
+  // --- connect to redux to fetch real room types ---
+  const dispatch = useDispatch();
+  const roomTypesState = useSelector(selectRoomTypes);
+  const vendor = useSelector((state) => state.auth);
+  useEffect(() => {
+    const hotelId = vendor?.vendor?._id;
+
+    // only fetch when we actually have a hotelId and status is idle
+    if (hotelId && roomTypesState.status === 'idle') {
+      dispatch(fetchRoomTypes(hotelId));
+    }
+  }, [dispatch, roomTypesState.status, vendor]);
+
+  // when roomTypes arrive, map them into the rooms list (simple mapping)
+  useEffect(() => {
+    if (roomTypesState.status === 'succeeded' && Array.isArray(roomTypesState.items) && roomTypesState.items.length > 0) {
+      // map backend room type fields into the rooms shape expected by UI
+      const mapped = roomTypesState.items.map((rt, idx) => ({
+        _id: rt._id || `rt-${idx}`,
+        // no explicit roomNumber from backend, use index as fallback
+        roomNumber: rt.roomNumber || String(idx + 1),
+        // display name/type from backend
+        roomType: rt.name || `Room ${idx + 1}`,
+        type: rt.name || 'standard',
+        // backend uses pricePerNight
+        price: rt.pricePerNight || rt.price || 0,
+        // guests capacity: prefer adultsCapacity, fall back to sum of adults+children if both present
+        capacity: rt.adultsCapacity || ((rt.adultsCapacity || 0) + (rt.childrenCapacity || 0)) || 1,
+        // pass amenities through (may be names or ids)
+        amenities: Array.isArray(rt.amenities) ? rt.amenities : [],
+        // backend doesn't provide 'features' separately — keep empty array
+        features: [],
+        description: rt.description || '',
+        // availability not provided; assume available unless totalUnits is 0
+        isAvailable: (typeof rt.totalUnits === 'number') ? rt.totalUnits > 0 : true,
+        maintenanceStatus: 'available',
+        images: Array.isArray(rt.images) ? rt.images : [],
+        createdAt: rt.createdAt,
+        updatedAt: rt.updatedAt,
+      }));
+      setRooms(mapped);
+    }
+    if (roomTypesState.status === 'failed') {
+      console.error('Failed to load room types:', roomTypesState.error);
+    }
+  }, [roomTypesState]);
 
   return (
     <div className="min-h-screen text-gray-900 p-4 sm:p-0">
@@ -216,10 +165,10 @@ const RoomsManagementComponent = () => {
           room={selectedRoom}
           isOpen={isDetailsModalOpen}
           onClose={handleCloseDetailsModal}
-          
-                onEdit={handleEditRoom}
-                onDelete={handleDeleteRoom}
-                onViewImages={handleViewImages}
+
+          onEdit={handleEditRoom}
+          onDelete={handleDeleteRoom}
+          onViewImages={handleViewImages}
         />
 
         <RoomModal

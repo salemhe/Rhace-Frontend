@@ -10,11 +10,11 @@ export const checkInTimes = [
 ];
 
 export const advanceBookingOptions = [
-  { value: 24, label: '24' },
-  { value: 48, label: '48' },
-  { value: 72, label: '72' },
-  { value: 96, label: '96' },
-  { value: 120, label: '120' }
+  { value: "24", label: '24' },
+  { value: "48", label: '48' },
+  { value: "72", label: '72' },
+  { value: "96", label: '96' },
+  { value: "120", label: '120' }
 ];
 
 export const cancellationTypes = [
@@ -24,8 +24,8 @@ export const cancellationTypes = [
 ];
 
 export const freeCancellationOptions = [
-  { value: 24, label: '24' },
-  { value: 48, label: '48' },
-  { value: 72, label: '72' },
-  { value: 96, label: '96' }
+  { value: "24", label: '24' },
+  { value: "48", label: '48' },
+  { value: "72", label: '72' },
+  { value: "96", label: '96' }
 ];
