@@ -99,7 +99,7 @@ const RoomDetailsModal = ({ room, isOpen, onClose, onEdit, onDelete,  onViewImag
                   <div>
                     <h3 className="text-3xl font-bold text-gray-900">{room.roomNumber}</h3>
                     <p className="text-gray-600 mt-1">
-                      {room.type.charAt(0).toUpperCase() + room.type.slice(1)} Room - {room.roomType.charAt(0).toUpperCase() + room.roomType.slice(1)}
+                      {room.name.charAt(0).toUpperCase() + room.name.slice(1)} Room - {room.name.charAt(0).toUpperCase() + room.name.slice(1)}
                     </p>
                   </div>
                   <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(room.isAvailable, room.maintenanceStatus)}`}>
@@ -112,7 +112,7 @@ const RoomDetailsModal = ({ room, isOpen, onClose, onEdit, onDelete,  onViewImag
                 <div className="bg-teal-50 rounded-lg p-4 border border-teal-200">
                   <div className="flex justify-between items-center">
                     <span className="text-teal-900 font-medium">Price per Night</span>
-                    <span className="text-3xl font-bold text-teal-600">${room.price}</span>
+                    <span className="text-3xl font-bold text-teal-600">#{room.pricePerNight.toLocaleString()}</span>
                   </div>
                 </div>
               </div>
@@ -123,7 +123,7 @@ const RoomDetailsModal = ({ room, isOpen, onClose, onEdit, onDelete,  onViewImag
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                   </svg>
-                  <span className="text-lg font-medium">{room.capacity} Guests</span>
+                  <span className="text-lg font-medium">{room.adultsCapacity} Guests</span>
                 </div>
               </div>
 
@@ -175,7 +175,7 @@ const RoomDetailsModal = ({ room, isOpen, onClose, onEdit, onDelete,  onViewImag
                 </div>
               </div>
 
-              <div className="mb-6">
+              {/* <div className="mb-6">
                 <h4 className="text-sm font-semibold text-gray-700 uppercase tracking-wide mb-3">Features</h4>
                 <div className="flex flex-wrap gap-2">
                   {room.features.map((feature) => (
@@ -187,7 +187,7 @@ const RoomDetailsModal = ({ room, isOpen, onClose, onEdit, onDelete,  onViewImag
                     </span>
                   ))}
                 </div>
-              </div>
+              </div> */}
 
               {(room.createdAt || room.updatedAt) && (
                 <div className="pt-6 border-t border-gray-200">

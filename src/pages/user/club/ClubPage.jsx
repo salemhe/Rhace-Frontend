@@ -10,10 +10,36 @@ import BookingPopup from "@/components/user/club/BookingPopup";
 import BookingForm from "@/components/user/club/BookingForm";
 import SaveCopy from "@/components/user/ui/SaveCopy";
 import Header from "@/components/user/Header";
+import { useEffect, useState } from "react";
+import { userService } from "@/services/user.service";
 
 const ClubPage = () => {
     const { id } = useParams();
-    const club = ClubsData.data[0];
+    // const club = ClubsData.data[0];
+    const [isLoading, setIsLoading] = useState(true);
+    const [club, setClub] = useState(null);
+
+    useEffect(() => {
+        const fetchClub = async () => {
+            try {
+                const res = await userService.getVendor("club", id)
+                setClub(res.data[0])
+            } catch (error) {
+                console.error(error)
+            } finally {
+                setIsLoading(false)
+            }
+        }
+        fetchClub();
+    }, [])
+
+    if (isLoading) {
+        return (
+            <div className="w-full h-screen flex items-center justify-center">
+                <p className="text-lg animate-pulse">Loading...</p>
+            </div>
+        )
+    }
 
     return (
         <>
@@ -41,7 +67,7 @@ const ClubPage = () => {
                                             </h1>{" "}
                                             <span className="px-2 py-0.5 rounded-full border border-[#37703F] bg-[#D1FAE5] text-xs text-[#37703F]">
                                                 {" "}
-                                                {club.specials}
+                                                {club.offer}
                                             </span>
                                         </div>
                                         <SaveCopy id={id} />

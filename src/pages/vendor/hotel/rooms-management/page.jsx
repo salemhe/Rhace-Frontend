@@ -8,7 +8,7 @@ const RoomsManagement = () => {
 
 
   return (
-    <DashboardLayout>
+    <DashboardLayout type="hotel" >
     <div className="min-h-screen text-gray-900 p-4 sm:p-6 lg:p-8">
        <RoomsManagementComponent />
     </div>

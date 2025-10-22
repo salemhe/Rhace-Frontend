@@ -1,9 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { FiChevronRight, FiChevronsDown, FiHeart, FiStar } from "react-icons/fi";
 import { Link, useNavigate } from "react-router";
-import blueori from "../assets/blue-origin.png";
-import blueclub from "../assets/clubs/image2.jpg";
-import rest from "../assets/restaurant.jpg";
 import { Button } from "./ui/button";
 import { userService } from "@/services/user.service";
 
@@ -455,7 +452,7 @@ export const TableGridTwo = ({ title }) => {
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all duration-300 ease-out ${
+                      className={`absolute transition-all size-full duration-300 ease-out ${
                         multipleImages 
                           ? `will-change-transform ${hovering ? 'brightness-105' : ''}` 
                           : 'hover:scale-105'
@@ -512,15 +509,15 @@ export const TableGridTwo = ({ title }) => {
                     </div>
                     <div className="h-7 px-2 rounded-lg outline-1 outline-offset-[-1px] outline-yellow-500 inline-flex flex-col justify-center items-center gap-2">
                       <div className="inline-flex justify-start items-center gap-1.5">
-                        <div className="w-4 h-4 relative overflow-hidden">
+                        {/* <div className="w-4 h-4 relative overflow-hidden">
                           <div className="w-4 h-4 left-0 top-0 absolute">
                             <img 
                               width={100}
                               height={100} src="/sale_fill.svg" alt="discount"
                              />
                                   </div>
-                        </div>
-                        <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">{restaurant.discount}% off</div>
+                        </div> */}
+                        <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">20% off</div>
                       </div>
                     </div>
                   </div>
@@ -752,13 +749,13 @@ const cuisineColorPalette = [
       <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
-          const currentIndex = currentIndices[restaurant.id || 0];
+          const currentIndex = currentIndices[restaurant._id || 0];
           const multipleImages = hasMultipleImages(restaurant);
-          const hovering = isHovering[restaurant.id || 0];
+          const hovering = isHovering[restaurant._id || 0];
 
           return (
             <div
-              key={restaurant.id}
+              key={restaurant._id}
               onClick={() => {
                 navigate(`/clubs/${restaurant._id}`);
               }}
@@ -835,22 +832,22 @@ const cuisineColorPalette = [
               <div className="p-4 flex-1 flex flex-col justify-between">
                 <div>
                   <h3 className="text-gray-900 text-sm font-medium font-['Inter'] leading-none">
-                    {restaurant.name}
+                    {restaurant.businessName}
                   </h3>
               
 
                   <div className="inline-flex flex-wrap gap-2 mt-2">
-                    {(Array.isArray(restaurant.cuisine) 
-                      ? restaurant.cuisine 
-                      : restaurant.cuisine.split(",").map(c => c.trim())
-                    ).map((cuisine, index) => {
+                    {(Array.isArray(restaurant.categories) 
+                      ? restaurant.categories 
+                      : restaurant.categories.split(",").map(c => c.trim())
+                    ).map((category, index) => {
                       const classes = cuisineColorPalette[index % cuisineColorPalette.length];
                       return (
                         <div
                           key={index}
                           className={`px-2 py-1 rounded-sm outline-1  ${classes} text-xs text-zinc-600  font-medium font-['Inter'] leading-none`}
                         >
-                          {cuisine}
+                          {category}
                         </div>
                       );
                     })}
@@ -858,7 +855,7 @@ const cuisineColorPalette = [
                 </div>
                 <div className="mt-2 justify-between flex">
                   
-                  <p className="text-sm text-gray-500">{restaurant.location}</p>
+                  <p className="text-sm text-gray-500">{restaurant.address}</p>
                   <div className="flex items-center mb-1">
                     <FiStar className="text-yellow-500 mr-1" />
                     <span className="text-sm font-medium text-gray-900">
@@ -873,13 +870,13 @@ const cuisineColorPalette = [
                   <div className="flex justify-between items-center">
                     <div className="flex justify-start items-center gap-1">
                       <div className="text-zinc-600 text-sm font-medium font-['Inter'] leading-none">Table from</div>
-                      <div className="justify-start text-gray-900 text-sm font-medium  leading-none">${restaurant.price}</div>
+                      <div className="justify-start text-gray-900 text-sm font-medium  leading-none">${restaurant.priceRange}</div>
                       
                     </div>
                     <div className="h-7 px-2 flex-col  bg-zinc-100 rounded-lg outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-center items-center gap-2">
                       <div className="inline-flex justify-start items-center gap-1.5">
                        
-                        <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">{restaurant.discount}</div>
+                        <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">{restaurant.offer}</div>
                       </div>
                     </div>
                   </div>

@@ -9,7 +9,8 @@ import RoomDetailsModal from './RoomDetailsModal';
 import RoomModal from './RoomModal';
 import RoomTable from './RoomTable';
 import ViewToggle from './ViewToggle';
-
+import { hotelService } from '@/services/hotel.service';
+import { toast } from 'sonner';
 
 const RoomsManagementComponent = () => {
   const [rooms, setRooms] = useState([]);
@@ -19,8 +20,76 @@ const RoomsManagementComponent = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [editingRoom, setEditingRoom] = useState(undefined);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
+  // All hooks must come before any conditional returns
+  const dispatch = useDispatch();
+  const roomTypesState = useSelector(selectRoomTypes);
+  const vendor = useSelector((state) => state.auth);
+
+  // Fetch room types on mount
+  useEffect(() => {
+    const fetchRoomTypesData = async () => {
+      try {
+        const res = await hotelService.getRoomTypes(vendor._id);
+        console.log(res);
+        setRooms(res);
+      } catch (error) {
+        console.error(error);
+        toast.error(error.response.data.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRoomTypesData();
+  }, [vendor._id]);
+
+  // Fetch from Redux when needed
+  useEffect(() => {
+    const hotelId = vendor?.vendor?._id;
+
+    // only fetch when we actually have a hotelId and status is idle
+    if (hotelId && roomTypesState.status === 'idle') {
+      dispatch(fetchRoomTypes(hotelId));
+    }
+  }, [dispatch, roomTypesState.status, vendor]);
+
+  // Map Redux room types to component state
+  useEffect(() => {
+    if (roomTypesState.status === 'succeeded' && Array.isArray(roomTypesState.items) && roomTypesState.items.length > 0) {
+      // map backend room type fields into the rooms shape expected by UI
+      const mapped = roomTypesState.items.map((rt, idx) => ({
+        _id: rt._id || `rt-${idx}`,
+        // no explicit roomNumber from backend, use index as fallback
+        roomNumber: rt.roomNumber || String(idx + 1),
+        // display name/type from backend
+        roomType: rt.name || `Room ${idx + 1}`,
+        type: rt.name || 'standard',
+        // backend uses pricePerNight
+        price: rt.pricePerNight || rt.price || 0,
+        // guests capacity: prefer adultsCapacity, fall back to sum of adults+children if both present
+        capacity: rt.adultsCapacity || ((rt.adultsCapacity || 0) + (rt.childrenCapacity || 0)) || 1,
+        // pass amenities through (may be names or ids)
+        amenities: Array.isArray(rt.amenities) ? rt.amenities : [],
+        // backend doesn't provide 'features' separately — keep empty array
+        features: [],
+        description: rt.description || '',
+        // availability not provided; assume available unless totalUnits is 0
+        isAvailable: (typeof rt.totalUnits === 'number') ? rt.totalUnits > 0 : true,
+        maintenanceStatus: 'available',
+        images: Array.isArray(rt.images) ? rt.images : [],
+        createdAt: rt.createdAt,
+        updatedAt: rt.updatedAt,
+      }));
+      setRooms(mapped);
+    }
+    if (roomTypesState.status === 'failed') {
+      console.error('Failed to load room types:', roomTypesState.error);
+    }
+  }, [roomTypesState]);
+
+  // Event handlers
   const handleEditRoom = (room) => {
     setEditingRoom(room);
     setIsEditModalOpen(true);
@@ -28,7 +97,7 @@ const RoomsManagementComponent = () => {
 
   const handleAddRoom = () => {
     setEditingRoom(undefined);
-    navigate('/hotel/addrooms');
+    navigate('/dashboard/hotel/addrooms');
   };
 
   const handleDeleteRoom = async (roomId) => {
@@ -74,55 +143,14 @@ const RoomsManagementComponent = () => {
     setIsEditModalOpen(false);
   };
 
-  useEffect(() => {
-  }, []);
-
-  // --- connect to redux to fetch real room types ---
-  const dispatch = useDispatch();
-  const roomTypesState = useSelector(selectRoomTypes);
-  const vendor = useSelector((state) => state.auth);
-  useEffect(() => {
-    const hotelId = vendor?.vendor?._id;
-
-    // only fetch when we actually have a hotelId and status is idle
-    if (hotelId && roomTypesState.status === 'idle') {
-      dispatch(fetchRoomTypes(hotelId));
-    }
-  }, [dispatch, roomTypesState.status, vendor]);
-
-  // when roomTypes arrive, map them into the rooms list (simple mapping)
-  useEffect(() => {
-    if (roomTypesState.status === 'succeeded' && Array.isArray(roomTypesState.items) && roomTypesState.items.length > 0) {
-      // map backend room type fields into the rooms shape expected by UI
-      const mapped = roomTypesState.items.map((rt, idx) => ({
-        _id: rt._id || `rt-${idx}`,
-        // no explicit roomNumber from backend, use index as fallback
-        roomNumber: rt.roomNumber || String(idx + 1),
-        // display name/type from backend
-        roomType: rt.name || `Room ${idx + 1}`,
-        type: rt.name || 'standard',
-        // backend uses pricePerNight
-        price: rt.pricePerNight || rt.price || 0,
-        // guests capacity: prefer adultsCapacity, fall back to sum of adults+children if both present
-        capacity: rt.adultsCapacity || ((rt.adultsCapacity || 0) + (rt.childrenCapacity || 0)) || 1,
-        // pass amenities through (may be names or ids)
-        amenities: Array.isArray(rt.amenities) ? rt.amenities : [],
-        // backend doesn't provide 'features' separately — keep empty array
-        features: [],
-        description: rt.description || '',
-        // availability not provided; assume available unless totalUnits is 0
-        isAvailable: (typeof rt.totalUnits === 'number') ? rt.totalUnits > 0 : true,
-        maintenanceStatus: 'available',
-        images: Array.isArray(rt.images) ? rt.images : [],
-        createdAt: rt.createdAt,
-        updatedAt: rt.updatedAt,
-      }));
-      setRooms(mapped);
-    }
-    if (roomTypesState.status === 'failed') {
-      console.error('Failed to load room types:', roomTypesState.error);
-    }
-  }, [roomTypesState]);
+  // NOW conditional return can happen after all hooks
+  if (isLoading) {
+    return (
+      <div className='w-full h-screen flex items-center justify-center'>
+        <p className='animate-pulse text-lg'>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen text-gray-900 p-4 sm:p-0">
@@ -165,7 +193,6 @@ const RoomsManagementComponent = () => {
           room={selectedRoom}
           isOpen={isDetailsModalOpen}
           onClose={handleCloseDetailsModal}
-
           onEdit={handleEditRoom}
           onDelete={handleDeleteRoom}
           onViewImages={handleViewImages}

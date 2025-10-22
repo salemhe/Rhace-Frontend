@@ -17,3 +17,16 @@ export function formatCustomDate(dateString) {
 
   return `${time}. ${formattedDate}`;
 }
+
+export function formatDate(dateString) {
+  const date = new Date(dateString);
+
+  // Format date like "May 28, 2025"
+  const formattedDate = date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  });
+
+  return `${formattedDate}`;
+}

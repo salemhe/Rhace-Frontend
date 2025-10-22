@@ -1,6 +1,6 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import React, { useEffect, useState } from 'react'
-import DashboardButton from '../../../components/dashboard/ui/DashboardButton'
+import DashboardButton from '@/components/dashboard/ui/DashboardButton'
 import { Add, ArrowsRight, Calendar, CardPay, Cash2, CheckCircle, Copy, Export, Eye, Eye2, EyeClose, Filter2, Group3, LayoutGrid, ListCheck3, Pencil, Phone, Printer, XCircle } from '@/components/dashboard/ui/svg';
 import { StatCard } from '@/components/dashboard/stats/mainStats';
 import {
@@ -43,6 +43,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { menuService } from '@/services/menu.service';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
+import { useSelector } from 'react-redux';
 
 const categories = [
   "All Menu",
@@ -60,6 +61,7 @@ const MenuDashboard = () => {
   const [menus, setMenus] = useState([])
   const [menuItems, setMenuItems] = useState([])
   const navigate = useNavigate()
+  const vendor = useSelector(state => state.auth.vendor)
 
 
 
@@ -392,7 +394,7 @@ const MenuDashboard = () => {
   useEffect(() => {
     async function fetchMenus() {
       try {
-        const items = await menuService.getMenus()
+        const items = await menuService.getMenus(vendor._id);
         setMenus(items.menus)
       } catch (error) {
         console.error(error)
@@ -401,7 +403,7 @@ const MenuDashboard = () => {
     }
     async function fetchMenuItems() {
       try {
-        const items = await menuService.getMenuItems()
+        const items = await menuService.getMenuItems(vendor._id)
         setMenuItems(items.menuItems)
       } catch (error) {
         console.error(error)

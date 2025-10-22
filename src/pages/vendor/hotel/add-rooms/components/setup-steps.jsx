@@ -1,5 +1,5 @@
-"use client";
-import SvgIcon, { Amenities, Plate } from '@/assets/icons/icons';
+
+import  { Amenities, Plate, SvgIcon,  } from '@/assets/icons/icons';
 import { Check } from 'lucide-react';
 
 

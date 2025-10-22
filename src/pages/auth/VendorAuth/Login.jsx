@@ -9,7 +9,7 @@ import { authService } from "@/services/auth.service"
 import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
-import { setVendor } from "@/redux/slices/authSlice"
+import { setVendor, setAdmin } from "@/redux/slices/authSlice"
 
 const getCurrentYear = () => new Date().getFullYear();
 
@@ -25,6 +25,7 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    role: "vendor", // default to vendor
   })
 
   const [searchParams] = useSearchParams();
@@ -37,20 +38,25 @@ const Login = () => {
       }
       setError({ email: "", password: "" });
       setIsloading(true);
-      const user = await authService.vendorLogin(
-        formData.email,
-        formData.password,
-      );
-      dispatch(setVendor(user?.vendor));
-      toast.success("Welcome back!");
-      if (!user.vendor.isOnboarded) {
-        navigate("/auth/vendor/onboarding")
+      let user;
+      if (formData.role === "admin") {
+        user = await authService.adminLogin(formData.email, formData.password);
+        dispatch(setAdmin(user?.vendor)); // assuming backend returns admin in vendor field
+        toast.success("Welcome back, Admin!");
+        navigate("/admin/dashboard");
       } else {
-        navigate(redirectTo);
+        user = await authService.vendorLogin(formData.email, formData.password);
+        dispatch(setVendor(user?.vendor));
+        toast.success("Welcome back!");
+        if (!user.vendor.isOnboarded) {
+          navigate("/auth/vendor/onboarding")
+        } else {
+          navigate(redirectTo === "/dashboard" ? `/dashboard/${user.vendor.vendorType}` : "/dashboard");
+        }
       }
     } catch (err) {
       toast.error(err.response?.data.message);
-      if (err.response.data.message === "Please verify your email with the OTP sent to your inbox.") {
+      if (err.response?.data?.message === "Please verify your email with the OTP sent to your inbox.") {
         navigate(`/auth/vendor/otp?email=${formData.email}`)
       }
     } finally {
@@ -112,6 +118,23 @@ const Login = () => {
                 {error.email && <p className="text-sm text-red-600 mt-1">{error.email}</p>}
               </div>
               <div className="space-y-2">
+                <Label htmlFor="role" className="text-sm font-medium text-gray-700">
+                  Role
+                </Label>
+                <select
+                  id="role"
+                  value={formData.role}
+                  onChange={(e) => handleInputChange("role", e.target.value)}
+                  className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+                        text-black text-sm placeholder-[#a0a3a8]
+                        focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                        hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
+                >
+                  <option value="vendor">Vendor</option>
+                  <option value="admin">Admin</option>
+                </select>
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                   Password
                 </Label>
@@ -161,12 +184,14 @@ const Login = () => {
               </Button>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-6">
-              <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
-                Don't Have An Account?{" "}
-                <a href="/auth/vendor/signup" className="text-[#0a646d] hover:underline font-medium">
-                  Sign up
-                </a>
-              </p>
+              {formData.role === "vendor" && (
+                <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
+                  Don't Have An Account?{" "}
+                  <a href="/auth/vendor/signup" className="text-[#0a646d] hover:underline font-medium">
+                    Sign up
+                  </a>
+                </p>
+              )}
               <div className="flex flex-col md:flex-row justify-between items-center w-full text-xs text-gray-500">
                 <span>Copyright © {getCurrentYear()} Rhace Enterprises LTD.</span>
                 <a href="#" className="hover:underline">

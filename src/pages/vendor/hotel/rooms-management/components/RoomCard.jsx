@@ -32,26 +32,24 @@ const RoomCard = ({ room,  onViewDetails, }) => {
             No Image
           </div>
         )}
-        <div className="absolute top-2 right-2">
+        {/* <div className="absolute top-2 right-2">
           <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(room.isAvailable, room.maintenanceStatus)}`}>
             {getStatusText(room.isAvailable, room.maintenanceStatus)}
           </span>
-        </div>
+        </div> */}
       </div>
 
       <div className="p-4">
         <div className="flex justify-between items-start mb-2">
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">{room.roomNumber}</h3>
-            <p className="text-sm text-gray-500">{room.type} ({room.roomType})</p>
+            <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
+            <p className="text-sm text-gray-500">{room.adultsCapacity + room.childrenCapacity} guests</p>
           </div>
-          
         </div>
-
 
         <div className="flex justify-between items-center pt-3 border-t border-gray-100">
          <div className="text-left">
-            <p className="text-xl font-bold text-[#111827]">${room.price}</p>
+            <p className="text-xl font-bold text-[#111827]">#{room.pricePerNight.toLocaleString()}</p>
           </div>
           <button
             onClick={() => onViewDetails(room)}

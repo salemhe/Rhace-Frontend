@@ -5,8 +5,11 @@ import Rooms from "./Rooms";
 // import HotelOverview from "./HotelOverview";
 
 const HotelInfo = ({
+  setShow,
   activeTab,
   setActiveTab,
+  id,
+  selectedRoom, setSelectedRoom,
 }) => {
   const tabs = [
     {
@@ -53,7 +56,7 @@ const HotelInfo = ({
       <div className="mt-8">
         {/* {activeTab === "property_details" && <HotelOverview address={data.address} openingTime={data.openingTime} closingTime={data.closingTime} cuisines={data.cuisines} desc={data.businessDescription} />} */}
         {/* {activeTab === "menu" && <HotelMenu id={data._id} />} */}
-        {activeTab === "rooms" && <Rooms />}
+        {activeTab === "rooms" && <Rooms setShow={setShow} selectedRoom={selectedRoom} setSelectedRoom={setSelectedRoom} id={id} />}
         {activeTab === "reviews" && <p>Reviews</p>}
       </div>
     </div>
