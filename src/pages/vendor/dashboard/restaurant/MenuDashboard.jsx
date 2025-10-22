@@ -403,7 +403,7 @@ const MenuDashboard = () => {
     }
     async function fetchMenuItems() {
       try {
-        const items = await menuService.getMenuItems()
+        const items = await menuService.getMenuItems(vendor._id)
         setMenuItems(items.menuItems)
       } catch (error) {
         console.error(error)
