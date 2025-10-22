@@ -1,13 +1,13 @@
-"use client";
-import SvgIcon, { Amenities, Plate } from '@/assets/icons/icons';
+
+import  { Amenities, Plate, SvgIcon,  } from '@/assets/icons/icons';
 import { Check } from 'lucide-react';
 
 
 export function SetupSteps({ currentStep }) {
   const steps = [
-    { id: 1, title: 'Basic information', icon: <SvgIcon /> },
-    { id: 2, title: 'Room Configuration', icon: <Plate color={currentStep === 2 ? "#fff" : "#606368"}/> },
-    { id: 3, title: 'Amenities', icon: <Amenities color={currentStep === 3 ? "#fff" : "#606368"} /> },
+    { id: 1, title: 'Room Configuration', icon: <SvgIcon /> },
+    { id: 2, title: 'Amenities', icon: <Plate color={currentStep === 2 ? "#fff" : "#606368"}/> },
+    { id: 3, title: 'Confirm', icon: <Amenities color={currentStep === 3 ? "#fff" : "#606368"} /> },
   ];
 
   return (

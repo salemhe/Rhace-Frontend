@@ -1,4 +1,4 @@
-import UsersIcon, {
+import  { UsersIcon,
   DashBoardIcon,
   BranchesIcon,
   BookingsIcon,
