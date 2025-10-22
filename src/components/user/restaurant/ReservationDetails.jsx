@@ -41,7 +41,6 @@ export default function ReservationDetails({
     try {
       setLoading(true);
       const response = await userService.getVendor("restaurant", id);
-      console.log(response)
       setVendor(response.data[0]);
     } catch (error) {
       console.error("Error fetching vendor:", error);

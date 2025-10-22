@@ -20,7 +20,6 @@ export default function PaymentPage({ booking, setPopupOpen }) {
         setIsLoading(true);
         const res = await paymentService.initializePayment({ amount: booking.totalAmount, email: booking.customerEmail, vendorId: booking.vendor, bookingId: booking._id, customerName: booking.customerName, type: booking.reservationType });
 
-        toast.success(`Payed ₦${booking.totalAmount.toLocaleString()} Succesfully!!`)
         window.location.href = res.data.authorization_url;
       } catch (error) {
         console.log(error);

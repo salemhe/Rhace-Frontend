@@ -8,11 +8,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
+import { TablePicker } from "../ui/tablepicker";
 
 const BookingPopup = ({ id }) => {
   const [show, setShow] = useState(false);
   const [date, setDate] = useState();
   const [time, setTime] = useState("");
+  const [table, setTable] = useState("");
   const [request, setRequest] = useState("");
   const [guests, setGuests] = useState("1");
   const [isLoading, setIsLoading] = useState(false);
@@ -24,6 +26,7 @@ const navigate = useNavigate();
       date: date ? date.toISOString() : "",
       time,
       guests,
+      table,
       specialRequest: request,
     });
     navigate(`/clubs/${id}/reservations?${params.toString()}`);
@@ -63,6 +66,7 @@ const navigate = useNavigate();
             <div className="flex flex-col md:flex-row w-full gap-4">
               <DatePicker className="bg-white" value={date} onChange={setDate} />
               <TimePicker className="bg-white" value={time} onChange={setTime} />
+              <TablePicker className="bg-white" value={table} onChange={setTable} />
             </div>
             <GuestPicker className="bg-white" value={guests} onChange={setGuests} />
             <div className="flex flex-col gap-y-3">

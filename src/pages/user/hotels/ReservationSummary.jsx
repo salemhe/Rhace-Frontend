@@ -5,13 +5,17 @@ import { useReservations } from "@/contexts/hotel/ReservationContext";
 import { format } from "date-fns";
 import { ArrowLeft, Check, Edit, MapPin, Star } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useLocation, useNavigate, useParams } from "react-router";
 import ReservationHeader from "../../../components/user/hotel/ReservationHeader";
 import DatePicker from "../../../components/user/ui/datepicker";
 import { GuestPicker } from "../../../components/user/ui/guestpicker";
 import PaymentPage from "../../../components/user/ui/Payment";
 import { userService } from "@/services/user.service";
 import { hotelService } from "@/services/hotel.service";
+
+function useSearchParams() {
+  return new URLSearchParams(useLocation().search);
+}
 
 export default function ReservationSummary() {
   const [popupOpen, setPopupOpen] = useState(false)
@@ -21,7 +25,7 @@ export default function ReservationSummary() {
   const [bedType, setBedType] = useState("1 master bed");
   const [guestsAllowed, setGuestsAllowed] = useState(2);
 
-  const [searchParams] = useSearchParams();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const { id } = useParams();
   const [proposedPayment, setProposedPayment] = useState("full");
@@ -48,12 +52,13 @@ export default function ReservationSummary() {
   } = useReservations();
 
   const navigate = useNavigate();
+  const requestRoomIdParam = searchParams.get("roomId");
+  
   useEffect(() => {
     const dateParam = searchParams.get("date");
     const date2Param = searchParams.get("date2");
     const guestsParam = searchParams.get("guests");
     const requestParam = searchParams.get("specialRequest");
-    const requestRoomIdParam = searchParams.get("roomId");
 
     if (dateParam) {
       setCheckInDate(new Date(dateParam));
@@ -70,7 +75,7 @@ export default function ReservationSummary() {
     if (requestRoomIdParam) {
       setRoomId(requestRoomIdParam);
     }
-  }, [searchParams]);
+  }, []);
 
 
   const [loading, setLoading] = useState(true);
@@ -81,6 +86,7 @@ export default function ReservationSummary() {
       const response = await userService.getVendor("hotel", id);
       console.log(response)
       setVendor(response.data[0]);
+      await fetchRoom();
     } catch (error) {
       console.error("Error fetching vendor:", error);
     } finally {
@@ -90,8 +96,9 @@ export default function ReservationSummary() {
   const fetchRoom = async () => {
     try {
       setIsLoading(true);
-      const response = await hotelService.getRoomType(id, roomId);
-      setRoom(response[0]);
+      console.log("Fetching room with ID:", requestRoomIdParam);
+      const response = await hotelService.getRoomType(id, requestRoomIdParam);
+      setRoom(response);
     } catch (error) {
       console.error("Error fetching room:", error);
     } finally {
@@ -101,7 +108,6 @@ export default function ReservationSummary() {
 
   useEffect(() => {
     fetchVendor();
-    fetchRoom();
   }, []);
 
   const handleContinue = async () => {
