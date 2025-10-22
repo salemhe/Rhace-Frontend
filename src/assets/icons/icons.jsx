@@ -224,7 +224,22 @@ const SettingIcon = () => (
   </svg>
 );
 
-export { Amenities, BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, Plate, SettingIcon, PrepaidIcon, GuestsIcon, PendingPaymentIcon };
+const PeopleIcon = ({color = "#F9FAFB"} ) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="15"
+    fill="none"
+    viewBox="0 0 20 15"
+  >
+    <path
+      fill={color}
+      d="M10 8a7.1 7.1 0 0 1 4.012 1.24c.986.687 1.821 1.708 1.821 2.807 0 .604-.257 1.104-.663 1.476-.382.35-.88.578-1.393.733-1.026.31-2.377.41-3.777.41s-2.75-.1-3.777-.41c-.513-.155-1.011-.383-1.394-.733a1.96 1.96 0 0 1-.662-1.475c0-1.099.835-2.12 1.82-2.808A7.1 7.1 0 0 1 10 8m5.833.833c.87 0 1.66.288 2.245.694.533.373 1.089.992 1.089 1.747 0 .431-.188.789-.467 1.044-.255.235-.57.372-.857.459-.392.118-.855.179-1.335.206.102-.288.159-.6.159-.936 0-1.279-.8-2.365-1.694-3.12q.425-.093.86-.094m-11.666 0q.447.002.86.095c-.894.754-1.694 1.84-1.694 3.12 0 .335.057.647.159.934-.48-.026-.942-.087-1.334-.205-.288-.087-.603-.224-.859-.459a1.4 1.4 0 0 1-.466-1.043c0-.754.555-1.374 1.09-1.747a3.96 3.96 0 0 1 2.244-.695m11.25-5a2.083 2.083 0 1 1 0 4.167 2.083 2.083 0 0 1 0-4.167m-10.834 0a2.083 2.083 0 1 1 0 4.167 2.083 2.083 0 0 1 0-4.167M10 .5a3.333 3.333 0 1 1 0 6.666A3.333 3.333 0 0 1 10 .5"
+    ></path>
+  </svg>
+);
+
+export { Amenities, BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, Plate, SettingIcon, PrepaidIcon, GuestsIcon, PendingPaymentIcon, PeopleIcon };
 
 
 

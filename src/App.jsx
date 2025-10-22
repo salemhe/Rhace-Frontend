@@ -63,6 +63,7 @@ import VendorDashboard from "./pages/dashboard/Dashboard";
 import ClubDashboard from "./pages/vendor/club/Dashboard";
 import HotelDashboard from "./pages/vendor/hotel/Dashboard";
 import ClubReservationTable from "./pages/vendor/club/reservations";
+import StaffManagementSystem from "./pages/dashboard/StaffManagement";
 
 // ==================== ROUTE CONFIGURATION ====================
 
@@ -115,6 +116,7 @@ const userGeneralRoutes = [
 const dashboardRestaurantRoutes = [
   { path: "", element: <VendorDashboard /> },
   { path: "restaurant/payments", element: <PaymentDashboard /> },
+  { path: "restaurant/staffs", element: <StaffManagementSystem /> },
   { path: "restaurant/reservation", element: <ReservationDashboard /> },
   { path: "restaurant/reservation/new", element: <CreateReservation /> },
   { path: "restaurant/menu", element: <MenuDashboard /> },
@@ -128,6 +130,7 @@ const hotelVendorRoutes = [
   { path: "/hotel/addrooms", element: <AddRooms /> },
   { path: "/hotel/rooms", element: <RoomsManagement /> },
   { path: "/hotel/payments", element: <PaymentDashboard /> },
+  { path: "hotel/staffs", element: <StaffManagementSystem /> },
   { path: "/hotel/settings", element: <Settings /> },
 ];
 
@@ -136,6 +139,7 @@ const clubVendorRoutes = [
   { path: "/club/drinks", element: <DrinksTable /> },
   { path: "/club/reservations", element: <ClubReservationTable /> },
   { path: "/club/payments", element: <PaymentDashboard /> },
+  { path: "club/staffs", element: <StaffManagementSystem /> },
   { path: "/club/add-drinks", element: <BottleServiceManager /> },
   { path: "/club/settings", element: <Settings /> },
 ];
