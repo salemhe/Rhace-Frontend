@@ -26,7 +26,7 @@ const RoomsManagementComponent = () => {
   // All hooks must come before any conditional returns
   const dispatch = useDispatch();
   const roomTypesState = useSelector(selectRoomTypes);
-  const vendor = useSelector((state) => state.auth);
+  const vendor = useSelector((state) => state.auth.vendor);
 
   // Fetch room types on mount
   useEffect(() => {
