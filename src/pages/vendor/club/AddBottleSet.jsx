@@ -1,7 +1,10 @@
 import { cn } from '@/lib/utils';
 import { ChevronDown, Coffee, Flame, GripVertical, Minus, Music, Plus, Search, Sparkles, Star, Upload, Users, X } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import Header from '../hotel/add-rooms/components/Header';
+import { clubService } from '@/services/club.service';
+import { useSelector } from 'react-redux';
+import axios from 'axios';
 
 const BottleServiceManager = () => {
    const [currentStep, setCurrentStep] = useState(1);
@@ -11,6 +14,8 @@ const BottleServiceManager = () => {
    const [categoryFilter, setCategoryFilter] = useState('All Category');
    const [selectedDrinks, setSelectedDrinks] = useState([]);
    const [uploadedImages, setUploadedImages] = useState([]);
+   const vendor = useSelector((state) => state.auth.vendor);
+   const [isLoading, setIsLoading] = useState(true);
 
    // New drink form state
    const [newDrink, setNewDrink] = useState({
@@ -39,14 +44,7 @@ const BottleServiceManager = () => {
       priceVisibility: true
    });
 
-   const [drinks, setDrinks] = useState([
-      { id: 1, name: 'Johnny Walker Blue Label', category: 'Whiskey', volume: '750ml', price: 30000, image: '🥃' },
-      { id: 2, name: 'Don Perignon Vintage', category: 'Champagne', volume: '750ml', price: 30000, image: '🍾' },
-      { id: 3, name: 'Don Perignon Vintage', category: 'Champagne', volume: '750ml', price: 30000, image: '🍾' },
-      { id: 4, name: 'Don Perignon Vintage', category: 'Champagne', volume: '750ml', price: 30000, image: '🍾' },
-      { id: 5, name: 'Don Perignon Vintage', category: 'Champagne', volume: '750ml', price: 30000, image: '🍾' },
-      { id: 6, name: 'Grey Goose', category: 'Vodka', volume: '750ml', price: 30000, image: '🍸' }
-   ]);
+   const [drinks, setDrinks] = useState([]);
 
    const addOnsList = [
       { id: 'sparklerShow', icon: <Sparkles className="w-5 h-5" />, name: 'Sparkler Show', description: 'Add note (e.g 3 sparklers per bottle)', color: 'bg-yellow-100 text-yellow-600' },
@@ -59,63 +57,95 @@ const BottleServiceManager = () => {
       { id: 'vipEntryPass', icon: <Star className="w-5 h-5" />, name: 'VIP Entry Pass', description: 'Skip the line entry for all guests', color: 'bg-cyan-100 text-cyan-600' }
    ];
 
-   const handleFileUpload = (e) => {
-      const files = Array.from(e.target.files);
-      const newImages = files.slice(0, 3 - uploadedImages.length);
+   const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+   const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
-      newImages.forEach(file => {
-         const reader = new FileReader();
-         reader.onloadend = () => {
-            setUploadedImages(prev => [...prev, { url: reader.result, name: file.name }]);
-         };
-         reader.readAsDataURL(file);
-      });
-   };
+   const handleFileUpload = useCallback(
+      async (files) => {
+         console.log('Uploading files:', files);
+         const fileArray = Array.from(files).slice(0, 3 - uploadedImages.length);
+
+         const uploadedUrls = []
+
+         for (const file of fileArray) {
+            const fileName = file.name
+
+            const formData = new FormData()
+            formData.append('file', file)
+            formData.append('upload_preset', UPLOAD_PRESET)
+
+            try {
+               const response = await axios.post(
+                  `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+                  formData,
+               )
+
+               const imageUrl = response.data.secure_url
+               uploadedUrls.push(imageUrl)
+            } catch (error) {
+               console.error('Upload failed for', fileName, error)
+            }
+         }
+         uploadedUrls.forEach((imageUrl, index) => {
+            setUploadedImages(prev => [...prev, { url: imageUrl, name: fileArray[index].name }]);
+         });
+      },
+      [uploadedImages]
+   )
 
    const removeImage = (index) => {
       setUploadedImages(prev => prev.filter((_, i) => i !== index));
    };
 
-   const createNewDrink = () => {
+   const createNewDrink = async () => {
       if (!newDrink.name || !newDrink.category) {
          alert('Please fill in required fields (name and category)');
          return;
       }
 
-      const newDrinkItem = {
-         id: Date.now(),
-         name: newDrink.name,
-         category: newDrink.category,
-         volume: newDrink.volume || 'N/A',
-         price: parseFloat(newDrink.price.replace(/,/g, '')) || 0,
-         image: '🍷',
-         quantity: 1
-      };
+      try {
+         const payload = {
+            name: newDrink.name,
+            category: newDrink.category,
+            volume: newDrink.volume || null,
+            price: parseFloat(newDrink.price) || 0,
+            quantity: 0,
+            status: 'Active',
+            images: uploadedImages.map(img => img.url),
+            visibility: true,
+         };
 
-      setSelectedDrinks([...selectedDrinks, newDrinkItem]);
-      // Also add the created drink to the master drinks list so it appears in the "Existing" tab
-      setDrinks(prev => [...prev, { ...newDrinkItem, quantity: undefined }]);
+         const response = await clubService.createDrinkType(payload);
 
-      // Reset form
-      setNewDrink({
-         name: '',
-         category: '',
-         volume: '',
-         price: '100000'
-      });
-      setUploadedImages([]);
+         console.log('Drink created successfully:', response);
 
-      // Switch to existing tab
-      setSelectedTab('existing');
+         setSelectedDrinks([...selectedDrinks, response]);
+         // Also add the created drink to the master drinks list so it appears in the "Existing" tab
+         setDrinks(prev => [...prev, { ...response, quantity: undefined }]);
 
-      alert('Drink created and added to your set!');
+         // Reset form
+         setNewDrink({
+            name: '',
+            category: '',
+            volume: '',
+            price: '100000'
+         });
+         setUploadedImages([]);
+
+         // Switch to existing tab
+         setSelectedTab('existing');
+
+         alert('Drink created and added to your set!');
+      } catch (err) {
+         console.error('Error creating drink type:', err);
+      }
    };
 
    const addDrink = (drink) => {
-      const existing = selectedDrinks.find(d => d.id === drink.id);
+      const existing = selectedDrinks.find(d => d._id === drink._id);
       if (existing) {
          setSelectedDrinks(selectedDrinks.map(d =>
-            d.id === drink.id ? { ...d, quantity: d.quantity + 1 } : d
+            d._id === drink._id ? { ...d, quantity: d.quantity + 1 } : d
          ));
       } else {
          setSelectedDrinks([...selectedDrinks, { ...drink, quantity: 1 }]);
@@ -124,18 +154,42 @@ const BottleServiceManager = () => {
 
    const updateQuantity = (id, delta) => {
       setSelectedDrinks(selectedDrinks.map(d =>
-         d.id === id ? { ...d, quantity: Math.max(1, d.quantity + delta) } : d
+         d._id === id ? { ...d, quantity: Math.max(1, d.quantity + delta) } : d
       ).filter(d => d.quantity > 0));
    };
 
    const _removeDrink = (id) => {
-      setSelectedDrinks(selectedDrinks.filter(d => d.id !== id));
+      setSelectedDrinks(selectedDrinks.filter(d => d._id !== id));
    };
 
    const filteredDrinks = drinks.filter(drink =>
       drink.name.toLowerCase().includes(searchQuery.toLowerCase()) &&
       (categoryFilter === 'All Category' || drink.category === categoryFilter)
    );
+
+   useEffect(() => {
+      const fetchDrinks = async () => {
+         try {
+            const data = await clubService.getDrinks(vendor._id);
+            setDrinks(data.drinks);
+            console.log('Fetched drinks:', data);
+         } catch (error) {
+            console.error('Error fetching drinks:', error);
+         } finally {
+            setIsLoading(false)
+         }
+      }
+      fetchDrinks();
+   }, [])
+
+
+   if (isLoading) {
+      return (
+         <div className='w-full h-screen flex items-center justify-center'>
+            <p className='animate-pulse text-lg'>Loading...</p>
+         </div>
+      )
+   }
 
    // Step 1: Club Identity & Add Drinks
    const renderStep1 = () => (
@@ -168,8 +222,8 @@ const BottleServiceManager = () => {
                   <button
                      onClick={() => setSelectedTab('existing')}
                      className={`px-3 sm:px-4 py-2 font-medium transition-colors whitespace-nowrap text-sm sm:text-base ${selectedTab === 'existing'
-                           ? 'text-teal-600 border-b-2 border-teal-600'
-                           : 'text-gray-500 hover:text-gray-700'
+                        ? 'text-teal-600 border-b-2 border-teal-600'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                   >
                      Select Existing Drink
@@ -177,8 +231,8 @@ const BottleServiceManager = () => {
                   <button
                      onClick={() => setSelectedTab('new')}
                      className={`px-3 sm:px-4 py-2 font-medium transition-colors whitespace-nowrap text-sm sm:text-base ${selectedTab === 'new'
-                           ? 'text-teal-600 border-b-2 border-teal-600'
-                           : 'text-gray-500 hover:text-gray-700'
+                        ? 'text-teal-600 border-b-2 border-teal-600'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                   >
                      Create New Drink
@@ -217,10 +271,14 @@ const BottleServiceManager = () => {
                      {/* Drinks List */}
                      <div className="space-y-3 max-h-96 overflow-y-auto">
                         {filteredDrinks.map(drink => (
-                           <div key={drink.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-teal-500 transition-colors">
+                           <div key={drink._id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-teal-500 transition-colors">
                               <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-lg flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
-                                    {drink.image}
+                                    <img
+                                       src={drink.images[0]}
+                                       alt={drink.name}
+                                       className="w-full h-full object-cover rounded-lg"
+                                    />
                                  </div>
                                  <div className="min-w-0 flex-1">
                                     <h3 className="font-medium text-gray-900 text-sm sm:text-base truncate">{drink.name}</h3>
@@ -334,7 +392,7 @@ const BottleServiceManager = () => {
                                  type="file"
                                  accept="image/jpeg,image/png,image/gif"
                                  multiple
-                                 onChange={handleFileUpload}
+                                 onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
                                  className="hidden"
                               />
                               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center">
@@ -373,10 +431,10 @@ const BottleServiceManager = () => {
 
                         <div className="space-y-3 max-h-64 overflow-y-auto mb-4">
                            {selectedDrinks.map(drink => (
-                              <div key={drink.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
+                              <div key={drink._id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 bg-gray-50 rounded-lg">
                                  <GripVertical className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400 cursor-move flex-shrink-0" />
                                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded-lg flex items-center justify-center text-base sm:text-lg flex-shrink-0">
-                                    {drink.image}
+                                    <img src={drink.images[0]} alt={drink.name} className="w-full h-full object-cover rounded-lg" />
                                  </div>
                                  <div className="flex-1 min-w-0">
                                     <h4 className="font-medium text-xs sm:text-sm truncate">{drink.name}</h4>
@@ -385,14 +443,14 @@ const BottleServiceManager = () => {
                                  <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
                                     <span className="text-xs sm:text-sm font-semibold whitespace-nowrap">₦{drink.price.toLocaleString()}</span>
                                     <button
-                                       onClick={() => updateQuantity(drink.id, -1)}
+                                       onClick={() => updateQuantity(drink._id, -1)}
                                        className="w-6 h-6 sm:w-7 sm:h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
                                     >
                                        <Minus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                                     </button>
                                     <span className="w-5 sm:w-6 text-center text-xs sm:text-sm font-medium">{drink.quantity}</span>
                                     <button
-                                       onClick={() => updateQuantity(drink.id, 1)}
+                                       onClick={() => updateQuantity(drink._id, 1)}
                                        className="w-6 h-6 sm:w-7 sm:h-7 rounded-full border border-gray-300 flex items-center justify-center hover:bg-gray-100"
                                     >
                                        <Plus className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
@@ -416,7 +474,7 @@ const BottleServiceManager = () => {
                         </button>
                      </div>
                   </>
-                  
+
 
                </div>
             </div>
@@ -559,8 +617,8 @@ const BottleServiceManager = () => {
                      onClick={() => currentStep > 1 && setCurrentStep(currentStep - 1)}
                      disabled={currentStep === 1}
                      className={`px-4 sm:px-6 py-2 font-medium rounded-lg transition-colors text-sm sm:text-base ${currentStep === 1
-                           ? 'text-gray-400 cursor-not-allowed'
-                           : 'text-gray-700 hover:bg-gray-100'
+                        ? 'text-gray-400 cursor-not-allowed'
+                        : 'text-gray-700 hover:bg-gray-100'
                         }`}
                   >
                      Back

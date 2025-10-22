@@ -1,7 +1,9 @@
-import { useState } from 'react';
-import { X, Upload, AlertCircle } from 'lucide-react';
+import { useCallback, useState } from 'react';
+import { X, Upload, AlertCircle, DownloadCloud } from 'lucide-react';
 import { clubService } from '@/services/club.service';
 import { useSelector } from 'react-redux';
+import axios from 'axios';
+import { Button } from '@/components/ui/button';
 
 export function AddDrinkModal({ onClose, onSuccess }) {
    const [formData, setFormData] = useState({
@@ -9,7 +11,7 @@ export function AddDrinkModal({ onClose, onSuccess }) {
       category: '',
       volume: '',
       price: '',
-      image_url: '',
+      images: [''],
    });
    const [addOns, setAddOns] = useState({
       iceBucket: false,
@@ -21,7 +23,43 @@ export function AddDrinkModal({ onClose, onSuccess }) {
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [saveAndAddAnother, setSaveAndAddAnother] = useState(false);
    const [error, setError] = useState(null);
-// const vendor = useSelector((state) => state.auth);
+   // const vendor = useSelector((state) => state.auth);
+
+   const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
+   const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+
+
+   const handleImageUpload = useCallback(
+      async (files, setImage) => {
+         const file = files[0];
+         if (file.size > 5242880) {
+            alert("File size exceeds 5MB limit.");
+            return;
+         }
+
+         const fileName = file.name
+
+         const formData = new FormData()
+         formData.append('file', file)
+         formData.append('upload_preset', UPLOAD_PRESET)
+
+         try {
+            const response = await axios.post(
+               `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+               formData,
+            )
+
+            const imageUrl = response.data.secure_url
+            setImage((prev) => ({ ...prev, images: [imageUrl] }))
+         } catch (error) {
+            console.error('Upload failed for', fileName, error)
+         }
+      },
+      []
+   )
+
+
+
    const handleSubmit = async (e) => {
       e.preventDefault();
       setIsSubmitting(true);
@@ -39,15 +77,13 @@ export function AddDrinkModal({ onClose, onSuccess }) {
             price: parseFloat(formData.price) || 0,
             quantity: 0,
             status: 'Active',
-            image_url:
-               formData.image_url ||
-               'https://images.pexels.com/photos/338713/pexels-photo-338713.jpeg?auto=compress&cs=tinysrgb&w=400',
+            images: formData.images,
             visibility,
-            add_ons: selectedAddOns,
+            addOns: selectedAddOns,
          };
 
-         const response = await clubService.createDrinkType( payload);
-         
+         const response = await clubService.createDrinkType(payload);
+
          console.log('Drink created successfully:', response);
 
          if (saveAndAddAnother) {
@@ -57,7 +93,7 @@ export function AddDrinkModal({ onClose, onSuccess }) {
                category: '',
                volume: '',
                price: '',
-               image_url: '',
+               images: [''],
             });
             setAddOns({
                iceBucket: false,
@@ -72,7 +108,7 @@ export function AddDrinkModal({ onClose, onSuccess }) {
          }
       } catch (err) {
          console.error('Error creating drink type:', err);
-         
+
          // Set user-friendly error message
          if (err.response?.status === 403) {
             setError('You do not have permission to add drinks. Please contact your administrator.');
@@ -184,18 +220,31 @@ export function AddDrinkModal({ onClose, onSuccess }) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Image Upload</label>
                   <p className="text-xs text-gray-500 mb-3">You can add up to 3 images</p>
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-teal-500 transition-colors">
-                     <div className="flex flex-col items-center">
-                        <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mb-3">
-                           <Upload className="text-gray-500" size={20} />
+                     <label htmlFor='item-cover-image' className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">
+                        <DownloadCloud className="w-6 h-6 mb-2" />
+                        <p>Drag and drop an image here, or</p>
+                        <Button asChild variant="outline" size="sm" className="mt-2">
+                           <label htmlFor="item-cover-image" className="cursor-pointer">Browse Files</label>
+                        </Button>
+                        <p className="text-xs mt-1">JPG, PNG, or GIF • Max 5MB</p>
+                        <input
+                           type='file'
+                           id='item-cover-image'
+                           accept='image/*'
+                           max={5242880}
+                           onChange={(e) => e.target.files && handleImageUpload(e.target.files, setFormData)}
+                           className='sr-only'
+                        />
+                     </label>
+                     {formData.images && (
+                        <div className="w-32 h-32 rounded-md overflow-hidden">
+                           <img
+                              src={formData.images[0]}
+                              alt="Cover"
+                              className="object-cover w-full h-full"
+                           />
                         </div>
-                        <p className="text-sm text-gray-600 mb-1">
-                           Drag and drop an image here, or{' '}
-                           <button type="button" className="text-teal-600 hover:text-teal-700 font-medium">
-                              browse
-                           </button>
-                        </p>
-                        <p className="text-xs text-gray-500">JPG, PNG OR GIF • Max 5MB</p>
-                     </div>
+                     )}
                   </div>
                </div>
 
