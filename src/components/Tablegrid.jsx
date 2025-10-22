@@ -452,7 +452,7 @@ export const TableGridTwo = ({ title }) => {
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all duration-300 ease-out ${
+                      className={`absolute transition-all size-full duration-300 ease-out ${
                         multipleImages 
                           ? `will-change-transform ${hovering ? 'brightness-105' : ''}` 
                           : 'hover:scale-105'
@@ -509,15 +509,15 @@ export const TableGridTwo = ({ title }) => {
                     </div>
                     <div className="h-7 px-2 rounded-lg outline-1 outline-offset-[-1px] outline-yellow-500 inline-flex flex-col justify-center items-center gap-2">
                       <div className="inline-flex justify-start items-center gap-1.5">
-                        <div className="w-4 h-4 relative overflow-hidden">
+                        {/* <div className="w-4 h-4 relative overflow-hidden">
                           <div className="w-4 h-4 left-0 top-0 absolute">
                             <img 
                               width={100}
                               height={100} src="/sale_fill.svg" alt="discount"
                              />
                                   </div>
-                        </div>
-                        <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">{restaurant.discount}% off</div>
+                        </div> */}
+                        <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">20% off</div>
                       </div>
                     </div>
                   </div>

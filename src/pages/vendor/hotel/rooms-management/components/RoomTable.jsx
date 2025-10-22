@@ -27,9 +27,6 @@ const RoomTable = ({ rooms, onEdit, onDelete, onViewDetails, onViewImages }) => 
                 Room
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Type
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Price
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -41,9 +38,9 @@ const RoomTable = ({ rooms, onEdit, onDelete, onViewDetails, onViewImages }) => 
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Amenities
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Features
-              </th>
+              </th> */}
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Images
               </th>
@@ -56,16 +53,13 @@ const RoomTable = ({ rooms, onEdit, onDelete, onViewDetails, onViewImages }) => 
             {rooms.map((room) => (
               <tr key={room._id} className="hover:bg-gray-50 transition-colors">
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {room.roomNumber}
-                </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {room.type} ({room.roomType})
+                  {room.name}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
-                  ${room.price}
+                  ${room.pricePerNight.toLocaleString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {room.capacity} guests
+                  {room.adultsCapacity + room.childrenCapacity} guests
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(room.isAvailable, room.maintenanceStatus)}`}>
@@ -86,7 +80,7 @@ const RoomTable = ({ rooms, onEdit, onDelete, onViewDetails, onViewImages }) => 
                     )}
                   </div>
                 </td>
-                <td className="px-6 py-4 text-sm text-gray-500">
+                {/* <td className="px-6 py-4 text-sm text-gray-500">
                   <div className="flex flex-wrap gap-1">
                     {room.features.slice(0, 2).map((feature) => (
                       <span key={feature} className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded">
@@ -99,7 +93,7 @@ const RoomTable = ({ rooms, onEdit, onDelete, onViewDetails, onViewImages }) => 
                       </span>
                     )}
                   </div>
-                </td>
+                </td> */}
                 <td className="px-6 py-4 whitespace-nowrap">
                   {room.images && room.images.length > 0 ? (
                     <button

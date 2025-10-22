@@ -14,8 +14,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
 import { menuService } from '@/services/menu.service';
 import axios from 'axios';
-import { Check, CheckCircle, DownloadCloud, Loader2, Plus, Upload, X } from 'lucide-react';
-import React, {  useCallback, useEffect, useState } from 'react'
+import { Check, CheckCircle, DownloadCloud, Loader2, Plus, Trash2, Upload, X } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react'
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
 
@@ -25,6 +26,7 @@ const CreateMenu = () => {
     const [menuItems, setMenuItems] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
     const [activeTab, setActiveTab] = useState('exist')
+    const vendor = useSelector((state) => state.auth.vendor);
     const [newItem, setNewItem] = useState({
         name: "",
         description: "",
@@ -87,47 +89,90 @@ const CreateMenu = () => {
         }
     };
 
+    const handleCreateNewMenu = () => {
+        setStep(0);
+        setSuccessModal(false);
+        setFormData({
+            id: `menu-${Date.now()}`,
+            name: "",
+            description: "",
+            menuType: [],
+            mealTimes: [],
+            coverImage: "",
+            isAvailable: true,
+            pricingModel: "fixed",
+            price: 10000,
+            items: [],
+            isVisible: true,
+        })
+    }
+
     const handleNext = async () => {
         if (step <= 1) {
-            if (activeTab === "new" && step === 1) {
-                console.log(newItem)
-                if (newItem.name && newItem.category.length > 0 && newItem.tags.length > 0 && newItem.price > 0) {
-                    const createdItem = await menuService.createMenuItem({ ...newItem, assignedMenus: [formData.id] });
-                    setSelectedItems((prev) => [...prev, createdItem]);
-                    setCreateItem(createdItem._id);
-                    setFormData({ ...formData, items: [...formData.items, createdItem._id] });
-                    toast.success("Menu item created and added to menu")
-                    setNewItem({
-                        name: "",
-                        description: "",
-                        category: "",
-                        price: 0,
-                        tags: [],
-                        mealTimes: [],
-                        discount: true,
-                        discountPrice: 0,
-                        addOns: false,
-                        coverImage: "",
-                        assignedMenus: [],
-                        isVisible: true,
-                    })
+            if (step === 1) {
+                if (activeTab === "new") {
+                    console.log(newItem);
+                    if (
+                        newItem.name &&
+                        newItem.category.length > 0 &&
+                        newItem.tags.length > 0 &&
+                        newItem.price > 0
+                    ) {
+                        const createdItem = await menuService.createMenuItem({
+                            ...newItem,
+                            assignedMenus: [formData.id],
+                        });
+                        setSelectedItems((prev) => [...prev, createdItem]);
+                        setCreateItem(createdItem._id);
+                        setFormData({
+                            ...formData,
+                            items: [...formData.items, createdItem._id],
+                        });
+                        toast.success("Menu item created and added to menu");
+                        setNewItem({
+                            name: "",
+                            description: "",
+                            category: "",
+                            price: 0,
+                            tags: [],
+                            mealTimes: [],
+                            discount: true,
+                            discountPrice: 0,
+                            addOns: false,
+                            coverImage: "",
+                            assignedMenus: [],
+                            isVisible: true,
+                        });
+                    }
+                } else {
+                    try {
+                        setLoading(true);
+                        await menuService.createMenu(formData);
+                        setSuccessModal(true);
+                    } catch (error) {
+                        console.error(error);
+                        toast.error(error.response?.data?.message || "Something went wrong");
+                    } finally {
+                        setLoading(false);
+                    }
                 }
             } else {
-                setStep(prev => prev + 1)
+                setStep((prev) => prev + 1);
             }
         } else {
             try {
-                setLoading(true)
-                await menuService.createMenu(formData)
-                setSuccessModal(true)
+                setLoading(true);
+                await menuService.createMenu(formData);
+                setSuccessModal(true);
             } catch (error) {
-                console.error(error)
-                toast.error(error.response.data.message)
+                console.error(error);
+                toast.error(error.response?.data?.message || "Something went wrong");
             } finally {
-                setLoading(false)
+                setLoading(false);
             }
         }
-    }
+    };
+
 
     const handleImageUpload = useCallback(
         async (files, setImage) => {
@@ -193,7 +238,7 @@ const CreateMenu = () => {
     useEffect(() => {
         async function fetchMenuItems() {
             try {
-                const items = await menuService.getMenuItems()
+                const items = await menuService.getMenuItems(vendor._id)
                 setMenuItems(items.menuItems)
             } catch (error) {
                 console.error(error)
@@ -702,12 +747,86 @@ const CreateMenu = () => {
                 <DashboardButton onClick={handleNext} disabled={selectedItems.length === 0 && step > 0 && activeTab !== "new" || loading} icon={loading && <Loader2 className="animate-spin size-5" />} variant="primary" className="px-6 w-[384px] text-sm" text={loading ? "Loading" : step === 0 ? "Continue to Meal Selection" : activeTab === "new" ? "Add Item to Menu" : "Save & Finish Menu"} />
             </div>
             {successModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-lg p-6 w-11/12 max-w-md mx-auto">
-                        <div className="flex flex-col items-center">
-                            <CheckCircle className="text-green-500 size-10 mb-4" />
-                            <h2 className="text-2xl font-semibold mb-2">Menu Created!</h2>
-                            <p className="text-gray-600 mb-4 text-center">Your menu has been successfully created and is now live on your restaurant&apos;s app.</p>
+                <div className="fixed inset-0 bg-black/50 flex h-screen items-center py-10 justify-center z-50">
+                    <div className="max-w-2xl h-full bg-gray-50 flex flex-col rounded-2xl overflow-y-auto px-4 py-10">
+                        {/* Success Icon */}
+                        <div className="flex flex-col items-center text-center mb-8">
+                            <div className="flex justify-center mb-6">
+                                <div className="w-16 h-16 bg-[#37703F1A] rounded-full flex items-center justify-center">
+                                    <div className="w-12 h-12 bg-[#37703F] rounded-full flex items-center justify-center">
+                                        <Check className="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+                            </div>
+                            <h1 className="text-xl font-semibold text-gray-800">
+                                Menu Successfully Created
+                            </h1>
+                            <p className="text-gray-500 mt-2 max-w-md">
+                                Your pre-selected meals have been confirmed for your upcoming reservation
+                            </p>
+                        </div>
+
+                        {/* Menu Summary Card */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-2xl mb-6">
+                            <div className="p-6">
+                                <h2 className="text-lg font-semibold text-gray-800 mb-3">Menu Summary</h2>
+                                <hr className="mb-4" />
+
+                                <div className="grid grid-cols-2 gap-y-3 text-sm text-gray-700">
+                                    <div className='space-y-3'>
+                                        <div>
+                                            <p className="text-gray-500">Menu Name</p>
+                                            <p className="font-medium">{formData.name}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-500">Menu Type</p>
+                                            <p className="font-medium">{formData.menuType.join(", ")}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-500">Date Created</p>
+                                            <p className="font-medium">{new Date().toLocaleDateString()}</p>
+                                        </div>
+                                    </div>
+                                    <div className='space-y-3'>
+                                        <div>
+                                            <p className="text-gray-500">Meal Time</p>
+                                            <p className="font-medium">{formData.mealTimes.join(", ")}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-gray-500">Number of Items</p>
+                                            <p className="font-medium">{formData.items.length}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Menu List */}
+                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 w-full max-w-2xl mb-8">
+                            <div className="p-6">
+                                <h2 className="text-lg font-semibold text-gray-800 mb-1">
+                                    {formData.name} Menu List
+                                </h2>
+                                <p className="text-sm text-gray-500 mb-4">
+                                    Drag to reorder items in your menu
+                                </p>
+
+                                {selectedItems.map((item) => (
+                                    <DraggableBox isDragging={isDragging} item={item} handleClear={handleClear} />
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Footer Buttons */}
+                        <div className="flex flex-col sm:flex-row gap-3 w-full max-w-2xl">
+                            <button onClick={() => {
+                                navigate(-1)
+                            }} className="flex-1 border border-gray-300 rounded-xl py-3 font-medium text-gray-700 hover:bg-gray-100 transition">
+                                Back to Menu List
+                            </button>
+                            <button onClick={handleCreateNewMenu} className="flex-1 bg-teal-700 text-white rounded-xl py-3 font-medium hover:bg-teal-800 transition">
+                                Create New Menu
+                            </button>
                         </div>
                     </div>
                 </div>
