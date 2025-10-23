@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { ClubList, HotelList, RestaurantList } from './SideMenuList';
+import logo from "../../../assets/Rhace-09.png";
 
 
 
@@ -97,8 +98,11 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
           {/* Logo */}
           <div className="flex items-center h-16 px-4">
             <div className="flex items-center">
-              <div className="w-6 h-6 bg-slate-300 rounded-full mr-3"></div>
-              <span className="text-xl font-bold">Rhace</span>
+              <img
+                src={logo} 
+                alt="Rhace Logo"
+                className="w-20 h-20 object-contain"
+              />
             </div>
           </div>
 

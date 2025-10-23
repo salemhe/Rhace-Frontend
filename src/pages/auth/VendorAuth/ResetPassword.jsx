@@ -8,7 +8,7 @@ import HeroImage from "@/components/auth/HeroImage";
 import { authService } from "@/services/auth.service";
 import { toast } from "sonner";
 import { useNavigate, useSearchParams } from "react-router";
-import ResetImage from "../../../assets/auth/reset.svg";
+import logo from "../../../assets/Rhace-11.png";
 
 
 const PasswordStrengthMeter = ({ strength }) => {
@@ -109,7 +109,7 @@ const ResetPassword = () => {
             <div className="flex-1 h-full overflow-y-auto hide-scrollbar flex items-center justify-center">
                 <Card className="w-full max-w-md bg-white shadow-none p-0 border-none">
                     <CardHeader className="flex justify-center">
-                        <img src={ResetImage} alt="Forgot password illustration" className="w-48 h-48 object-contain" />
+                        <img src={logo} alt="Forgot password illustration" className="w-20 h-10 object-contain" />
                     </CardHeader>
                     <CardContent className="space-y-8">
                         <div className="text-center space-y-4">
@@ -124,14 +124,17 @@ const ResetPassword = () => {
                                     Password
                                 </Label>
                                 <div className="relative">
-                                    <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} />
-                                    <Input
+                                    {/* <Lock className="absolute left-3 top-3.5 h-4 w-4 text-[#8a8f9a]" strokeWidth={1.25} /> */}
+                                    <input
                                         id="password"
                                         type={showPassword ? "text" : "password"}
                                         value={password}
                                         placeholder="********"
                                         onChange={(e) => setPassword(e.target.value)}
-                                        className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                                        className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+                                                text-black text-sm placeholder-[#a0a3a8]
+                                                focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                                                hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                                     />
                                     <button
                                         type="button"
@@ -148,13 +151,16 @@ const ResetPassword = () => {
                                     Confirm Password
                                 </Label>
                                 <div className="relative">
-                                    <Input
+                                    <input
                                         id="confirmPassword"
                                         type={showConfirmPassword ? "text" : "password"}
                                         value={confirmPassword}
                                         placeholder="********"
                                         onChange={(e) => setConfirmPassword(e.target.value)}
-                                        className="px-10 w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 text-[#6d727b] text-sm placeholder-[#a0a3a8] focus:outline-none focus:border-[#60a5fa] focus:ring-1 focus:ring-[#60a5fa] transition-all duration-300 ease-in-out"
+                                        className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+                                                text-black text-sm placeholder-[#a0a3a8]
+                                                focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
+                                                hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                                     />
                                     <button
                                         type="button"
@@ -172,12 +178,12 @@ const ResetPassword = () => {
                                 </div>
                             )}
 
-                            <Button disabled={isLoading} onClick={handleSubmit} className="w-full bg-[#0A6C6D] hover:bg-[#085253] text-white py-3 rounded-lg font-medium" size="lg">
+                            <Button disabled={isLoading} onClick={handleSubmit} className="w-full py-6 rounded-md bg-[#0A6C6D] text-white text-sm font-light transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D] mt-2" size="lg">
                                 {isLoading ? (<> Loading <Loader2 className="animate-spin" /></>) : "Send"}
                             </Button>
                         </div>
                         <div className="text-center">
-                            <a href="/auth/user/login" className="text-blue-600 hover:underline font-medium text-sm">Back to Login</a>
+                            <a href="/auth/vendor/login" className="text-[#0A6C6D] hover:underline font-medium text-sm">Back to Login</a>
                         </div>
                     </CardContent>
                 </Card>
