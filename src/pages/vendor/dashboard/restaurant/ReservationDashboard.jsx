@@ -1,5 +1,5 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import DashboardButton from '@/components/dashboard/ui/DashboardButton'
 import { Add, Calendar, CardPay, Cash2, CheckCircle, Copy, Export, Eye, Eye2, EyeClose, Filter2, Group3, Pencil, Phone, Printer, XCircle } from '@/components/dashboard/ui/svg';
 import { StatCard } from '@/components/dashboard/stats/mainStats';
@@ -243,64 +243,65 @@ const ReservationDashboard = () => {
     },
   })
 
-  const socketRef = useRef(null);
-  const reconnectTimeout = useRef(null);
-
-  useEffect(() => {
-    if (!vendor?._id) return;
-
-    const connect = () => {
-      const socket = new WebSocket(`wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`);
-      socketRef.current = socket;
-
-      socket.onopen = () => {
-        console.log('✅ WebSocket connected');
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          console.log('📩 Message from server:', message);
-
-          if (message.type === 'new_reservation') {
-            toast.success(`🆕 New reservation from ${message.data.customerName}`);
-            setData((prev) => [...prev, message.data]);
+  
+    const socketRef = useRef(null);
+    const reconnectTimeout = useRef(null);
+  
+    useEffect(() => {
+      if (!vendor?._id) return;
+  
+      const connect = () => {
+        const socket = new WebSocket(`wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`);
+        socketRef.current = socket;
+  
+        socket.onopen = () => {
+          console.log('✅ WebSocket connected');
+        };
+  
+        socket.onmessage = (event) => {
+          try {
+            const message = JSON.parse(event.data);
+            console.log('📩 Message from server:', message);
+  
+            if (message.type === 'new_reservation') {
+              toast.success(`🆕 New reservation from ${message.data.customerName}`);
+              setData((prev) => [...prev, message.data]);
+            }
+          } catch (error) {
+            console.error('❌ Failed to parse message:', error);
           }
-        } catch (error) {
-          console.error('❌ Failed to parse message:', error);
+        };
+  
+        socket.onerror = (err) => {
+          console.error('⚠️ WebSocket error:', err);
+        };
+  
+        socket.onclose = (e) => {
+          console.warn(`🔌 WebSocket closed (code: ${e.code})`);
+          socketRef.current = null;
+  
+          // Try reconnecting after delay
+          if (e.code !== 1000) {
+            reconnectTimeout.current = setTimeout(() => {
+              console.log('🔁 Reconnecting WebSocket...');
+              connect();
+            }, 3000); // 3 seconds
+          }
+        };
+      };
+  
+      connect();
+  
+      return () => {
+        if (socketRef.current) {
+          socketRef.current.close(1000, 'Component unmounted');
+          socketRef.current = null;
+        }
+        if (reconnectTimeout.current) {
+          clearTimeout(reconnectTimeout.current);
         }
       };
-
-      socket.onerror = (err) => {
-        console.error('⚠️ WebSocket error:', err);
-      };
-
-      socket.onclose = (e) => {
-        console.warn(`🔌 WebSocket closed (code: ${e.code})`);
-        socketRef.current = null;
-
-        // Try reconnecting after delay
-        if (e.code !== 1000) {
-          reconnectTimeout.current = setTimeout(() => {
-            console.log('🔁 Reconnecting WebSocket...');
-            connect();
-          }, 3000); // 3 seconds
-        }
-      };
-    };
-
-    connect();
-
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.close(1000, 'Component unmounted');
-        socketRef.current = null;
-      }
-      if (reconnectTimeout.current) {
-        clearTimeout(reconnectTimeout.current);
-      }
-    };
-  }, [vendor?._id]);
+    }, [vendor?._id]);
 
 
   useEffect(() => {

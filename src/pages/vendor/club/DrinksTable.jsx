@@ -9,11 +9,14 @@ import { ca } from 'date-fns/locale';
 import { clubService } from '@/services/club.service';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
+import { set } from 'date-fns';
 
 export function DrinksTable() {
   const [drinks, setDrinks] = useState([]);
+  const [bottleSets, setBottleSets] = useState([]);
 
   const [filteredDrinks, setFilteredDrinks] = useState([]);
+  const [filteredSets, setFilteredSets] = useState([]);
   const [selectedTab, setSelectedTab] = useState('drinks');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState('Today');
@@ -21,7 +24,6 @@ export function DrinksTable() {
   const [statusFilter, setStatusFilter] = useState('Payment Status');
   const [selectedDrinks, setSelectedDrinks] = useState(new Set());
   const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
-  const [showAddBottleSetModal, setShowAddBottleSetModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const vendor = useSelector((state) => state.auth.vendor);
   const navigate = useNavigate();
@@ -32,7 +34,8 @@ export function DrinksTable() {
 
   useEffect(() => {
     filterDrinks();
-  }, [drinks, searchQuery]);
+    filterSets();
+  }, [drinks, bottleSets, searchQuery]);
 
   const loadDrinks = async () => {
     //  const { data, error } = await supabase
@@ -60,6 +63,19 @@ export function DrinksTable() {
     setFilteredDrinks(filtered);
   };
 
+  const filterSets = () => {
+    let filtered = bottleSets;
+
+    if (searchQuery) {
+      filtered = filtered.filter(set =>
+        set.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        set.category.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    setFilteredSets(filtered);
+  };
+
   const toggleDrinkSelection = (id) => {
     const newSelected = new Set(selectedDrinks);
     if (newSelected.has(id)) {
@@ -82,7 +98,21 @@ export function DrinksTable() {
         setIsLoading(false)
       }
     }
+    const fetchBottleSets = async () => {
+      try {
+        setIsLoading(true)
+        const data = await clubService.getBottleSet(vendor._id);
+        setBottleSets(data.bottleSets);
+        console.log('Fetched bottle sets:', data);
+      } catch (error) {
+        console.error('Error fetching bottle sets:', error);
+      }
+      finally {
+        setIsLoading(false)
+      }
+    };
     fetchDrinks();
+    fetchBottleSets();
   }, [])
 
   const toggleAllDrinks = () => {
@@ -136,8 +166,8 @@ export function DrinksTable() {
               <button
                 onClick={() => setSelectedTab('drinks')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${selectedTab === 'drinks'
-                    ? 'text-gray-900 border-b-2 border-gray-900'
-                    : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-500 hover:text-gray-700'
                   }`}
               >
                 Drinks
@@ -145,8 +175,8 @@ export function DrinksTable() {
               <button
                 onClick={() => setSelectedTab('sets')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${selectedTab === 'sets'
-                    ? 'text-gray-900 border-b-2 border-gray-900'
-                    : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-500 hover:text-gray-700'
                   }`}
               >
                 Drinks Sets
@@ -154,8 +184,8 @@ export function DrinksTable() {
               <button
                 onClick={() => setSelectedTab('packages')}
                 className={`px-4 py-2 text-sm font-medium transition-colors ${selectedTab === 'packages'
-                    ? 'text-gray-900 border-b-2 border-gray-900'
-                    : 'text-gray-500 hover:text-gray-700'
+                  ? 'text-gray-900 border-b-2 border-gray-900'
+                  : 'text-gray-500 hover:text-gray-700'
                   }`}
               >
                 Party Packages
@@ -192,67 +222,127 @@ export function DrinksTable() {
 
           {/* Table */}
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="w-12 px-4 py-3">
-                    <input
-                      type="checkbox"
-                      checked={selectedDrinks.size === filteredDrinks.length && filteredDrinks.length > 0}
-                      onChange={toggleAllDrinks}
-                      className="rounded border-gray-300"
-                    />
-                  </th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Drink name</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volume</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price (₦)</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="w-12 px-4 py-3"></th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredDrinks.map((drink) => (
-                  <tr key={drink._id} className="hover:bg-gray-50 transition-colors">
-                    <td className="px-4 py-4">
+            {selectedTab === "drinks" && (
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="w-12 px-4 py-3">
                       <input
                         type="checkbox"
-                        checked={selectedDrinks.has(drink._id)}
-                        onChange={() => toggleDrinkSelection(drink._id)}
+                        checked={selectedDrinks.size === filteredDrinks.length && filteredDrinks.length > 0}
+                        onChange={toggleAllDrinks}
                         className="rounded border-gray-300"
                       />
-                    </td>
-                    <td className="px-4 py-4">
-                      <img
-                        src={drink.images[0]}
-                        alt={drink.name}
-                        className="w-12 h-12 rounded-lg object-cover"
-                      />
-                    </td>
-                    <td className="px-4 py-4 text-sm font-medium text-gray-900">{drink.name}</td>
-                    <td className="px-4 py-4 text-sm text-gray-600">{drink.category}</td>
-                    <td className="px-4 py-4 text-sm text-gray-600">{drink.volume}</td>
-                    <td className="px-4 py-4 text-sm text-gray-900 font-medium">₦{drink.price.toLocaleString()}</td>
-                    <td className="px-4 py-4 text-sm text-gray-600">{drink.quantity}</td>
-                    <td className="px-4 py-4">
-                      <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${drink.status === 'Active'
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Drink name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volume</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price (₦)</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                    <th className="w-12 px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredDrinks.map((drink) => (
+                    <tr key={drink._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedDrinks.has(drink._id)}
+                          onChange={() => toggleDrinkSelection(drink._id)}
+                          className="rounded border-gray-300"
+                        />
+                      </td>
+                      <td className="px-4 py-4">
+                        <img
+                          src={drink.images[0]}
+                          alt={drink.name}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      </td>
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900">{drink.name}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{drink.category}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{drink.volume}</td>
+                      <td className="px-4 py-4 text-sm text-gray-900 font-medium">₦{drink.price.toLocaleString()}</td>
+                      <td className="px-4 py-4 text-sm text-gray-600">{drink.quantity}</td>
+                      <td className="px-4 py-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${drink.status === 'Active'
                           ? 'bg-green-100 text-green-700'
                           : 'bg-gray-100 text-gray-700'
-                        }`}>
-                        {drink.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <button className="text-gray-400 hover:text-gray-600">
-                        <MoreVertical size={20} />
-                      </button>
-                    </td>
+                          }`}>
+                          {drink.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <button className="text-gray-400 hover:text-gray-600">
+                          <MoreVertical size={20} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+            {selectedTab === "sets" && (
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b border-gray-200">
+                  <tr>
+                    <th className="w-12 px-4 py-3">
+                      <input
+                        type="checkbox"
+                        checked={selectedDrinks.size === filteredDrinks.length && filteredDrinks.length > 0}
+                        onChange={toggleAllDrinks}
+                        className="rounded border-gray-300"
+                      />
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Drink name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price (₦)</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AddOns</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Drinks</th>
+                    <th className="w-12 px-4 py-3"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  {filteredSets.map((drink) => (
+                    <tr key={drink._id} className="hover:bg-gray-50 transition-colors">
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedDrinks.has(drink._id)}
+                          onChange={() => toggleDrinkSelection(drink._id)}
+                          className="rounded border-gray-300"
+                        />
+                      </td>
+                      <td className="px-4 py-4">
+                        <img
+                          src={drink.image}
+                          alt={drink.name}
+                          className="w-12 h-12 rounded-lg object-cover"
+                        />
+                      </td>
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900">{drink.name}</td>
+                      <td className="px-4 py-4 text-sm text-gray-900 font-medium">₦{drink.setPrice.toLocaleString()}</td>
+                      <td className="px-4 py-6 text-sm gap-1 flex items-center text-gray-600">{drink.addOns.slice(0, 3).map((item) => (
+                        <div className='p-2 bg-gray-200 rounded-lg'>
+                          {item}
+                        </div>
+                      ))}
+                      {drink.addOns.length > 3 ? `+ ${drink.addOns.length - 3} more` : ''}
+                      </td>
+                      <td className="px-4 py-4 text-sm text-gray-900 font-medium">{drink.items.reduce((acc, item) => acc + item.quantity, 0)}</td>
+                      <td className="px-4 py-4">
+                        <button className="text-gray-400 hover:text-gray-600">
+                          <MoreVertical size={20} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
 
           {/* Pagination */}
@@ -264,8 +354,8 @@ export function DrinksTable() {
                   key={page}
                   onClick={() => setCurrentPage(page)}
                   className={`w-8 h-8 rounded ${currentPage === page
-                      ? 'bg-gray-900 text-white'
-                      : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+                    ? 'bg-gray-900 text-white'
+                    : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
                     }`}
                 >
                   {page}

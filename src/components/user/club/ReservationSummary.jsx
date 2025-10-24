@@ -128,21 +128,21 @@ export default function ReservationSummary({ id }) {
                   <h3 className="text-lg font-semibold">Reservation Details</h3>
                 </div>
                 <div className="space-y-4 p-4">
-                  {comboItems.map((item, i) => (
+                  {comboItems.filter((item) => item.selected).map((item, i) => (
                     <div
                       key={i}
                       className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
                     >
                       <div className="flex justify-between items-center">
-                        <p className="text-sm text-[#111827]">{item.title}</p>
+                        <p className="text-sm text-[#111827]">{item.name}</p>
                         <X className="text-[#606368]" />
                       </div>
                       <div className="flex justify-between items-center">
                         <p className="text-xs text-[#111827]">
-                          {item.offers.join(" ")}
+                          {item.addOns.join(" ")}
                         </p>
                         <p className="text-sm text-[#111827]">
-                          #{item.price.toLocaleString()}
+                          #{item.setPrice.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -257,23 +257,23 @@ export default function ReservationSummary({ id }) {
                       )?.toLocaleString()}
                     </p>
                   </div>
-                  {comboItems.length > 0 && (
+                  {comboItems.filter((item) => item.selected).length > 0 && (
                     <div className="flex items-center justify-between">
                       <p className="text-[#606368]">Premium combos</p>
                       <p className="text-[#111827]">
                         #
-                        {comboItems
-                          .reduce((total, item) => total + (item.price || 0), 0)
+                        {comboItems.filter((item) => item.selected)
+                          .reduce((total, item) => total + (item.setPrice || 0), 0)
                           ?.toLocaleString()}
                       </p>
                     </div>
                   )}
-                  {bottleItems.length > 0 && (
+                  {bottleItems.filter((item) => item.quantity > 0).length > 0 && (
                     <div className="flex items-center justify-between">
                       <p className="text-[#606368]">Premium Bottles</p>
                       <p className="text-[#111827]">
                         #
-                        {bottleItems
+                        {bottleItems.filter((item) => item.quantity > 0)
                           .reduce(
                             (total, item) =>
                               total + (item.price || 0) * (item.quantity || 1),

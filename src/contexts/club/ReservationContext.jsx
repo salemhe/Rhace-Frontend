@@ -3,7 +3,6 @@
 import { userService } from "@/services/user.service";
 import { createContext, useContext, useState } from "react";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 const ReservationContext = createContext(
@@ -30,7 +29,6 @@ export function ReservationsProvider({
   const user = useSelector((state) => state.auth.user);
 
   const occasions = ["Birthday", "Casual", "Business", "Anniversary", "Other"];
-  const navigate = useNavigate();
 
   const combos = comboItems.filter((item) => item.selected);
   const bottles = bottleItems.filter((item) => item.selected);
@@ -40,7 +38,7 @@ export function ReservationsProvider({
     (total, item) => total + (item.price || 0) * (item.quantity || 1),
     0
   ) +
-    combos.reduce((total, item) => total + (item.price || 0), 0) +
+    combos.reduce((total, item) => total + (item.setPrice || 0), 0) +
     vipExtras.reduce((total, item) => total + (item.price || 0), 0) +
     (vendor.priceRange * parseInt(guestCount, 10)) : 0
 
@@ -61,11 +59,12 @@ export function ReservationsProvider({
         reservationType: "club",
         customerName: `${user.firstName} ${user.lastName}`.trim(),
         customerEmail: user.email,
+        customerId: user._id,
         date: date.toISOString(),
         time,
         guests: parsedGuestCount,
         specialRequest,
-        combos: combos.filter((item) => item.selected),
+        combos: combos.map((item) => item._id),
         drinks: selectedDrinks.map((item) => ({
           drink: item._id,
           quantity: item.quantity || 1,

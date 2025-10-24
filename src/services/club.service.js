@@ -32,6 +32,16 @@ class ClubService {
     }
   }
 
+  async createBottleSet(data) {
+    const res = await api.post("/bottle-sets", data)
+    return res.data;
+  }
+
+  async getBottleSet(clubId) {
+    const res = await api.get(`/bottle-sets?clubId=${clubId}`);
+    return res.data;
+  }
+
   async getDrinks(clubId) {
     const res = await api.get(`/drinks?clubId=${clubId}`);
     return res.data;

@@ -1,4 +1,5 @@
 import { Mail, MapPin, Phone } from 'lucide-react';
+import logo from "../assets/Rhace-11.png";
 
 const Footer = () => {
   return (
@@ -7,11 +8,12 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Company Info */}
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <div className="w-6.5 h-6.5 bg-[#60A5FA] rounded-full flex items-center justify-center">
-                {/* <span className="text-white font-bold text-lg">R</span> */}
-              </div>
-              <span className="text-2xl text-[#111827] font-bold">Rhace</span>
+            <div className="flex items-center space-x-2 mt-[-20px]">
+             <img
+              src={logo} 
+              alt="Rhace Logo"
+              className="w-20 h-20 object-contain"
+            />
             </div>
             <p className="text-[#111827] leading-relaxed font-normal ">
               Making restaurant reservations simple and enjoyable.
@@ -75,3 +77,6 @@ const Footer = () => {
 };
 
 export default Footer;
+
+
+

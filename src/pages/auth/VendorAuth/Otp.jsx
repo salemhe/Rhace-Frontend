@@ -7,6 +7,7 @@ import { authService } from "@/services/auth.service"
 import { useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
+import logo from "../../../assets/Rhace-11.png"
 
 const getCurrentYear = () => new Date().getFullYear();
 
@@ -69,9 +70,12 @@ const Otp = () => {
         <div className="min-h-screen flex items-center justify-center">
           <Card className="w-full max-w-md bg-white shadow-none p-0 border-none">
             <CardHeader className="text-center pb-6">
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <div className="w-6 h-6 bg-[#60A5FA] rounded-full flex items-center justify-center"></div>
-                <span className="text-xl font-semibold text-gray-900">Rhace</span>
+              <div className="flex items-center justify-center gap-2">
+                  <img
+                    src={logo} 
+                    alt="Rhace Logo"
+                    className="w-20 h-20 object-contain"
+                  />
               </div>
               <h1 className="text-2xl font-semibold text-gray-900 mb-2">Verify your email</h1>
               <p className="text-sm text-gray-600">
@@ -130,7 +134,7 @@ const Otp = () => {
             <CardFooter className="flex flex-col space-y-4 pt-6">
               <p className="text-sm text-center text-gray-600">
                 Already verified?{" "}
-                <a href="/auth/vendor/login" className="text-blue-600 hover:underline font-medium">
+                <a href="/auth/vendor/login" className="text-[#0A6C6D] hover:underline font-medium">
                   Login
                 </a>
               </p>
@@ -164,3 +168,6 @@ const Otp = () => {
 }
 
 export default Otp
+
+
+

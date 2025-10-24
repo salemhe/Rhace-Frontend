@@ -5,6 +5,7 @@ import Header from '../hotel/add-rooms/components/Header';
 import { clubService } from '@/services/club.service';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
+import { toast } from 'sonner';
 
 const BottleServiceManager = () => {
    const [currentStep, setCurrentStep] = useState(1);
@@ -14,6 +15,7 @@ const BottleServiceManager = () => {
    const [categoryFilter, setCategoryFilter] = useState('All Category');
    const [selectedDrinks, setSelectedDrinks] = useState([]);
    const [uploadedImages, setUploadedImages] = useState([]);
+   const [bottleSetImage, setBottleSetImage] = useState(null);
    const vendor = useSelector((state) => state.auth.vendor);
    const [isLoading, setIsLoading] = useState(true);
 
@@ -93,8 +95,59 @@ const BottleServiceManager = () => {
       [uploadedImages]
    )
 
+   const handleImageUpload = (file) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('upload_preset', UPLOAD_PRESET);
+
+      axios.post(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, formData)
+         .then(response => {
+            const imageUrl = response.data.secure_url;
+            setBottleSetImage(imageUrl);
+         })
+         .catch(error => {
+            console.error('Upload failed for', file.name, error);
+         });
+   };
+
    const removeImage = (index) => {
       setUploadedImages(prev => prev.filter((_, i) => i !== index));
+   };
+
+   const handleSubmit = () => {
+      try {
+
+         if (!bottleSetName) {
+            toast.error('Please enter a bottle set name.');
+            return;
+         }
+
+         if (selectedDrinks.length === 0) {
+            toast.error('Please add at least one drink to the bottle set.');
+            return;
+         }
+
+         const bottleSetPayload = {
+            name: bottleSetName,
+            clubId: vendor._id,
+            items: selectedDrinks.map(drink => ({
+               drinkId: drink._id,
+               quantity: drink.quantity
+            })),
+            image: bottleSetImage,
+            addOns: addOnsList.filter(addOn => { return addOns[addOn.id] }).map(addOn => addOn.name),
+            setPrice: pricing.price,
+            discount: pricing.discountPrice,
+            priceVisibility: pricing.priceVisibility
+         };
+
+         const response = clubService.createBottleSet(bottleSetPayload);
+         console.log('Bottle set created successfully:', response);
+         toast.success('Bottle set created successfully!');
+
+      } catch (error) {
+         console.error('Error creating bottle set:', error);
+      }
    };
 
    const createNewDrink = async () => {
@@ -416,6 +469,28 @@ const BottleServiceManager = () => {
                   </div>
                )}
             </div>
+               <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 mt-4'>
+                  <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 sm:p-8 text-center hover:border-teal-500 transition-colors cursor-pointer block">
+                     <input
+                        type="file"
+                        accept="image/jpeg,image/png,image/gif"
+                        onChange={(e) => e.target.files && handleImageUpload(e.target.files[0])}
+                        className="hidden"
+                     />
+                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center">
+                        <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
+                     </div>
+                     <p className="text-xs sm:text-sm text-gray-600">
+                        Drag and drop an image here, or <span className="text-teal-600 font-medium">browse</span>
+                     </p>
+                     <p className="text-xs text-gray-400 mt-1">JPG, PNG OR GIF • Max 5MB</p>
+                  </label>
+                  {bottleSetImage && (
+                     <div className="mt-4">
+                        <img src={bottleSetImage} alt="Bottle Set" className="w-full h-48 object-cover rounded-lg" />
+                     </div>
+                  )}
+               </div>
          </div>
 
          {/* Preview Panel - Hidden on mobile, shown on desktop */}
@@ -492,6 +567,7 @@ const BottleServiceManager = () => {
                </button>
             </div>
          )}
+
       </div>
    );
 
@@ -624,7 +700,8 @@ const BottleServiceManager = () => {
                      Back
                   </button>
                   <button
-                     onClick={() => currentStep < 2 ? setCurrentStep(currentStep + 1) : alert('Setup complete!')}
+                     disabled={currentStep === 2 && selectedDrinks.length === 0}
+                     onClick={() => currentStep < 2 ? setCurrentStep(currentStep + 1) : handleSubmit()}
                      className="flex-1 sm:flex-none px-4 sm:px-6 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition-colors text-sm sm:text-base"
                   >
                      {currentStep === 2 ? 'Complete Setup' : 'Continue'}

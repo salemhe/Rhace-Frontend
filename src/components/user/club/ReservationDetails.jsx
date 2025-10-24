@@ -74,7 +74,11 @@ export default function ReservationDetails({
   const fetchCombos = async () => {
     try {
       setComboLoading(true);
-      // setComboItems(Combos);
+      const res = await clubService.getBottleSet(id);
+      console.log(res)
+      setComboItems(res.bottleSets.map((item) => {
+        return { ...item, quantity: 0 }
+      }));
     } catch (error) {
       console.error("Error fetching vendor:", error);
     } finally {
@@ -306,7 +310,7 @@ export default function ReservationDetails({
                         <div className="relative w-full overflow-hidden rounded-2xl">
                           <img
                             src={item.image}
-                            alt={item.title}
+                            alt={item.name}
                             className="object-cover size-full"
                           />
                           {item.specials && (
@@ -316,9 +320,9 @@ export default function ReservationDetails({
                           )}
                         </div>
                         <div className="px-3 space-y-3">
-                          <p className="text-[#111827] text-sm">{item.title}</p>
+                          <p className="text-[#111827] text-sm">{item.name}</p>
                           <div className="space-y-2">
-                            {item.offers.map((offer, i) => (
+                            {item.addOns.slice(0, 4).map((offer, i) => (
                               <div key={i} className="flex items-center gap-2 ">
                                 <Check className="text-[#0A6C6D]" />
                                 <span className="text-sm text-[#111827]">
@@ -329,7 +333,7 @@ export default function ReservationDetails({
                           </div>
                           <div className="flex items-center justify-between w-full">
                             <p className="text-sm text-[#111827]">
-                              #{item.price.toLocaleString()}
+                              #{item.setPrice.toLocaleString()}
                             </p>
                             <div className="flex items-center gap-2">
                               <div
