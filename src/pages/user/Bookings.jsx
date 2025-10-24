@@ -91,8 +91,8 @@ function BookingsPage() {
       }
    };
 
-   const upcomingBookings = bookings.filter((b) => b.is_upcoming);
-   const pastBookings = bookings.filter((b) => !b.is_upcoming);
+   const upcomingBookings = bookings.upcoming;
+   const pastBookings = bookings.past;
    const displayBookings = activeTab === 'upcoming' ? upcomingBookings : pastBookings;
 
    useEffect(() => {

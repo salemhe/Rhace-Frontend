@@ -83,7 +83,7 @@ function BookingCard ({ booking, onEdit, onDelete }) {
               <Calendar className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm">
                 {booking.reservationType.split("R")[0] === "restaurant" ? formatDate(booking.date) : booking.reservationType.split("R")[0] === "hotel" ? 
-                `${formatDate(booking.check_in)} - ${formatDate(booking.check_out)}` : ""
+                `${formatDate(booking.checkInDate)} - ${formatDate(booking.checkOutDate)}` : formatDate(booking.date)
                 }
               </span>
             </div>

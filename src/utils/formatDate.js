@@ -18,6 +18,16 @@ export function formatCustomDate(dateString) {
   return `${time}. ${formattedDate}`;
 }
 
+export function formatTime(dateString) {
+  const date = new Date(dateString);
+    const time = date.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).toLowerCase(); //
+  return time;
+}
+
 export function formatDate(dateString) {
   const date = new Date(dateString);
 

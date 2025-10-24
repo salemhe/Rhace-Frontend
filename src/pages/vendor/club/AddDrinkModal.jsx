@@ -219,7 +219,7 @@ export function AddDrinkModal({ onClose, onSuccess }) {
                <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Image Upload</label>
                   <p className="text-xs text-gray-500 mb-3">You can add up to 3 images</p>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-teal-500 transition-colors">
+                  {/* <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-teal-500 transition-colors"> */}
                      <label htmlFor='item-cover-image' className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">
                         <DownloadCloud className="w-6 h-6 mb-2" />
                         <p>Drag and drop an image here, or</p>
@@ -236,7 +236,7 @@ export function AddDrinkModal({ onClose, onSuccess }) {
                            className='sr-only'
                         />
                      </label>
-                     {formData.images && (
+                     {formData.images.length > 0 && (
                         <div className="w-32 h-32 rounded-md overflow-hidden">
                            <img
                               src={formData.images[0]}
@@ -245,7 +245,7 @@ export function AddDrinkModal({ onClose, onSuccess }) {
                            />
                         </div>
                      )}
-                  </div>
+                  {/* </div> */}
                </div>
 
                <div>
