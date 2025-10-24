@@ -10,6 +10,7 @@ import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
 import { setVendor, setAdmin } from "@/redux/slices/authSlice"
+import logo from "../../../assets/Rhace-11.png"
 
 const getCurrentYear = () => new Date().getFullYear();
 
@@ -89,9 +90,14 @@ const Login = () => {
         <div className="min-h-screen flex items-center justify-center">
           <Card className="w-full max-w-md bg-white shadow-none p-0 border-none">
             <CardHeader className="text-center pb-6">
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <div className="w-6 h-6 bg-[#B3D1D2] rounded-full flex items-center justify-center"></div>
-                <span className="text-xl font-semibold text-gray-900">Rhace</span>
+              <div className="flex items-center justify-center gap-2">
+                <a href="/auth/vendor/signup" className="cursor-pointer">
+                  <img
+                    src={logo} 
+                    alt="Rhace Logo"
+                    className="w-20 h-20 object-contain"
+                  />
+                </a> 
               </div>
               <h1 className="text-2xl font-semibold text-gray-900 mb-2">Welcome Back</h1>
               <p className="text-sm text-gray-600">We're glad to see you again. Please log in to your account.</p>
@@ -117,7 +123,7 @@ const Login = () => {
                 </div>
                 {error.email && <p className="text-sm text-red-600 mt-1">{error.email}</p>}
               </div>
-              <div className="space-y-2">
+              {/* <div className="space-y-2">
                 <Label htmlFor="role" className="text-sm font-medium text-gray-700">
                   Role
                 </Label>
@@ -133,7 +139,7 @@ const Login = () => {
                   <option value="vendor">Vendor</option>
                   <option value="admin">Admin</option>
                 </select>
-              </div>
+              </div> */}
               <div className="space-y-2">
                 <Label htmlFor="password" className="text-sm font-medium text-gray-700">
                   Password

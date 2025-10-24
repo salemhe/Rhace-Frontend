@@ -188,6 +188,7 @@ import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
 import { setUser } from "@/redux/slices/authSlice"
+import logo from "../../../assets/Rhace-11.png"
 
 const getCurrentYear = () => new Date().getFullYear();
 
@@ -252,12 +253,14 @@ const Login = () => {
     <div className="w-full min-h-screen flex flex-col items-center justify-center bg-gray-50 px-4 py-8 relative">
 
       {/* Logo — positioned outside the card */}
-      <div
-        className="absolute top-6 left-4 sm:left-10 flex items-center gap-2 
-                   sm:top-[8%] sm:-translate-y-1/2"
-      >
-        <div className="w-8 h-8 sm:w-7 sm:h-7 bg-blue-300 rounded-full flex items-center justify-center" />
-        <span className="text-lg sm:text-xl font-semibold text-gray-900">Rhace</span>
+      <div className="absolute top-6 left-4 sm:left-10 flex items-center gap-2 sm:top-[8%] sm:-translate-y-1/2">
+        <a href="/" className="cursor-pointer">
+          <img
+            src={logo} 
+            alt="Rhace Logo"
+            className="w-20 h-20 object-contain"
+          />
+        </a>
       </div>
 
       {/* Login Card */}

@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
+import logo from "../../../assets/Rhace-11.png"
 import {
   Building2,
   MapPin,
@@ -35,6 +36,7 @@ import api from "@/lib/axios"
 import { useNavigate } from "react-router"
 import { authService } from "@/services/auth.service"
 
+
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
 const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
 
@@ -58,6 +60,60 @@ const STEPS = [
     icon: Tag,
   },
 ]
+
+
+// --- SVG ICONS ---
+const SvgIcon = ({ isActive }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-6 h-6"
+    fill={isActive ? "#0A6C6D" : "none"}
+    stroke={isActive ? "#fff" : "#0A6C6D"}
+    strokeWidth={1.5}
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3 10h18M4 10V7a1 1 0 011-1h14a1 1 0 011 1v3m-1 0v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-9m4 5h8"
+    />
+  </svg>
+)
+
+const SvgIcon2 = ({ isActive }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-6 h-6"
+    fill={isActive ? "#0A6C6D" : "none"}
+    stroke={isActive ? "#fff" : "#0A6C6D"}
+    strokeWidth={1.5}
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M3 4h18M4 4v16a1 1 0 001 1h14a1 1 0 001-1V4M8 10h8M8 14h4"
+    />
+  </svg>
+)
+
+const SvgIcon3 = ({ isActive }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    className="w-6 h-6"
+    fill={isActive ? "#0A6C6D" : "none"}
+    stroke={isActive ? "#fff" : "#0A6C6D"}
+    strokeWidth={1.5}
+    viewBox="0 0 24 24"
+  >
+    <path
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M5 12h14M12 5v14"
+    />
+  </svg>
+)
+
 
 const NIGERIAN_BANKS = [
   { name: "Access Bank", code: "044" },
@@ -157,6 +213,71 @@ export function Onboard() {
     },
     [formData.profileImages]
   )
+
+
+  const SvgIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    fill="none"
+    viewBox="0 0 16 16"
+    className={className}
+  >
+    <path
+      fill="#1f2937"  // ← Tailwind's gray-800
+      stroke="#fff"
+      strokeWidth="1"
+      fillRule="evenodd"
+      d="M5.5 1.333A.833.833 0 0 1 6.333.5h3.334a.833.833 0 0 1 0 1.667h-.834v.862c4.534.409 7.509 5.11 5.775 9.447a.83.83 0 0 1-.775.524H2.167a.83.83 0 0 1-.774-.524c-1.735-4.337 1.24-9.038 5.774-9.447v-.862h-.834a.833.833 0 0 1-.833-.834m2.308 3.334c-3.521 0-5.986 3.377-5.047 6.666h10.478c.94-3.289-1.526-6.666-5.047-6.666zm-7.308 10a.833.833 0 0 1 .833-.834h13.334a.833.833 0 0 1 0 1.667H1.333a.833.833 0 0 1-.833-.833"
+      clipRule="evenodd"
+    />
+  </svg>
+);
+
+const SvgIcon2 = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="18"
+    height="18"
+    fill="none"
+    viewBox="0 0 18 18"
+    className={className}
+  >
+    <path
+      fill="#1f2937"
+      stroke="#fff"
+      strokeWidth="1"
+      fillRule="evenodd"
+      d="M7.96.83a1.67 1.67 0 0 0-1.384.153l-3.433 2.06a1.67 1.67 0 0 0-.81 1.429v11.195H1.5a.833.833 0 0 0 0 1.666h15a.833.833 0 1 0 0-1.666h-.833V4.6a1.67 1.67 0 0 0-1.14-1.58zM14 15.668V4.6L8.167 2.657v13.01zM6.5 2.972 4 4.472v11.195h2.5z"
+      clipRule="evenodd"
+    />
+  </svg>
+);
+
+const SvgIcon3 = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="14"
+    height="18"
+    viewBox="0 0 14 18"
+    fill="none"
+    className={className}
+  >
+    <path
+      fill="none"
+      stroke="#000"   // 👈 changed from #fff to #000
+      strokeWidth="1"
+      fillRule="evenodd"
+      d="M11.1666 0.666992C11.8296 0.666992 12.4655 0.930384 12.9344 1.39923C13.4032 1.86807 13.6666 2.50395 13.6666 3.16699V14.8337C13.6666 15.4967 13.4032 16.1326 12.9344 16.6014C12.4655 17.0703 11.8296 17.3337 11.1666 17.3337H2.83325C2.17021 17.3337 1.53433 17.0703 1.06549 16.6014C0.596644 16.1326 0.333252 15.4967 0.333252 14.8337V3.16699C0.333252 2.50395 0.596644 1.86807 1.06549 1.39923C1.53433 0.930384 2.17021 0.666992 2.83325 0.666992H11.1666Z"
+      clipRule="evenodd"
+    />
+  </svg>
+)
+
+
+
+
 
   const handleBankVerification = async () => {
     if (!formData.bankCode || !formData.accountNumber) return
@@ -280,13 +401,16 @@ export function Onboard() {
         <div className="min-h-screen flex items-center py-5 justify-center">
           <Card className="w-full max-w-lg bg-white shadow-none gap-3 p-0 border-none">
             <CardHeader className="text-left">
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <div className="w-6 h-6 bg-[#B3D1D2] rounded-full flex items-center justify-center"></div>
-                <span className="text-xl font-semibold text-gray-900">Rhace</span>
+              <div className="flex items-center justify-center gap-2 mb-3">
+                <img
+                  src={logo} 
+                  alt="Rhace Logo"
+                  className="w-20 h-20 object-contain"
+                />
               </div>
               {currentStep === 1 && (
                 <>
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Tell us about your business</h2>
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">Tell us about your business</h2>
                   <p className="text-muted-foreground text-pretty max-w-2xl">
                     Share some details about what you offer and how customers can find you.
                   </p>
@@ -385,9 +509,9 @@ export function Onboard() {
                     <Label className="text-base font-medium">Business Type</Label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {[
-                        { value: "hotel", label: "Hotel", Icon: Building2 },
-                        { value: "restaurant", label: "Restaurant", Icon: Utensils },
-                        { value: "club", label: "Club", Icon: Music },
+                        { value: "hotel", label: "Hotel", Icon: SvgIcon2 },
+                        { value: "restaurant", label: "Restaurant", Icon: SvgIcon},
+                        { value: "club", label: "Club", Icon: SvgIcon3 },
                       ].map(({ value, label, Icon }) => (
                         <button
                           key={value}
