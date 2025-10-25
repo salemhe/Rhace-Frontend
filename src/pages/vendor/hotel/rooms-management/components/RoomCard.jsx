@@ -19,8 +19,8 @@ const RoomCard = ({ room,  onViewDetails, }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden transition-transform hover:scale-105">
-      <div className="relative h-48 overflow-hidden bg-gray-200">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-[#E5E7EB] transition-transform hover:scale-105">
+      <div className="relative h-48 overflow-hidden bg-gray-200 rounded-lg mx-1 mt-1">
         {room.images && room.images.length > 0 ? (
           <img
             src={room.images[0]}
@@ -47,7 +47,7 @@ const RoomCard = ({ room,  onViewDetails, }) => {
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-3 border-t border-gray-100">
+        <div className="flex justify-between items-center pt-3 mt-4">
          <div className="text-left">
             <p className="text-xl font-bold text-[#111827]">#{room.pricePerNight.toLocaleString()}</p>
           </div>
