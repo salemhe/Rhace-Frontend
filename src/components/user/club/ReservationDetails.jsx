@@ -14,14 +14,14 @@ import { useReservations } from "@/contexts/club/ReservationContext";
 import ReservationHeader from "./ReservationHeader";
 import { TimePicker } from "../ui/timepicker";
 import { toast } from "sonner";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import DatePicker from "../ui/datepicker";
 import { GuestPicker } from "../ui/guestpicker";
 import { TablePicker } from "../ui/tablepicker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router";
-import { Bottles, ClubsData, Combos, VIP } from "@/lib/api";
+import { useInView, motion } from "framer-motion";
 import { userService } from "@/services/user.service";
 import { clubService } from "@/services/club.service";
 
@@ -59,6 +59,25 @@ export default function ReservationDetails({
   const [itemsToShow, setItemsToShow] = useState(8);
   const [activeTab, setActiveTab] = useState("All Bottles");
   const navigate = useNavigate();
+  const ref = useRef(null);
+  const containerRef = useRef(null);
+  const cardRef = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % comboItems.length);
+  };
+
+  const prevSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + comboItems.length) % comboItems.length);
+  };
+
+  const slideWidth =
+    cardRef.current?.offsetWidth && containerRef.current
+      ? cardRef.current.offsetWidth + 24
+      : 0;
 
   const fetchVendor = async () => {
     try {
@@ -281,29 +300,38 @@ export default function ReservationDetails({
               </h3>
               <div className="flex gap-6">
                 <button
-                  disabled
+                  disabled={currentIndex === 0}
+                  onClick={prevSlide}
                   className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]"
                 >
                   <ChevronLeft />
                 </button>
-                <button className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
+                <button onClick={nextSlide} disabled={currentIndex === comboItems.length -1} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
                   <ChevronRight />
                 </button>
               </div>
             </div>
-            <div className="flex overflow-hidden w-full">
-              <div className="flex w-max">
+            <div className="flex overflow-hidden w-full" ref={containerRef} >
+            <motion.div
+              className="flex gap-6"
+              animate={{ x: -currentIndex * slideWidth }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            >
                 {comboLoading ? (
                   <div>ComboLoader</div>
                 ) : comboItems.length === 0 ? (
                   <div>No available Combos</div>
                 ) : (
-                  comboItems.map((item, i) => (
-                    <div
-                      key={i}
+                  comboItems.map((item, index) => {
+                  return (
+                    <motion.div
+                      key={index}
+                      ref={index === 0 ? cardRef : null}
+                      animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
                       className={`${item.selected
                         ? "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
-                        : "bg-transparent"
+                        : "flex-shrink-0 w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
                         } p-1 w-[254px]`}
                     >
                       <div className="p-2 w-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB]">
@@ -350,10 +378,10 @@ export default function ReservationDetails({
                           </div>
                         </div>
                       </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                    </motion.div>
+                  );
+                }))}
+              </motion.div>
             </div>
           </div>
 
@@ -374,11 +402,11 @@ export default function ReservationDetails({
                     <div
                       onClick={() => setActiveTab(item)}
                       className={`${activeTab === item
-                        ? "text-white bg-green rounded-full "
+                        ? "text-white bg-[#0A6C6D] flex rounded-full "
                         : "text-[#606368]"
-                        } text-sm px-4 py-2`}
+                        } text-sm px-4 py-2 min-w-max cursor-pointer`}
                       key={i}
-                    ></div>
+                    >{item}</div>
                   ))}
                 </div>
               </div>
@@ -389,13 +417,13 @@ export default function ReservationDetails({
               <div>No available Bottles</div>
             ) : (
               <>
-                <div className="grid sm:grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                   {displayedItems.map((item, i) => (
                     <div
                       key={i}
                       className="p-2 space-y-3 bg-white rounded-2xl border border-[#E5E7EB]"
                     >
-                      <div className="relative w-full h-48 overflow-hidden rounded-2xl">
+                      <div className="relative w-full h-24 md:h-48 overflow-hidden rounded-2xl">
                         <img
                           src={item.images[0]}
                           alt={item.name}
@@ -419,16 +447,16 @@ export default function ReservationDetails({
                             {item.description}
                           </p>
                         </div>
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center text-xs md:text-sm justify-between">
                           <p>#{item.price.toLocaleString()}</p>
                           <div className="flex items-center">
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 rounded-full"
+                              className=" size-5 md:size-8 rounded-full"
                               onClick={() => handleQuantityChange(item._id, -1)}
                             >
-                              <Minus className="h-3 w-3" />
+                              <Minus className="size-2 md:size-3" />
                             </Button>
                             <span className="w-8 text-center">
                               {item.quantity}
@@ -436,10 +464,10 @@ export default function ReservationDetails({
                             <Button
                               variant="outline"
                               size="icon"
-                              className="h-8 w-8 rounded-full"
+                              className=" size-5 md:size-8 rounded-full"
                               onClick={() => handleQuantityChange(item._id, 1)}
                             >
-                              <Plus className="h-3 w-3" />
+                              <Plus className="size-2 md:size-3" />
                             </Button>
                           </div>
                         </div>
@@ -469,9 +497,9 @@ export default function ReservationDetails({
             <h3 className="text-sm text-[#111827]">VIP Extras</h3>
             <div className="flex flex-col md:flex-row gap-4 w-full md:gap-6">
               {vipsLoading ? (
-                <div>ComboLoader</div>
+                <div>VIPloader</div>
               ) : vipExtraItems.length === 0 ? (
-                <div>No available Combos</div>
+                <div>No available VIPS Extras</div>
               ) : (
                 vipExtraItems.map((item, i) => (
                   <div
