@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { X, Upload, AlertCircle, DownloadCloud } from 'lucide-react';
 import { clubService } from '@/services/club.service';
-import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
 
@@ -11,7 +10,7 @@ export function AddDrinkModal({ onClose, onSuccess }) {
       category: '',
       volume: '',
       price: '',
-      images: [''],
+      images: [],
    });
    const [addOns, setAddOns] = useState({
       iceBucket: false,

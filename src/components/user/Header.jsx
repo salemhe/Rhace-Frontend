@@ -17,6 +17,10 @@ import { logout } from "@/redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { SearchSectionTwo } from "../SearchSection";
 
+// logo imports — 
+import logoWhite from '@/assets/Rhace-09.png';
+import logoBlack from '@/assets/Rhace-11.png';
+
 const Header = () => {
   const dispatch = useDispatch();
   const { pathname } = useLocation();
@@ -269,10 +273,11 @@ const Header = () => {
             <div className="flex">
               <div className="shrink-0 flex items-center">
                 <a href="/" className="flex items-center space-x-2">
-                  <span className="w-6 h-6 bg-blue-400 rounded-full inline-block" />
-                  <span className={`text-2xl font-bold ${scrolled || !isHomePage ? 'text-gray-900' : 'text-[#F9FAFB]'}`}>
-                    Rhace
-                  </span>
+                  <img 
+                    src={logoBlack} 
+                    alt="Rhace Logo" 
+                    className="h-6 w-auto object-contain transition-all duration-300"
+                  />
                 </a>
               </div>
             </div>

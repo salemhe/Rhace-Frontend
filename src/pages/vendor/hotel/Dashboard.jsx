@@ -324,10 +324,9 @@ const HotelDashboard = () => {
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Today's Hotel Reservations</h3>
-                <button className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
+                <a href={`/dashboard/${vendor.vendorType}/bookings`} className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
                   View All
-                  <ChevronRight className="w-4 h-4 ml-1" />
-                </button>
+                </a>
               </div>
               <div className="p-5 space-y-3">
                 {hotelReservations.length > 0 ? (
