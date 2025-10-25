@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
 import { cn } from '@/lib/utils';
 import { useSelector } from 'react-redux';
+import { capitalize } from '@/utils/helper';
 
 const HotelDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);
@@ -118,10 +119,10 @@ const HotelDashboard = () => {
         total: 952000,
         change: 12,
         items: [
-          { category: 'Main Dish', percentage: 48, amount: 456960, color: 'bg-teal-600' },
-          { category: 'Drinks', percentage: 24, amount: 228480, color: 'bg-red-500' },
-          { category: 'Starters', percentage: 15, amount: 142800, color: 'bg-yellow-400' },
-          { category: 'Desserts', percentage: 8, amount: 76160, color: 'bg-purple-500' },
+          { category: 'Standard Luxury', percentage: 48, amount: 456960, color: 'bg-teal-600' },
+          { category: 'Executive Suite', percentage: 24, amount: 228480, color: 'bg-red-500' },
+          { category: 'Five Star', percentage: 15, amount: 142800, color: 'bg-yellow-400' },
+          { category: 'Deluxe Room', percentage: 8, amount: 76160, color: 'bg-purple-500' },
           { category: 'Sides', percentage: 5, amount: 47600, color: 'bg-teal-300' }
         ]
       };
@@ -147,9 +148,7 @@ const HotelDashboard = () => {
       return {
         total: 100,
         sources: [
-          { name: '50 websites', value: 50, color: 'bg-teal-600' },
-          { name: '30 mobile', value: 30, color: 'bg-yellow-400' },
-          { name: '20 walk-in', value: 20, color: 'bg-blue-400' }
+          { name: '50 websites', value: 90, color: 'bg-teal-600' },
         ]
       };
     } else {
@@ -157,8 +156,6 @@ const HotelDashboard = () => {
         total: 430,
         sources: [
           { name: '220 websites', value: 51, color: 'bg-teal-600' },
-          { name: '130 mobile', value: 30, color: 'bg-yellow-400' },
-          { name: '80 walk-in', value: 19, color: 'bg-blue-400' }
         ]
       };
     }
@@ -231,7 +228,7 @@ const HotelDashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome Back, Joseph!</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Welcome Back, {capitalize(vendor.businessName)}!</h1>
             <p className="text-gray-600 mt-1">Here's what is happening today.</p>
           </div>
           {/* <div>

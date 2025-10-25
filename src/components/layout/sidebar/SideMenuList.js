@@ -7,6 +7,7 @@ import  { UsersIcon,
   SettingsIcon,
   LogoutIcon,
   MenuIcon,
+  PeopleIcon,
 } from "../../../assets/icons/icons";
 
 export const AdminList = {
@@ -73,6 +74,7 @@ export const ClubList = {
       path: "/dashboard/club/payments",
       icon: PaymentIcon,
     },
+      { icon: PeopleIcon, label: 'Staffs', path: '/dashboard/club/Staffs' },
   ],
   bottomItems: [
     {
@@ -110,6 +112,8 @@ export const HotelList = {
       path: "/dashboard/hotel/payments",
       icon: PaymentIcon,
     },
+    
+     { icon: PeopleIcon, label: 'Staffs', path: '/dashboard/hotel/staffs' },
   ],
   bottomItems: [
     {
@@ -142,6 +146,8 @@ export const RestaurantList = {
       path: "/dashboard/restaurant/menu",
       icon: MenuIcon,
     },
+    
+    { icon: PeopleIcon, label: 'Staffs', path: '/dashboard/restaurant/staffs' },
     {
       label: "Payments",
       path: "/dashboard/restaurant/payments",

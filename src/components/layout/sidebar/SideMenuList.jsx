@@ -9,7 +9,6 @@ export const RestaurantList = {
     // { icon: MapPin, label: 'Branches', path: '/restaurant/branches' },
     { icon: MenuIcon, label: 'Menu Management', path: '/dashboard/restaurant/menu' },
     { icon: PaymentIcon, label: 'Payments', path: '/dashboard/restaurant/payments' },
-    { icon: PeopleIcon, label: 'Staffs', path: '/restaurant/staffs' },
   ],
   bottomItems: [
     { icon: SettingIcon, label: 'Settings', path: '/dashboard/restaurant/settings' },

@@ -4,6 +4,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout';
 import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
 import { cn } from '@/lib/utils';
 import { useSelector } from 'react-redux';
+import { capitalize } from '@/utils/helper';
 
 const VendorDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);
@@ -229,7 +230,7 @@ const VendorDashboard = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome Back, Joseph!</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Welcome Back, {capitalize(vendor.businessName)}!</h1>
             <p className="text-gray-600 mt-1">Here's what is happening today.</p>
           </div>
           {/* <div>
