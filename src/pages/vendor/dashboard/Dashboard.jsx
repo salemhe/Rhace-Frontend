@@ -315,13 +315,13 @@ const VendorDashboard = () => {
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Today's Reservation</h3>
-                <button className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
+                <a href={`/dashboard/${vendor.vendorType}/reservation`} className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
                   View All
                   <ChevronRight className="w-4 h-4 ml-1" />
-                </button>
+                </a>
               </div>
               <div className="p-5 space-y-3">
-                {reservationStats.todaysReservations.map((reservation) => (
+                {reservationStats.todaysReservations.slice(0, 5).map((reservation) => (
                   <div key={reservation._id} className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-lg transition-colors">
                     <div className="flex items-center flex-1">
                       <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">

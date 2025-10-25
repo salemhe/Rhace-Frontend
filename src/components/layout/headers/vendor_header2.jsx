@@ -2,21 +2,23 @@ import React from 'react';
 import { Search, Bell, Menu, User, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft } from '@/components/dashboard/ui/svg';
+import { useSelector } from 'react-redux';
 
 const Header2 = ({ title }) => {
+    const vendor = useSelector(state => state.auth.vendor)
     const navigate = useNavigate()
     return (
-        <header className="bg-white border-b border-gray-200 h-16 flex items-center px-6 relative">
+        <header className="bg-white border-b border-gray-200 h-16 flex items-center px-4 md:px-6 relative">
             {/* Mobile menu button */}
             {/* Logo */}
             <div className='flex items-center h-full gap-4'>
-                <div className="flex items-center h-16 px-4">
+                <div className="hidden md:flex items-center h-16 px-4">
                     <div className="flex items-center">
                         <div className="w-6 h-6 bg-slate-300 rounded-full mr-3"></div>
                         <span className="text-xl font-bold">Rhace</span>
                     </div>
                 </div>
-                <div className='h-2/5 w-[1px] bg-accent' />
+                <div className='h-2/5 w-[1px] bg-accent hidden md:flex ' />
                 <div className='flex gap-3 items-center'>
                     <button
                         onClick={() => navigate(-1)}
@@ -24,7 +26,7 @@ const Header2 = ({ title }) => {
                     >
                         <ArrowLeft fill="#111827" className="w-6 h-6" />
                     </button>
-                    <div className='font-semibold text-[#111827] text-lg'>
+                    <div className='font-semibold line-clamp-1 text-[#111827] text-lg'>
                         {title}
                     </div>
                 </div>
@@ -48,8 +50,8 @@ const Header2 = ({ title }) => {
                         <User className="w-5 h-5 text-white" />
                     </div>
                     <div className="hidden md:block">
-                        <div className="text-sm font-medium text-gray-900">Joseph Eyebiokin</div>
-                        <div className="text-xs text-gray-500">Admin</div>
+                        <div className="text-sm font-medium text-gray-900">{vendor.businessName}</div>
+                        <div className="text-xs text-gray-500">{vendor.vendorType}</div>
                     </div>
                     <ChevronDown className="w-4 h-4 text-gray-500" />
                 </div>
