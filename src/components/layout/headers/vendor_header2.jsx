@@ -3,6 +3,7 @@ import { Search, Bell, Menu, User, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft } from '@/components/dashboard/ui/svg';
 import { useSelector } from 'react-redux';
+import logo from '@/assets/Rhace-11.png';
 
 const Header2 = ({ title }) => {
     const vendor = useSelector(state => state.auth.vendor)
@@ -14,8 +15,13 @@ const Header2 = ({ title }) => {
             <div className='flex items-center h-full gap-4'>
                 <div className="hidden md:flex items-center h-16 px-4">
                     <div className="flex items-center">
-                        <div className="w-6 h-6 bg-slate-300 rounded-full mr-3"></div>
-                        <span className="text-xl font-bold">Rhace</span>
+                        <a href="/dashboard/restaurant">
+                            <img 
+                                src={logo} 
+                                alt="Rhace Logo" 
+                                className="h-6 w-auto object-contain transition-all duration-300"
+                            />
+                        </a>
                     </div>
                 </div>
                 <div className='h-2/5 w-[1px] bg-accent hidden md:flex ' />
