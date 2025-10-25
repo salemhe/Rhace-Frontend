@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Users, DollarSign, User, Clock, X, ChevronRight, ExternalLink } from 'lucide-react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
 import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
-import { cn } from '@/lib/utils';
-import { useSelector } from 'react-redux';
+import DashboardLayout from '@/components/layout/DashboardLayout';
 import { reservationService } from '@/services/reservation.service';
 import { formatDate, formatTime } from '@/utils/formatDate';
+import { capitalize } from '@/utils/helper';
+import { ChevronRight, Clock, ExternalLink, User, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 
 const ClubDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);
@@ -259,7 +259,7 @@ const ClubDashboard = () => {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Welcome Back, Joseph!</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Welcome Back, {capitalize(vendor.businessName)}!</h1>
               <p className="text-gray-600 mt-1">Here's what is happening today.</p>
             </div>
             {/* <div>

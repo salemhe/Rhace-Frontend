@@ -68,7 +68,6 @@ import Settings from "./pages/vendor/settings/settings";
 import ClubDashboard from "./pages/vendor/club/Dashboard";
 import HotelDashboard from "./pages/vendor/hotel/Dashboard";
 import ClubReservationTable from "./pages/vendor/club/reservations";
-import StaffManagementSystem from "./pages/dashboard/StaffManagement";
 
 
 // Admin
@@ -81,6 +80,7 @@ import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import UserProtectedRoute from "./components/UserProtectedRoute";
+import StaffManagementSystem from "./pages/vendor/dashboard/StaffManagement";
 
 const authRoutes = {
   user: [
