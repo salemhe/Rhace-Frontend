@@ -22,6 +22,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router";
 import { Bottles, ClubsData, Combos, VIP } from "@/lib/api";
+import { userService } from "@/services/user.service";
+import { clubService } from "@/services/club.service";
 
 export default function ReservationDetails({
   id,
@@ -61,7 +63,8 @@ export default function ReservationDetails({
   const fetchVendor = async () => {
     try {
       setLoading(true);
-      setVendor(ClubsData.data[0]);
+      const res = await userService.getVendor("club", id);
+      setVendor(res.data[0]);
     } catch (error) {
       console.error("Error fetching vendor:", error);
     } finally {
@@ -71,7 +74,11 @@ export default function ReservationDetails({
   const fetchCombos = async () => {
     try {
       setComboLoading(true);
-      setComboItems(Combos);
+      const res = await clubService.getBottleSet(id);
+      console.log(res)
+      setComboItems(res.bottleSets.map((item) => {
+        return { ...item, quantity: 0 }
+      }));
     } catch (error) {
       console.error("Error fetching vendor:", error);
     } finally {
@@ -81,7 +88,9 @@ export default function ReservationDetails({
   const fetchBottles = async () => {
     try {
       setBottlesLoading(true);
-      setBottleItems(Bottles.map((item) => {
+      const res = await clubService.getDrinks(id);
+      console.log(res)
+      setBottleItems(res.drinks.map((item) => {
         return { ...item, quantity: 0 }
       }));
     } catch (error) {
@@ -93,7 +102,7 @@ export default function ReservationDetails({
   const fetchVIPS = async () => {
     try {
       setVIPSLoading(true);
-      setVipExtraItems(VIP);
+      // setVipExtraItems(VIP);
     } catch (error) {
       console.error("Error fetching vendor:", error);
     } finally {
@@ -215,7 +224,7 @@ export default function ReservationDetails({
           <div className="flex gap-4">
             <div className="relative size-[64px] md:w-32 md:h-24 rounded-2xl overflow-hidden flex-shrink-0">
               <img
-                src={vendor?.profileImages?.[0]?.url || "/hero-bg.png"}
+                src={vendor?.profileImages?.[0] || "/hero-bg.png"}
                 alt="Restaurant interior"
                 className="object-cover size-full"
               />
@@ -301,7 +310,7 @@ export default function ReservationDetails({
                         <div className="relative w-full overflow-hidden rounded-2xl">
                           <img
                             src={item.image}
-                            alt={item.title}
+                            alt={item.name}
                             className="object-cover size-full"
                           />
                           {item.specials && (
@@ -311,9 +320,9 @@ export default function ReservationDetails({
                           )}
                         </div>
                         <div className="px-3 space-y-3">
-                          <p className="text-[#111827] text-sm">{item.title}</p>
+                          <p className="text-[#111827] text-sm">{item.name}</p>
                           <div className="space-y-2">
-                            {item.offers.map((offer, i) => (
+                            {item.addOns.slice(0, 4).map((offer, i) => (
                               <div key={i} className="flex items-center gap-2 ">
                                 <Check className="text-[#0A6C6D]" />
                                 <span className="text-sm text-[#111827]">
@@ -324,7 +333,7 @@ export default function ReservationDetails({
                           </div>
                           <div className="flex items-center justify-between w-full">
                             <p className="text-sm text-[#111827]">
-                              #{item.price.toLocaleString()}
+                              #{item.setPrice.toLocaleString()}
                             </p>
                             <div className="flex items-center gap-2">
                               <div
@@ -380,16 +389,16 @@ export default function ReservationDetails({
               <div>No available Bottles</div>
             ) : (
               <>
-                <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                <div className="grid sm:grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
                   {displayedItems.map((item, i) => (
                     <div
                       key={i}
                       className="p-2 space-y-3 bg-white rounded-2xl border border-[#E5E7EB]"
                     >
-                      <div className="relative w-full overflow-hidden rounded-2xl">
+                      <div className="relative w-full h-48 overflow-hidden rounded-2xl">
                         <img
-                          src={item.image}
-                          alt={item.title}
+                          src={item.images[0]}
+                          alt={item.name}
                           className="object-cover size-full"
                         />
                         {item.specials && (
@@ -404,7 +413,7 @@ export default function ReservationDetails({
                         </div>
                         <div className="space-y-1">
                           <h4 className="text-sm font-medium text-[#111827]">
-                            {item.title}
+                            {item.name}
                           </h4>
                           <p className="text-sm text-[#606368]">
                             {item.description}

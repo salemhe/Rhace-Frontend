@@ -8,6 +8,7 @@ import HeroImage from '../../../components/auth/HeroImage'
 import { authService } from "@/services/auth.service"
 import { toast } from "sonner"
 import { useNavigate } from "react-router"
+import logo from "../../../assets/Rhace-11.png"
 
 const getCurrentYear = () => new Date().getFullYear();
 
@@ -96,10 +97,12 @@ const Signup = () => {
         <div className="min-h-screen flex items-center justify-center ">
           <Card className="w-full max-w-md bg-white shadow-none p-0 border-none">
             <CardHeader className="text-center pb-6">
-              <div className="flex items-center justify-center gap-2 mb-6">
-                <div className="w-6 h-6 bg-[#B3D1D2] rounded-full flex items-center justify-center">
-                </div>
-                <span className="text-xl font-semibold text-gray-900">Rhace</span>
+              <div className="flex items-center justify-center gap-2">
+                <img
+                  src={logo} 
+                  alt="Rhace Logo"
+                  className="w-20 h-20 object-contain"
+                />
               </div>
               <h1 className="text-2xl font-semibold text-gray-900 mb-2">Create an Account</h1>
               <p className="text-sm text-gray-600">Join now to streamline your experience from day one.</p>

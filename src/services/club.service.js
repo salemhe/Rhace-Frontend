@@ -32,22 +32,18 @@ class ClubService {
     }
   }
 
-  /**
-   * Get all room types for a hotel
-   * @param {string} hotelId
-   */
-  async getRoomTypes(hotelId) {
-    const res = await api.get(`/hotels/${hotelId}/roomtypes`);
+  async createBottleSet(data) {
+    const res = await api.post("/bottle-sets", data)
     return res.data;
   }
 
-  /**
-   * Get a single room type by id for a hotel
-   * @param {string} hotelId
-   * @param {string} id
-   */
-  async getRoomType(hotelId, id) {
-    const res = await api.get(`/hotels/${hotelId}/roomtypes/${id}`);
+  async getBottleSet(clubId) {
+    const res = await api.get(`/bottle-sets?clubId=${clubId}`);
+    return res.data;
+  }
+
+  async getDrinks(clubId) {
+    const res = await api.get(`/drinks?clubId=${clubId}`);
     return res.data;
   }
 }

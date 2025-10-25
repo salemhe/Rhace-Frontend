@@ -8,10 +8,12 @@ import { Button } from "@/components/ui/button";
 import DatePicker from "../ui/datepicker";
 import { TimePicker } from "../ui/timepicker";
 import { GuestPicker } from "../ui/guestpicker";
+import { TablePicker } from "../ui/tablepicker";
 
 const BookingForm = ({ id }) => {
     const [date, setDate] = useState();
     const [time, setTime] = useState("");
+    const [table, setTable] = useState("");
     const [request, setRequest] = useState("");
     const [guests, setGuests] = useState("1");
     const [isLoading, setIsLoading] = useState(false);
@@ -23,6 +25,7 @@ const BookingForm = ({ id }) => {
             date: date ? date.toISOString() : "",
             time,
             guests,
+            table,
             specialRequest: request,
         });
         setIsLoading(true);
@@ -53,6 +56,7 @@ const BookingForm = ({ id }) => {
                 <DatePicker value={date} onChange={setDate} />
                 <TimePicker value={time} onChange={setTime} />
             </div>
+            <TablePicker value={table} onChange={setTable} />
             <GuestPicker value={guests} onChange={setGuests} />
             <div className="flex flex-col gap-y-3">
                 <Label htmlFor="special-request">Special Request</Label>

@@ -5,6 +5,12 @@ import { useNavigate } from 'react-router';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '@/redux/slices/authSlice';
 
+
+// logo imports — 
+import logoWhite from '@/assets/Rhace-09.png';
+import logoBlack from '@/assets/Rhace-11.png';
+
+
 const UserHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -81,10 +87,11 @@ const UserHeader = () => {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <div className="w-[26px] h-[26px] bg-blue-400 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-lg"></span>
-            </div>
-            <span className={`text-2xl font-bold ${scrolled ? 'text-gray-900' : 'text-white'}`}>Rhace</span>
+            <img 
+              src={scrolled ? logoBlack : logoWhite} 
+              alt="Rhace Logo" 
+              className="h-6 w-auto object-contain transition-all duration-300"
+            />
           </div>
 
           {/* Desktop Navigation */}
@@ -98,7 +105,7 @@ const UserHeader = () => {
                   className={`transition-colors duration-200 text-base font-bold px-3 py-2 relative group ${scrolled ? 'text-gray-900' : 'text-white'}`}
                 >
                   {item.name}
-                  <span className={`absolute h-0.5 bg-blue-500 left-1/2 -translate-x-1/2 bottom-0 rounded-full transition-all duration-300 ${isActive ? 'w-6' : 'w-0 group-hover:w-6'}`} />
+                  <span className={`absolute h-2 bg-[#004d43] left-1/2 -translate-x-1/2 bottom-0 rounded-full transition-all duration-300 ${isActive ? 'w-6' : 'w-0 group-hover:w-6'}`} />
                 </a>
               );
             })}
@@ -156,6 +163,8 @@ const UserHeader = () => {
 };
 
 export default UserHeader;
+
+
 
 function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, user }) {
   const handleNavigation = (path) => {

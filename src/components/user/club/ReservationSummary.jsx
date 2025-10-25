@@ -34,13 +34,17 @@ export default function ReservationSummary({ id }) {
     totalPrice,
     setProposedPayment,
     proposedPayment,
-    handleSubmit
+    handleSubmit,
+    booking,
+    isLoading,
   } = useReservations();
   const navigate = useNavigate();
 
-  const handleContinue = () => {
-    handleSubmit
-    setPopupOpen(true)
+  const handleContinue = async () => {
+    const canPay = await handleSubmit();
+    if (canPay) {
+      setPopupOpen(true);
+    }
   }
 
   return (
@@ -76,7 +80,7 @@ export default function ReservationSummary({ id }) {
           <div className="flex gap-4">
             <div className="relative size-[64px] md:w-32 md:h-24 rounded-2xl overflow-hidden flex-shrink-0">
               <img
-                src={vendor?.profileImages?.[0]?.url || "/hero-bg.png"}
+                src={vendor?.profileImages[0] || "/hero-bg.png"}
                 alt="Restaurant interior"
                 className="object-cover size-full"
               />
@@ -124,18 +128,37 @@ export default function ReservationSummary({ id }) {
                   <h3 className="text-lg font-semibold">Reservation Details</h3>
                 </div>
                 <div className="space-y-4 p-4">
-                  {comboItems.map((item, i) => (
+                  {comboItems.filter((item) => item.selected).map((item, i) => (
                     <div
                       key={i}
                       className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
                     >
                       <div className="flex justify-between items-center">
-                        <p className="text-sm text-[#111827]">{item.title}</p>
+                        <p className="text-sm text-[#111827]">{item.name}</p>
                         <X className="text-[#606368]" />
                       </div>
                       <div className="flex justify-between items-center">
                         <p className="text-xs text-[#111827]">
-                          {item.offers.join(" ")}
+                          {item.addOns.join(" ")}
+                        </p>
+                        <p className="text-sm text-[#111827]">
+                          #{item.setPrice.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {bottleItems.filter((item) => item.quantity > 0).map((item, i) => (
+                    <div
+                      key={i}
+                      className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
+                    >
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-[#111827]">{item.name}</p>
+                        <X className="text-[#606368]" />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="text-xs text-[#111827]">
+                          {item.volume}ml x {item.quantity}
                         </p>
                         <p className="text-sm text-[#111827]">
                           #{item.price.toLocaleString()}
@@ -179,8 +202,8 @@ export default function ReservationSummary({ id }) {
                     <div className=" divide-y">
                       <div
                         className={`flex p-4 rounded-t-2xl justify-between items-center ${proposedPayment === totalPrice
-                            ? "border"
-                            : ""
+                          ? "border"
+                          : ""
                           }`}
                         onClick={() => {
                           setProposedPayment(totalPrice);
@@ -193,8 +216,8 @@ export default function ReservationSummary({ id }) {
                       </div>
                       <div
                         className={`flex p-4 rounded-b-2xl justify-between items-center ${proposedPayment === totalPrice / 2
-                            ? "border "
-                            : ""
+                          ? "border "
+                          : ""
                           }`}
                         onClick={() => {
                           setProposedPayment(totalPrice / 2);
@@ -234,23 +257,23 @@ export default function ReservationSummary({ id }) {
                       )?.toLocaleString()}
                     </p>
                   </div>
-                  {comboItems.length > 0 && (
+                  {comboItems.filter((item) => item.selected).length > 0 && (
                     <div className="flex items-center justify-between">
                       <p className="text-[#606368]">Premium combos</p>
                       <p className="text-[#111827]">
                         #
-                        {comboItems
-                          .reduce((total, item) => total + (item.price || 0), 0)
+                        {comboItems.filter((item) => item.selected)
+                          .reduce((total, item) => total + (item.setPrice || 0), 0)
                           ?.toLocaleString()}
                       </p>
                     </div>
                   )}
-                  {bottleItems.length > 0 && (
+                  {bottleItems.filter((item) => item.quantity > 0).length > 0 && (
                     <div className="flex items-center justify-between">
                       <p className="text-[#606368]">Premium Bottles</p>
                       <p className="text-[#111827]">
                         #
-                        {bottleItems
+                        {bottleItems.filter((item) => item.quantity > 0)
                           .reduce(
                             (total, item) =>
                               total + (item.price || 0) * (item.quantity || 1),
@@ -295,14 +318,14 @@ export default function ReservationSummary({ id }) {
           <Button
             className="bg-teal-600 hover:bg-teal-700 px-8 w-full max-w-xs rounded-xl cursor-pointer"
             onClick={handleContinue}
-            disabled={!date || !guestCount || !time || !table}
+            disabled={!date || !guestCount || !time || !table || isLoading}
           >
-            Complete Reservations
+            {isLoading ? "Processing..." : "Complete Reservations"}
           </Button>
         </div>
       </div>
       {popupOpen &&
-        <PaymentPage id={vendor._id} type="clubs" setPopupOpen={setPopupOpen} />
+        <PaymentPage booking={booking} id={vendor._id} type="clubs" setPopupOpen={setPopupOpen} />
       }
     </div>
   );
