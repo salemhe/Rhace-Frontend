@@ -6,6 +6,7 @@ import { clubService } from '@/services/club.service';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { toast } from 'sonner';
+import Header2 from '@/components/layout/headers/vendor_header2';
 
 const BottleServiceManager = () => {
    const [currentStep, setCurrentStep] = useState(1);
@@ -667,7 +668,7 @@ const BottleServiceManager = () => {
 
    return (
       <div className="min-h-screen bg-gray-50">
-         <Header title="Create New Bottle Set" />
+         <Header2 title="Create New Bottle Set" />
 
          {/* Step Indicator - Mobile */}
          <div className="bg-white border-b px-4 py-3 lg:hidden">
