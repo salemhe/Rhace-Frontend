@@ -200,7 +200,7 @@ const TableGrid = ({ title }) => {
                   </h3>
                 </div>
                 <div className="mt-2 space-y-1">
-                  <p className="text-sm text-gray-500">{restaurant.cuisines}</p>
+                  <p className="text-sm text-gray-500">{restaurant.cuisines.slice(0, 3).join(", ")}</p>
                   <p className="text-sm text-gray-500 line-clamp-1">{restaurant.address}</p>
                 </div>
               </div>

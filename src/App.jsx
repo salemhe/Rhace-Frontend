@@ -81,6 +81,9 @@ import AdminSettings from "./pages/admin/Settings";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import StaffManagementSystem from "./pages/vendor/dashboard/StaffManagement";
+import AboutRhace from "./pages/user/About";
+import ContactRhace from "./pages/user/Contact";
+import HelpCenterRhace from "./pages/user/HelpCenter";
 
 const authRoutes = {
   user: [
@@ -96,7 +99,6 @@ const authRoutes = {
     { path: "forgot-password", element: <VendorForgotPassword /> },
     { path: "reset-password", element: <VendorResetPassword /> },
     { path: "otp", element: <VendorOtp /> },
-    { path: "onboarding", element: <Onboard /> },
   ],
 };
 
@@ -184,6 +186,9 @@ function App() {
         <Route element={<Layout />}>
           {/* Home */}
           <Route path="/" element={<ReservationHomePage />} />
+          <Route path="/about" element={<AboutRhace />} />
+          <Route path="/contact" element={<ContactRhace />} />
+          <Route path="/faq" element={<HelpCenterRhace />} />
 
           {/* Authentication */}
           <Route path="/auth">
@@ -235,6 +240,8 @@ function App() {
             ))}
           </Route>
           <Route element={<ProtectedRoute />}>
+            {/* Onboarding */}
+            <Route path="/auth/vendor/onboarding" element={<Onboard />} />
             {/* Admin Layout */}
             <Route path="/dashboard">
               {/* Admin Routes */}
