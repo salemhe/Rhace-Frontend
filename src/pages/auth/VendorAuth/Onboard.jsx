@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import logo from "../../../assets/Rhace-11.png"
+import { setVendor } from "@/redux/slices/authSlice"
 import {
   Building2,
   MapPin,
@@ -359,7 +360,8 @@ const SvgIcon3 = ({ className }) => (
     setIsloading(true)
 
     try {
-      await authService.vendorOnboard(formData)
+      const user = await authService.vendorOnboard(formData)
+      dispatchEvent(setVendor(user?.vendor));
 
       // Handle response (optional: use response.data if needed)
       toast.success("Completed Onboarding Successfully!")
