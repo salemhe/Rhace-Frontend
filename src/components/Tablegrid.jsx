@@ -201,7 +201,7 @@ const TableGrid = ({ title }) => {
                 </div>
                 <div className="mt-2 space-y-1">
                   <p className="text-sm text-gray-500">{restaurant.cuisines}</p>
-                  <p className="text-sm text-gray-500">{restaurant.address}</p>
+                  <p className="text-sm text-gray-500 line-clamp-1">{restaurant.address}</p>
                 </div>
               </div>
             </Link>
@@ -351,7 +351,7 @@ export const TableGridTwo = ({ title }) => {
   }, []);
 
   const handleMouseEnter = (restaurantId) => {
-    const restaurant = restaurant.find(r => r.id === restaurantId);
+    const restaurant = restaurants.find(r => (r._id || String(r.id)) === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: true }));
@@ -367,7 +367,7 @@ export const TableGridTwo = ({ title }) => {
   };
 
   const handleMouseMove = useCallback((e, restaurantId) => {
-    const restaurant = restaurant.find(r => r.id === restaurantId);
+    const restaurant = restaurants.find(r => (r._id || String(r.id)) === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -380,10 +380,10 @@ export const TableGridTwo = ({ title }) => {
       ...prev,
       [restaurantId]: imageIndex
     }));
-  }, [hasMultipleImages]);
+  }, [restaurants, hasMultipleImages]);
 
   const handleMouseLeave = useCallback((restaurantId) => {
-    const restaurant = restaurant.find(r => r.id === restaurantId);
+    const restaurant = restaurants.find(r => (r._id || String(r.id)) === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: false }));
@@ -393,13 +393,13 @@ export const TableGridTwo = ({ title }) => {
         ...prev,
         [restaurantId]: 0
       }));
-    }, 300);
+    }, 300); // Reduced timeout for smoother experience
 
     setResetTimeouts(prev => ({
       ...prev,
       [restaurantId]: timeout
     }));
-  }, [hasMultipleImages]);
+  }, [restaurants, hasMultipleImages]);
 
   useEffect(() => {
     return () => {
@@ -426,7 +426,7 @@ export const TableGridTwo = ({ title }) => {
       <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
-          const currentIndex = currentIndices[restaurant._id || 0];
+          const currentIndex = currentIndices[restaurant._id] || 0;
           const multipleImages = hasMultipleImages(restaurant);
           const hovering = isHovering[restaurant._id || 0];
 
@@ -438,36 +438,41 @@ export const TableGridTwo = ({ title }) => {
               }}
               className="h-80 px-2 pt-2 pb-4 flex flex-col bg-white rounded-[20px] border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
             >
-              <div 
-                className={`relative h-52 w-full  cursor-pointer`}
-                onMouseEnter={() => handleMouseEnter(restaurant._id || 0)}
-                onMouseMove={multipleImages ? (e) => handleMouseMove(e, restaurant._id || 0) : undefined}
-                onMouseLeave={() => handleMouseLeave(restaurant._id || 0)}
+              <div
+                className="relative h-52 w-full cursor-pointer"
+                onMouseEnter={() => handleMouseEnter(restaurant._id)}
+                onMouseMove={
+                  multipleImages ? (e) => handleMouseMove(e, restaurant._id) : undefined
+                }
+                onMouseLeave={() => handleMouseLeave(restaurant._id)}
               >
                 <div className="relative h-full w-full overflow-hidden rounded-xl">
                   {images.map((image, index) => (
                     <img
                       key={index}
-                      src={typeof image === 'string' ? image : image}
+                      src={image}
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all size-full duration-300 ease-out ${
-                        multipleImages 
-                          ? `will-change-transform ${hovering ? 'brightness-105' : ''}` 
-                          : 'hover:scale-105'
+                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${
+                        multipleImages
+                          ? `will-change-transform ${hovering ? "brightness-105" : ""}`
+                          : "hover:scale-105"
                       }`}
-                      style={multipleImages ? {
-                        transform: `translateX(${(index - currentIndex) * 100}%)`,
-                        transition: hovering 
-                          ? 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease'
-                          : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease'
-                      } : {
-                        transition: 'transform 0.3s ease, brightness 0.3s ease'
-                      }}
+                      style={
+                        multipleImages
+                          ? {
+                              transform: `translateX(${(index - currentIndex) * 100}%)`,
+                              transition: hovering
+                                ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
+                                : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
+                            }
+                          : {
+                              transition: "transform 0.3s ease, brightness 0.3s ease",
+                            }
+                      }
                     />
                   ))}
-                  
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                 </div>
 
@@ -480,6 +485,21 @@ export const TableGridTwo = ({ title }) => {
                 <button className="absolute top-2 right-2 text-white cursor-pointer text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
                   <FiHeart />
                 </button>
+
+                {multipleImages && (
+                  <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1.5">
+                    {images.map((_, index) => (
+                      <span
+                        key={index}
+                        className={`block rounded-full transition-all duration-300 ease-out ${
+                          index === currentIndex
+                            ? "bg-white scale-125 w-6 h-2 shadow-md"
+                            : "bg-white/70 w-2 h-2 hover:bg-white/90"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="p-4 flex-1 flex flex-col justify-between">
@@ -499,7 +519,7 @@ export const TableGridTwo = ({ title }) => {
                 </div>
                 <div className="mt-2 space-y-1">
                   <p className="text-sm text-gray-500">{restaurant.cuisines}</p>
-                  <p className="text-sm text-gray-500">{restaurant.address}</p>
+                  <p className="text-sm text-gray-500 line-clamp-1">{restaurant.address}</p>
                 </div>
                 <div className="mt-2">
                   <div className="flex justify-between items-center">
@@ -509,14 +529,6 @@ export const TableGridTwo = ({ title }) => {
                     </div>
                     <div className="h-7 px-2 rounded-lg outline-1 outline-offset-[-1px] outline-yellow-500 inline-flex flex-col justify-center items-center gap-2">
                       <div className="inline-flex justify-start items-center gap-1.5">
-                        {/* <div className="w-4 h-4 relative overflow-hidden">
-                          <div className="w-4 h-4 left-0 top-0 absolute">
-                            <img 
-                              width={100}
-                              height={100} src="/sale_fill.svg" alt="discount"
-                             />
-                                  </div>
-                        </div> */}
                         <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">20% off</div>
                       </div>
                     </div>
@@ -532,7 +544,7 @@ export const TableGridTwo = ({ title }) => {
       <div className="flex sm:hidden gap-4 overflow-x-auto scrollbar-hide">
         {restaurants.map((restaurant) => {
          const images = getImagesForRestaurant(restaurant);
-          const currentIndex = currentIndices[restaurant._id || 0];
+          const currentIndex = currentIndices[restaurant._id] || 0;
           const multipleImages = hasMultipleImages(restaurant);
           const hovering = isHovering[restaurant._id || 0];
 
@@ -561,7 +573,7 @@ export const TableGridTwo = ({ title }) => {
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all duration-300 ease-out ${
+                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${
                         multipleImages
                           ? `will-change-transform ${hovering ? "brightness-105" : ""}`
                           : "hover:scale-105"
@@ -664,8 +676,18 @@ export const TableGridThree = ({ title }) => {
     return images.length > 1;
   }, []);
 
+const cuisineColorPalette = [
+  "bg-orange-100  outline-orange-200",
+  "bg-green-100 outline-green-200",
+  "bg-blue-100  outline-blue-200",
+  "bg-purple-100  outline-purple-200",
+  "bg-pink-100  outline-pink-200",
+  "bg-yellow-100  outline-yellow-200",
+  "bg-teal-100  outline-teal-200",
+];
+
   const handleMouseEnter = (restaurantId) => {
-    const restaurant = restaurant.find(r => r.id === restaurantId);
+    const restaurant = restaurants.find(r => (r._id || String(r.id)) === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: true }));
@@ -679,18 +701,9 @@ export const TableGridThree = ({ title }) => {
       });
     }
   };
-const cuisineColorPalette = [
-  "bg-orange-100  outline-orange-200",
-  "bg-green-100 outline-green-200",
-  "bg-blue-100  outline-blue-200",
-  "bg-purple-100  outline-purple-200",
-  "bg-pink-100  outline-pink-200",
-  "bg-yellow-100  outline-yellow-200",
-  "bg-teal-100  outline-teal-200",
-];
 
   const handleMouseMove = useCallback((e, restaurantId) => {
-    const restaurant = restaurant.find(r => r.id === restaurantId);
+    const restaurant = restaurants.find(r => (r._id || String(r.id)) === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     const rect = e.currentTarget.getBoundingClientRect();
@@ -703,10 +716,10 @@ const cuisineColorPalette = [
       ...prev,
       [restaurantId]: imageIndex
     }));
-  }, [hasMultipleImages]);
+  }, [restaurants, hasMultipleImages]);
 
   const handleMouseLeave = useCallback((restaurantId) => {
-    const restaurant = restaurant.find(r => r.id === restaurantId);
+    const restaurant = restaurants.find(r => (r._id || String(r.id)) === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: false }));
@@ -716,13 +729,13 @@ const cuisineColorPalette = [
         ...prev,
         [restaurantId]: 0
       }));
-    }, 300);
+    }, 300); // Reduced timeout for smoother experience
 
     setResetTimeouts(prev => ({
       ...prev,
       [restaurantId]: timeout
     }));
-  }, [hasMultipleImages]);
+  }, [restaurants, hasMultipleImages]);
 
   useEffect(() => {
     return () => {
@@ -749,7 +762,7 @@ const cuisineColorPalette = [
       <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
-          const currentIndex = currentIndices[restaurant._id || 0];
+          const currentIndex = currentIndices[restaurant._id] || 0;
           const multipleImages = hasMultipleImages(restaurant);
           const hovering = isHovering[restaurant._id || 0];
 
@@ -771,11 +784,11 @@ const cuisineColorPalette = [
                   {images.map((image, index) => (
                     <img
                       key={index}
-                      src={typeof image === 'string' ? image : image.url}
+                      src={typeof image === 'string' ? image : image}
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all duration-300 ease-out ${
+                      className={`absolute transition-all object-cover size-full duration-300 ease-out ${
                         multipleImages 
                           ? `will-change-transform ${hovering ? 'brightness-105' : ''}` 
                           : 'hover:scale-105'
@@ -794,39 +807,30 @@ const cuisineColorPalette = [
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                 </div>
 
-                {restaurant.badge && (
+                {restaurant.offer && (
                   <span className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm px-3 py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white">
-                    {restaurant.badge}
+                    {restaurant.offer}
                   </span>
                 )}
 
                 <button className="absolute top-2 right-2 text-white cursor-pointer text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
                   <FiHeart />
                 </button>
-{/* 
+
                 {multipleImages && (
                   <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1.5">
                     {images.map((_, index) => (
                       <span
                         key={index}
                         className={`block rounded-full transition-all duration-300 ease-out ${
-                          index === currentIndex 
-                            ? 'bg-white scale-125 w-6 h-2 shadow-md' 
-                            : 'bg-white/70 w-2 h-2 hover:bg-white/90'
+                          index === currentIndex
+                            ? "bg-white scale-125 w-6 h-2 shadow-md"
+                            : "bg-white/70 w-2 h-2 hover:bg-white/90"
                         }`}
                       />
                     ))}
                   </div>
-                )} */}
-
-                {/* {multipleImages && hovering && (
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-black/20">
-                    <div 
-                      className="h-full bg-white/80 transition-all duration-200 ease-out"
-                      style={{ width: `${((currentIndex + 1) / images.length) * 100}%` }}
-                    />
-                  </div>
-                )} */}
+                )}
               </div>
 
               <div className="p-4 flex-1 flex flex-col justify-between">
@@ -853,10 +857,9 @@ const cuisineColorPalette = [
                     })}
                   </div>
                 </div>
-                <div className="mt-2 justify-between flex">
-                  
-                  <p className="text-sm text-gray-500">{restaurant.address}</p>
-                  <div className="flex items-center mb-1">
+                <div className="mt-2 justify-between">
+                  <p className="text-sm text-gray-500 line-clamp-1">{restaurant.address}</p>
+                  <div className="flex mb-1 items-center">
                     <FiStar className="text-yellow-500 mr-1" />
                     <span className="text-sm font-medium text-gray-900">
                       {restaurant.rating?.toFixed(1)}
@@ -889,15 +892,15 @@ const cuisineColorPalette = [
 
        {/* Mobile scroll */}
       <div className="flex sm:hidden gap-4 overflow-x-auto scrollbar-hide">
-        {restaurants.map((restaurant) => {
+        {restaurants.map((restaurant, index) => {
          const images = getImagesForRestaurant(restaurant);
-          const currentIndex = currentIndices[restaurant.id || 0];
+          const currentIndex = currentIndices[restaurant._id] || 0;
           const multipleImages = hasMultipleImages(restaurant);
-          const hovering = isHovering[restaurant.id || 0];
+          const hovering = isHovering[restaurant._id || 0];
 
           return (
             <div
-              key={restaurant.id}
+              key={index}
               onClick={() => {
                 navigate(`/clubs/${restaurant._id}`);
               }}
@@ -906,21 +909,21 @@ const cuisineColorPalette = [
               {/* Same content inside box, no cutoff */}
               <div
                 className="relative h-44 w-full cursor-pointer"
-                onMouseEnter={() => handleMouseEnter(restaurant.id || 0)}
+                onMouseEnter={() => handleMouseEnter(restaurant._id || 0)}
                 onMouseMove={
-                  multipleImages ? (e) => handleMouseMove(e, restaurant.id || 0) : undefined
+                  multipleImages ? (e) => handleMouseMove(e, restaurant._id || 0) : undefined
                 }
-                onMouseLeave={() => handleMouseLeave(restaurant.id || 0)}
+                onMouseLeave={() => handleMouseLeave(restaurant._id || 0)}
               >
                 <div className="relative h-full w-full overflow-hidden rounded-xl">
                   {images.map((image, index) => (
                     <img
                       key={index}
                        src={typeof image === 'string' ? image : image.url}
-                      alt={restaurant.name}
+                      alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all duration-300 ease-out ${
+                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${
                         multipleImages
                           ? `will-change-transform ${hovering ? "brightness-105" : ""}`
                           : "hover:scale-105"
@@ -973,7 +976,7 @@ const cuisineColorPalette = [
                 <div>
                   
                   <h3 className="text-gray-900 text-sm font-medium font-['Inter'] leading-none">
-                    {restaurant.name}
+                    {restaurant.businessName}
                   </h3>
                   <div className="flex items-center mb-1">
                     <FiStar className="text-yellow-500 mr-1" />
@@ -986,8 +989,8 @@ const cuisineColorPalette = [
                   </div>
                 </div>
                 <div className="mt-2 space-y-1">
-                  <p className="text-xs text-gray-500">{restaurant.cuisine}</p>
-                  <p className="text-xs text-gray-500">{restaurant.location}</p>
+                  <p className="text-xs text-gray-500">age limit: {restaurant.ageLimit}+</p>
+                  <p className="text-xs text-gray-500">{restaurant.address}</p>
                 </div>
               </div>
             </div>
