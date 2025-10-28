@@ -34,7 +34,7 @@ const RoomDetailsModal = ({ room, isOpen, onClose, onEdit, onDelete,  onViewImag
       prev === (room.images?.length || 0) - 1 ? 0 : prev + 1
     );
   };
-
+console.log(room._id)
   return (
     <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50">
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">

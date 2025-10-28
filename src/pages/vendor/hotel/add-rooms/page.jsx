@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router';
 
 export default function AddRooms () {
   const [currentStep, setCurrentStep] = useState(1);
+  const [loading, setLoading]= useState(false);
 
   // Unified state for all form data (hotelInfo removed from workflow)
   const [completeFormData, setCompleteFormData] = useState({
@@ -163,6 +164,7 @@ export default function AddRooms () {
 const navigate = useNavigate()
   // Final form submission
   const handleFinalSubmit = async () => {
+    setLoading(true)
     // Validate that all required data is present
     if (!completeFormData.bookingPolicy) {
       alert('Please complete booking policy setup');
@@ -204,15 +206,15 @@ const navigate = useNavigate()
 
         };
 
-        console.log('Sending payload:', payload);
-
         // Create room type
         const res = await hotelService.createRoomType(hotelId, payload);
         created.push(res);
       }
 
       console.log('Created room types:', created);
-      navigate("/hotel/rooms")
+      
+    setLoading(false);
+      navigate("/dashboard/hotel/rooms")
     } catch (err) {
       // More detailed error logging for debugging 403 responses
       if (err?.response) {
@@ -240,6 +242,7 @@ const navigate = useNavigate()
 
       alert('An error occurred while creating room types. See console for details.');
     }
+    setLoading(false);
   };
 
   // Save as draft functionality

@@ -31,6 +31,48 @@ class HotelService {
       throw error;
     }
   }
+  async updateRoomType(hotelId, roomData, id) {
+    try {
+      const res = await api.put(`/hotels/${hotelId}/roomtypes/${id}`, roomData);
+      return res.data;
+    } catch (error) {
+      if (error.response) {
+  console.error('[hotel.service] createRoomType failed', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        });
+      } else if (error.request) {
+        // No response received
+  console.error('[hotel.service] createRoomType no response received', error.request);
+      } else {
+        // Something happened setting up the request
+  console.error('[hotel.service] createRoomType error', error.message);
+      }
+      throw error;
+    }
+  }
+  async deleteRoomType(hotelId, id) {
+    try {
+      const res = await api.delete(`/hotels/${hotelId}/roomtypes/${id}`);
+      return res.data;
+    } catch (error) {
+      if (error.response) {
+  console.error('[hotel.service] createRoomType failed', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        });
+      } else if (error.request) {
+        // No response received
+  console.error('[hotel.service] createRoomType no response received', error.request);
+      } else {
+        // Something happened setting up the request
+  console.error('[hotel.service] createRoomType error', error.message);
+      }
+      throw error;
+    }
+  }
 
   /**
    * Get all room types for a hotel

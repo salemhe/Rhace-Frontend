@@ -1,16 +1,18 @@
 import { fetchRoomTypes, selectRoomTypes } from '@/redux/slices/vendorSlice';
+import { hotelService } from '@/services/hotel.service';
 import { Plus } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
+import { toast } from 'sonner';
+import DeleteConfirmationModal from './DeleteRoom';
 import ImageGalleryModal from './ImageGalleryModal';
 import RoomCard from './RoomCard';
 import RoomDetailsModal from './RoomDetailsModal';
 import RoomModal from './RoomModal';
 import RoomTable from './RoomTable';
 import ViewToggle from './ViewToggle';
-import { hotelService } from '@/services/hotel.service';
-import { toast } from 'sonner';
+import NoDataFallback from '@/components/NoDataFallback';
 
 const RoomsManagementComponent = () => {
   const [rooms, setRooms] = useState([]);
@@ -22,6 +24,8 @@ const RoomsManagementComponent = () => {
   const [editingRoom, setEditingRoom] = useState(undefined);
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [roomToDelete, setRoomToDelete] = useState(null);
 
   // All hooks must come before any conditional returns
   const dispatch = useDispatch();
@@ -92,6 +96,7 @@ const RoomsManagementComponent = () => {
   // Event handlers
   const handleEditRoom = (room) => {
     setEditingRoom(room);
+    console.log(editingRoom)
     setIsEditModalOpen(true);
   };
 
@@ -100,15 +105,30 @@ const RoomsManagementComponent = () => {
     navigate('/dashboard/hotel/addrooms');
   };
 
-  const handleDeleteRoom = async (roomId) => {
-    if (window.confirm('Are you sure you want to delete this room?')) {
-      try {
-        setRooms(prev => prev.filter(room => room._id !== roomId));
-      } catch (error) {
-        console.error('Failed to delete room:', error);
-      }
+  const handleDeleteRoom = (roomId) => {
+    // Instead of confirming immediately, show the modal
+    setRoomToDelete(roomId);
+    setIsDeleteModalOpen(true);
+  };
+
+
+  const confirmDeleteRoom = async () => {
+    if (!roomToDelete) return;
+    const hotelId = vendor._id;
+
+    try {
+      setRooms(prev => prev.filter(room => room._id !== roomToDelete));
+      await hotelService.deleteRoomType(hotelId, roomToDelete);
+      toast.success('Room deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete room:', error);
+      toast.error('Failed to delete room');
+    } finally {
+      setIsDeleteModalOpen(false);
+      setRoomToDelete(null);
     }
   };
+
 
   const handleViewImages = (room) => {
     setViewImages(room.images && room.images.length > 0 ? room.images : []);
@@ -169,7 +189,14 @@ const RoomsManagementComponent = () => {
           </div>
         </div>
 
-        {view === 'grid' ? (
+        {rooms.length === 0 ? (
+          <NoDataFallback
+            title="No Rooms Found"
+            message="You haven’t added any rooms yet. Click the button below to create your first room."
+            actionLabel="Add Room"
+            onAction={handleAddRoom}
+          />
+        ) : view === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {rooms.map((room) => (
               <RoomCard
@@ -189,6 +216,7 @@ const RoomsManagementComponent = () => {
           />
         )}
 
+
         <RoomDetailsModal
           room={selectedRoom}
           isOpen={isDetailsModalOpen}
@@ -203,6 +231,7 @@ const RoomsManagementComponent = () => {
           onClose={() => setIsEditModalOpen(false)}
           room={editingRoom}
           onSave={handleSaveRoom}
+          id={editingRoom?._id}
         />
 
         {viewImages && (
@@ -212,6 +241,17 @@ const RoomsManagementComponent = () => {
           />
         )}
       </div>
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setRoomToDelete(null);
+        }}
+        onConfirm={confirmDeleteRoom}
+        title="Delete Room"
+        message="Are you sure you want to delete this room? This action cannot be undone."
+      />
+
     </div>
   );
 };

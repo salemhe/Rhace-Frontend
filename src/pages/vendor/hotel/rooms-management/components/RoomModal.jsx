@@ -1,51 +1,74 @@
+import { hotelService } from '@/services/hotel.service';
 import { X } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 
-
-const RoomModal = ({ isOpen, onClose, room, onSave }) => {
+const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
   const [formData, setFormData] = useState({
+    name: room?.name || '',
     roomNumber: room?.roomNumber || '',
-    roomType: room?.roomType || 'single',
-    type: room?.type || 'deluxe',
-    price: room?.price || 0,
-    capacity: room?.capacity || 1,
+    description: room?.description || '',
+    pricePerNight: room?.pricePerNight || room?.price || 0,
+    adultsCapacity: room?.adultsCapacity || room?.capacity || 2,
+    childrenCapacity: room?.childrenCapacity || 0,
+    totalAvailableRooms: room?.totalAvailableRooms || 1,
     amenities: room?.amenities || [],
     features: room?.features || [],
-    description: room?.description || '',
     isAvailable: room?.isAvailable ?? true,
     maintenanceStatus: room?.maintenanceStatus || 'available',
-    images: [],
+    existingImages: room?.images || [], // Keep track of existing images
+    newImages: [], // Track new files to upload
   });
 
   const [imagePreviews, setImagePreviews] = useState([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
   const amenityOptions = ['WiFi', 'AC', 'TV', 'Mini Bar', 'Balcony', 'Room Service', 'Safe', 'Smart TV', 'Kitchenette'];
   const featureOptions = ['Ocean View', 'Balcony', 'Living Area', 'Jacuzzi', 'Fireplace', 'Terrace', 'Garden View'];
 
-  const handleImageChange = (e) => {
-    if (!e.target.files) return;
-    const files = Array.from(e.target.files);
-    setFormData(prev => ({
-      ...prev,
-      images: files,
-    }));
-    setImagePreviews(files.map(file => URL.createObjectURL(file)));
+  const vendor = useSelector((state) => state.auth);
+
+  // Helper function to upload image to Cloudinary
+  const uploadToCloudinary = async (file) => {
+    const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+    const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', UPLOAD_PRESET);
+
+    try {
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData,
+        }
+      );
+      const data = await response.json();
+      return data.secure_url;
+    } catch (error) {
+      console.error('Upload failed:', error);
+      throw error;
+    }
   };
 
   useEffect(() => {
     setFormData({
+      name: room?.name || '',
       roomNumber: room?.roomNumber || '',
-      roomType: room?.roomType || 'single',
-      type: room?.type || 'deluxe',
-      price: room?.price || 0,
-      capacity: room?.capacity || 1,
+      description: room?.description || '',
+      pricePerNight: room?.pricePerNight || room?.price || 0,
+      adultsCapacity: room?.adultsCapacity || room?.capacity || 2,
+      childrenCapacity: room?.childrenCapacity || 0,
+      totalAvailableRooms: room?.totalAvailableRooms || 1,
       amenities: room?.amenities || [],
       features: room?.features || [],
-      description: room?.description || '',
       isAvailable: room?.isAvailable ?? true,
       maintenanceStatus: room?.maintenanceStatus || 'available',
-      images: [],
+      existingImages: room?.images || [],
+      newImages: [],
     });
     setImagePreviews([]);
   }, [room]);
@@ -55,6 +78,38 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
       imagePreviews.forEach(url => URL.revokeObjectURL(url));
     };
   }, [imagePreviews]);
+
+  const handleImageChange = (e) => {
+    if (!e.target.files) return;
+    const files = Array.from(e.target.files);
+    setFormData(prev => ({
+      ...prev,
+      newImages: [...prev.newImages, ...files],
+    }));
+    
+    const newPreviews = files.map(file => URL.createObjectURL(file));
+    setImagePreviews(prev => [...prev, ...newPreviews]);
+  };
+
+  const handleRemoveNewImage = (index) => {
+    setImagePreviews(prev => {
+      const removed = prev[index];
+      URL.revokeObjectURL(removed);
+      return prev.filter((_, i) => i !== index);
+    });
+    
+    setFormData(prev => ({
+      ...prev,
+      newImages: prev.newImages.filter((_, i) => i !== index)
+    }));
+  };
+
+  const handleRemoveExistingImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      existingImages: prev.existingImages.filter((_, i) => i !== index)
+    }));
+  };
 
   const handleAmenityToggle = (amenity) => {
     setFormData(prev => ({
@@ -74,14 +129,83 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const dataToSave = {
-      ...formData,
-      images: room?.images || []
-    };
-    onSave(dataToSave);
-    onClose();
+    setIsSubmitting(true);
+
+    try {
+      const hotelId = vendor?.vendor?._id;
+
+      // Upload new images to Cloudinary
+      const uploadedImageUrls = [];
+      for (const file of formData.newImages) {
+        try {
+          const url = await uploadToCloudinary(file);
+          uploadedImageUrls.push(url);
+        } catch (error) {
+          console.error('Failed to upload image:', error);
+          // Continue with other uploads even if one fails
+        }
+      }
+
+      // Combine existing images with newly uploaded ones
+      const allImages = [...formData.existingImages, ...uploadedImageUrls];
+
+      // Prepare payload with all required fields
+      const payload = {
+        name: formData.name,
+        roomNumber: formData.roomNumber,
+        description: formData.description,
+        pricePerNight: Number(formData.pricePerNight),
+        adultsCapacity: Number(formData.adultsCapacity),
+        childrenCapacity: Number(formData.childrenCapacity),
+        totalAvailableRooms: Number(formData.totalAvailableRooms),
+        amenities: formData.amenities,
+        features: formData.features,
+        isAvailable: formData.isAvailable,
+        maintenanceStatus: formData.maintenanceStatus,
+        images: allImages,
+        totalUnits: formData.amenities.length,
+      };
+
+      console.log('Submitting payload:', payload, id);
+
+      // Create or update room type
+      let response;
+      
+        response = await hotelService.updateRoomType(hotelId, payload, id);
+      // if (room && room._id) {
+      //   // Update existing room
+      // } else {
+      //   // Create new room
+      //   response = await hotelService.createRoomType(hotelId, payload);
+      // }
+
+      console.log('Room saved successfully:', response);
+      
+      // Call onSave callback with response data
+      if (onSave) {
+        onSave(response);
+      }
+      
+      onClose();
+    } catch (error) {
+      console.error('Error saving room:', error);
+      
+      // More detailed error logging
+      if (error?.response) {
+        console.error('Error response:', {
+          status: error.response.status,
+          data: error.response.data,
+          headers: error.response.headers,
+        });
+        alert(`Failed to save room: ${error.response.data?.message || 'Unknown error'}`);
+      } else {
+        alert('Failed to save room. Please check console for details.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -99,6 +223,20 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
         </div>
 
         <form className="space-y-4" onSubmit={handleSubmit}>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Room Name *
+            </label>
+            <input
+              type="text"
+              value={formData.name}
+              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              required
+              placeholder="e.g., Deluxe Ocean View Suite"
+            />
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -108,56 +246,21 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
                 type="text"
                 value={formData.roomNumber}
                 onChange={(e) => setFormData(prev => ({ ...prev, roomNumber: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                placeholder="e.g., 101"
               />
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Room Type
-              </label>
-              <select
-                value={formData.roomType}
-                onChange={(e) => setFormData(prev => ({ ...prev, roomType: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="single">Single</option>
-                <option value="double">Double</option>
-                <option value="suite">Suite</option>
-                <option value="family">Family</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Room Category
-              </label>
-              <select
-                value={formData.type}
-                onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <option value="standard">Standard</option>
-                <option value="deluxe">Deluxe</option>
-                <option value="suite">Suite</option>
-                <option value="premium">Premium</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Capacity (guests)
+                Total Available Rooms *
               </label>
               <input
                 type="number"
                 min="1"
-                max="10"
-                value={formData.capacity}
-                onChange={(e) => setFormData(prev => ({ ...prev, capacity: Number(e.target.value) }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                value={formData.totalAvailableRooms}
+                onChange={(e) => setFormData(prev => ({ ...prev, totalAvailableRooms: Number(e.target.value) }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                 required
               />
             </div>
@@ -165,17 +268,48 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Price per Night ($)
+              Price per Night ($) *
             </label>
             <input
               type="number"
               min="0"
               step="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData(prev => ({ ...prev, price: Number(e.target.value) }))}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              value={formData.pricePerNight}
+              onChange={(e) => setFormData(prev => ({ ...prev, pricePerNight: Number(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               required
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Adults Capacity *
+              </label>
+              <input
+                type="number"
+                min="1"
+                max="10"
+                value={formData.adultsCapacity}
+                onChange={(e) => setFormData(prev => ({ ...prev, adultsCapacity: Number(e.target.value) }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Children Capacity
+              </label>
+              <input
+                type="number"
+                min="0"
+                max="10"
+                value={formData.childrenCapacity}
+                onChange={(e) => setFormData(prev => ({ ...prev, childrenCapacity: Number(e.target.value) }))}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+              />
+            </div>
           </div>
 
           <div>
@@ -186,7 +320,7 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               placeholder="Enter room description..."
             />
           </div>
@@ -199,7 +333,7 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
               <select
                 value={formData.isAvailable.toString()}
                 onChange={(e) => setFormData(prev => ({ ...prev, isAvailable: e.target.value === 'true' }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value="true">Available</option>
                 <option value="false">Occupied</option>
@@ -213,7 +347,7 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
               <select
                 value={formData.maintenanceStatus}
                 onChange={(e) => setFormData(prev => ({ ...prev, maintenanceStatus: e.target.value }))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value="available">Available</option>
                 <option value="maintenance">Under Maintenance</option>
@@ -269,45 +403,53 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
               accept="image/*"
               multiple
               onChange={handleImageChange}
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
             />
-            {imagePreviews.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                {imagePreviews.map((src, i) => (
-                  <div key={i} className="relative w-20 h-20 rounded overflow-hidden border">
-                    <img
-                      src={src}
-                      alt={`Preview ${i + 1}`}
-                      className="object-cover w-full h-full"
-                    />
-                    <button
-                      type="button"
-                      className="absolute top-1 right-1 bg-white rounded-full p-1 shadow"
-                      onClick={() => {
-                        setImagePreviews(p => p.filter((_, j) => j !== i));
-                        setFormData(prev => ({
-                          ...prev,
-                          images: (prev.images).filter((_, j) => j !== i)
-                        }));
-                      }}
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            {room && room.images && room.images.length > 0 && (
-              <div className="mt-2 text-xs text-gray-500">
-                <div className="mb-1">Current Images:</div>
+            
+            {/* Existing Images */}
+            {formData.existingImages.length > 0 && (
+              <div className="mt-3">
+                <div className="text-xs text-gray-600 mb-2">Current Images:</div>
                 <div className="flex flex-wrap gap-2">
-                  {room.images.map((img, idx) => (
-                    <div key={idx} className="w-20 h-20 rounded overflow-hidden border">
+                  {formData.existingImages.map((img, idx) => (
+                    <div key={`existing-${idx}`} className="relative w-20 h-20 rounded overflow-hidden border">
                       <img
                         src={img}
-                        alt={`Room image ${idx + 1}`}
+                        alt={`Existing ${idx + 1}`}
                         className="object-cover w-full h-full"
                       />
+                      <button
+                        type="button"
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600"
+                        onClick={() => handleRemoveExistingImage(idx)}
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* New Image Previews */}
+            {imagePreviews.length > 0 && (
+              <div className="mt-3">
+                <div className="text-xs text-gray-600 mb-2">New Images:</div>
+                <div className="flex flex-wrap gap-2">
+                  {imagePreviews.map((src, i) => (
+                    <div key={`new-${i}`} className="relative w-20 h-20 rounded overflow-hidden border border-teal-500">
+                      <img
+                        src={src}
+                        alt={`New ${i + 1}`}
+                        className="object-cover w-full h-full"
+                      />
+                      <button
+                        type="button"
+                        className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 shadow hover:bg-red-600"
+                        onClick={() => handleRemoveNewImage(i)}
+                      >
+                        <X size={12} />
+                      </button>
                     </div>
                   ))}
                 </div>
@@ -319,15 +461,17 @@ const RoomModal = ({ isOpen, onClose, room, onSave }) => {
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md"
+              disabled={isSubmitting}
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md"
+              disabled={isSubmitting}
+              className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {room ? 'Update' : 'Add'} Room
+              {isSubmitting ? 'Saving...' : room ? 'Update Room' : 'Add Room'}
             </button>
           </div>
         </form>
