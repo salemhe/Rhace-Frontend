@@ -24,9 +24,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Explore</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-[#111827] font-normal leading-normal hover:text-white transition-colors duration-200">Restaurants</a></li>
-              <li><a href="#" className="text-[#111827] font-normal leading-normal hover:text-white transition-colors duration-200">Hotels</a></li>
-              <li><a href="#" className="text-[#111827] font-normal leading-normal hover:text-white transition-colors duration-200">Top Restaurant </a></li>
+              <li><a href="#" className="text-[#111827] font-normal leading-normal hover:text-gray-500 transition-colors duration-200">Restaurants</a></li>
+              <li><a href="#" className="text-[#111827] font-normal leading-normal hover:text-gray-500 transition-colors duration-200">Hotels</a></li>
+              <li><a href="#" className="text-[#111827] font-normal leading-normal hover:text-gray-500 transition-colors duration-200">Top Restaurant </a></li>
             </ul>
           </div>
 
@@ -34,10 +34,9 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
             <ul className="space-y-2">
-              <li><a href="#" className="text-[#111827] hover:text-white font-normal leading-normal transition-colors duration-200">About Us</a></li>
-              <li><a href="#" className="text-[#111827] hover:text-white font-normal leading-normal transition-colors duration-200">Contact</a></li>
-              <li><a href="#" className="text-[#111827] hover:text-white font-normal leading-normal transition-colors duration-200">Faq</a></li>
-              <li><a href="#" className="text-[#111827] hover:text-white font-normal leading-normal transition-colors duration-200">Help Center</a></li>
+              <li><a href="/about" className="text-[#111827] hover:text-gray-500 font-normal leading-normal transition-colors duration-200">About Us</a></li>
+              <li><a href="/contact" className="text-[#111827] hover:text-gray-500 font-normal leading-normal transition-colors duration-200">Contact</a></li>
+              <li><a href="/faq" className="text-[#111827] hover:text-gray-500 font-normal leading-normal transition-colors duration-200">Faq</a></li>
             </ul>
           </div>
 
