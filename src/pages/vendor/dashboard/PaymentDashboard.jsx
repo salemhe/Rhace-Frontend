@@ -311,28 +311,28 @@ const PaymentDashboard = () => {
         {!hideTab && !loading.stats &&
           <div className='hidden md:grid grid-cols-4 border w-full rounded-2xl'>
             <div className='flex h-full items-center'>
-              <StatCard title="Total Earnings" value={`#${stats.earnings.thisYear.toLocaleString('en-US', {
+              <StatCard title="Total Earnings" value={`₦${stats.earnings.thisYear.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}`} change={stats.earnings.yearChange} icon={<Calendar />} color="blue" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
-              <StatCard title="Earnings this Week" value={`#${stats.earnings.thisWeek.toLocaleString('en-US', {
+              <StatCard title="Earnings this Week" value={`₦${stats.earnings.thisWeek.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}`} change={stats.earnings.weekChange} icon={<CardPay />} color="green" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
-              <StatCard title="Completed Payments" value={`#${stats.payments.completed.thisWeek.toLocaleString('en-US', {
+              <StatCard title="Completed Payments" value={`₦${stats.payments.completed.thisWeek.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}`} change={stats.payments.completed.change} icon={<Cash2 className="text-[#CD16C3]" />} color="purple" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
             </div>
             <div className='flex w-full'>
-              <StatCard title="Pending Payments" value={`#${stats.payments.pending.thisWeek.toLocaleString('en-US', {
+              <StatCard title="Pending Payments" value={`₦${stats.payments.pending.thisWeek.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}`} change={stats.payments.pending.change} icon={<Cash2 className="text-[#E1B505]" />} color="orange" />

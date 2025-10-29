@@ -277,7 +277,7 @@ const ClubDashboard = () => {
                     <p className="text-sm text-gray-600 mb-1">{stats[index].title}</p>
                     <p className="text-3xl font-bold text-gray-900 mb-2">
                       {index === 3
-                        ? `$${stat.details.toLocaleString('en-US', {
+                        ? `₦${stat.details.toLocaleString('en-US', {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}`

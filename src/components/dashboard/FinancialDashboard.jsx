@@ -10,7 +10,7 @@ import { tr } from 'date-fns/locale';
 
 const FinancialDashboard = ({ info, trend }) => {
     const availableBalance = info.balance;
-    const currencySymbol = '#';
+    const currencySymbol = '₦';
     const lastPaymentDate = 'May 31st, 2025';
     const accountHolder = info.accountName;
     const lastFourDigits = info.accountNumber;
@@ -79,7 +79,7 @@ const FinancialDashboard = ({ info, trend }) => {
                 <div className="mb-4 flex gap-3">
                     <div>
 
-                        <span className="text-3xl font-extrabold text-gray-800 mr-2">{earningsValue}</span>
+                        <span className="text-3xl font-extrabold text-gray-800 mr-2">{currencySymbol}{earningsValue}</span>
                         <span className="text-sm text-emerald-600 font-semibold">
                             ↑{earningsChange} vs last week
                         </span>
