@@ -44,6 +44,7 @@ import { toast } from 'sonner';
 import { userService } from '@/services/user.service';
 // import { formatCustomDate } from '@/utils/formatDate';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 
 
 const categories = [
@@ -321,11 +322,7 @@ const ReservationDashboard = () => {
 
 
   if (isLoading) {
-    return (
-      <div className='w-full h-screen flex items-center justify-center'>
-        <p className='animate-pulse text-lg'>Loading...</p>
-      </div>
-    )
+    return <UniversalLoader fullscreen />
   }
 
   return (

@@ -12,6 +12,7 @@ import DatePicker from "../ui/datepicker";
 import { GuestPicker } from "../ui/guestpicker";
 import { useNavigate } from "react-router";
 import { userService } from "@/services/user.service";
+import UniversalLoader from "../ui/LogoLoader";
 
 export default function ReservationDetails({
   id,
@@ -83,9 +84,7 @@ export default function ReservationDetails({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Loading...</p>
-      </div>
+      <UniversalLoader fullscreen />
     );
   }
 

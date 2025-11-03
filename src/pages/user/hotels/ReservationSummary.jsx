@@ -12,6 +12,7 @@ import { GuestPicker } from "../../../components/user/ui/guestpicker";
 import PaymentPage from "../../../components/user/ui/Payment";
 import { userService } from "@/services/user.service";
 import { hotelService } from "@/services/hotel.service";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 function useSearchParams() {
   return new URLSearchParams(useLocation().search);
@@ -116,11 +117,7 @@ export default function ReservationSummary() {
   };
 
   if (loading || isLoading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <p className="text-lg animate-pulse">Loading...</p>
-      </div>
-    )
+    return <UniversalLoader fullscreen />
   }
 
   return (

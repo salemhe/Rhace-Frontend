@@ -10,6 +10,7 @@ import { clubService } from '@/services/club.service';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { set } from 'date-fns';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 
 export function DrinksTable() {
   const [drinks, setDrinks] = useState([]);
@@ -124,11 +125,7 @@ export function DrinksTable() {
   };
 
   if (isLoading) {
-    return (
-      <div className='w-full h-screen flex items-center justify-center'>
-        <p className='animate-pulse text-lg'>Loading...</p>
-      </div>
-    )
+    return <UniversalLoader fullscreen />
   }
 
   return (

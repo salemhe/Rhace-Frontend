@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import RestaurantOverview from "./RestaurantOverview";
 import RestaurantAvailableSlot from "./RestaurantAvailableSlot";
 import RestaurantMenu from "./RestaurantMenu";
+import RestaurantReviews from "./RestaurantReview";
 
 const RestaurantInfo = ({ data }) => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -46,7 +47,7 @@ const RestaurantInfo = ({ data }) => {
         {activeTab === "overview" && <RestaurantOverview address={data.address} openingTime={data.openingTime} closingTime={data.closingTime} cuisines={data.cuisines} desc={data.businessDescription} priceRange={data?.priceRange ?? ""} />}
         {activeTab === "menu" && <RestaurantMenu id={data._id} />}
         {activeTab === "available" && <RestaurantAvailableSlot openingTime={data.openingTime} closingTime={data.closingTime} availableSlots={data.availableSlots} />}
-        {activeTab === "reviews" && <p>Reviews</p>}
+        {activeTab === "reviews" && <RestaurantReviews restaurantId={data._id} ratings={data.rating} />}
       </div>
     </div>
   );

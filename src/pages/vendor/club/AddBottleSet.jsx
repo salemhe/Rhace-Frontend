@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import axios from 'axios';
 import { toast } from 'sonner';
 import Header2 from '@/components/layout/headers/vendor_header2';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 
 const BottleServiceManager = () => {
    const [currentStep, setCurrentStep] = useState(1);
@@ -238,11 +239,7 @@ const BottleServiceManager = () => {
 
 
    if (isLoading) {
-      return (
-         <div className='w-full h-screen flex items-center justify-center'>
-            <p className='animate-pulse text-lg'>Loading...</p>
-         </div>
-      )
+      return <UniversalLoader fullscreen />
    }
 
    // Step 1: Club Identity & Add Drinks

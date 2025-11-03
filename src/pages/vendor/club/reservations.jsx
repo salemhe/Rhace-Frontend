@@ -1,4 +1,5 @@
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 import { userService } from '@/services/user.service';
 import {
    Calendar,
@@ -272,11 +273,7 @@ const ClubReservationTable = () => {
 
 
    if (isLoading) {
-      return (
-         <div className='w-full h-screen flex items-center justify-center'>
-            <p className='animate-pulse text-lg'>Loading...</p>
-         </div>
-      )
+      return <UniversalLoader fullscreen />
    }
 
    return (

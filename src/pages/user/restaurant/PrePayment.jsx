@@ -8,6 +8,7 @@ import PaymentPage from "@/components/user/ui/Payment";
 import { toast } from "sonner";
 import { userService } from "@/services/user.service";
 import { useParams } from "react-router";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 export default function PrePaymentPage() {
     const [popupOpen, setPopupOpen] = useState(false)
@@ -32,11 +33,7 @@ export default function PrePaymentPage() {
     }, [])
 
     if (isLoading) {
-        return (
-            <div className="w-full h-screen flex items-center justify-center">
-                <p className="text-lg">Loading...</p>
-            </div>
-        )
+        return <UniversalLoader fullscreen />
     }
     return (
         <div className="min-h-screen bg-gray-50 ">

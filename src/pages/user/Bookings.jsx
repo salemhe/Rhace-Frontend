@@ -2,6 +2,7 @@ import BookingCard from '@/components/BookingCard';
 import UserHeader from '@/components/layout/headers/user-header';
 import Header from '@/components/user/Header';
 import ReservationHeader from '@/components/user/hotel/ReservationHeader';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 import { userService } from '@/services/user.service';
 import { MoreVertical, Search, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -112,9 +113,7 @@ function BookingsPage() {
 
    if (isLoading) {
       return (
-         <div className="flex items-center justify-center min-h-screen">
-            <p className="text-gray-500">Loading...</p>
-         </div>
+         <UniversalLoader fullscreen />
       )
    }
 

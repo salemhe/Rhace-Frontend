@@ -28,7 +28,7 @@ const UserHeader = () => {
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Bookings / Reservations", href: "/bookings" },
-    { name: "Offers", href: "#" },
+    { name: "Favorites", href: "/favorites" },
   ];
 
   // Scroll behavior

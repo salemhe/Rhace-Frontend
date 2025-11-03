@@ -17,6 +17,16 @@ class UserService {
     );
     return res.data;
   }
+
+  async getReviews(id) {
+    const res = await api.get(`/reviews/${id}`);
+    return res.data;
+  }
+
+  async createReview(data) {
+    const res = await api.post(`/reviews/create`, data);
+    return res.data;
+  }
 }
 
 export const userService = new UserService();

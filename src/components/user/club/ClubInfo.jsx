@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from "react";
 import ClubInfos from "./ClubInfos";
+import RestaurantReviews from "../restaurant/RestaurantReview";
 
 const ClubInfo = ({ data }) => {
   const [activeTab, setActiveTab] = useState("info");
@@ -45,7 +46,7 @@ const ClubInfo = ({ data }) => {
             ageLimit={data?.ageLimit ?? ""}
           />
         )}
-        {activeTab === "reviews" && <p>Reviews</p>}
+        {activeTab === "reviews" && <RestaurantReviews restaurantId={data._id} ratings={data.rating} />}
       </div>
     </div>
   );

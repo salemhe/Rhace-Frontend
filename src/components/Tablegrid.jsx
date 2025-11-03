@@ -3,12 +3,14 @@ import { FiChevronRight, FiChevronsDown, FiHeart, FiStar } from "react-icons/fi"
 import { Link, useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import { userService } from "@/services/user.service";
+import UniversalLoader from "./user/ui/LogoLoader";
 
 const TableGrid = ({ title }) => {
   const [currentIndices, setCurrentIndices] = useState({});
   const [resetTimeouts, setResetTimeouts] = useState({});
   const [isHovering, setIsHovering] = useState({});
   const [restaurants, setRestaurants] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate();
 
   const getImagesForRestaurant = (restaurant) => {
@@ -29,7 +31,7 @@ const TableGrid = ({ title }) => {
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: true }));
-    
+
     if (resetTimeouts[restaurantId]) {
       clearTimeout(resetTimeouts[restaurantId]);
       setResetTimeouts(prev => {
@@ -49,7 +51,7 @@ const TableGrid = ({ title }) => {
     const xPercent = (x / rect.width) * 100;
     const images = getImagesForRestaurant(restaurant);
     const imageIndex = Math.min(Math.max(Math.floor(xPercent / (100 / images.length)), 0), images.length - 1);
-    
+
     setCurrentIndices(prev => ({
       ...prev,
       [restaurantId]: imageIndex
@@ -83,12 +85,21 @@ const TableGrid = ({ title }) => {
 
   useEffect(() => {
     const fetchRestaurant = async () => {
-      const res = await userService.getVendor("restaurant")
-      console.log(res)
-      setRestaurants(res.data)
+      try {
+        setIsLoading(true)
+        const res = await userService.getVendor("restaurant")
+        console.log(res)
+        setRestaurants(res.data)
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setIsLoading(false)
+      }
     }
     fetchRestaurant();
   }, [])
+
+  if (isLoading) return <UniversalLoader />
 
 
   return (
@@ -133,22 +144,21 @@ const TableGrid = ({ title }) => {
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${
-                        multipleImages
-                          ? `will-change-transform ${hovering ? "brightness-105" : ""}`
-                          : "hover:scale-105"
-                      }`}
+                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${multipleImages
+                        ? `will-change-transform ${hovering ? "brightness-105" : ""}`
+                        : "hover:scale-105"
+                        }`}
                       style={
                         multipleImages
                           ? {
-                              transform: `translateX(${(index - currentIndex) * 100}%)`,
-                              transition: hovering
-                                ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
-                                : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
-                            }
+                            transform: `translateX(${(index - currentIndex) * 100}%)`,
+                            transition: hovering
+                              ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
+                              : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
+                          }
                           : {
-                              transition: "transform 0.3s ease, brightness 0.3s ease",
-                            }
+                            transition: "transform 0.3s ease, brightness 0.3s ease",
+                          }
                       }
                     />
                   ))}
@@ -172,11 +182,10 @@ const TableGrid = ({ title }) => {
                     {images.map((_, index) => (
                       <span
                         key={index}
-                        className={`block rounded-full transition-all duration-300 ease-out ${
-                          index === currentIndex
-                            ? "bg-white scale-125 w-6 h-2 shadow-md"
-                            : "bg-white/70 w-2 h-2 hover:bg-white/90"
-                        }`}
+                        className={`block rounded-full transition-all duration-300 ease-out ${index === currentIndex
+                          ? "bg-white scale-125 w-6 h-2 shadow-md"
+                          : "bg-white/70 w-2 h-2 hover:bg-white/90"
+                          }`}
                       />
                     ))}
                   </div>
@@ -243,22 +252,21 @@ const TableGrid = ({ title }) => {
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all object-cover size-full duration-300 ease-out ${
-                        multipleImages
-                          ? `will-change-transform ${hovering ? "brightness-105" : ""}`
-                          : "hover:scale-105"
-                      }`}
+                      className={`absolute transition-all object-cover size-full duration-300 ease-out ${multipleImages
+                        ? `will-change-transform ${hovering ? "brightness-105" : ""}`
+                        : "hover:scale-105"
+                        }`}
                       style={
                         multipleImages
                           ? {
-                              transform: `translateX(${(index - currentIndex) * 100}%)`,
-                              transition: hovering
-                                ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
-                                : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
-                            }
+                            transform: `translateX(${(index - currentIndex) * 100}%)`,
+                            transition: hovering
+                              ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
+                              : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
+                          }
                           : {
-                              transition: "transform 0.3s ease, brightness 0.3s ease",
-                            }
+                            transition: "transform 0.3s ease, brightness 0.3s ease",
+                          }
                       }
                     />
                   ))}
@@ -280,11 +288,10 @@ const TableGrid = ({ title }) => {
                     {images.map((_, index) => (
                       <span
                         key={index}
-                        className={`block rounded-full ${
-                          index === currentIndex
-                            ? "bg-white scale-125 w-6 h-2"
-                            : "bg-white/70 w-2 h-2"
-                        }`}
+                        className={`block rounded-full ${index === currentIndex
+                          ? "bg-white scale-125 w-6 h-2"
+                          : "bg-white/70 w-2 h-2"
+                          }`}
                       />
                     ))}
                   </div>
@@ -335,8 +342,9 @@ export const TableGridTwo = ({ title }) => {
   const [resetTimeouts, setResetTimeouts] = useState({});
   const [isHovering, setIsHovering] = useState({});
   const [restaurants, setRestaurants] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate();
-  
+
   const getImagesForRestaurant = (restaurant) => {
     if (restaurant?.profileImages && restaurant?.profileImages?.length > 1) {
       return restaurant?.profileImages;
@@ -355,7 +363,7 @@ export const TableGridTwo = ({ title }) => {
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: true }));
-    
+
     if (resetTimeouts[restaurantId]) {
       clearTimeout(resetTimeouts[restaurantId]);
       setResetTimeouts(prev => {
@@ -375,7 +383,7 @@ export const TableGridTwo = ({ title }) => {
     const xPercent = (x / rect.width) * 100;
     const images = getImagesForRestaurant(restaurant);
     const imageIndex = Math.min(Math.max(Math.floor(xPercent / (100 / images.length)), 0), images.length - 1);
-    
+
     setCurrentIndices(prev => ({
       ...prev,
       [restaurantId]: imageIndex
@@ -407,14 +415,23 @@ export const TableGridTwo = ({ title }) => {
     };
   }, [resetTimeouts]);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchRestaurant = async () => {
-      const res = await userService.getVendor("hotel")
-      console.log(res)
-      setRestaurants(res.data)
+      try {
+        setIsLoading(true)
+        const res = await userService.getVendor("hotel")
+        console.log(res)
+        setRestaurants(res.data)
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setIsLoading(false)
+      }
     }
     fetchRestaurant();
   }, [])
+
+  if (isLoading) return <UniversalLoader />
 
   return (
     <div className="mb-[92px]">
@@ -454,22 +471,21 @@ export const TableGridTwo = ({ title }) => {
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${
-                        multipleImages
-                          ? `will-change-transform ${hovering ? "brightness-105" : ""}`
-                          : "hover:scale-105"
-                      }`}
+                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${multipleImages
+                        ? `will-change-transform ${hovering ? "brightness-105" : ""}`
+                        : "hover:scale-105"
+                        }`}
                       style={
                         multipleImages
                           ? {
-                              transform: `translateX(${(index - currentIndex) * 100}%)`,
-                              transition: hovering
-                                ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
-                                : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
-                            }
+                            transform: `translateX(${(index - currentIndex) * 100}%)`,
+                            transition: hovering
+                              ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
+                              : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
+                          }
                           : {
-                              transition: "transform 0.3s ease, brightness 0.3s ease",
-                            }
+                            transition: "transform 0.3s ease, brightness 0.3s ease",
+                          }
                       }
                     />
                   ))}
@@ -491,11 +507,10 @@ export const TableGridTwo = ({ title }) => {
                     {images.map((_, index) => (
                       <span
                         key={index}
-                        className={`block rounded-full transition-all duration-300 ease-out ${
-                          index === currentIndex
-                            ? "bg-white scale-125 w-6 h-2 shadow-md"
-                            : "bg-white/70 w-2 h-2 hover:bg-white/90"
-                        }`}
+                        className={`block rounded-full transition-all duration-300 ease-out ${index === currentIndex
+                          ? "bg-white scale-125 w-6 h-2 shadow-md"
+                          : "bg-white/70 w-2 h-2 hover:bg-white/90"
+                          }`}
                       />
                     ))}
                   </div>
@@ -540,10 +555,10 @@ export const TableGridTwo = ({ title }) => {
         })}
       </div>
 
-       {/* Mobile scroll */}
+      {/* Mobile scroll */}
       <div className="flex sm:hidden gap-4 overflow-x-auto scrollbar-hide">
         {restaurants.map((restaurant) => {
-         const images = getImagesForRestaurant(restaurant);
+          const images = getImagesForRestaurant(restaurant);
           const currentIndex = currentIndices[restaurant._id] || 0;
           const multipleImages = hasMultipleImages(restaurant);
           const hovering = isHovering[restaurant._id || 0];
@@ -569,26 +584,25 @@ export const TableGridTwo = ({ title }) => {
                   {images.map((image, index) => (
                     <img
                       key={index}
-                       src={typeof image === 'string' ? image : image.url}
+                      src={typeof image === 'string' ? image : image.url}
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${
-                        multipleImages
-                          ? `will-change-transform ${hovering ? "brightness-105" : ""}`
-                          : "hover:scale-105"
-                      }`}
+                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${multipleImages
+                        ? `will-change-transform ${hovering ? "brightness-105" : ""}`
+                        : "hover:scale-105"
+                        }`}
                       style={
                         multipleImages
                           ? {
-                              transform: `translateX(${(index - currentIndex) * 100}%)`,
-                              transition: hovering
-                                ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
-                                : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
-                            }
+                            transform: `translateX(${(index - currentIndex) * 100}%)`,
+                            transition: hovering
+                              ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
+                              : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
+                          }
                           : {
-                              transition: "transform 0.3s ease, brightness 0.3s ease",
-                            }
+                            transition: "transform 0.3s ease, brightness 0.3s ease",
+                          }
                       }
                     />
                   ))}
@@ -610,11 +624,10 @@ export const TableGridTwo = ({ title }) => {
                     {images.map((_, index) => (
                       <span
                         key={index}
-                        className={`block rounded-full ${
-                          index === currentIndex
-                            ? "bg-white scale-125 w-6 h-2"
-                            : "bg-white/70 w-2 h-2"
-                        }`}
+                        className={`block rounded-full ${index === currentIndex
+                          ? "bg-white scale-125 w-6 h-2"
+                          : "bg-white/70 w-2 h-2"
+                          }`}
                       />
                     ))}
                   </div>
@@ -661,8 +674,9 @@ export const TableGridThree = ({ title }) => {
   const [resetTimeouts, setResetTimeouts] = useState({});
   const [isHovering, setIsHovering] = useState({});
   const [restaurants, setRestaurants] = useState([]);
+  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate();
-  
+
   const getImagesForRestaurant = (restaurant) => {
     if (restaurant?.profileImages && restaurant?.profileImages?.length > 1) {
       return restaurant?.profileImages;
@@ -676,22 +690,22 @@ export const TableGridThree = ({ title }) => {
     return images.length > 1;
   }, []);
 
-const cuisineColorPalette = [
-  "bg-orange-100  outline-orange-200",
-  "bg-green-100 outline-green-200",
-  "bg-blue-100  outline-blue-200",
-  "bg-purple-100  outline-purple-200",
-  "bg-pink-100  outline-pink-200",
-  "bg-yellow-100  outline-yellow-200",
-  "bg-teal-100  outline-teal-200",
-];
+  const cuisineColorPalette = [
+    "bg-orange-100  outline-orange-200",
+    "bg-green-100 outline-green-200",
+    "bg-blue-100  outline-blue-200",
+    "bg-purple-100  outline-purple-200",
+    "bg-pink-100  outline-pink-200",
+    "bg-yellow-100  outline-yellow-200",
+    "bg-teal-100  outline-teal-200",
+  ];
 
   const handleMouseEnter = (restaurantId) => {
     const restaurant = restaurants.find(r => (r._id || String(r.id)) === restaurantId);
     if (!restaurant || !hasMultipleImages(restaurant)) return;
 
     setIsHovering(prev => ({ ...prev, [restaurantId]: true }));
-    
+
     if (resetTimeouts[restaurantId]) {
       clearTimeout(resetTimeouts[restaurantId]);
       setResetTimeouts(prev => {
@@ -711,7 +725,7 @@ const cuisineColorPalette = [
     const xPercent = (x / rect.width) * 100;
     const images = getImagesForRestaurant(restaurant);
     const imageIndex = Math.min(Math.max(Math.floor(xPercent / (100 / images.length)), 0), images.length - 1);
-    
+
     setCurrentIndices(prev => ({
       ...prev,
       [restaurantId]: imageIndex
@@ -743,14 +757,23 @@ const cuisineColorPalette = [
     };
   }, [resetTimeouts]);
 
-    useEffect(() => {
+  useEffect(() => {
     const fetchRestaurant = async () => {
-      const res = await userService.getVendor("club")
-      console.log(res)
-      setRestaurants(res.data)
+      try {
+        setIsLoading(true)
+        const res = await userService.getVendor("club")
+        console.log(res)
+        setRestaurants(res.data)
+      } catch (error) {
+        console.log(error)
+      } finally {
+        setIsLoading(false)
+      }
     }
     fetchRestaurant();
   }, [])
+
+    if (isLoading) return <UniversalLoader />
 
   return (
     <div className="mb-[92px]">
@@ -774,7 +797,7 @@ const cuisineColorPalette = [
               }}
               className="h-80 px-2 pt-2 pb-4 flex flex-col bg-white rounded-[20px] border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300"
             >
-              <div 
+              <div
                 className={`relative h-52 w-full  cursor-pointer`}
                 onMouseEnter={() => handleMouseEnter(restaurant._id || 0)}
                 onMouseMove={multipleImages ? (e) => handleMouseMove(e, restaurant._id || 0) : undefined}
@@ -788,14 +811,13 @@ const cuisineColorPalette = [
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all object-cover size-full duration-300 ease-out ${
-                        multipleImages 
-                          ? `will-change-transform ${hovering ? 'brightness-105' : ''}` 
-                          : 'hover:scale-105'
-                      }`}
+                      className={`absolute transition-all object-cover size-full duration-300 ease-out ${multipleImages
+                        ? `will-change-transform ${hovering ? 'brightness-105' : ''}`
+                        : 'hover:scale-105'
+                        }`}
                       style={multipleImages ? {
                         transform: `translateX(${(index - currentIndex) * 100}%)`,
-                        transition: hovering 
+                        transition: hovering
                           ? 'transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease'
                           : 'transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease'
                       } : {
@@ -803,7 +825,7 @@ const cuisineColorPalette = [
                       }}
                     />
                   ))}
-                  
+
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                 </div>
 
@@ -822,11 +844,10 @@ const cuisineColorPalette = [
                     {images.map((_, index) => (
                       <span
                         key={index}
-                        className={`block rounded-full transition-all duration-300 ease-out ${
-                          index === currentIndex
-                            ? "bg-white scale-125 w-6 h-2 shadow-md"
-                            : "bg-white/70 w-2 h-2 hover:bg-white/90"
-                        }`}
+                        className={`block rounded-full transition-all duration-300 ease-out ${index === currentIndex
+                          ? "bg-white scale-125 w-6 h-2 shadow-md"
+                          : "bg-white/70 w-2 h-2 hover:bg-white/90"
+                          }`}
                       />
                     ))}
                   </div>
@@ -838,11 +859,11 @@ const cuisineColorPalette = [
                   <h3 className="text-gray-900 text-sm font-medium font-['Inter'] leading-none">
                     {restaurant.businessName}
                   </h3>
-              
+
 
                   <div className="inline-flex flex-wrap gap-2 mt-2">
-                    {(Array.isArray(restaurant.categories) 
-                      ? restaurant.categories 
+                    {(Array.isArray(restaurant.categories)
+                      ? restaurant.categories
                       : restaurant.categories.split(",").map(c => c.trim())
                     ).map((category, index) => {
                       const classes = cuisineColorPalette[index % cuisineColorPalette.length];
@@ -874,11 +895,11 @@ const cuisineColorPalette = [
                     <div className="flex justify-start items-center gap-1">
                       <div className="text-zinc-600 text-sm font-medium font-['Inter'] leading-none">Table from</div>
                       <div className="justify-start text-gray-900 text-sm font-medium  leading-none">${restaurant.priceRange}</div>
-                      
+
                     </div>
                     <div className="h-7 px-2 flex-col  bg-zinc-100 rounded-lg outline-1 outline-offset-[-1px] outline-gray-200 inline-flex justify-center items-center gap-2">
                       <div className="inline-flex justify-start items-center gap-1.5">
-                       
+
                         <div className="justify-start text-gray-900 text-xs font-medium font-['Inter'] leading-none tracking-tight">{restaurant.offer}</div>
                       </div>
                     </div>
@@ -890,10 +911,10 @@ const cuisineColorPalette = [
         })}
       </div>
 
-       {/* Mobile scroll */}
+      {/* Mobile scroll */}
       <div className="flex sm:hidden gap-4 overflow-x-auto scrollbar-hide">
         {restaurants.map((restaurant, index) => {
-         const images = getImagesForRestaurant(restaurant);
+          const images = getImagesForRestaurant(restaurant);
           const currentIndex = currentIndices[restaurant._id] || 0;
           const multipleImages = hasMultipleImages(restaurant);
           const hovering = isHovering[restaurant._id || 0];
@@ -919,26 +940,25 @@ const cuisineColorPalette = [
                   {images.map((image, index) => (
                     <img
                       key={index}
-                       src={typeof image === 'string' ? image : image.url}
+                      src={typeof image === 'string' ? image : image.url}
                       alt={restaurant.businessName}
                       layout="fill"
                       objectFit="cover"
-                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${
-                        multipleImages
-                          ? `will-change-transform ${hovering ? "brightness-105" : ""}`
-                          : "hover:scale-105"
-                      }`}
+                      className={`absolute transition-all size-full object-cover duration-300 ease-out ${multipleImages
+                        ? `will-change-transform ${hovering ? "brightness-105" : ""}`
+                        : "hover:scale-105"
+                        }`}
                       style={
                         multipleImages
                           ? {
-                              transform: `translateX(${(index - currentIndex) * 100}%)`,
-                              transition: hovering
-                                ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
-                                : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
-                            }
+                            transform: `translateX(${(index - currentIndex) * 100}%)`,
+                            transition: hovering
+                              ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
+                              : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
+                          }
                           : {
-                              transition: "transform 0.3s ease, brightness 0.3s ease",
-                            }
+                            transition: "transform 0.3s ease, brightness 0.3s ease",
+                          }
                       }
                     />
                   ))}
@@ -960,11 +980,10 @@ const cuisineColorPalette = [
                     {images.map((_, index) => (
                       <span
                         key={index}
-                        className={`block rounded-full ${
-                          index === currentIndex
-                            ? "bg-white scale-125 w-6 h-2"
-                            : "bg-white/70 w-2 h-2"
-                        }`}
+                        className={`block rounded-full ${index === currentIndex
+                          ? "bg-white scale-125 w-6 h-2"
+                          : "bg-white/70 w-2 h-2"
+                          }`}
                       />
                     ))}
                   </div>
@@ -974,7 +993,7 @@ const cuisineColorPalette = [
               {/* Info Section */}
               <div className="p-3 flex-1 flex flex-col justify-between">
                 <div>
-                  
+
                   <h3 className="text-gray-900 text-sm font-medium font-['Inter'] leading-none">
                     {restaurant.businessName}
                   </h3>

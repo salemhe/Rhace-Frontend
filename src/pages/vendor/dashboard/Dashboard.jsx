@@ -1,5 +1,6 @@
 import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 import { reservationService } from '@/services/reservation.service';
 import { formatDate, formatTime } from '@/utils/formatDate';
 import { capitalize } from '@/utils/helper';
@@ -229,9 +230,7 @@ const VendorDashboard = () => {
   if (loading) {
     return (
       <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
-        <div className="min-h-screen flex items-center justify-center">
-          <p className="text-gray-500 text-lg animate-pulse">Loading dashboard...</p>
-        </div>
+        <UniversalLoader fullscreen />
       </DashboardLayout>
     );
   }

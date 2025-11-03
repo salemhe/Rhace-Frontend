@@ -44,6 +44,7 @@ import { menuService } from '@/services/menu.service';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { useSelector } from 'react-redux';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 
 const categories = [
   "All Menu",
@@ -60,6 +61,7 @@ const MenuDashboard = () => {
   const [activeCategory, setActiveCategory] = useState("All Menu")
   const [menus, setMenus] = useState([])
   const [menuItems, setMenuItems] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const vendor = useSelector(state => state.auth.vendor)
 
@@ -288,7 +290,7 @@ const MenuDashboard = () => {
       cell: ({ row }) => {
         const m = row.original
         const menuAssigned = menus
-          .filter(i => m.assignedMenus.includes(i.id))
+          .filter(i => m.assignedMenus && m.assignedMenus.includes(i._id))
           .map(i => i.name);
         return (
           <div>{menuAssigned.join(", ")}</div>
@@ -394,20 +396,26 @@ const MenuDashboard = () => {
   useEffect(() => {
     async function fetchMenus() {
       try {
+        setIsLoading(true)
         const items = await menuService.getMenus(vendor._id);
         setMenus(items.menus)
       } catch (error) {
         console.error(error)
         toast.error("Failed to fetch menus")
+      } finally {
+        setIsLoading(false)
       }
     }
     async function fetchMenuItems() {
       try {
+        setIsLoading(true)
         const items = await menuService.getMenuItems(vendor._id)
         setMenuItems(items.menuItems)
       } catch (error) {
         console.error(error)
         toast.error("Failed to fetch menu items")
+      } finally {
+        setIsLoading(false)
       }
     }
     fetchMenus()
@@ -432,6 +440,8 @@ const MenuDashboard = () => {
       rowSelection,
     },
   })
+
+  if (isLoading) return <UniversalLoader fullscreen />
 
 
   return (

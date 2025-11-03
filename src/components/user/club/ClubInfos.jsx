@@ -22,6 +22,15 @@ const ClubInfos = ({
     }
   }, []);
 
+    const convertTo12Hour = (time) => {
+    if (!time) return '';
+    const [hours, minutes] = time.split(':');
+    const hour = parseInt(hours);
+    const ampm = hour >= 12 ? 'PM' : 'AM';
+    const twelveHour = hour % 12 || 12;
+    return `${twelveHour}:${minutes} ${ampm}`;
+  };
+
   return (
     <div className="space-y-6 text-sm md:text-base">
       <div className="grid grid-cols-2 sm:flex sm:flex-row sm:flex-wrap w-full gap-4">
@@ -43,9 +52,7 @@ const ClubInfos = ({
           </div>
           <div className="space-y-1">
             <p className="text-xs">Opening Hours</p>
-            <p className="font-semibold text-sm">
-              {openingTime} - {closingTime} Daily
-            </p>
+            <p className="font-semibold text-sm">{convertTo12Hour(openingTime)} - {convertTo12Hour(closingTime)} Daily</p>
           </div>
         </div>
         <div className="bg-[#C8FAFF] rounded-xl border border-[#49EDFF] flex flex-col sm:flex-row sm:items-center p-4 sm:p-3 gap-4">

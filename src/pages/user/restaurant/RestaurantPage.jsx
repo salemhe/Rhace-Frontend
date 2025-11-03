@@ -12,6 +12,8 @@ import { useParams } from "react-router";
 import { RestaurantData } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
+import StarRating from "@/components/ui/starrating";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 const RestaurantsPage = () => {
     const { id } = useParams();
@@ -59,13 +61,7 @@ const RestaurantsPage = () => {
         fetchRestaurant();
     }, [])
 
-    if (isLoading) {
-        return (
-            <div className="w-full h-screen flex items-center justify-center">
-                <p className="text-lg animate-pulse">Loading...</p>
-            </div>
-        )
-    }
+      if (isLoading) return <UniversalLoader fullscreen />
 
     return (
         <>
@@ -99,11 +95,9 @@ const RestaurantsPage = () => {
                                         <RestaurantSaveCopy id={id} />
                                     </div>
                                     <div className="md:flex hidden gap-1 items-center text-xs">
-                                        <Star className="fill-[#F0AE02] text-[#F0AE02] h-4" />{" "}
-                                        {restaurant.rating}{" "}
-                                        <span className="text-[#6B7280]">
-                                            ({restaurant.reviews.toLocaleString()} reviews)
-                                        </span>
+                                        <StarRating size={16} rating={Number(restaurant.rating)} readOnly />
+                                        <span className="font-semibold text-lg">{restaurant.rating}</span>
+                                        <span className="text-gray-600">({restaurant.reviews.toLocaleString()} reviews)</span>
                                     </div>
                                 </div>
                             </div>

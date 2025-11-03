@@ -5,6 +5,7 @@ import { RestaurantBooking } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
 import { toast } from "sonner";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 export default function CompletedPage() {
   const navigate = useNavigate()
@@ -29,11 +30,7 @@ export default function CompletedPage() {
   }, [])
 
   if (isLoading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <p className="text-lg">Loading...</p>
-      </div>
-    )
+    return <UniversalLoader fullscreen />
   }
 
   return (

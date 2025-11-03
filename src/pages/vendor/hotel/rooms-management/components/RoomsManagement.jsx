@@ -13,6 +13,7 @@ import RoomModal from './RoomModal';
 import RoomTable from './RoomTable';
 import ViewToggle from './ViewToggle';
 import NoDataFallback from '@/components/NoDataFallback';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 
 const RoomsManagementComponent = () => {
   const [rooms, setRooms] = useState([]);
@@ -165,11 +166,7 @@ const RoomsManagementComponent = () => {
 
   // NOW conditional return can happen after all hooks
   if (isLoading) {
-    return (
-      <div className='w-full h-screen flex items-center justify-center'>
-        <p className='animate-pulse text-lg'>Loading...</p>
-      </div>
-    );
+    return <UniversalLoader fullscreen />
   }
 
   return (
