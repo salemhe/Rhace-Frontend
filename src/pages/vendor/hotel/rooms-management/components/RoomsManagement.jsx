@@ -15,7 +15,7 @@ import ViewToggle from './ViewToggle';
 import NoDataFallback from '@/components/NoDataFallback';
 import UniversalLoader from '@/components/user/ui/LogoLoader';
 
-const RoomsManagementComponent = () => {
+const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalItemsChange }) => {
   const [rooms, setRooms] = useState([]);
   const [view, setView] = useState('grid');
   const [viewImages, setViewImages] = useState(null);
@@ -28,7 +28,6 @@ const RoomsManagementComponent = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState(null);
 
-  // All hooks must come before any conditional returns
   const dispatch = useDispatch();
   const roomTypesState = useSelector(selectRoomTypes);
   const vendor = useSelector((state) => state.auth.vendor);
@@ -54,7 +53,6 @@ const RoomsManagementComponent = () => {
   useEffect(() => {
     const hotelId = vendor?.vendor?._id;
 
-    // only fetch when we actually have a hotelId and status is idle
     if (hotelId && roomTypesState.status === 'idle') {
       dispatch(fetchRoomTypes(hotelId));
     }
@@ -63,24 +61,16 @@ const RoomsManagementComponent = () => {
   // Map Redux room types to component state
   useEffect(() => {
     if (roomTypesState.status === 'succeeded' && Array.isArray(roomTypesState.items) && roomTypesState.items.length > 0) {
-      // map backend room type fields into the rooms shape expected by UI
       const mapped = roomTypesState.items.map((rt, idx) => ({
         _id: rt._id || `rt-${idx}`,
-        // no explicit roomNumber from backend, use index as fallback
         roomNumber: rt.roomNumber || String(idx + 1),
-        // display name/type from backend
         roomType: rt.name || `Room ${idx + 1}`,
         type: rt.name || 'standard',
-        // backend uses pricePerNight
         price: rt.pricePerNight || rt.price || 0,
-        // guests capacity: prefer adultsCapacity, fall back to sum of adults+children if both present
         capacity: rt.adultsCapacity || ((rt.adultsCapacity || 0) + (rt.childrenCapacity || 0)) || 1,
-        // pass amenities through (may be names or ids)
         amenities: Array.isArray(rt.amenities) ? rt.amenities : [],
-        // backend doesn't provide 'features' separately — keep empty array
         features: [],
         description: rt.description || '',
-        // availability not provided; assume available unless totalUnits is 0
         isAvailable: (typeof rt.totalUnits === 'number') ? rt.totalUnits > 0 : true,
         maintenanceStatus: 'available',
         images: Array.isArray(rt.images) ? rt.images : [],
@@ -93,6 +83,22 @@ const RoomsManagementComponent = () => {
       console.error('Failed to load room types:', roomTypesState.error);
     }
   }, [roomTypesState]);
+
+  // Update total items count whenever rooms change
+  useEffect(() => {
+    if (onTotalItemsChange) {
+      onTotalItemsChange(rooms.length);
+    }
+  }, [rooms.length, onTotalItemsChange]);
+
+  // Calculate paginated rooms
+  const getPaginatedRooms = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    return rooms.slice(startIndex, endIndex);
+  };
+
+  const paginatedRooms = getPaginatedRooms();
 
   // Event handlers
   const handleEditRoom = (room) => {
@@ -107,11 +113,9 @@ const RoomsManagementComponent = () => {
   };
 
   const handleDeleteRoom = (roomId) => {
-    // Instead of confirming immediately, show the modal
     setRoomToDelete(roomId);
     setIsDeleteModalOpen(true);
   };
-
 
   const confirmDeleteRoom = async () => {
     if (!roomToDelete) return;
@@ -129,7 +133,6 @@ const RoomsManagementComponent = () => {
       setRoomToDelete(null);
     }
   };
-
 
   const handleViewImages = (room) => {
     setViewImages(room.images && room.images.length > 0 ? room.images : []);
@@ -164,7 +167,6 @@ const RoomsManagementComponent = () => {
     setIsEditModalOpen(false);
   };
 
-  // NOW conditional return can happen after all hooks
   if (isLoading) {
     return <UniversalLoader fullscreen />
   }
@@ -189,13 +191,13 @@ const RoomsManagementComponent = () => {
         {rooms.length === 0 ? (
           <NoDataFallback
             title="No Rooms Found"
-            message="You haven’t added any rooms yet. Click the button below to create your first room."
+            message="You haven't added any rooms yet. Click the button below to create your first room."
             actionLabel="Add Room"
             onAction={handleAddRoom}
           />
         ) : view === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {rooms.map((room) => (
+            {paginatedRooms.map((room) => (
               <RoomCard
                 key={room._id}
                 room={room}
@@ -205,14 +207,13 @@ const RoomsManagementComponent = () => {
           </div>
         ) : (
           <RoomTable
-            rooms={rooms}
+            rooms={paginatedRooms}
             onEdit={handleEditRoom}
             onDelete={handleDeleteRoom}
             onViewDetails={handleViewDetails}
             onViewImages={handleViewImages}
           />
         )}
-
 
         <RoomDetailsModal
           room={selectedRoom}
@@ -248,7 +249,6 @@ const RoomsManagementComponent = () => {
         title="Delete Room"
         message="Are you sure you want to delete this room? This action cannot be undone."
       />
-
     </div>
   );
 };

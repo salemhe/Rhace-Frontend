@@ -137,7 +137,7 @@ console.log(room._id)
             {room.images && room.images.length > 0 && (
               <button
                 onClick={() => {onViewImages(room); onClose()}}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg  transition-colors"
+                className="p-2 text-teal-600 hover:bg-blue-50 rounded-lg  transition-colors"
                 title="View Images"
               >
                 <Eye size={18} />
@@ -145,7 +145,7 @@ console.log(room._id)
             )}
             <button
               onClick={() => {onEdit(room); onClose()}}
-              className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+              className="p-2 text-teal-600 hover:bg-blue-50 rounded-lg transition-colors"
               title="Edit Room"
             >
               <Edit size={18} />
@@ -167,7 +167,7 @@ console.log(room._id)
                   {room.amenities.map((amenity) => (
                     <span
                       key={amenity}
-                      className="px-3 py-2 bg-blue-50 text-blue-700 text-sm font-medium rounded-lg border border-blue-200"
+                      className="px-3 py-2 bg-[#F4F4F4] text-[#606368]text-sm font-medium rounded-[8px] border border-[#E5E7EB]"
                     >
                       {amenity}
                     </span>
