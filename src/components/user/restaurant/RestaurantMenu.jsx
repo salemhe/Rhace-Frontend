@@ -1,6 +1,7 @@
 import { menuService } from "@/services/menu.service";
 import { ChevronDown } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import UniversalLoader from "../ui/LogoLoader";
 // import { LoadingSpinner } from "../loading-spinner";
 // import API from "@/app/lib/api/userAxios";
 
@@ -45,13 +46,19 @@ const MenuItemCard = ({ type, name, price }) => {
 export default function RestaurantMenu({ id }) {
     const [activeCategory, setActiveCategory] = useState("All");
     const [itemsToShow, setItemsToShow] = useState(3);
-    // const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [menuItems, setMenuItems] = useState([]);
     const LOAD_MORE_STEP = 3;
 
     const fetchMenus = async () => {
-        const menus = await menuService.getMenuItems(id)
-        setMenuItems(menus.menuItems)
+        try {
+            const menus = await menuService.getMenuItems(id)
+            setMenuItems(menus.menuItems)
+        } catch (err) {
+            console.error(err)
+        } finally {
+            setIsLoading(false)
+        }
     }
 
     useEffect(() => {
@@ -98,6 +105,8 @@ export default function RestaurantMenu({ id }) {
         setItemsToShow(3);
     };
 
+    if (isLoading) return <UniversalLoader />
+
     return (
         <div className="">
             <div className="w-full">
@@ -107,13 +116,6 @@ export default function RestaurantMenu({ id }) {
                     onCategoryChange={handleCategoryChange}
                 />
             </div>
-            {/* {isLoading ? (
-                <div className="h-28 w-full flex flex-col items-center justify-center">
-
-                    <LoadingSpinner />
-                    Loading...
-                </div>
-            ) : ( */}
             <>
                 <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4">
                     {displayedItems && displayedItems.length > 0 ? displayedItems?.map((item) => (

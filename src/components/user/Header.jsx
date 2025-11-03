@@ -57,7 +57,7 @@ const Header = () => {
     { name: "Home", href: "/" },
     // { name: "Restaurants", href: "/userDashboard/search" },
     { name: "Bookings / Reservations", href: "/bookings" },
-    { name: "Offers", href: "#" },
+    { name: "Favorites", href: "/favorites" },
   ];
 
   useEffect(() => {

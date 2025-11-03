@@ -93,6 +93,11 @@ const HotelBookingForm = ({ id, selectedRoom }) => {
         </div>
       )}
       <div className="w-96 justify-start text-zinc-600 text-sm font-bold font-['Inter'] leading-tight">Prices includes all fees</div>
+      {!selectedRoom._id && (
+        <p className="text-xs">
+          Select the room of your choice <span className="text-red-500">*</span>
+        </p>
+      )}
       <form onSubmit={handleSubmit} className="space-y-6 mt-6">
         <div className="flex flex-col md:flex-row w-full gap-4">
           <Popover>

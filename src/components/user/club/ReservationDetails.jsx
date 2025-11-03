@@ -24,6 +24,7 @@ import { useNavigate } from "react-router";
 import { useInView, motion } from "framer-motion";
 import { userService } from "@/services/user.service";
 import { clubService } from "@/services/club.service";
+import UniversalLoader from "../ui/LogoLoader";
 
 export default function ReservationDetails({
   id,
@@ -168,13 +169,7 @@ export default function ReservationDetails({
     setPage(1);
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-gray-500">Loading...</p>
-      </div>
-    );
-  }
+  if (loading) return <UniversalLoader fullscreen />
 
   const handleQuantityChange = (id, change) => {
     setBottleItems(

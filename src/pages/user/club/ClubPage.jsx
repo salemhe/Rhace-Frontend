@@ -12,6 +12,8 @@ import SaveCopy from "@/components/user/ui/SaveCopy";
 import Header from "@/components/user/Header";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
+import StarRating from "@/components/ui/starrating";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 const ClubPage = () => {
     const { id } = useParams();
@@ -33,13 +35,7 @@ const ClubPage = () => {
         fetchClub();
     }, [])
 
-    if (isLoading) {
-        return (
-            <div className="w-full h-screen flex items-center justify-center">
-                <p className="text-lg animate-pulse">Loading...</p>
-            </div>
-        )
-    }
+      if (isLoading) return <UniversalLoader fullscreen />
 
     return (
         <>
@@ -73,12 +69,9 @@ const ClubPage = () => {
                                         <SaveCopy id={id} />
                                     </div>
                                     <div className="md:flex hidden gap-1 items-center text-xs">
-                                        <Star className="fill-[#F0AE02] text-[#F0AE02] h-4" />{" "}
-                                        {club.rating}{" "}
-                                        <span className="text-[#6B7280]">
-                                            ({club.reviews.toLocaleString()} reviews)
-                                        </span>{" "}
-                                        <span className="size-1 rounded-full bg-black"></span>
+                                        <StarRating size={16} rating={Number(club.rating)} readOnly />
+                                        <span className="font-semibold text-lg">{club.rating}</span>
+                                        <span className="text-gray-600">({club.reviews.toLocaleString()} reviews)</span>
                                     </div>
                                 </div>
                             </div>

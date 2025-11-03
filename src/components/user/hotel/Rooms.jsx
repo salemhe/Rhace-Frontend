@@ -3,14 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Wifi, Users, Bed, Coffee, Car, Building } from 'lucide-react';
 import { RoomsData } from '@/lib/api';
 import { hotelService } from '@/services/hotel.service';
+import UniversalLoader from '../ui/LogoLoader';
+import { toast } from 'sonner';
 
 const Rooms = ({ id, setSelectedRoom, setShow }) => {
-  const [activeTab, setActiveTab] = useState('Superior Standard Room');
+  // const [activeTab, setActiveTab] = useState('Superior Standard Room');
   const [currentImageIndex, setCurrentImageIndex] = useState({});
   const [isLoading, setIsLoading] = useState(true);
 
 
-  const tabs = ['Superior Standard Room', 'Superior Luxury Room', 'Superior Specialty Room'];
+  // const tabs = ['Superior Standard Room', 'Superior Luxury Room', 'Superior Specialty Room'];
   const [rooms, setRooms] = useState([])
 
   const nextImage = (roomId, totalImages) => {
@@ -45,16 +47,10 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
     fetchRooms();
   }, [])
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <p className="text-lg animate-pulse">Loading...</p>
-      </div>
-    )
-  }
+    if (isLoading) return <UniversalLoader />
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
+    <div className="min-h-screen py-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -179,6 +175,8 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
                 {/* Reserve Button */}
                 <button onClick={() => {
                    setSelectedRoom(room)
+                   toast.success(`Successfully selected ${room.name} room.`)
+                  if (window.innerWidth >= 768) window.scrollTo({ top: 0, behavior: 'smooth' });
                   setShow(true)
                 }} className="w-full bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-md mb-2">
                   Reserve Room

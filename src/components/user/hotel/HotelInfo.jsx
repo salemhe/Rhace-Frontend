@@ -1,10 +1,13 @@
 "use client";
 import React from "react";
 import Rooms from "./Rooms";
+import RestaurantReviews from "../restaurant/RestaurantReview";
+import HotelOverview from "./HotelOverview";
 // import HotelAvalableSlot from "./HotelAvailableSlot";
 // import HotelOverview from "./HotelOverview";
 
 const HotelInfo = ({
+  data,
   setShow,
   activeTab,
   setActiveTab,
@@ -28,10 +31,6 @@ const HotelInfo = ({
       name: "Reviews",
       tab: "reviews",
     },
-    {
-      name: "Messages",
-      tab: "messages"
-    }
   ];
 
 
@@ -53,11 +52,11 @@ const HotelInfo = ({
           ))}
         </div>
       </div>
-      <div className="mt-8">
-        {/* {activeTab === "property_details" && <HotelOverview address={data.address} openingTime={data.openingTime} closingTime={data.closingTime} cuisines={data.cuisines} desc={data.businessDescription} />} */}
+      <div className="mt-8 px-4 md:px-0">
+        {activeTab === "property_details" && <HotelOverview desc={data.businessDescription} />}
         {/* {activeTab === "menu" && <HotelMenu id={data._id} />} */}
         {activeTab === "rooms" && <Rooms setShow={setShow} selectedRoom={selectedRoom} setSelectedRoom={setSelectedRoom} id={id} />}
-        {activeTab === "reviews" && <p>Reviews</p>}
+        {activeTab === "reviews" && <RestaurantReviews restaurantId={id} />}
       </div>
     </div>
   );

@@ -12,6 +12,8 @@ import MapComponent from "@/components/user/ui/mapComponent";
 import HotelBookingPopup from "@/components/user/hotel/BookiingPopup";
 import Header from "@/components/user/Header";
 import { userService } from "@/services/user.service";
+import StarRating from "@/components/ui/starrating";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 const HotelsPage = () => {
   const [activeTab, setActiveTab] = useState("property_details");
@@ -19,8 +21,8 @@ const HotelsPage = () => {
   const { id } = useParams();
   const [hotel, setHotel] = useState({})
   const [isLoading, setIsLoading] = useState(true);
-    const [show, setShow] = useState(false);
-    const [selectedRoom, setSelectedRoom] = useState({
+  const [show, setShow] = useState(false);
+  const [selectedRoom, setSelectedRoom] = useState({
     _id: "",
     adultsCapacity: 0,
     amenities: [],
@@ -48,14 +50,7 @@ const HotelsPage = () => {
     fetchHotel();
   }, [])
 
-  if (isLoading) {
-    return (
-      <div className="w-full h-screen flex items-center justify-center">
-        <p className="text-lg animate-pulse">Loading...</p>
-      </div>
-    )
-  }
-
+    if (isLoading) return <UniversalLoader fullscreen />
   return (
     <>
       <div className="hidden md:block">
@@ -95,11 +90,9 @@ const HotelsPage = () => {
                     <HotelSaveCopy id={id} />
                   </div>
                   <div className="md:flex hidden gap-1 items-center text-xs">
-                    <Star className="fill-[#F0AE02] text-[#F0AE02] h-4" />{" "}
-                    {hotel.rating}{" "}
-                    <span className="text-[#6B7280]">
-                      ({hotel.reviews.toLocaleString()} reviews)
-                    </span>
+                    <StarRating size={16} rating={Number(hotel.rating)} readOnly />
+                    <span className="font-semibold text-lg">{hotel.rating}</span>
+                    <span className="text-gray-600">({hotel.reviews.toLocaleString()} reviews)</span>
                   </div>
                 </div>
               </div>
@@ -174,7 +167,7 @@ const HotelsPage = () => {
             </div>
           )}
         </div>
-        <HotelBookingPopup activeTab={activeTab} show={show} setShow={setShow} selectedRoom={selectedRoom} id={id} />
+        <HotelBookingPopup activeTab={activeTab} setActiveTab={setActiveTab} show={show} setShow={setShow} selectedRoom={selectedRoom} id={id} />
       </main>
       <div className="hidden md:block">
         <Footer />

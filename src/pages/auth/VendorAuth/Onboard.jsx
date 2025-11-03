@@ -29,6 +29,7 @@ import {
   DollarSign,
   Tag,
   Loader2,
+  Plus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -217,64 +218,64 @@ export function Onboard() {
 
 
   const SvgIcon = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    fill="none"
-    viewBox="0 0 16 16"
-    className={className}
-  >
-    <path
-      fill="#1f2937"  // ← Tailwind's gray-800
-      stroke="#fff"
-      strokeWidth="1"
-      fillRule="evenodd"
-      d="M5.5 1.333A.833.833 0 0 1 6.333.5h3.334a.833.833 0 0 1 0 1.667h-.834v.862c4.534.409 7.509 5.11 5.775 9.447a.83.83 0 0 1-.775.524H2.167a.83.83 0 0 1-.774-.524c-1.735-4.337 1.24-9.038 5.774-9.447v-.862h-.834a.833.833 0 0 1-.833-.834m2.308 3.334c-3.521 0-5.986 3.377-5.047 6.666h10.478c.94-3.289-1.526-6.666-5.047-6.666zm-7.308 10a.833.833 0 0 1 .833-.834h13.334a.833.833 0 0 1 0 1.667H1.333a.833.833 0 0 1-.833-.833"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const SvgIcon2 = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="18"
-    height="18"
-    fill="none"
-    viewBox="0 0 18 18"
-    className={className}
-  >
-    <path
-      fill="#1f2937"
-      stroke="#fff"
-      strokeWidth="1"
-      fillRule="evenodd"
-      d="M7.96.83a1.67 1.67 0 0 0-1.384.153l-3.433 2.06a1.67 1.67 0 0 0-.81 1.429v11.195H1.5a.833.833 0 0 0 0 1.666h15a.833.833 0 1 0 0-1.666h-.833V4.6a1.67 1.67 0 0 0-1.14-1.58zM14 15.668V4.6L8.167 2.657v13.01zM6.5 2.972 4 4.472v11.195h2.5z"
-      clipRule="evenodd"
-    />
-  </svg>
-);
-
-const SvgIcon3 = ({ className }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="14"
-    height="18"
-    viewBox="0 0 14 18"
-    fill="none"
-    className={className}
-  >
-    <path
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="16"
+      height="16"
       fill="none"
-      stroke="#000"   // 👈 changed from #fff to #000
-      strokeWidth="1"
-      fillRule="evenodd"
-      d="M11.1666 0.666992C11.8296 0.666992 12.4655 0.930384 12.9344 1.39923C13.4032 1.86807 13.6666 2.50395 13.6666 3.16699V14.8337C13.6666 15.4967 13.4032 16.1326 12.9344 16.6014C12.4655 17.0703 11.8296 17.3337 11.1666 17.3337H2.83325C2.17021 17.3337 1.53433 17.0703 1.06549 16.6014C0.596644 16.1326 0.333252 15.4967 0.333252 14.8337V3.16699C0.333252 2.50395 0.596644 1.86807 1.06549 1.39923C1.53433 0.930384 2.17021 0.666992 2.83325 0.666992H11.1666Z"
-      clipRule="evenodd"
-    />
-  </svg>
-)
+      viewBox="0 0 16 16"
+      className={className}
+    >
+      <path
+        fill="#1f2937"  // ← Tailwind's gray-800
+        stroke="#fff"
+        strokeWidth="1"
+        fillRule="evenodd"
+        d="M5.5 1.333A.833.833 0 0 1 6.333.5h3.334a.833.833 0 0 1 0 1.667h-.834v.862c4.534.409 7.509 5.11 5.775 9.447a.83.83 0 0 1-.775.524H2.167a.83.83 0 0 1-.774-.524c-1.735-4.337 1.24-9.038 5.774-9.447v-.862h-.834a.833.833 0 0 1-.833-.834m2.308 3.334c-3.521 0-5.986 3.377-5.047 6.666h10.478c.94-3.289-1.526-6.666-5.047-6.666zm-7.308 10a.833.833 0 0 1 .833-.834h13.334a.833.833 0 0 1 0 1.667H1.333a.833.833 0 0 1-.833-.833"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+
+  const SvgIcon2 = ({ className }) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="18"
+      height="18"
+      fill="none"
+      viewBox="0 0 18 18"
+      className={className}
+    >
+      <path
+        fill="#1f2937"
+        stroke="#fff"
+        strokeWidth="1"
+        fillRule="evenodd"
+        d="M7.96.83a1.67 1.67 0 0 0-1.384.153l-3.433 2.06a1.67 1.67 0 0 0-.81 1.429v11.195H1.5a.833.833 0 0 0 0 1.666h15a.833.833 0 1 0 0-1.666h-.833V4.6a1.67 1.67 0 0 0-1.14-1.58zM14 15.668V4.6L8.167 2.657v13.01zM6.5 2.972 4 4.472v11.195h2.5z"
+        clipRule="evenodd"
+      />
+    </svg>
+  );
+
+  const SvgIcon3 = ({ className }) => (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="18"
+      viewBox="0 0 14 18"
+      fill="none"
+      className={className}
+    >
+      <path
+        fill="none"
+        stroke="#000"   // 👈 changed from #fff to #000
+        strokeWidth="1"
+        fillRule="evenodd"
+        d="M11.1666 0.666992C11.8296 0.666992 12.4655 0.930384 12.9344 1.39923C13.4032 1.86807 13.6666 2.50395 13.6666 3.16699V14.8337C13.6666 15.4967 13.4032 16.1326 12.9344 16.6014C12.4655 17.0703 11.8296 17.3337 11.1666 17.3337H2.83325C2.17021 17.3337 1.53433 17.0703 1.06549 16.6014C0.596644 16.1326 0.333252 15.4967 0.333252 14.8337V3.16699C0.333252 2.50395 0.596644 1.86807 1.06549 1.39923C1.53433 0.930384 2.17021 0.666992 2.83325 0.666992H11.1666Z"
+        clipRule="evenodd"
+      />
+    </svg>
+  )
 
 
 
@@ -405,7 +406,7 @@ const SvgIcon3 = ({ className }) => (
             <CardHeader className="text-left">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <img
-                  src={logo} 
+                  src={logo}
                   alt="Rhace Logo"
                   className="w-20 h-20 object-contain"
                 />
@@ -502,7 +503,7 @@ const SvgIcon3 = ({ className }) => (
                       className="min-h-[120px] resize-none w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white/50
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
-                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3" 
+                          hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                     />
                   </div>
 
@@ -512,7 +513,7 @@ const SvgIcon3 = ({ className }) => (
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {[
                         { value: "hotel", label: "Hotel", Icon: SvgIcon2 },
-                        { value: "restaurant", label: "Restaurant", Icon: SvgIcon},
+                        { value: "restaurant", label: "Restaurant", Icon: SvgIcon },
                         { value: "club", label: "Club", Icon: SvgIcon3 },
                       ].map(({ value, label, Icon }) => (
                         <button
@@ -896,16 +897,27 @@ function TagInput({ label, placeholder, tags, onAdd, onRemove }) {
   return (
     <div className="space-y-2">
       <Label className="text-base font-medium">{label}</Label>
-      <Input
-        placeholder={placeholder}
-        value={inputValue}
-        onChange={(e) => setInputValue(e.target.value)}
-        onKeyDown={handleKeyDown}
-        className="w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white
+      <div className="flex gap-2 items-center">
+        <Input
+          placeholder={placeholder}
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          onKeyDown={handleKeyDown}
+          className="w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
                           hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
-      />
+        />
+        <button onClick={() => {
+          if (!inputValue.trim()) return
+          onAdd(inputValue)
+          setInputValue("")
+        }} className="h-10 sm:h-12 p-2 text-white rounded-md bg-[#0A6C6D]">
+          <div>
+            <Plus className="size-5" />
+          </div>
+        </button>
+      </div>
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
           {tags.map((tag) => (

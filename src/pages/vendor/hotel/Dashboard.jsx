@@ -7,6 +7,7 @@ import { useSelector } from 'react-redux';
 import { capitalize } from '@/utils/helper';
 import { reservationService } from '@/services/reservation.service';
 import { formatDate, formatTime } from '@/utils/formatDate';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 
 const HotelDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);
@@ -241,9 +242,7 @@ const HotelDashboard = () => {
   if (!reservationStats) {
     return (
       <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
-        <div className="min-h-screen flex items-center justify-center">
-          <p className="text-gray-500 text-lg">No data available</p>
-        </div>
+        <UniversalLoader fullscreen />
       </DashboardLayout>
     );
   }

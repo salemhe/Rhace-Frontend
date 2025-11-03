@@ -13,6 +13,7 @@ import RoomModal from './RoomModal';
 import RoomTable from './RoomTable';
 import ViewToggle from './ViewToggle';
 import NoDataFallback from '@/components/NoDataFallback';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
 
 const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalItemsChange }) => {
   const [rooms, setRooms] = useState([]);
@@ -167,11 +168,7 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
   };
 
   if (isLoading) {
-    return (
-      <div className='w-full h-screen flex items-center justify-center'>
-        <p className='animate-pulse text-lg'>Loading...</p>
-      </div>
-    );
+    return <UniversalLoader fullscreen />
   }
 
   return (

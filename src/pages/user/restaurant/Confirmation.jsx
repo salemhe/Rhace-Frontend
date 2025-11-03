@@ -6,6 +6,7 @@ import { userService } from "@/services/user.service";
 import { toast } from "sonner";
 import { paymentService } from "@/services/payment.service";
 import { formatCustomDate } from "@/utils/formatDate";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 export default function ConfirmPage() {
     const navigate = useNavigate()
@@ -44,11 +45,7 @@ export default function ConfirmPage() {
     }, [])
 
     if (isLoading || isVerifying) {
-        return (
-            <div className="w-full h-screen flex items-center justify-center">
-                <p className="text-lg">Loading...</p>
-            </div>
-        )
+        return <UniversalLoader fullscreen />
     }
 
 
