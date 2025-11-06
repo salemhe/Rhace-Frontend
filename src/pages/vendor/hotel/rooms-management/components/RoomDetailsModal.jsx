@@ -36,7 +36,7 @@ const RoomDetailsModal = ({ room, isOpen, onClose, onEdit, onDelete,  onViewImag
   };
 console.log(room._id)
   return (
-    <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/60  flex items-center justify-center p-4 z-50 hide-scrollbar"> 
       <div className="bg-white rounded-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-2xl">
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-center z-10">
           <h2 className="text-2xl font-bold text-gray-900">Room Details</h2>
@@ -102,9 +102,9 @@ console.log(room._id)
                       {room.name.charAt(0).toUpperCase() + room.name.slice(1)} Room - {room.name.charAt(0).toUpperCase() + room.name.slice(1)}
                     </p>
                   </div>
-                  <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(room.isAvailable, room.maintenanceStatus)}`}>
+                  {/* <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(room.isAvailable, room.maintenanceStatus)}`}>
                     {getStatusText(room.isAvailable, room.maintenanceStatus)}
-                  </span>
+                  </span> */}
                 </div>
               </div>
 

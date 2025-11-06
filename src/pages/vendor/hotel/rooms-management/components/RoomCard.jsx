@@ -19,13 +19,13 @@ const RoomCard = ({ room,  onViewDetails, }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-[#E5E7EB] transition-transform hover:scale-105">
+    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-[#E5E7EB] ">
       <div className="relative h-48 overflow-hidden bg-gray-200 rounded-lg mx-1 mt-1">
         {room.images && room.images.length > 0 ? (
           <img
             src={room.images[0]}
             alt={room.roomNumber}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover transition-transform hover:scale-105"
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">
@@ -43,11 +43,12 @@ const RoomCard = ({ room,  onViewDetails, }) => {
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
-            <p className="text-sm text-gray-500">{room.adultsCapacity + room.childrenCapacity} guests</p>
+            <p className="text-sm text-gray-500">Total Capacity: {room.adultsCapacity + room.childrenCapacity} guests</p>
+            <p className="text-sm text-gray-500">Total Units: {room.totalUnits} </p>
           </div>
         </div>
 
-        <div className="flex justify-between items-center pt-3 mt-4">
+        <div className="flex justify-between items-center pt-2">
          <div className="text-left">
             <p className="text-xl font-bold text-[#111827]">#{room.pricePerNight.toLocaleString()}</p>
           </div>
