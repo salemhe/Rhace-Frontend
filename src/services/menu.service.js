@@ -25,6 +25,16 @@ class MenuService {
         const res = await api.get(`/menus?userId=${id}`);
         return res.data;
     }
+
+    async deleteMenu(id, type) {
+        if (type === "item") {
+            const res = await api.delete(`/menus/items/${id}`)
+            return res.data
+        } else {
+            const res = await api.delete(`/menus/${id}`)
+            return res.data
+        }
+    }
 }
 
 export const menuService = new MenuService();

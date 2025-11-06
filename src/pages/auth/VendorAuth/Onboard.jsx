@@ -37,6 +37,7 @@ import axios from "axios"
 import api from "@/lib/axios"
 import { useNavigate } from "react-router"
 import { authService } from "@/services/auth.service"
+import { useDispatch } from "react-redux"
 
 
 const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
@@ -168,6 +169,7 @@ export function Onboard() {
   const [isLoading, setIsloading] = useState(false)
   const [bankVerified, setBankVerified] = useState(false)
   const [banks, setBanks] = useState([])
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
@@ -362,7 +364,8 @@ export function Onboard() {
 
     try {
       const user = await authService.vendorOnboard(formData)
-      dispatchEvent(setVendor(user?.vendor));
+      console.log(user)
+      dispatch(setVendor(user?.vendor));
 
       // Handle response (optional: use response.data if needed)
       toast.success("Completed Onboarding Successfully!")

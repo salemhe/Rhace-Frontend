@@ -24,13 +24,14 @@ const HotelBookingForm = ({ id, selectedRoom }) => {
     e.preventDefault();
     const params = new URLSearchParams({
       date: date ? date.toISOString() : "",
+      date2: date2 ? date2.toISOString() : "",
       guests,
       specialRequest: request,
       roomId: selectedRoom._id
     });
 
     try {
-      if (!date) {
+      if (!date || !date2) {
         throw new Error("Date is required");
       }
       await new Promise((resolve) => setTimeout(resolve, 3000));
