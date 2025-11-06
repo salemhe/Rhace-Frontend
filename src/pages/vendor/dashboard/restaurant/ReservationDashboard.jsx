@@ -67,12 +67,13 @@ const ReservationDashboard = () => {
   const navigate = useNavigate()
   const vendor = useSelector((state) => state.auth.vendor);
   const [data, setData] = useState([])
+  const [stats, setStats] = useState({})
   const [isLoading, setIsLoading] = useState(true);
+  const [loading, setLoading] = useState(true);
   const [showPopup, setShowPopup] = useState({
     display: false,
     details: {}
   });
-  // const socketRef = useRef(null);\
 
 
   const columns = [
@@ -244,65 +245,65 @@ const ReservationDashboard = () => {
     },
   })
 
-  
-    const socketRef = useRef(null);
-    const reconnectTimeout = useRef(null);
-  
-    useEffect(() => {
-      if (!vendor?._id) return;
-  
-      const connect = () => {
-        const socket = new WebSocket(`wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`);
-        socketRef.current = socket;
-  
-        socket.onopen = () => {
-          console.log('✅ WebSocket connected');
-        };
-  
-        socket.onmessage = (event) => {
-          try {
-            const message = JSON.parse(event.data);
-            console.log('📩 Message from server:', message);
-  
-            if (message.type === 'new_reservation') {
-              toast.success(`🆕 New reservation from ${message.data.customerName}`);
-              setData((prev) => [...prev, message.data]);
-            }
-          } catch (error) {
-            console.error('❌ Failed to parse message:', error);
-          }
-        };
-  
-        socket.onerror = (err) => {
-          console.error('⚠️ WebSocket error:', err);
-        };
-  
-        socket.onclose = (e) => {
-          console.warn(`🔌 WebSocket closed (code: ${e.code})`);
-          socketRef.current = null;
-  
-          // Try reconnecting after delay
-          if (e.code !== 1000) {
-            reconnectTimeout.current = setTimeout(() => {
-              console.log('🔁 Reconnecting WebSocket...');
-              connect();
-            }, 3000); // 3 seconds
-          }
-        };
+
+  const socketRef = useRef(null);
+  const reconnectTimeout = useRef(null);
+
+  useEffect(() => {
+    if (!vendor?._id) return;
+
+    const connect = () => {
+      const socket = new WebSocket(`wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`);
+      socketRef.current = socket;
+
+      socket.onopen = () => {
+        console.log('✅ WebSocket connected');
       };
-  
-      connect();
-  
-      return () => {
-        if (socketRef.current) {
-          socketRef.current.close(1000, 'Component unmounted');
-          socketRef.current = null;
-        }
-        if (reconnectTimeout.current) {
-          clearTimeout(reconnectTimeout.current);
+
+      socket.onmessage = (event) => {
+        try {
+          const message = JSON.parse(event.data);
+          console.log('📩 Message from server:', message);
+
+          if (message.type === 'new_reservation') {
+            toast.success(`🆕 New reservation from ${message.data.customerName}`);
+            setData((prev) => [...prev, message.data]);
+          }
+        } catch (error) {
+          console.error('❌ Failed to parse message:', error);
         }
       };
-    }, [vendor?._id]);
+
+      socket.onerror = (err) => {
+        console.error('⚠️ WebSocket error:', err);
+      };
+
+      socket.onclose = (e) => {
+        console.warn(`🔌 WebSocket closed (code: ${e.code})`);
+        socketRef.current = null;
+
+        // Try reconnecting after delay
+        if (e.code !== 1000) {
+          reconnectTimeout.current = setTimeout(() => {
+            console.log('🔁 Reconnecting WebSocket...');
+            connect();
+          }, 3000); // 3 seconds
+        }
+      };
+    };
+
+    connect();
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close(1000, 'Component unmounted');
+        socketRef.current = null;
+      }
+      if (reconnectTimeout.current) {
+        clearTimeout(reconnectTimeout.current);
+      }
+    };
+  }, [vendor?._id]);
 
 
   useEffect(() => {
@@ -317,11 +318,23 @@ const ReservationDashboard = () => {
         setIsLoading(false)
       }
     }
+    const fetchStats = async () => {
+      try {
+        const res = await userService.fetchReservationsStats()
+        setStats(res.data)
+      } catch (error) {
+        console.error(error)
+        toast.error(error.response.data.message)
+      } finally {
+        setLoading(false)
+      }
+    }
     fetchReservations()
+    fetchStats()
   }, [])
 
 
-  if (isLoading) {
+  if (isLoading || loading) {
     return <UniversalLoader fullscreen />
   }
 
@@ -339,22 +352,22 @@ const ReservationDashboard = () => {
         {!hideTab &&
           <div className='hidden md:grid grid-cols-4 border rounded-2xl'>
             <div className='flex h-full items-center'>
-              <StatCard title="Reservations made today" value={32} change={12} icon={<Calendar />} color="blue" />
+              <StatCard title="Reservations made today" value={stats.totalReservations.count} change={stats.totalReservations.change} icon={<Calendar />} color="blue" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
-              <StatCard title="Prepaid Reservations" value={16} change={8} icon={<CardPay />} color="green" />
+              <StatCard title="Prepaid Reservations" value={stats.prepaidReservations.count} change={stats.prepaidReservations.change} icon={<CardPay />} color="green" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
-              <StatCard title="Expected Guests Today" value={80} change={8} icon={<Group3 />} color="purple" />
+              <StatCard title="Expected Guests Today" value={stats.expectedGuests.count} change={stats.expectedGuests.change} icon={<Group3 />} color="purple" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
             </div>
             {/* <div className='flex h-full items-center w-full'> */}
-            <StatCard title="Pending Payments" value={(2456).toLocaleString('en-US', {
+            <StatCard title="Pending Payments" value={(stats.pendingPayments.count).toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
-            })} change={-5} icon={<Cash2 fill="#E1B505" />} color="orange" />
+            })} change={stats.pendingPayments.change} icon={<Cash2 fill="#E1B505" />} color="orange" />
             {/* </div> */}
           </div>
         }

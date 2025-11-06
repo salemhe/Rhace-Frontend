@@ -64,6 +64,13 @@ const MenuDashboard = () => {
   const [isLoading, setIsLoading] = useState(false)
   const navigate = useNavigate()
   const vendor = useSelector(state => state.auth.vendor)
+  const [showPopup, setShowPopup] = useState({
+    display: false,
+    details: {},
+    item: false
+  })
+
+
 
 
 
@@ -393,6 +400,21 @@ const MenuDashboard = () => {
   const data = activeCategory === "All Menu Items" ? menuItems : menus
   const columns = activeCategory === "All Menu Items" ? menuItemColumns : menuColumns
 
+
+  const handleDelete = async (id, type) => {
+    if (!window.confirm("Are you sure you want to delete this menu item?")) return;
+
+    try {
+      await menuService.deleteMenu(id, type);
+      alert("Item deleted successfully!");
+      setShowPopup({ display: false, details: {} });
+    } catch (error) {
+      console.error("Delete failed:", error);
+      alert("Failed to delete item.");
+    }
+  };
+
+
   useEffect(() => {
     async function fetchMenus() {
       try {
@@ -613,7 +635,11 @@ const MenuDashboard = () => {
                           <div className='space-y-2'>
                             <div className='flex justify-between w-full'>
                               <span>{item.name}</span>
-                              <a className='text-xs underline text-[#0A6C6D]' href={`/dashboard/restaurant/menu/${item._id}`}>View Menu</a>
+                              <button onClick={() => setShowPopup({
+                                details: item,
+                                display: true,
+                                item: true
+                              })} className='text-xs underline text-[#0A6C6D]'>View Menu</button>
                             </div>
                             <div className='text-sm'>
                               {item.description}
@@ -623,7 +649,10 @@ const MenuDashboard = () => {
                           <div className='space-y-2'>
                             <div className='flex justify-between w-full'>
                               <span>{item.name}</span>
-                              <a className='text-xs underline text-[#0A6C6D]' href={`/dashboard/restaurant/menu/items/${item._id}`}>View Menu</a>
+                              <button onClick={() => setShowPopup({
+                                details: item,
+                                display: true,
+                              })} className='text-xs underline text-[#0A6C6D]'>View Menu</button>
                             </div>
                             <div className='text-sm'>
                               <span>Menu Item:</span>{" "} {item.menuType.join(", ")}
@@ -636,7 +665,10 @@ const MenuDashboard = () => {
                         )}
                         <div className='flex w-full justify-between'>
                           <span>#{item.price.toLocaleString()}</span>
-                          <a href={`/dashboard/restaurant/menu/${item.id}`} className='flex gap-2 items-center text-[#0A6C6D]'><ArrowsRight /> view details</a>
+                          <button onClick={() => setShowPopup({
+                            details: item,
+                            display: true,
+                          })} className='flex gap-2 items-center text-[#0A6C6D]'><ArrowsRight /> view details</button>
                         </div>
                       </div>
                     </div>
@@ -703,6 +735,132 @@ const MenuDashboard = () => {
           </div>
         </div>
       </div>
+      {showPopup.display && (
+        <div className='inset-0 fixed top-0 left-0 w-full h-screen overflow-y-auto bg-black/80'>
+          <div className="bg-gray-50 px-4 max-w-4xl mx-auto rounded-lg my-10 py-6 md:px-6 md:py-8">
+            <div className="max-w-4xl mx-auto">
+              <div className="bg-white rounded-2xl border border-gray-200 mb-6">
+                <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                  Menu Details
+                </h2>
+
+                <hr className="border-gray-200 mb-4" />
+                <div className="p-5">
+                  {showPopup.details.coverImage && (
+                    <div className="mb-4">
+                      <img
+                        src={showPopup.details.coverImage}
+                        alt={showPopup.details.name}
+                        className="rounded-xl w-full h-48 object-cover"
+                      />
+                    </div>
+                  )}
+
+                  <div>
+                    <ul className="divide-y divide-gray-100">
+                      <li className="flex justify-between py-2">
+                        <span className="text-gray-700 font-medium">Name</span>
+                        <span className="text-gray-900 font-semibold">
+                          {showPopup.details.name}
+                        </span>
+                      </li>
+                      <li className="flex justify-between py-2">
+                        <span className="text-gray-700 font-medium">Price</span>
+                        <span className="text-gray-900 font-semibold">
+                          ₦{showPopup.details.price?.toLocaleString()}
+                        </span>
+                      </li>
+                      {showPopup.details.description && (
+                        <li className="py-2">
+                          <span className="text-gray-700 font-medium block">Description</span>
+                          <p className="text-gray-600 mt-1">{showPopup.details.description}</p>
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+
+                  <div className="mt-4 space-y-2 text-sm text-gray-700">
+                    {showPopup.details.category && (
+                      <p>
+                        <span className="font-medium">Category:</span> {showPopup.details.category}
+                      </p>
+                    )}
+                    {showPopup.details.menuType && (
+                      <p>
+                        <span className="font-medium">Menu Type:</span>{" "}
+                        {Array.isArray(showPopup.details.menuType)
+                          ? showPopup.details.menuType.join(", ")
+                          : showPopup.details.menuType}
+                      </p>
+                    )}
+                    {showPopup.details.mealTimes && (
+                      <p>
+                        <span className="font-medium">Meal Times:</span>{" "}
+                        {showPopup.details.mealTimes.join(", ")}
+                      </p>
+                    )}
+                    {showPopup.details.tags?.length > 0 && (
+                      <p>
+                        <span className="font-medium">Tags:</span> {showPopup.details.tags.join(", ")}
+                      </p>
+                    )}
+                    {showPopup.details.status && (
+                      <p>
+                        <span className="font-medium">Status:</span> {showPopup.details.status}
+                      </p>
+                    )}
+                    {showPopup.details.published !== undefined && (
+                      <p>
+                        <span className="font-medium">Published:</span>{" "}
+                        {showPopup.details.published ? "Yes" : "No"}
+                      </p>
+                    )}
+                    {showPopup.details.addOns !== undefined && (
+                      <p>
+                        <span className="font-medium">Add-ons:</span>{" "}
+                        {showPopup.details.addOns ? "Available" : "Not available"}
+                      </p>
+                    )}
+                    {showPopup.details.availability !== undefined && (
+                      <p>
+                        <span className="font-medium">Availability:</span>{" "}
+                        {showPopup.details.availability ? "Available" : "Unavailable"}
+                      </p>
+                    )}
+                    {showPopup.details.discount && (
+                      <p>
+                        <span className="font-medium">Discount Price:</span> ₦
+                        {showPopup.details.discountPrice?.toLocaleString()}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col md:flex-row w-full gap-3 mt-5">
+                    <Button
+                      variant="destructive"
+                      onClick={() => handleDelete(showPopup.details._id, showPopup.item ? "item" : "menu")}
+                      className="flex-1 h-10 text-sm rounded-xl font-medium px-6 bg-red-600 text-white hover:bg-red-700"
+                    >
+                      Delete
+                    </Button>
+
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowPopup({ display: false, details: {} })
+                      }}
+                      className="flex-1 h-10 text-sm rounded-xl font-medium px-6 border-gray-300"
+                    >
+                      Close
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
     </DashboardLayout>
   )
 }

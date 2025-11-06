@@ -32,11 +32,11 @@ export default function ReservationSummary({ id }) {
     setTable,
     vendor,
     totalPrice,
-    setProposedPayment,
-    proposedPayment,
     handleSubmit,
     booking,
     isLoading,
+    setPartPay,
+    partPay
   } = useReservations();
   const navigate = useNavigate();
 
@@ -199,14 +199,11 @@ export default function ReservationSummary({ id }) {
                 </div>
                 <div className="p-4">
                   <div className="rounded-2xl bg-white border">
-                    <div className=" divide-y">
+                                        <div className=" divide-y">
                       <div
-                        className={`flex p-4 rounded-t-2xl justify-between items-center ${proposedPayment === totalPrice
-                          ? "border"
-                          : ""
-                          }`}
+                        className={`flex p-4 rounded-t-2xl justify-between items-center ${!partPay ? "border-4 border-teal-700" : ""}`}
                         onClick={() => {
-                          setProposedPayment(totalPrice);
+                          setPartPay(false)
                         }}
                       >
                         <h3 className="text-lg font-semibold">
@@ -215,25 +212,15 @@ export default function ReservationSummary({ id }) {
                         <div></div>
                       </div>
                       <div
-                        className={`flex p-4 rounded-b-2xl justify-between items-center ${proposedPayment === totalPrice / 2
-                          ? "border "
-                          : ""
-                          }`}
+                        className={`flex p-4 rounded-b-2xl justify-between items-center ${partPay ? "border-4 border-teal-700" : ""}`}
                         onClick={() => {
-                          setProposedPayment(totalPrice / 2);
+                          setPartPay(true)
                         }}
                       >
                         <div className="space-y-1">
-                          <h3 className="text-[#111827]">
-                            Pay part now, rest later
-                          </h3>
+                          <h3 className="text-[#111827]">Pay part now, rest later</h3>
                           <p>
-                            Pay {(totalPrice / 2).toLocaleString()} now, and{" "}
-                            {(totalPrice / 2).toLocaleString()} on{" "}
-                            {date
-                              ? format(date, "do MMM, yyyy")
-                              : "the day of your arrival"}
-                            . No extra fees
+                            Pay #{Math.round(totalPrice / 2).toLocaleString()} now, and #{Math.round(totalPrice / 2).toLocaleString()} on {date ? format(date, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
                           </p>
                         </div>
                         <div></div>

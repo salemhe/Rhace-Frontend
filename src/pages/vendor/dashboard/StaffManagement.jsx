@@ -1,7 +1,10 @@
 import { PeopleIcon } from '@/assets/icons/icons';
 import DashboardLayout from '@/components/layout/DashboardLayout';
+import UniversalLoader from '@/components/user/ui/LogoLoader';
+import { staffService } from '@/services/staff.service';
 import { ChevronRight, Eye, EyeOff, FileDown, Filter, MoreVertical, Search, Upload, Users, X } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 const StaffManagementSystem = () => {
    const [showModal, setShowModal] = useState(false);
@@ -11,6 +14,7 @@ const StaffManagementSystem = () => {
    const [searchTerm, setSearchTerm] = useState('');
    const [filterRole, setFilterRole] = useState('all');
    const [currentPage, setCurrentPage] = useState(1);
+   const [isLoading, setIsLoading] = useState(false)
    const itemsPerPage = 9;
 
    const [formData, setFormData] = useState({
@@ -36,15 +40,15 @@ const StaffManagementSystem = () => {
    });
 
    const [staff, setStaff] = useState([
-      { id: 1, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Chef', dateAdded: '25/6/2025', status: 'active' },
-      { id: 2, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Chef', dateAdded: '25/6/2025', status: 'active' },
-      { id: 3, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Chef', dateAdded: '25/6/2025', status: 'active' },
-      { id: 4, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Manager', dateAdded: '25/6/2025', status: 'active' },
-      { id: 5, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'active' },
-      { id: 6, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'active' },
-      { id: 7, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'inactive' },
-      { id: 8, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'active' },
-      { id: 9, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'active' }
+      // { id: 1, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Chef', dateAdded: '25/6/2025', status: 'active' },
+      // { id: 2, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Chef', dateAdded: '25/6/2025', status: 'active' },
+      // { id: 3, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Chef', dateAdded: '25/6/2025', status: 'active' },
+      // { id: 4, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Manager', dateAdded: '25/6/2025', status: 'active' },
+      // { id: 5, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'active' },
+      // { id: 6, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'active' },
+      // { id: 7, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'inactive' },
+      // { id: 8, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'active' },
+      // { id: 9, name: 'Emily Johnson', phone: '+234701234567', email: 'staffname@gmail.com', role: 'Waiter', dateAdded: '25/6/2025', status: 'active' }
    ]);
 
    const handleInputChange = (e) => {
@@ -75,17 +79,20 @@ const StaffManagementSystem = () => {
       setPermissions(prev => ({ ...prev, modules: updated }));
    };
 
-   const handleSaveStaff = () => {
+   const handleSaveStaff = async () => {
       const newStaff = {
          id: staff.length + 1,
          name: formData.fullName,
          phone: formData.countryCode + formData.phone,
          email: formData.email,
          role: formData.role,
-         dateAdded: new Date().toLocaleDateString('en-GB'),
+         staffId: formData.staffId,
          status: 'active'
       };
-      setStaff([...staff, newStaff]);
+
+      const res = await staffService.createStaff(newStaff)
+      console.log(res)
+      setStaff([...staff, res]);
       setShowModal(false);
       setModalStep(1);
       setFormData({
@@ -107,6 +114,22 @@ const StaffManagementSystem = () => {
       inactive: staff.filter(s => s.status === 'inactive').length,
       noShow: 1
    };
+
+   useEffect(() => {
+      async function fetchStaffs() {
+         try {
+            setIsLoading(true)
+            const items = await staffService.getStaff();
+            setStaff(items.docs)
+         } catch (error) {
+            console.error(error)
+            toast.error("Failed to fetch Staffs")
+         } finally {
+            setIsLoading(false)
+         }
+      }
+      fetchStaffs()
+   }, [])
 
    const filteredStaff = staff.filter(s => {
       const matchesTab = activeTab === 'All' ||
@@ -139,6 +162,8 @@ const StaffManagementSystem = () => {
       </div>
    );
 
+   if (isLoading) return <UniversalLoader fullscreen />
+
    return (
       <DashboardLayout>
          <div className="min-h-screen bg-gray-50 p-8">
@@ -169,31 +194,31 @@ const StaffManagementSystem = () => {
 
                {/* Stats Cards */}
                {showTabs && (
-  <div className="flex mb-8 rounded-lg bg-white border border-gray-200">
-    <div className="flex-1">
-      <StatCard label="Total Staff" value={stats.total} change={12} color="bg-blue-100" IconColor="#60A5FA" />
-    </div>
+                  <div className="flex mb-8 rounded-lg bg-white border border-gray-200">
+                     <div className="flex-1">
+                        <StatCard label="Total Staff" value={stats.total} change={12} color="bg-blue-100" IconColor="#60A5FA" />
+                     </div>
 
-    {/* Divider */}
-    <div className="w-px bg-gray-200 my-4"></div>
+                     {/* Divider */}
+                     <div className="w-px bg-gray-200 my-4"></div>
 
-    <div className="flex-1">
-      <StatCard label="Active Staff" value={stats.active} change={8} color="bg-green-100" IconColor="#06CD02" />
-    </div>
+                     <div className="flex-1">
+                        <StatCard label="Active Staff" value={stats.active} change={8} color="bg-green-100" IconColor="#06CD02" />
+                     </div>
 
-    <div className="w-px bg-gray-200 my-4"></div>
+                     <div className="w-px bg-gray-200 my-4"></div>
 
-    <div className="flex-1">
-      <StatCard label="Inactive Staff" value={stats.inactive} change={8} color="bg-pink-100" IconColor="#CD16C3" />
-    </div>
+                     <div className="flex-1">
+                        <StatCard label="Inactive Staff" value={stats.inactive} change={8} color="bg-pink-100" IconColor="#CD16C3" />
+                     </div>
 
-    <div className="w-px bg-gray-200 my-4"></div>
+                     <div className="w-px bg-gray-200 my-4"></div>
 
-    <div className="flex-1">
-      <StatCard label="No-show Staff" value={stats.noShow} change={-5} color="bg-yellow-100" IconColor="#E1B505" />
-    </div>
-  </div>
-)}
+                     <div className="flex-1">
+                        <StatCard label="No-show Staff" value={stats.noShow} change={-5} color="bg-yellow-100" IconColor="#E1B505" />
+                     </div>
+                  </div>
+               )}
 
 
                {/* Tabs */}
@@ -273,7 +298,7 @@ const StaffManagementSystem = () => {
                               <td className="px-6 py-4 text-gray-700">{member.phone}</td>
                               <td className="px-6 py-4 text-gray-700">{member.email}</td>
                               <td className="px-6 py-4 text-gray-700">{member.role}</td>
-                              <td className="px-6 py-4 text-gray-700">{member.dateAdded}</td>
+                              <td className="px-6 py-4 text-gray-700">{member.createdAt}</td>
                               <td className="px-6 py-4">
                                  <button className="text-gray-400 hover:text-gray-600">
                                     <MoreVertical className="w-5 h-5" />

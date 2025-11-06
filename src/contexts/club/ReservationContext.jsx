@@ -26,6 +26,7 @@ export function ReservationsProvider({
   const [isLoading, setIsLoading] = useState(false);
   const [proposedPayment, setProposedPayment] = useState(0)
   const [booking, setBooking] = useState(null);
+  const [partPay, setPartPay] = useState(false)
   const user = useSelector((state) => state.auth.user);
 
   const occasions = ["Birthday", "Casual", "Business", "Anniversary", "Other"];
@@ -71,7 +72,8 @@ export function ReservationsProvider({
         })),
         vipExtras: vipExtras.filter((item) => item.selected),
         proposedPayment,
-        totalAmount: totalPrice,
+        partPaid: partPay,
+        totalAmount: partPay ? totalPrice/2 : totalPrice,
         vendor: vendor?._id,
         businessName: vendor?.businessName,
         table,
@@ -126,7 +128,9 @@ export function ReservationsProvider({
         totalPrice,
         setProposedPayment,
         proposedPayment,
-        booking
+        booking,
+        setPartPay,
+        partPay
       }}
     >
       {children}

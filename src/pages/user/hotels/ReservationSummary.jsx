@@ -35,7 +35,6 @@ export default function ReservationSummary() {
     setGuestCount,
     specialRequest,
     setSpecialRequest,
-    setNights,
     nights,
     booking,
     setPage,
@@ -46,10 +45,11 @@ export default function ReservationSummary() {
     room,
     setRoom,
     setCheckInDate,
-    roomId,
     setRoomId,
     setVendor,
     vendor,
+    setPartPay,
+    partPay
   } = useReservations();
 
   const navigate = useNavigate();
@@ -112,8 +112,10 @@ export default function ReservationSummary() {
   }, []);
 
   const handleContinue = async () => {
-    await handleSubmit();
-    setPopupOpen(true);
+    const res = await handleSubmit();
+    if (res > 0) {
+      setPopupOpen(true);
+    }
   };
 
   if (loading || isLoading) {
@@ -191,16 +193,6 @@ export default function ReservationSummary() {
                   <DatePicker title="Check In Date" value={checkInDate} onChange={setCheckInDate} />
                   <DatePicker title="Check out Date" value={checkOutDate} onChange={setCheckOutDate} />
                   <GuestPicker value={guestCount} onChange={setGuestCount} />
-                </div>
-                <div className="p-4">
-                  <label className="text-xs text-gray-600">Nights</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={nights}
-                    onChange={(e) => setNights(Number(e.target.value))}
-                    className="w-24 mt-2 border rounded-lg p-2 text-sm"
-                  />
                 </div>
               </div>
             </div>
@@ -321,9 +313,9 @@ export default function ReservationSummary() {
                   <div className="rounded-2xl bg-white border">
                     <div className=" divide-y">
                       <div
-                        className={`flex p-4 rounded-t-2xl justify-between items-center ${proposedPayment === room.pricePerNight * nights ? "border " : ""}`}
+                        className={`flex p-4 rounded-t-2xl justify-between items-center ${!partPay ? "border-4 border-teal-700" : ""}`}
                         onClick={() => {
-                          setProposedPayment(room.pricePerNight * nights);
+                          setPartPay(false)
                         }}
                       >
                         <h3 className="text-lg font-semibold">
@@ -332,9 +324,9 @@ export default function ReservationSummary() {
                         <div></div>
                       </div>
                       <div
-                        className={`flex p-4 rounded-b-2xl justify-between items-center`}
+                        className={`flex p-4 rounded-b-2xl justify-between items-center ${partPay ? "border-4 border-teal-700" : ""}`}
                         onClick={() => {
-                          setProposedPayment(Math.round((room.pricePerNight * nights) / 2));
+                          setPartPay(true)
                         }}
                       >
                         <div className="space-y-1">
@@ -362,7 +354,7 @@ export default function ReservationSummary() {
                 </div>
                 <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
                   <p>Sub Total</p>
-                  <p>#{(room.pricePerNight * nights).toLocaleString()}</p>
+                  <p>#{partPay ? `${(room.pricePerNight * nights).toLocaleString()/2} (half)` : (room.pricePerNight * nights).toLocaleString()}</p>
                 </div>
               </div>
             </div>

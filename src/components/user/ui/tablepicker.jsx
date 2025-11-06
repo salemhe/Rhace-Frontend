@@ -18,6 +18,13 @@ export function TablePicker({
     const [open, setOpen] = useState(false);
     const tables = [
         "VIP Lounge",
+        "Cocktail tables",
+        "Poseur tables",
+        "LED tables",
+        "Wooden tables",
+        "Glass-top tables",
+        "Barrel tables",
+        "pedestal tables"
     ];
 
     return (
@@ -38,25 +45,22 @@ export function TablePicker({
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="overflow-auto">
-                <ScrollArea>
-                    {tables.map((t) => (
-                        <button
-                            key={t}
-                            onClick={() => {
-                                onChange?.(t);
-                                setOpen(false);
-                            }}
-                            className={`px-1 cursor-pointer py-2 text-sm rounded-lg border self-stretch 
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 ">
+            {tables.map((t) => (
+              <button
+                key={t}
+                onClick={() => { onChange?.(t); setOpen(false); }}
+                className={`px-1 cursor-pointer py-2 text-sm rounded-lg border self-stretch 
                   ${t === value
-                                    ? "bg-teal-700 border-teal-700 text-white"
-                                    : "border-teal-700 text-teal-700 hover:bg-teal-50"
-                                }
-                  `}
-                        >
-                            {t}
-                        </button>
-                    ))}
-                </ScrollArea>
+                    ? 'bg-teal-700 border-teal-700 text-white'
+                    : 'border-teal-700 text-teal-700 hover:bg-teal-50'
+                  }
+                `}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
             </PopoverContent>
         </Popover>
     );

@@ -84,6 +84,7 @@ import StaffManagementSystem from "./pages/vendor/dashboard/StaffManagement";
 import AboutRhace from "./pages/user/About";
 import ContactRhace from "./pages/user/Contact";
 import HelpCenterRhace from "./pages/user/HelpCenter";
+import CreateMenuItem from "./pages/vendor/dashboard/restaurant/CreateMenuItem";
 
 const authRoutes = {
   user: [
@@ -152,6 +153,7 @@ const dashboardRestaurantRoutes = [
   { path: "restaurant/reservation/new", element: <CreateReservation /> },
   { path: "restaurant/menu", element: <MenuDashboard /> },
   { path: "restaurant/menu/new", element: <CreateMenu /> },
+  { path: "restaurant/menu/item/new/", element: <CreateMenuItem /> },
   { path: "restaurant/settings", element: <Settings /> },
 ];
 
