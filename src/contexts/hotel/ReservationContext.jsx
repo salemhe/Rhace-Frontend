@@ -1,6 +1,5 @@
 import { createContext, useContext, useState } from "react";
 import { toast } from "sonner";
-import { useNavigate } from "react-router";
 import { userService } from "@/services/user.service";
 import { useSelector } from 'react-redux';
 
@@ -23,10 +22,21 @@ export function ReservationsProvider({
     const [vendor, setVendor] = useState(undefined);
     const [isLoading, setIsLoading] = useState(false);
     const [booking, setBooking] = useState(null);
-    const navigate = useNavigate();
     const [roomId, setRoomId] = useState("");
     const user = useSelector((state) => state.auth.user);
-    const [nights, setNights] = useState(2);
+    const [partPay, setPartPay] = useState(false)
+
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const nights = (checkInDate && checkOutDate)
+        ? Math.max(
+            1,
+            Math.ceil(
+                ((checkOutDate instanceof Date ? checkOutDate.getTime() : new Date(checkOutDate).getTime())
+                - (checkInDate instanceof Date ? checkInDate.getTime() : new Date(checkInDate).getTime()))
+                / msPerDay
+            )
+        )
+        : 1;
 
     const occasions = ["Birthday", "Casual", "Business", "Anniversary", "Other"];
 
@@ -44,6 +54,10 @@ export function ReservationsProvider({
             // Validate required fields
             if (!checkInDate || !checkOutDate || !guestCount || !roomId) {
                 throw new Error("Please fill in all required fields.");
+            }
+
+            if (checkOutDate <= checkInDate) {
+                throw new Error("Check-out date must be after check-in date.");
             }
 
             if (!vendor._id) {
@@ -67,7 +81,8 @@ export function ReservationsProvider({
                 guests: parsedGuestCount,
                 specialRequest,
                 room: roomId,
-                totalAmount: room.pricePerNight * nights,
+                partPaid: partPay,
+                totalAmount: partPay ? (room.pricePerNight * nights)/ 2 : room.pricePerNight * nights,
                 vendor: vendor._id,
                 location: vendor.address,
                 image: vendor.profileImages?.[0],
@@ -80,6 +95,7 @@ export function ReservationsProvider({
 
 
             toast.success("Reservation submitted successfully!");
+            return 1
 
             // Navigate to confirmation page
             // navigate(`/restaurants/completed/${reservationResponse._id}`);
@@ -96,7 +112,7 @@ export function ReservationsProvider({
                 errorMessage = axiosError.response?.data?.message || "Failed to submit reservation. Please try again.";
             }
             toast.error(errorMessage);
-
+            
             // Log detailed error for debugging
             if (error && typeof error === 'object' && 'response' in error) {
                 const axiosError = error
@@ -104,6 +120,7 @@ export function ReservationsProvider({
                     console.error("Server error details:", axiosError.response.data);
                 }
             }
+            return 0;
         } finally {
             setIsLoading(false);
         }
@@ -130,7 +147,6 @@ export function ReservationsProvider({
                 setActiveTab,
                 booking,
                 page,
-                setNights,
                 nights,
                 setPage,
                 checkOutDate, setCheckOutDate,
@@ -139,6 +155,8 @@ export function ReservationsProvider({
                 setVendor,
                 handleSubmit,
                 isLoading,
+                setPartPay,
+                partPay
             }}
         >
             {children}

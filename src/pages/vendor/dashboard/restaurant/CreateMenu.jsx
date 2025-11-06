@@ -120,7 +120,7 @@ const CreateMenu = () => {
                     ) {
                         const createdItem = await menuService.createMenuItem({
                             ...newItem,
-                            assignedMenus: [formData.id],
+                            assignedMenus: formData.id,
                         });
                         setSelectedItems((prev) => [...prev, createdItem]);
                         setCreateItem(createdItem._id);
@@ -213,7 +213,7 @@ const CreateMenu = () => {
 
     const handleClear = (id) => {
         if (id) {
-            setSelectedItems(selectedItems.filter((item) => item.id !== id));
+            setSelectedItems(selectedItems.filter((item) => item._id !== id));
         } else {
             setSelectedItems([])
             setFormData({ ...formData, items: [] })
