@@ -3,6 +3,7 @@ import React from "react";
 import Rooms from "./Rooms";
 import RestaurantReviews from "../restaurant/RestaurantReview";
 import HotelOverview from "./HotelOverview";
+import Policies from "./Policies";
 // import HotelAvalableSlot from "./HotelAvailableSlot";
 // import HotelOverview from "./HotelOverview";
 
@@ -54,7 +55,7 @@ const HotelInfo = ({
       </div>
       <div className="mt-8 px-4 md:px-0">
         {activeTab === "property_details" && <HotelOverview desc={data.businessDescription} />}
-        {/* {activeTab === "menu" && <HotelMenu id={data._id} />} */}
+        {activeTab === "policies" && <Policies data={data.policies} />}
         {activeTab === "rooms" && <Rooms setShow={setShow} selectedRoom={selectedRoom} setSelectedRoom={setSelectedRoom} id={id} />}
         {activeTab === "reviews" && <RestaurantReviews restaurantId={id} />}
       </div>
