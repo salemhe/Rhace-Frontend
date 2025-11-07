@@ -1,22 +1,18 @@
 import DashboardButton from '@/components/dashboard/ui/DashboardButton';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import NoDataFallback from '@/components/NoDataFallback';
-import { StatCard } from '@/components/Statcard';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-import { Add, Calendar, CardPay, Cash2, Export, Eye, EyeClose, Group3 } from '@/components/dashboard/ui/svg';
+import { StatCard } from '@/components/dashboard/stats/mainStats';
+import { Calendar, CardPay, Cash2, Export, Eye, EyeClose } from '@/components/dashboard/ui/svg';
 import UniversalLoader from '@/components/user/ui/LogoLoader';
 import { userService } from '@/services/user.service';
 import { formatDate } from '@/utils/formatDate';
 import {
-  CheckCircle,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  Clock,
-  Download,
   MoreHorizontal,
-  Plus,
   Search,
   SlidersHorizontal
 } from 'lucide-react';
@@ -222,7 +218,7 @@ const BookingManagement = () => {
     <DashboardLayout type="hotel" section="bookings">
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto">
-          
+
           <div className='md:flex hidden justify-between items-center mb-6'>
             <h2 className='text-[#111827] font-semibold'>All Bookings</h2>
             <div className='flex gap-6'>
@@ -232,53 +228,35 @@ const BookingManagement = () => {
             </div>
           </div>
           {!hideTab &&
-           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                             <div className="bg-white rounded-xl p-4 border border-gray-200">
-                                <div className="flex items-center justify-between">
-                                   <div>
-                                      <p className="text-sm text-gray-600">Total Reservations</p>
-                                      <p className="text-2xl font-bold text-gray-900">{bookings?.length}</p>
-                                   </div>
-                                   <Calendar className="w-8 h-8 text-teal-600" />
-                                </div>
-                             </div>
-                             <div className="bg-white rounded-xl p-4 border border-gray-200">
-                                <div className="flex items-center justify-between">
-                                   <div>
-                                      <p className="text-sm text-gray-600">Confirmed</p>
-                                      <p className="text-2xl font-bold text-green-600">
-                                         {bookings?.filter(r => r.status === 'confirmed').length}
-                                      </p>
-                                   </div>
-                                   <CheckCircle className="w-8 h-8 text-green-600" />
-                                </div>
-                             </div>
-                             <div className="bg-white rounded-xl p-4 border border-gray-200">
-                                <div className="flex items-center justify-between">
-                                   <div>
-                                      <p className="text-sm text-gray-600">Pending</p>
-                                      <p className="text-2xl font-bold text-yellow-600">
-                                         {bookings.filter(r => r.reservationStatus === 'Upcoming').length}
-                                      </p>
-                                   </div>
-                                   <Clock className="w-8 h-8 text-yellow-600" />
-                                </div>
-                             </div>
-                             <div className="bg-white rounded-xl p-4 border border-gray-200">
-                                <div className="flex items-center justify-between">
-                                   <div>
-                                      <p className="text-sm text-gray-600">Total Revenue</p>
-                                      <p className="text-2xl font-bold text-teal-600">
-                                         ₦{bookings
-                                            .filter(r => r.paymentStatus === 'paid' || r.paymentStatus === 'success')
-                                            .reduce((sum, r) => sum + (r.totalAmount || 0), 0)
-                                            .toLocaleString()}
-                                      </p>
-                                   </div>
-                                   <Download className="w-8 h-8 text-teal-600" />
-                                </div>
-                             </div>
-                          </div>
+            <div className="flex mb-8 rounded-lg bg-white border border-gray-200">
+
+              <div className="flex-1">
+                <StatCard title="Total Reservations" value={bookings?.length} change={12} color="blue" IconColor="#60A5FA" icon={<Calendar />} />
+              </div>
+
+
+              {/* Divider */}
+              <div className="w-px bg-gray-200 my-4"></div>
+
+              <div className="flex-1">
+                <StatCard title="Confirmed" value={bookings?.filter(r => r.status === 'confirmed').length} change={8} color="green" icon={<CardPay />} IconColor="#06CD02" />
+              </div>
+
+              <div className="w-px bg-gray-200 my-4"></div>
+
+              <div className="flex-1">
+                <StatCard title="Pending" value={bookings.filter(r => r.reservationStatus === 'Upcoming').length} change={8} icon={<Cash2 className="text-[#CD16C3]" />} color="pink" IconColor="#CD16C3" />
+              </div>
+
+              <div className="w-px bg-gray-200 my-4"></div>
+
+              <div className="flex-1">
+                <StatCard title="Total Revenue" value={` ₦ ${bookings
+                  .filter(r => r.paymentStatus === 'paid' || r.paymentStatus === 'success')
+                  .reduce((sum, r) => sum + (r.totalAmount || 0), 0)
+                  .toLocaleString()}`} change={-5} color="green" IconColor="#E1B505" icon={<Cash2 className="text-[#06CD02]" />} />
+              </div>
+            </div>
           }
           {/* Tabs and Filters */}
           <div className="bg-white rounded-lg border border-gray-200">
