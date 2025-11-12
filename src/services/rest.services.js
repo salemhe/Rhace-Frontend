@@ -1,21 +1,35 @@
+import api from "@/lib/axios";
+
 export const restaurantService = {
-  async search({ query, location, cuisine }) {
-    // Simulated API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+  async searchRestaurants(query) {
+    try {
+      const params = new URLSearchParams();
+      if (query) params.append("search", query);
 
-    // Mock data
-    const mockData = [
-      { id: 1, name: "Lagos Bistro", location: "Lekki, Lagos", image: "/rest1.jpg", rating: 4.7 },
-      { id: 2, name: "ChopLife Grill", location: "Ikeja, Lagos", image: "/rest2.jpg", rating: 4.5 },
-      { id: 3, name: "Spice Route", location: "Victoria Island", image: "/rest3.jpg", rating: 4.8 },
-    ];
+      const res = await api.get(`/search?${params.toString()}`);
+      // Axios automatically throws on non-2xx, so no need for .ok checks
 
-    const filtered = mockData.filter((r) =>
-      r.name.toLowerCase().includes(query.toLowerCase())
-    );
+      const data = res.data;
+      // Normalize API response
+      if (Array.isArray(data)) return { data };
+      if (data && Array.isArray(data.data)) return { data: data.data };
 
-    return { data: filtered };
+      return { data: [] };
+    } catch (err) {
+      console.error("searchRestaurants error", err);
+      return { data: [] };
+    }
   },
+
+  async getSuggestions() {
+    try {
+        const response = await api.get(`/search/suggestions`);
+        return response; // ✅ ADD THIS - return the response
+    } catch (err) {
+        console.error(err);
+        throw err; // ✅ Also throw error so component can handle it
+    }
+},
 };
 
 

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { MapPin, Flame, Star, Bell, Clock } from "lucide-react";
+import { MapPin, Flame, Star, Bell, Clock, Search } from "lucide-react";
+import { restaurantService } from "@/services/rest.services";
 
 
 export const SearchAutocomplete = ({
@@ -9,81 +10,68 @@ export const SearchAutocomplete = ({
   onSelect,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+  const [suggestions, setSuggestions] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   const dropdownRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Mock data - replace with actual API call or Supabase query
-  const suggestionGroups = [
-    {
-      title: "Nearby Restaurant",
-      icon: <MapPin className="w-5 h-5 text-blue-600" />,
-      iconBgColor: "bg-blue-100",
-      restaurants: [
-        { id: "1", name: "Aduke's place", location: "VI" },
-        { id: "2", name: "Papa's Grill", location: "Lekki" },
-      ],
+  const suggestionCategories = {
+    nearby: {
+      title: "Nearby ",
+      icon: <MapPin className="w-4 h-4" />,
+      iconBgColor: "bg-blue-50",
+      iconColor: "text-blue-600"
     },
-    {
-      title: "Popular Restaurant",
-      icon: <Flame className="w-5 h-5 text-red-500" />,
-      iconBgColor: "bg-red-100",
-      restaurants: [
-        { id: "3", name: "Aduke's place", location: "VI" },
-        { id: "4", name: "Papa's Grill", location: "Lekki" },
-      ],
+    popular: {
+      title: "Popular ",
+      icon: <Flame className="w-4 h-4" />,
+      iconBgColor: "bg-red-50",
+      iconColor: "text-red-500"
     },
-    {
-      title: "Top-Rated Restaurants",
-      icon: <Star className="w-5 h-5 text-yellow-500" />,
-      iconBgColor: "bg-yellow-100",
-      restaurants: [
-        { id: "5", name: "Aduke's place", location: "VI" },
-        { id: "6", name: "Papa's Grill", location: "Lekki" },
-      ],
+    topRated: {
+      title: "Top-Rated ",
+      icon: <Star className="w-4 h-4" />,
+      iconBgColor: "bg-yellow-50",
+      iconColor: "text-yellow-600"
     },
-    {
+    trending: {
       title: "Trending Now",
-      icon: <Bell className="w-5 h-5 text-purple-500" />,
-      iconBgColor: "bg-purple-100",
-      restaurants: [
-        { id: "7", name: "Aduke's place", location: "VI" },
-        { id: "8", name: "Papa's Grill", location: "Lekki" },
-        { id: "9", name: "Papa's Grill", location: "Lekki" },
-      ],
+      icon: <Bell className="w-4 h-4" />,
+      iconBgColor: "bg-purple-50",
+      iconColor: "text-purple-500"
     },
-    {
+    recentlyViewed: {
       title: "Recently Viewed",
-      icon: <Clock className="w-5 h-5 text-gray-600" />,
-      iconBgColor: "bg-gray-100",
-      restaurants: [
-        { id: "10", name: "Aduke's place", location: "VI" },
-      ],
-    },
-  ];
-
-  useEffect(() => {
-    if (value.trim() === "") {
-      setFilteredSuggestions(suggestionGroups);
-    } else {
-      const filtered = suggestionGroups
-        .map((group) => ({
-          ...group,
-          restaurants: group.restaurants.filter((restaurant) =>
-            restaurant.name.toLowerCase().includes(value.toLowerCase())
-          ),
-        }))
-        .filter((group) => group.restaurants.length > 0);
-      setFilteredSuggestions(filtered);
+      icon: <Clock className="w-4 h-4" />,
+      iconBgColor: "bg-gray-50",
+      iconColor: "text-gray-600"
     }
-  }, [value]);
+  };
 
+   useEffect(() => {
+  const fetchSuggestions = async () => {
+    setIsLoading(true);
+    try {
+      const res = await restaurantService.getSuggestions();
+      console.log("Full API response:", res);
+      
+      // Safely extract the correct layer
+      const fetched = res?.data?.data || res?.data || {};
+      setSuggestions(fetched);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  if (isOpen) fetchSuggestions();
+}, [isOpen]);
+
+ console.log(suggestions)
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsOpen(false);
       }
     };
@@ -94,21 +82,39 @@ export const SearchAutocomplete = ({
 
   const handleInputChange = (e) => {
     onChange(e.target.value);
-    setIsOpen(true);
+    if (!isOpen) setIsOpen(true);
   };
 
   const handleInputFocus = () => {
     setIsOpen(true);
   };
 
-  const handleRestaurantClick = (restaurant) => {
-    onChange(`${restaurant.name}${restaurant.location ? ` - ${restaurant.location}` : ""}`);
+  // const handleRestaurantClick = (restaurant) => {
+  //   const displayValue = `${restaurant.name}${restaurant.location ? ` - ${restaurant.location}` : ""}`;
+  //   onChange(displayValue);
+  //   setIsOpen(false);
+  //   if (onSelect) {
+  //     onSelect(restaurant);
+  //   }
+  // };
+
+   const handleRestaurantClick = (restaurant) => {
+    const displayValue = `${restaurant.businessName}`; // ✅ Changed from 'name' to 'businessName'
+    onChange(displayValue);
     setIsOpen(false);
     if (onSelect) {
       onSelect(restaurant);
     }
   };
 
+  // ✅ Use suggestions directly, no reduce needed
+  const groupedSuggestions = suggestions || {};
+
+  // ✅ Calculate total count
+  const totalCount = Object.values(groupedSuggestions).reduce(
+    (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 
+    0
+  );
   return (
     <div className="relative w-full" ref={dropdownRef}>
       <input
@@ -118,47 +124,81 @@ export const SearchAutocomplete = ({
         onChange={handleInputChange}
         onFocus={handleInputFocus}
         placeholder={placeholder}
-        className="w-full bg-transparent focus:outline-none text-text-primary placeholder:text-text-secondary text-sm sm:text-base"
+        className="w-full focus:outline-none text-text-primary placeholder:text-text-secondary text-sm sm:text-base mt-1"
       />
 
-      {isOpen && filteredSuggestions.length > 0 && (
-        <div className="absolute top-full left- w-64 right-1 mt-2 bg-white rounded-2xl shadow-2xl z-50 max-h-[400px] overflow-y-auto w hide-scrollbar whitespace-nowrap border border-gray-100">
-          <div className="p-4">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Suggested Restaurants
-            </h3>
+      {isOpen && (
+        <div className="absolute top-full w-[22rem] left-0 right-0 mt-3 bg-white rounded-2xl shadow-xl z-[100] max-h-[420px] overflow-y-auto border border-gray-100">
+          {isLoading ? (
+            <div className="p-6 text-center">
+              <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-blue-600 border-r-transparent"></div>
+              <p className="mt-2 text-sm text-gray-500">Loading suggestions...</p>
+            </div>
+          ) : totalCount === 0 ? ( // ✅ Check total count
+            <div className="p-6 text-center">
+              <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
+              <p className="text-sm text-gray-500">
+                {value ? "No restaurants found" : "Start typing to search"}
+              </p>
+            </div>
+          ) : (
+            <div className="p-3">
+              <h3 className="text-base font-semibold text-left text-gray-900 mb-3 px-2">
+                Suggestions
+              </h3>
 
-            {filteredSuggestions.map((group, groupIndex) => (
-              <div key={groupIndex} className="mb-4 last:mb-0">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className={`w-10 h-10 rounded-lg ${group.iconBgColor} flex items-center justify-center`}>
-                    {group.icon}
-                  </div>
-                  <h4 className="font-semibold text-gray-900">{group.title}</h4>
-                </div>
-
-                <div className="ml-0 space-y-2">
-                  {group.restaurants.map((restaurant, index) => (
-                    <button
-                      key={restaurant.id}
-                      onClick={() => handleRestaurantClick(restaurant)}
-                      className="w-full text-left px-4 py-2 hover:bg-gray-50 rounded-lg transition-colors group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-gray-700 group-hover:text-gray-900">
-                          {restaurant.name}
-                          {restaurant.location && ` - ${restaurant.location}`}
-                        </span>
-                        {group.title === "Popular Restaurant" && index === 0 && (
-                          <span className="text-gray-400">→</span>
-                        )}
+              {Object.entries(groupedSuggestions).map(([category, restaurants]) => {
+                // ✅ Skip empty categories
+                if (!Array.isArray(restaurants) || restaurants.length === 0) return null;
+                
+                const categoryConfig = suggestionCategories[category] || suggestionCategories.nearby;
+                
+                return (
+                  <div key={category} className="mb-3 last:mb-0">
+                    <div className="flex items-center gap-2 mb-2 px-2">
+                      <div className={`w-8 h-8 rounded-lg ${categoryConfig.iconBgColor} flex items-center justify-center ${categoryConfig.iconColor}`}>
+                        {categoryConfig.icon}
                       </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+                      <h4 className="text-sm font-medium text-gray-700">
+                        {categoryConfig.title}
+                      </h4>
+                    </div>
+
+                    <div className="space-y-0.5">
+                      {restaurants.map((restaurant) => (
+                        <button
+                          key={restaurant._id} // ✅ Changed from 'id' to '_id'
+                          onClick={() => handleRestaurantClick(restaurant)}
+                          className="w-full text-left px-3 py-2.5 hover:bg-gray-50 rounded-lg transition-colors duration-150 group"
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex-1 min-w-0">
+                              <span className="text-sm text-gray-700 group-hover:text-gray-900 font-medium">
+                                {restaurant.businessName} {/* ✅ Changed from 'name' */}
+                              </span>
+                              {restaurant.location && (
+                                <span className="text-sm text-gray-500 ml-1">
+                                  • {restaurant.location}
+                                </span>
+                              )}
+                            </div>
+                            <svg 
+                              className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2" 
+                              fill="none" 
+                              viewBox="0 0 24 24" 
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       )}
     </div>

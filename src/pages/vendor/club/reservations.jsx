@@ -282,7 +282,7 @@ const ClubReservationTable = () => {
             <div className="max-w-7xl mx-auto">
                {/* Header */}
                <div className="mb-6">
-                  <h1 className="text-3xl font-bold text-gray-900 mb-2">Reservation Management</h1>
+                  <h1 className="text-xl font-bold text-gray-900 mb-2">Reservation Management</h1>
                   <p className="text-gray-600">Manage and track all club reservations</p>
                </div>
 

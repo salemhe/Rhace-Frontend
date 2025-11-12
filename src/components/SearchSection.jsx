@@ -46,11 +46,11 @@ const SearchSection = ({ activeTab, onSearch }) => {
     >
       <div className="grid gap- sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         {/* Row 1: Restaurant/Cuisine */}
-        <div className="flex flex-col justify-center border-b sm:border-b-0 sm:border-r border-gray-200 pb-4 sm:pb-0 px-3 col-span-1 sm:col-span-2 lg:col-span-1">
+        <div className="flex flex-col  border-b sm:border-b-0 sm:border-r border-gray-200 pb-4 sm:pb-0 px-3 col-span-1 sm:col-span-2 lg:col-span-1">
           <label className="text-xs text-text-secondary text-left mb-1">
             {activeTab === "restaurants" ? "Restaurant/Cuisine" : activeTab === "hotels" ? "Hotels" : "Clubs"}
           </label>
-          <input
+          {/* <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -64,7 +64,20 @@ const SearchSection = ({ activeTab, onSearch }) => {
                     : ""
             }
             className="w-full focus:outline-none text-text-primary placeholder:text-text-secondary text-sm sm:text-base"
-          />
+          /> */}
+          <SearchAutocomplete
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder={
+              activeTab === "restaurants"
+                ? "Enter Restaurant or Cuisine"
+                : activeTab === "hotels"
+                  ? "Enter Hotels"
+                  : activeTab === "clubs"
+                    ? "Enter Clubs"
+                    : ""
+            }
+            />
         </div>
 
         {/* Row 2: Date + Time */}
