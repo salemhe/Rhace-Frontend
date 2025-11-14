@@ -88,6 +88,7 @@ import CreateMenuItem from "./pages/vendor/dashboard/restaurant/CreateMenuItem";
 import HotelSettings from "./pages/vendor/hotel/Settings";
 import RestaurantSettings from "./pages/vendor/dashboard/restaurant/Settings";
 import ClubSettings from "./pages/vendor/club/Settings";
+import Favorites from "./pages/user/Favourites";
 
 const authRoutes = {
   user: [
@@ -136,6 +137,7 @@ const hotelReservationRoutes = [
 const userGeneralRoutes = [
   { path: "/bookings", element: <BookingsPage /> },
   { path: "/search", element: <SearchContent /> },
+{ path: "/favorites", element: <Favorites /> },
 ];
 
 const adminRoutes = [
