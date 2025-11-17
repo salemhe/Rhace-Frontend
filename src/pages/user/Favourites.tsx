@@ -1,14 +1,18 @@
+import React, { useState, useCallback, useEffect } from 'react';
+import { Heart, MapPin, Star, ChevronRight } from 'lucide-react';
+import Header from '@/components/user/Header';
+import { FiStar } from 'react-icons/fi';
 
-import Header from "@/components/user/Header";
-import { Heart, MapPin, Star } from "lucide-react";
-import { useState } from "react";
-import { useNavigate } from "react-router";
-// Dummy Data
+// Enhanced dummy data with multiple images
 const restaurantsData = [
   {
     _id: 'r1',
     businessName: 'The Golden Spoon',
-    profileImages: ['https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800'],
+    profileImages: [
+      'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800',
+      'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800',
+      'https://images.unsplash.com/photo-1559339352-11d035aa65de?w=800'
+    ],
     rating: 4.8,
     reviewCount: '245 reviews',
     services: ['Fine Dining', 'Italian Cuisine', 'Wine Bar'],
@@ -18,7 +22,11 @@ const restaurantsData = [
   {
     _id: 'r2',
     businessName: 'Sushi Paradise',
-    profileImages: ['https://images.unsplash.com/photo-1579027989536-b7b1f875659b?w=800'],
+    profileImages: [
+      'https://images.unsplash.com/photo-1579027989536-b7b1f875659b?w=800',
+      'https://images.unsplash.com/photo-1583623025817-d180a2221d0a?w=800',
+      'https://images.unsplash.com/photo-1611143669185-af224c5e3252?w=800'
+    ],
     rating: 4.6,
     reviewCount: '189 reviews',
     services: ['Japanese', 'Sushi Bar', 'Asian Fusion'],
@@ -38,7 +46,12 @@ const restaurantsData = [
   {
     _id: 'r4',
     businessName: 'Spice Route',
-    profileImages: ['https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800'],
+    profileImages: [
+      'https://images.unsplash.com/photo-1552566626-52f8b828add9?w=800',
+      'https://images.unsplash.com/photo-1585937421612-70a008356fbe?w=800',
+      'https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=800',
+      'https://images.unsplash.com/photo-1546833999-b9f581a1996d?w=800'
+    ],
     rating: 4.7,
     reviewCount: '198 reviews',
     services: ['Indian', 'Vegetarian Options', 'Takeaway'],
@@ -48,7 +61,10 @@ const restaurantsData = [
   {
     _id: 'r5',
     businessName: 'La Petite Bistro',
-    profileImages: ['https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800'],
+    profileImages: [
+      'https://images.unsplash.com/photo-1514933651103-005eec06c04b?w=800',
+      'https://images.unsplash.com/photo-1590846406792-0adc7f938f1d?w=800'
+    ],
     rating: 4.9,
     reviewCount: '267 reviews',
     services: ['French Cuisine', 'Brunch', 'Romantic Setting'],
@@ -58,7 +74,11 @@ const restaurantsData = [
   {
     _id: 'r6',
     businessName: 'Taco Fiesta',
-    profileImages: ['https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=800'],
+    profileImages: [
+      'https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=800',
+      'https://images.unsplash.com/photo-1624300629298-e9de39c13be5?w=800',
+      'https://images.unsplash.com/photo-1613514785940-daed07799d9b?w=800'
+    ],
     rating: 4.4,
     reviewCount: '421 reviews',
     services: ['Mexican', 'Tacos', 'Margaritas'],
@@ -71,7 +91,11 @@ const clubsData = [
   {
     _id: 'c1',
     businessName: 'Velvet Lounge',
-    profileImages: ['https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800'],
+    profileImages: [
+      'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=800',
+      'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800',
+      'https://images.unsplash.com/photo-1571266028243-d220c98a7313?w=800'
+    ],
     rating: 4.5,
     reviewCount: '178 reviews',
     services: ['Nightclub', 'Live DJ', 'VIP Tables'],
@@ -81,51 +105,14 @@ const clubsData = [
   {
     _id: 'c2',
     businessName: 'Pulse Nightclub',
-    profileImages: ['https://images.unsplash.com/photo-1571266028243-d220c98a7313?w=800'],
+    profileImages: [
+      'https://images.unsplash.com/photo-1571266028243-d220c98a7313?w=800',
+      'https://images.unsplash.com/photo-1598387846786-a41de1034d39?w=800'
+    ],
     rating: 4.6,
     reviewCount: '294 reviews',
     services: ['EDM Music', 'Late Night', 'Dance Floor'],
     address: '234 Beat Avenue, Party Zone',
-    isFavorite: true
-  },
-  {
-    _id: 'c3',
-    businessName: 'Jazz & teals Bar',
-    profileImages: ['https://images.unsplash.com/photo-1598387846786-a41de1034d39?w=800'],
-    rating: 4.8,
-    reviewCount: '156 reviews',
-    services: ['Live Music', 'Cocktail Bar', 'Intimate Setting'],
-    address: '567 Melody Lane, Old Town',
-    isFavorite: true
-  },
-  {
-    _id: 'c4',
-    businessName: 'Skyline Rooftop',
-    profileImages: ['https://images.unsplash.com/photo-1519671482749-fd09be7ccebf?w=800'],
-    rating: 4.7,
-    reviewCount: '312 reviews',
-    services: ['Rooftop Bar', 'Cocktails', 'City Views'],
-    address: '999 High Street, 25th Floor',
-    isFavorite: true
-  },
-  {
-    _id: 'c5',
-    businessName: 'Underground Club',
-    profileImages: ['https://images.unsplash.com/photo-1574391884720-bbc3740c59d1?w=800'],
-    rating: 4.4,
-    reviewCount: '223 reviews',
-    services: ['Techno', 'House Music', 'Late Hours'],
-    address: '777 Bass Road, Warehouse District',
-    isFavorite: true
-  },
-  {
-    _id: 'c6',
-    businessName: 'The Social Club',
-    profileImages: ['https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=800'],
-    rating: 4.6,
-    reviewCount: '189 reviews',
-    services: ['Members Club', 'Networking', 'Premium Bar'],
-    address: '444 Elite Boulevard, Business District',
     isFavorite: true
   }
 ];
@@ -134,7 +121,11 @@ const hotelsData = [
   {
     _id: 'h1',
     businessName: 'Grand Palace Hotel',
-    profileImages: ['https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800'],
+    profileImages: [
+      'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800',
+      'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800',
+      'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800'
+    ],
     rating: 4.9,
     reviewCount: '542 reviews',
     services: ['5-Star', 'Spa', 'Fine Dining', 'Pool'],
@@ -144,58 +135,23 @@ const hotelsData = [
   {
     _id: 'h2',
     businessName: 'Seaside Resort',
-    profileImages: ['https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800'],
+    profileImages: [
+      'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=800',
+      'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800'
+    ],
     rating: 4.7,
     reviewCount: '389 reviews',
     services: ['Beach Access', 'Water Sports', 'All-Inclusive'],
     address: '50 Ocean View Road, Coastal Area',
     isFavorite: true
-  },
-  {
-    _id: 'h3',
-    businessName: 'Mountain Lodge',
-    profileImages: ['https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800'],
-    rating: 4.8,
-    reviewCount: '267 reviews',
-    services: ['Ski Resort', 'Fireplace Rooms', 'Mountain Views'],
-    address: '2000 Alpine Way, Mountain Range',
-    isFavorite: true
-  },
-  {
-    _id: 'h4',
-    businessName: 'Urban Boutique Inn',
-    profileImages: ['https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800'],
-    rating: 4.6,
-    reviewCount: '198 reviews',
-    services: ['Boutique', 'Modern Design', 'City Center'],
-    address: '300 Metro Street, Downtown',
-    isFavorite: true
-  },
-  {
-    _id: 'h5',
-    businessName: 'Garden Suites Hotel',
-    profileImages: ['https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800'],
-    rating: 4.5,
-    reviewCount: '421 reviews',
-    services: ['Garden Views', 'Family Friendly', 'Restaurant'],
-    address: '150 Green Park Avenue, Suburbs',
-    isFavorite: true
-  },
-  {
-    _id: 'h6',
-    businessName: 'Luxury Towers',
-    profileImages: ['https://images.unsplash.com/photo-1582719508461-905c673771fd?w=800'],
-    rating: 4.9,
-    reviewCount: '678 reviews',
-    services: ['Penthouse Suites', 'Concierge', 'Business Center'],
-    address: '888 Executive Plaza, Financial District',
-    isFavorite: true
   }
 ];
 
-const Favorites = () => {
-  const [activeTab, setActiveTab] = useState('restaurants');
-  const navigate = useNavigate();
+const Favorites: React.FC = () => {
+  const [activeTab, setActiveTab] = useState<'restaurants' | 'clubs' | 'hotels'>('restaurants');
+  const [currentIndices, setCurrentIndices] = useState<Record<string, number>>({});
+  const [resetTimeouts, setResetTimeouts] = useState<Record<string, number>>({});
+  const [isHovering, setIsHovering] = useState<Record<string, boolean>>({});
 
   const getCurrentData = () => {
     switch(activeTab) {
@@ -211,23 +167,87 @@ const Favorites = () => {
   };
 
   const venues = getCurrentData();
-  const handleClick = (venueId: string) => {
-  const basePath =
-    activeTab === "restaurants"
-      ? "/restaurants"
-      : activeTab === "clubs"
-      ? "/clubs"
-      : "/hotels";
 
-  navigate(`${basePath}/${venueId}`);
-};
-   return(
- <div className="min-h-screen ">
+  const hasMultipleImages = useCallback((venue) => {
+    return venue.profileImages && venue.profileImages.length > 1;
+  }, []);
 
-         <Header />
+  const handleMouseEnter = (venueId) => {
+    const venue = venues.find(v => v._id === venueId);
+    if (!venue || !hasMultipleImages(venue)) return;
 
-         
-          <div className=" mt-24 mx-auto px-4 sm:px-6 lg:px-10 py-8">
+    setIsHovering(prev => ({ ...prev, [venueId]: true }));
+
+    if (resetTimeouts[venueId]) {
+      clearTimeout(resetTimeouts[venueId]);
+      setResetTimeouts(prev => {
+        const newTimeouts = { ...prev };
+        delete newTimeouts[venueId];
+        return newTimeouts;
+      });
+    }
+  };
+
+  const handleMouseMove = useCallback((e, venueId) => {
+    const venue = venues.find(v => v._id === venueId);
+    if (!venue || !hasMultipleImages(venue)) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const xPercent = (x / rect.width) * 100;
+    const images = venue.profileImages;
+    const imageIndex = Math.min(
+      Math.max(Math.floor(xPercent / (100 / images.length)), 0),
+      images.length - 1
+    );
+
+    setCurrentIndices(prev => ({
+      ...prev,
+      [venueId]: imageIndex
+    }));
+  }, [venues, hasMultipleImages]);
+
+  const handleMouseLeave = useCallback((venueId) => {
+    const venue = venues.find(v => v._id === venueId);
+    if (!venue || !hasMultipleImages(venue)) return;
+
+    setIsHovering(prev => ({ ...prev, [venueId]: false }));
+
+    const timeout = setTimeout(() => {
+      setCurrentIndices(prev => ({
+        ...prev,
+        [venueId]: 0
+      }));
+    }, 300);
+
+    setResetTimeouts(prev => ({
+      ...prev,
+      [venueId]: timeout
+    }));
+  }, [venues, hasMultipleImages]);
+
+  useEffect(() => {
+    return () => {
+      Object.values(resetTimeouts).forEach(timeout => clearTimeout(timeout));
+    };
+  }, [resetTimeouts]);
+
+  const handleClick = (venueId) => {
+    const basePath =
+      activeTab === "restaurants"
+        ? "/restaurants"
+        : activeTab === "clubs"
+        ? "/clubs"
+        : "/hotels";
+    console.log(`Navigate to: ${basePath}/${venueId}`);
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+     <Header/>
+
+      <div className="mt-24  mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Tabs */}
         <div className="mb-8">
           <div className="border-b border-gray-200">
@@ -275,73 +295,131 @@ const Favorites = () => {
           </div>
         </div>
 
-{venues.length === 0 ? (
-  <div className="flex flex-col items-center justify-center py-24 text-center">
-    <img
-      src="https://illustrations.popsy.co/white/hobby.svg"
-      alt="No favorites illustration"
-      className="w-48 h-48 opacity-80"
-    />
-    <h2 className="text-xl font-semibold text-gray-700 mt-6">
-      No favorites yet
-    </h2>
-    <p className="text-gray-500 mt-2 max-w-sm">
-      When you add restaurants, clubs, or hotels to your favorites, they’ll appear here.
-    </p>
-  </div>
-) : (
-   <>
-    {/* Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {venues.map((venue) => (
-            <div
-              key={venue._id}
-              onClick={() => handleClick(venue._id)}
-              className="bg-white rounded-lg p-1  shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
-            >
-              <div className="relative  overflow-hidden  rounded-md">
-                <img
-                  src={venue.profileImages[0]}
-                  alt={venue.businessName}
-                  className="w-full h-48 object-cover hover:scale-105 rounded-md transition-transform transition-all size-full object-cover duration-300 ease-out 
-                  "
-                />
-                <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-sm hover:bg-gray-50">
-                  <Heart className="w-4 h-4 text-red-500 fill-red-500" />
-                </button>
-              </div>
-              <div className="p-4">
-                <div className="flex flex-col mb-2">
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    {venue.businessName}
-                  </h3>
-                  <div className="flex items-center mb-2">
-                    <Star className="w-4 h-4 text-yellow-400 fill-yellow-400" />
-                    <span className="ml-1 text-sm font-medium">
-                      {venue.rating}
-                    </span>
-                    <span className="text-xs text-gray-500 ml-1">
-                      ({venue.reviewCount})
-                    </span>
+        {venues.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 text-center">
+            <div className="w-48 h-48 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+              <Heart className="w-20 h-20 text-gray-300" />
+            </div>
+            <h2 className="text-xl font-semibold text-gray-700 mt-6">
+              No favorites yet
+            </h2>
+            <p className="text-gray-500 mt-2 max-w-sm">
+              When you add restaurants, clubs, or hotels to your favorites, they'll appear here.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+            {venues.map((venue) => {
+              const currentIndex = currentIndices[venue._id] || 0;
+              const multipleImages = hasMultipleImages(venue);
+              const hovering = isHovering[venue._id] || false;
+              const images = venue.profileImages || [];
+
+              return (
+                <div
+                  key={venue._id}
+                  onClick={() => handleClick(venue._id)}
+                  className="h-80 px-2 pt-2 pb-4 flex flex-col bg-white rounded-[20px] border border-gray-200 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 cursor-pointer"
+                >
+                  {/* Image Container with Carousel */}
+                  <div
+                    className="relative h-48 w-full"
+                    onMouseEnter={() => handleMouseEnter(venue._id)}
+                    onMouseMove={
+                      multipleImages ? (e) => handleMouseMove(e, venue._id) : undefined
+                    }
+                    onMouseLeave={() => handleMouseLeave(venue._id)}
+                  >
+                    <div className="relative h-full w-full overflow-hidden rounded-xl">
+                      {images.map((image, index) => (
+                        <img
+                          key={index}
+                          src={image}
+                          alt={`${venue.businessName} - Image ${index + 1}`}
+                          className={`absolute w-full h-full object-cover transition-all duration-300 ease-out ${
+                            multipleImages
+                              ? `will-change-transform ${hovering ? "brightness-105" : ""}`
+                              : "hover:scale-105"
+                          }`}
+                          style={
+                            multipleImages
+                              ? {
+                                  transform: `translateX(${(index - currentIndex) * 100}%)`,
+                                  transition: hovering
+                                    ? "transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease"
+                                    : "transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), brightness 0.3s ease",
+                                }
+                              : {
+                                  transition: "transform 0.3s ease, brightness 0.3s ease",
+                                }
+                          }
+                        />
+                      ))}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
+                    </div>
+
+                    {/* Heart Button */}
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        console.log('Toggle favorite:', venue._id);
+                      }}
+                      className="absolute top-2 right-2 text-white cursor-pointer text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
+                    >
+                      <Heart className="w-5 h-5 text-red-500 fill-red-500" />
+                    </button>
+
+                    {/* Progress Dots */}
+                    {multipleImages && (
+                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1.5">
+                        {images.map((_, index) => (
+                          <span
+                            key={index}
+                            className={`block rounded-full transition-all duration-300 ease-out ${
+                              index === currentIndex
+                                ? "bg-white scale-125 w-6 h-2 shadow-md"
+                                : "bg-white/70 w-2 h-2 hover:bg-white/90"
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Info Section */}
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-semibold text-gray-900 mb-2 line-clamp-1">
+                        {venue.businessName}
+                      </h3>
+                      <div className="flex items-center mb-2">
+                        <FiStar className="w-4 h-4 text-yellow-500  mr-1" />
+                        <span className="text-sm font-medium text-gray-900">
+                          {venue.rating}
+                        </span>
+                        <span className="text-xs text-gray-500 ml-1">
+                          ({venue.reviewCount})
+                        </span>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-sm text-gray-600 line-clamp-1">
+                        {venue.services.join(' • ')}
+                      </p>
+                      <div className="flex items-start text-xs text-gray-500">
+                        <MapPin className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
+                        <span className="line-clamp-1">{venue.address}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">
-                  {venue.services.join(' • ')}
-                </p>
-                <div className="flex items-start text-xs text-gray-500">
-                  <MapPin className="w-3 h-3 mr-1 mt-0.5 flex-shrink-0" />
-                  <span>{venue.address}</span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-   </>
-)}
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
-}
-
+};
 
 export default Favorites;
