@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Heart, MapPin, Star, ChevronRight } from 'lucide-react';
 import Header from '@/components/user/Header';
 import { FiStar } from 'react-icons/fi';
+import Footer from '@/components/Footer';
 
 // Enhanced dummy data with multiple images
 const restaurantsData = [
@@ -418,6 +419,7 @@ const Favorites: React.FC = () => {
           </div>
         )}
       </div>
+      <Footer/>
     </div>
   );
 };
