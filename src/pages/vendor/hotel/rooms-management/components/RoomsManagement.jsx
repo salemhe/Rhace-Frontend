@@ -1,7 +1,7 @@
 import { fetchRoomTypes, selectRoomTypes } from '@/redux/slices/vendorSlice';
 import { hotelService } from '@/services/hotel.service';
 import { Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
@@ -14,9 +14,12 @@ import RoomTable from './RoomTable';
 import ViewToggle from './ViewToggle';
 import NoDataFallback from '@/components/NoDataFallback';
 import UniversalLoader from '@/components/user/ui/LogoLoader';
+import RoomFilter from './RoomFilter';
 
 const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalItemsChange }) => {
   const [rooms, setRooms] = useState([]);
+  const [filteredRooms, setFilteredRooms] = useState([]);
+  const [activeFilters, setActiveFilters] = useState(null);
   const [view, setView] = useState('grid');
   const [viewImages, setViewImages] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
@@ -27,21 +30,125 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState(null);
+  
+  // Ref to access RoomFilter methods
+  const filterRef = useRef();
 
   const dispatch = useDispatch();
   const roomTypesState = useSelector(selectRoomTypes);
   const vendor = useSelector((state) => state.auth.vendor);
+
+  // Apply filters function
+  const applyFilters = (filters, roomsToFilter) => {
+    if (!filters) {
+      return roomsToFilter;
+    }
+
+    let filtered = [...roomsToFilter];
+
+    // Search filter - search in room name/type and description
+    if (filters.search && filters.search.trim() !== '') {
+      const searchLower = filters.search.toLowerCase().trim();
+      filtered = filtered.filter(room => {
+        const name = (room.name || room.roomType || '').toLowerCase();
+        const description = (room.description || '').toLowerCase();
+        const roomNumber = (room.roomNumber || '').toString().toLowerCase();
+        
+        return name.includes(searchLower) || 
+               description.includes(searchLower) || 
+               roomNumber.includes(searchLower);
+      });
+    }
+
+    // Category filter
+    if (filters.category && filters.category !== 'all') {
+      filtered = filtered.filter(room => {
+        const roomType = (room.type || room.roomType || '').toLowerCase();
+        return roomType.includes(filters.category.toLowerCase());
+      });
+    }
+
+    // Price range filter
+    if (filters.priceRange?.min && filters.priceRange.min !== '') {
+      const minPrice = parseFloat(filters.priceRange.min);
+      filtered = filtered.filter(room => {
+        const price = room.pricePerNight || room.price || 0;
+        return price >= minPrice;
+      });
+    }
+
+    if (filters.priceRange?.max && filters.priceRange.max !== '') {
+      const maxPrice = parseFloat(filters.priceRange.max);
+      filtered = filtered.filter(room => {
+        const price = room.pricePerNight || room.price || 0;
+        return price <= maxPrice;
+      });
+    }
+
+    // Capacity filter
+    if (filters.capacity && filters.capacity !== '') {
+      const minCapacity = parseInt(filters.capacity);
+      filtered = filtered.filter(room => {
+        const totalCapacity = (room.adultsCapacity || 0) + (room.childrenCapacity || 0);
+        return totalCapacity >= minCapacity;
+      });
+    }
+
+    // Status filter
+    if (filters.status && filters.status !== 'all') {
+      filtered = filtered.filter(room => {
+        if (filters.status === 'available') {
+          return room.isAvailable && room.maintenanceStatus !== 'maintenance';
+        } else if (filters.status === 'occupied') {
+          return !room.isAvailable && room.maintenanceStatus !== 'maintenance';
+        } else if (filters.status === 'maintenance') {
+          return room.maintenanceStatus === 'maintenance';
+        }
+        return true;
+      });
+    }
+
+    // Amenities filter - room must have ALL selected amenities
+    if (filters.amenities && filters.amenities.length > 0) {
+      filtered = filtered.filter(room => {
+        const roomAmenities = room.amenities || [];
+        return filters.amenities.every(amenity => 
+          roomAmenities.some(ra => 
+            ra.toLowerCase() === amenity.toLowerCase()
+          )
+        );
+      });
+    }
+
+    return filtered;
+  };
+
+  // Handle filter changes
+  const handleFilterChange = (filters) => {
+    console.log('Filters applied:', filters);
+    setActiveFilters(filters);
+    const filtered = applyFilters(filters, rooms);
+    setFilteredRooms(filtered);
+  };
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    filterRef.current?.resetFilters();
+    setActiveFilters(null);
+    setFilteredRooms(rooms);
+  };
 
   // Fetch room types on mount
   useEffect(() => {
     const fetchRoomTypesData = async () => {
       try {
         const res = await hotelService.getRoomTypes(vendor._id);
-        console.log(res);
+        console.log('Fetched rooms:', res);
         setRooms(res);
+        setFilteredRooms(res); // Initialize filtered rooms
       } catch (error) {
         console.error(error);
-        toast.error(error.response.data.message);
+        toast.error(error?.response?.data?.message || 'Failed to fetch rooms');
       } finally {
         setIsLoading(false);
       }
@@ -64,38 +171,57 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
       const mapped = roomTypesState.items.map((rt, idx) => ({
         _id: rt._id || `rt-${idx}`,
         roomNumber: rt.roomNumber || String(idx + 1),
+        name: rt.name || `Room ${idx + 1}`,
         roomType: rt.name || `Room ${idx + 1}`,
         type: rt.name || 'standard',
+        pricePerNight: rt.pricePerNight || rt.price || 0,
         price: rt.pricePerNight || rt.price || 0,
-        capacity: rt.adultsCapacity || ((rt.adultsCapacity || 0) + (rt.childrenCapacity || 0)) || 1,
+        adultsCapacity: rt.adultsCapacity || 0,
+        childrenCapacity: rt.childrenCapacity || 0,
+        capacity: (rt.adultsCapacity || 0) + (rt.childrenCapacity || 0),
         amenities: Array.isArray(rt.amenities) ? rt.amenities : [],
         features: [],
         description: rt.description || '',
         isAvailable: (typeof rt.totalUnits === 'number') ? rt.totalUnits > 0 : true,
-        maintenanceStatus: 'available',
+        maintenanceStatus: rt.maintenanceStatus || 'available',
         images: Array.isArray(rt.images) ? rt.images : [],
         createdAt: rt.createdAt,
         updatedAt: rt.updatedAt,
       }));
       setRooms(mapped);
+      // Reapply filters if any are active
+      if (activeFilters) {
+        setFilteredRooms(applyFilters(activeFilters, mapped));
+      } else {
+        setFilteredRooms(mapped);
+      }
     }
     if (roomTypesState.status === 'failed') {
       console.error('Failed to load room types:', roomTypesState.error);
     }
   }, [roomTypesState]);
 
-  // Update total items count whenever rooms change
+  // Update filtered rooms when rooms change (after add/edit/delete)
+  useEffect(() => {
+    if (activeFilters) {
+      setFilteredRooms(applyFilters(activeFilters, rooms));
+    } else {
+      setFilteredRooms(rooms);
+    }
+  }, [rooms]);
+
+  // Update total items count whenever filtered rooms change
   useEffect(() => {
     if (onTotalItemsChange) {
-      onTotalItemsChange(rooms.length);
+      onTotalItemsChange(filteredRooms.length);
     }
-  }, [rooms.length, onTotalItemsChange]);
+  }, [filteredRooms.length, onTotalItemsChange]);
 
-  // Calculate paginated rooms
+  // Calculate paginated rooms from filtered results
   const getPaginatedRooms = () => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
-    return rooms.slice(startIndex, endIndex);
+    return filteredRooms.slice(startIndex, endIndex);
   };
 
   const paginatedRooms = getPaginatedRooms();
@@ -103,7 +229,6 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
   // Event handlers
   const handleEditRoom = (room) => {
     setEditingRoom(room);
-    console.log(editingRoom)
     setIsEditModalOpen(true);
   };
 
@@ -171,11 +296,22 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
     return <UniversalLoader fullscreen />
   }
 
+  // Check if filters are active
+  const hasActiveFilters = activeFilters && (
+    (activeFilters.search && activeFilters.search.trim() !== '') ||
+    (activeFilters.category && activeFilters.category !== 'all') ||
+    (activeFilters.priceRange?.min && activeFilters.priceRange.min !== '') ||
+    (activeFilters.priceRange?.max && activeFilters.priceRange.max !== '') ||
+    (activeFilters.capacity && activeFilters.capacity !== '') ||
+    (activeFilters.status && activeFilters.status !== 'all') ||
+    (activeFilters.amenities && activeFilters.amenities.length > 0)
+  );
+
   return (
     <div className="min-h-screen text-gray-900 p-4 sm:p-0">
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <h1 className="text-3xl font-bold text-gray-900">Room Management</h1>
+          <h1 className="text-xl font-bold text-gray-900">Room Management</h1>
           <div className="flex items-center gap-3">
             <ViewToggle view={view} onViewChange={setView} />
             <button
@@ -187,6 +323,25 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
             </button>
           </div>
         </div>
+        
+        <RoomFilter ref={filterRef} onFilterChange={handleFilterChange}/>
+        
+        {/* Filter Results Info */}
+        {hasActiveFilters && filteredRooms.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex justify-between items-center">
+              <p className="text-blue-700 text-sm font-medium">
+                Found {filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''} matching your filters
+              </p>
+              <button
+                onClick={handleClearFilters}
+                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+              >
+                Clear filters
+              </button>
+            </div>
+          </div>
+        )}
 
         {rooms.length === 0 ? (
           <NoDataFallback
@@ -195,6 +350,24 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
             actionLabel="Add Room"
             onAction={handleAddRoom}
           />
+        ) : filteredRooms.length === 0 ? (
+          <div className="bg-white rounded-lg shadow p-12 text-center">
+            <div className="max-w-md mx-auto">
+              <div className="text-gray-400 mb-4">
+                <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">No rooms match your filters</h3>
+              <p className="text-gray-500 mb-4">Try adjusting your filter criteria to see more results.</p>
+              <button
+                onClick={handleClearFilters}
+                className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
+              >
+                Clear All Filters
+              </button>
+            </div>
+          </div>
         ) : view === 'grid' ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {paginatedRooms.map((room) => (

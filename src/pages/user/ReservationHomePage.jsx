@@ -162,7 +162,7 @@ const SvgIcon3= ({ isActive }) => (
         </div>
 
        {activeTab === "restaurants" &&(
-        <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className=" mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <TableGrid title="Popular Searches" />
           {/* <TableGrid title="In High Demand" />
           <TableGrid title="Your History" /> */}
@@ -171,12 +171,12 @@ const SvgIcon3= ({ isActive }) => (
           
       ) }
        {activeTab === "hotels" && (
-        <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className=" mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
            <TableGridTwo title="Popular Searches" />
         </div>
       ) }
       {activeTab === "clubs" && (
-         <div className="max-w-7xl mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+         <div className=" mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
            <TableGridThree title="Popular Clubs" />
         </div>
       )}

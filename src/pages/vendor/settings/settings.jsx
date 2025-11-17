@@ -58,7 +58,7 @@ const Settings = () => {
    const handleSave = () => {
       alert('Settings saved successfully!');
    };
-
+console.log(vendor?.vendorType)
    const handleReset = () => {
       if (confirm('Are you sure you want to reset to default settings?')) {
          alert('Settings reset to default');

@@ -18,7 +18,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { SearchSectionTwo } from "../SearchSection";
 
 // logo imports — 
-import logoWhite from '@/assets/Rhace-09.png';
 import logoBlack from '@/assets/Rhace-11.png';
 
 const Header = () => {
@@ -186,7 +185,7 @@ const Header = () => {
           <a href="/auth/user/login">Login</a>
         </Button>
         <Button
-          className="cursor-pointer rounded-full bg-blue-700 hover:bg-blue-700/90"
+          className="cursor-pointer rounded-full bg-teal-700 hover:bg-teal-700/90"
           asChild
         >
           <a href="/auth/user/signup">Create Account</a>
@@ -247,7 +246,7 @@ const Header = () => {
   //             <Link href="/user-login">Login</Link>
   //           </Button>
   //           <Button
-  //             className="cursor-pointer rounded-full bg-blue-700 hover:bg-blue-700/90"
+  //             className="cursor-pointer rounded-full bg-teal-700 hover:bg-teal-700/90"
   //             asChild
   //           >
   //             <Link href="user-signup">Create Account</Link>
@@ -273,9 +272,9 @@ const Header = () => {
             <div className="flex">
               <div className="shrink-0 flex items-center">
                 <a href="/" className="flex items-center space-x-2">
-                  <img 
-                    src={logoBlack} 
-                    alt="Rhace Logo" 
+                  <img
+                    src={logoBlack}
+                    alt="Rhace Logo"
                     className="h-6 w-auto object-contain transition-all duration-300"
                   />
                 </a>
@@ -294,12 +293,12 @@ const Header = () => {
                         key={item.name}
                         href={item.href}
                         className={`${scrolled || !isHomePage ? 'text-gray-700' : 'text-[#F9FAFB]'} 
-                          text-[1rem] hover:text-blue-500 font-bold px-3 py-2 transition-colors
+                          text-[1rem] hover:text-teal-500 font-bold px-3 py-2 transition-colors
                           relative group`}
                       >
                         {item.name}
                         <span
-                          className={`absolute h-0.5 w-0 bg-blue-500 left-1/2 -translate-x-1/2 bottom-0 rounded-full
+                          className={`absolute h-0.5 w-0 bg-teal-500 left-1/2 -translate-x-1/2 bottom-0 rounded-full
                           ${isActive ? 'w-[24px] h-2' : 'group-hover:w-[24px] h-2'} transition-all duration-300`}
                         />
                       </a>

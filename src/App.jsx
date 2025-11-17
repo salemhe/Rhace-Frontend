@@ -85,6 +85,10 @@ import AboutRhace from "./pages/user/About";
 import ContactRhace from "./pages/user/Contact";
 import HelpCenterRhace from "./pages/user/HelpCenter";
 import CreateMenuItem from "./pages/vendor/dashboard/restaurant/CreateMenuItem";
+import HotelSettings from "./pages/vendor/hotel/Settings";
+import RestaurantSettings from "./pages/vendor/dashboard/restaurant/Settings";
+import ClubSettings from "./pages/vendor/club/Settings";
+import Favorites from "./pages/user/Favourites";
 
 const authRoutes = {
   user: [
@@ -133,6 +137,7 @@ const hotelReservationRoutes = [
 const userGeneralRoutes = [
   { path: "/bookings", element: <BookingsPage /> },
   { path: "/search", element: <SearchContent /> },
+{ path: "/favorites", element: <Favorites /> },
 ];
 
 const adminRoutes = [
@@ -154,7 +159,7 @@ const dashboardRestaurantRoutes = [
   { path: "restaurant/menu", element: <MenuDashboard /> },
   { path: "restaurant/menu/new", element: <CreateMenu /> },
   { path: "restaurant/menu/item/new/", element: <CreateMenuItem /> },
-  { path: "restaurant/settings", element: <Settings /> },
+  { path: "restaurant/settings", element: <RestaurantSettings /> },
 ];
 
 const hotelVendorRoutes = [
@@ -164,7 +169,7 @@ const hotelVendorRoutes = [
   { path: "hotel/rooms", element: <RoomsManagement /> },
   { path: "hotel/payments", element: <PaymentDashboard /> },
   { path: "hotel/staffs", element: <StaffManagementSystem /> },
-  { path: "hotel/settings", element: <Settings /> },
+  { path: "hotel/settings", element: <HotelSettings /> },
 ];
 
 const clubVendorRoutes = [
@@ -174,7 +179,7 @@ const clubVendorRoutes = [
   { path: "club/payments", element: <PaymentDashboard /> },
   { path: "club/staffs", element: <StaffManagementSystem /> },
   { path: "club/add-drinks", element: <BottleServiceManager /> },
-  { path: "club/settings", element: <Settings /> },
+  { path: "club/settings", element: <ClubSettings /> },
 ];
 
 

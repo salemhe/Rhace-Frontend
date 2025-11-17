@@ -70,7 +70,7 @@ export function BookingPolicyForm ({ onSubmit, formData, setFormData }) {
                 </div>
 
                 {/* Room Type Name */}
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="roomTypeName" className="text-sm font-medium text-gray-700">
                     Room Type Name*
                   </Label>
@@ -82,7 +82,7 @@ export function BookingPolicyForm ({ onSubmit, formData, setFormData }) {
                     className="w-full"
                   />
                   <p className="text-xs text-gray-500">Select standard check-out time for guests</p>
-                </div>
+                </div> */}
               </div>
 
               {/* Advance Booking Requirement */}

@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Star, Heart, Loader2 } from "lucide-react";
 import { SearchSectionTwo } from "@/components/SearchSection";
 import Header from "@/components/user/Header";
+import { restaurantService } from "@/services/rest.services";
+import { Heart, Loader2, Star } from "lucide-react";
+import { useCallback, useEffect, useState, useRef } from "react";
 
-// Loading state fallback
 const LoadingFallback = () => (
   <div className="min-h-screen mt-[100px] bg-gray-50">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -23,38 +23,32 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchData, setSearchData] = useState(null);
+  
+  // Use ref to track if initial search has been performed
+  const initialSearchDone = useRef(false);
 
-  // Function to handle search
+  // Function to handle search - memoized without searchData dependency
   const handleSearch = useCallback(async (query) => {
-    if (!query.trim()) return;
+    if (!query?.trim()) {
+      setRestaurants([]);
+      return;
+    }
+    
     setLoading(true);
 
     try {
-      // Uncomment when you have the API service
-      // const response = await restaurantService.searchRestaurants(query);
-      // setRestaurants(response.data);
-
-      // Mock data for demonstration
-      setRestaurants([]);
-
-      // Save search to localStorage
-      const updatedSearchData = {
-        ...(searchData || {}),
-        query: query,
-        tab: (searchData && searchData.tab) || "restaurants",
-        timestamp: new Date().toISOString(),
-      };
-      setSearchData(updatedSearchData);
-      localStorage.setItem("searchData", JSON.stringify(updatedSearchData));
+      const response = await restaurantService.searchRestaurants(query);
+      setRestaurants(response.data || []);
+      console.log('Search results:', response.data);
     } catch (err) {
       console.error("Search error:", err);
       setRestaurants([]);
     } finally {
       setLoading(false);
     }
-  }, [searchData]);
+  }, []); // No dependencies - function is stable
 
-  // Load stored search data on mount
+  // Load stored search data on mount and perform initial search
   useEffect(() => {
     setMounted(true);
 
@@ -63,21 +57,38 @@ const SearchPage = () => {
       try {
         const parsed = JSON.parse(stored);
         setSearchData(parsed);
-        setSearchQuery(parsed.query);
-        if (parsed.query) {
+        setSearchQuery(parsed.query || "");
+        
+        // Perform initial search if query exists and not done yet
+        if (parsed.query && !initialSearchDone.current) {
+          initialSearchDone.current = true;
           handleSearch(parsed.query);
         }
       } catch (error) {
         console.error("Error parsing search data:", error);
       }
     }
-  }, []);
+  }, [handleSearch]);
 
-  const handleNewSearch = (newSearchData) => {
-    setSearchQuery(newSearchData.query);
-    setSearchData(newSearchData);
-    handleSearch(newSearchData.query);
-  };
+  // Handle new search from search bar
+  const handleNewSearch = useCallback((newSearchData) => {
+    const query = newSearchData.query || newSearchData;
+    
+    setSearchQuery(query);
+    
+    // Update search data
+    const updatedSearchData = {
+      query: query,
+      tab: newSearchData.tab || "restaurants",
+      timestamp: new Date().toISOString(),
+    };
+    
+    setSearchData(updatedSearchData);
+    localStorage.setItem("searchData", JSON.stringify(updatedSearchData));
+    
+    // Perform search
+    handleSearch(query);
+  }, [handleSearch]);
 
   if (!mounted) {
     return <LoadingFallback />;
@@ -87,7 +98,6 @@ const SearchPage = () => {
     <div className="min-h-screen mt-[100px] bg-gray-50">
       <Header />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          
         <div className="sm:hidden mb-8 flex">
           <SearchSectionTwo onSearch={handleNewSearch} searchData={searchData} />
         </div>
@@ -222,9 +232,11 @@ const SearchPage = () => {
           {/* Results */}
           <div className="flex-1">
             <h1 className="text-2xl font-bold mb-6">
-              {`${restaurants.length} Restaurant${
-                restaurants.length !== 1 ? "s" : ""
-              } found`}
+              {searchQuery
+                ? `${restaurants.length} Restaurant${
+                    restaurants.length !== 1 ? "s" : ""
+                  } found for "${searchQuery}"`
+                : "Search for restaurants"}
             </h1>
 
             {loading && (
@@ -247,6 +259,14 @@ const SearchPage = () => {
               </div>
             )}
 
+            {!loading && !searchQuery && restaurants.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">
+                  Enter a search query to find restaurants
+                </p>
+              </div>
+            )}
+
             {!loading && restaurants.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {restaurants.map((restaurant) => (
@@ -256,7 +276,7 @@ const SearchPage = () => {
                   >
                     <div className="relative">
                       <img
-                        src={restaurant.profileImages || "/restaurant.jpg"}
+                        src={restaurant.profileImages[0] || "/restaurant.jpg"}
                         alt={restaurant.businessName}
                         className="w-full h-48 object-cover"
                       />
@@ -271,17 +291,19 @@ const SearchPage = () => {
                         </h3>
                         <div className="flex items-center mb-2">
                           <Star className="w-4 h-4 text-yellow-400" />
-                          <span className="ml-1 text-sm font-medium">4.5</span>
+                          <span className="ml-1 text-sm font-medium">
+                            {restaurant.rating || "4.5"}
+                          </span>
                           <span className="text-xs text-gray-500 ml-1">
-                            (50+ reviews)
+                            {restaurant.reviewCount || ""}
                           </span>
                         </div>
                       </div>
                       <p className="text-sm text-gray-600 mb-2">
-                        {restaurant.services?.join(", ")}
+                        {restaurant.services?.join(", ") || "Restaurant"}
                       </p>
                       <p className="text-xs text-gray-500 mb-3">
-                        {restaurant.address}
+                        {restaurant.address || "Address not available"}
                       </p>
                     </div>
                   </div>
@@ -295,4 +317,4 @@ const SearchPage = () => {
   );
 };
 
-export default SearchPage
+export default SearchPage;

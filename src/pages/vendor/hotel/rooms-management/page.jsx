@@ -57,7 +57,7 @@ const RoomsManagement = () => {
 
   return (
     <DashboardLayout type="hotel">
-      <div className="min-h-screen text-gray-900 p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen mb-16 text-gray-900 p-4 sm:p-6 lg:p-8">
         <RoomsManagementComponent 
           currentPage={currentPage}
           itemsPerPage={itemsPerPage}
@@ -65,7 +65,7 @@ const RoomsManagement = () => {
         />
       </div>
       {totalItems > 0 && (
-        <div className='absolute hidden md:flex bottom-0 border-t border-[#E5E7EB] left-0 right-0 bg-white'>
+        <div className='absolute hidden md:flex bottom-0 border-t border-[#E5E7EB] left-0 right-0  bg-white'>
           <div className="flex items-center w-full px-8 justify-between space-x-2 py-4">
             <div className="text-muted-foreground text-sm">
               Page {currentPage} of {totalPages} ({totalItems} total items)

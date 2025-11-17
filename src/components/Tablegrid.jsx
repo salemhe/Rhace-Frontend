@@ -113,7 +113,7 @@ const TableGrid = ({ title }) => {
       </Button>
 
       {/* Desktop grid */}
-      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {restaurants.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const restaurantId = restaurant._id || String(restaurant.id);
@@ -440,7 +440,7 @@ export const TableGridTwo = ({ title }) => {
         <FiChevronRight className="ml-1" />
       </Button>
 
-      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const currentIndex = currentIndices[restaurant._id] || 0;
@@ -782,7 +782,7 @@ export const TableGridThree = ({ title }) => {
         <FiChevronRight className="ml-1" />
       </Button>
 
-      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const currentIndex = currentIndices[restaurant._id] || 0;

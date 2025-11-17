@@ -1,19 +1,19 @@
 import { Button } from '@/components/ui/button';
 import { hotelService } from '@/services/hotel.service';
-import { Plus } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router';
 import Header from './components/Header';
 import AddRoomType from './components/add-rooms';
 import { BookingPolicyForm } from './components/booking-policy';
 import HotelBookingInterface from './components/rooms-confirmation';
 import { SetupSteps } from './components/setup-steps';
-import { useNavigate } from 'react-router';
 
 
 export default function AddRooms () {
   const [currentStep, setCurrentStep] = useState(1);
-  const [loading, setLoading]= useState(false);
+  const [loading, setLoading] = useState(false);
 
   // Unified state for all form data (hotelInfo removed from workflow)
   const [completeFormData, setCompleteFormData] = useState({
@@ -161,20 +161,23 @@ export default function AddRooms () {
     return processedImages;
   };
 
-const navigate = useNavigate()
+  const navigate = useNavigate()
   // Final form submission
   const handleFinalSubmit = async () => {
+    if (loading) return; // prevent duplicate submits
     setLoading(true)
     // Validate that all required data is present
     if (!completeFormData.bookingPolicy) {
       alert('Please complete booking policy setup');
       setCurrentStep(2);
+      setLoading(false);
       return;
     }
 
     if (completeFormData.roomTypes.length === 0) {
       alert('Please add at least one room type');
       setCurrentStep(1);
+      setLoading(false);
       return;
     }
 
@@ -197,12 +200,11 @@ const navigate = useNavigate()
           pricePerNight: room.pricePerNight,
           adultsCapacity: room.adultsCapacity,
           childrenCapacity: room.childrenCapacity,
-          totalAvailableRooms: room.totalAvailableRooms,
           amenities: room.amenities,
           images: processedImages,
           // include booking policy from the unified form data
           bookingPolicy: completeFormData.bookingPolicy,
-          totalUnits:  room.amenities.length,
+          totalUnits: room.totalAvailableRooms,
 
         };
 
@@ -212,8 +214,8 @@ const navigate = useNavigate()
       }
 
       console.log('Created room types:', created);
-      
-    setLoading(false);
+
+      setLoading(false);
       navigate("/dashboard/hotel/rooms")
     } catch (err) {
       // More detailed error logging for debugging 403 responses
@@ -265,6 +267,7 @@ const navigate = useNavigate()
   };
 
   const handleContinue = () => {
+    if (loading) return; // don't change steps while submitting
     if (currentStep === 3) {
       handleFinalSubmit();
     } else if (canProceedToNextStep()) {
@@ -360,11 +363,18 @@ const navigate = useNavigate()
           <Button
             variant="secondary"
             size="default"
-            className='bg-[#0a6c6d] text-white hover:bg-teal-700'
+            className='bg-[#0a6c6d] text-white hover:bg-teal-700 flex items-center gap-2'
             onClick={handleContinue}
-            disabled={!canProceedToNextStep()}
+            disabled={!canProceedToNextStep() || loading}
           >
-            {currentStep === 3 ? 'Complete Setup' : 'Continue'}
+            {loading ? (
+              <>
+                <Loader2 className="animate-spin h-4 w-4" />
+                <span>{currentStep === 3 ? 'Completing...' : 'Processing...'}</span>
+              </>
+            ) : (
+              <span>{currentStep === 3 ? 'Complete Setup' : 'Continue'}</span>
+            )}
           </Button>
         </div>
       </div>
