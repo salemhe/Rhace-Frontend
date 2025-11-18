@@ -287,10 +287,10 @@ export default function PreSelectMeal({ id }) {
                         <div className="md:hidden flex-1 min-w-0">
                           <h3 className="font-medium">{item.dishName}</h3>
                           <p className="text-sm truncate text-gray-600 mt-1">
-                            {item.description}
+                            {item.description} 
                           </p>
                           <p className="font-medium mt-2">
-                            ₦{item.price.toLocaleString()}
+                            ₦{item.price.toLocaleString()} 
                           </p>
                         </div>
                       </div>
