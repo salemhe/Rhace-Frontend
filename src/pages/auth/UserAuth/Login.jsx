@@ -183,6 +183,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
+import GoogleIcon from "@/assets/auth/google.svg";
 import { authService } from "@/services/auth.service"
 import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
@@ -267,7 +268,7 @@ const Login = () => {
       <Card className="w-full max-w-md bg-white shadow-md rounded-2xl border border-gray-100 mt-16 sm:mt-24">
         <CardHeader className="text-left pb-4">
           <h1 className="text-2xl font-semibold text-gray-900">Welcome Back</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 mt-1 mb-[-7px]">
             We're glad to see you again. Please log in to your account.
           </p>
         </CardHeader>
@@ -345,6 +346,25 @@ const Login = () => {
               "Login"
             )}
           </Button>
+          
+          {/* OR Divider */}
+          <div className="flex items-center my-2">
+            <div className="flex-1 h-px bg-[#0A6C6D]"></div>
+            <span className="px-3 text-sm text-[#074f55]">OR</span>
+            <div className="flex-1 h-px bg-[#0A6C6D]"></div>
+          </div>
+
+          {/* Google Login Button */}
+          <button
+            type="button"
+            className="w-full flex items-center justify-center gap-3 border border-gray-300 
+                       bg-white py-3 rounded-md hover:bg-gray-50 transition-all"
+          >
+            {/* Google Icon */}
+            <img src={GoogleIcon} alt="Google" className="h-5 w-5" />
+            <span className="text-sm text-gray-700 font-medium">Continue with Google</span>
+          </button>
+
 
           <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
             Don’t Have An Account?{" "}
@@ -371,3 +391,15 @@ const Login = () => {
 };
 
 export default Login;
+
+
+
+
+
+
+
+
+
+
+
+

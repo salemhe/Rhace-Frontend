@@ -289,6 +289,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
+import GoogleIcon from "@/assets/auth/google.svg";
 import { toast } from "sonner"
 import { useNavigate } from "react-router"
 import { authService } from "@/services/auth.service"
@@ -392,7 +393,7 @@ const Signup = () => {
       <Card className="w-full max-w-md bg-white shadow-md rounded-2xl border border-gray-100 mt-16 sm:mt-24">
         <CardHeader className="text-left pb-4">
           <h1 className="text-2xl font-semibold text-gray-900">Create an Account</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 mt-1 mb-[-7px]">
             Join now to streamline your experience from day one.
           </p>
         </CardHeader>
@@ -535,6 +536,24 @@ const Signup = () => {
               "Register"
             )}
           </Button>
+
+          {/* OR Divider */}
+          <div className="flex items-center my-2">
+            <div className="flex-1 h-px bg-[#0A6C6D]"></div>
+             <span className="px-3 text-sm text-[#074f55]">OR</span>
+              <div className="flex-1 h-px bg-[#0A6C6D]"></div>
+            </div>
+          
+          {/* Google Login Button */}
+          <button
+            type="button"
+            className="w-full flex items-center justify-center gap-3 border border-gray-300 
+            bg-white py-3 rounded-md hover:bg-gray-50 transition-all"
+          >
+          {/* Google Icon */}
+          <img src={GoogleIcon} alt="Google" className="h-5 w-5" />
+            <span className="text-sm text-gray-700 font-medium">Continue with Google</span>
+          </button>
 
           <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
             Already Have An Account?{" "}
