@@ -8,13 +8,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router";
-import { TablePicker } from "../ui/tablepicker";
 
 const BookingPopup = ({ id }) => {
   const [show, setShow] = useState(false);
   const [date, setDate] = useState();
   const [time, setTime] = useState("");
-  const [table, setTable] = useState("");
   const [request, setRequest] = useState("");
   const [guests, setGuests] = useState("1");
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +24,6 @@ const navigate = useNavigate();
       date: date ? date.toISOString() : "",
       time,
       guests,
-      table,
       specialRequest: request,
     });
     navigate(`/clubs/${id}/reservations?${params.toString()}`);
@@ -65,8 +62,7 @@ const navigate = useNavigate();
           <form onSubmit={handleSubmit} className="space-y-6 mt-6">
             <div className="flex flex-col md:flex-row w-full gap-4">
               <DatePicker className="bg-white" value={date} onChange={setDate} />
-              <TimePicker className="bg-white" value={time} onChange={setTime} />
-              <TablePicker className="bg-white" value={table} onChange={setTable} />
+              <TimePicker className="bg-white" value={time} onChange={setTime} slot={['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM']} />
             </div>
             <GuestPicker className="bg-white" value={guests} onChange={setGuests} />
             <div className="flex flex-col gap-y-3">

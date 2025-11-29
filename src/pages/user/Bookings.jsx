@@ -1,4 +1,5 @@
 import BookingCard from '@/components/BookingCard';
+import Footer from '@/components/Footer';
 import UserHeader from '@/components/layout/headers/user-header';
 import Header from '@/components/user/Header';
 import ReservationHeader from '@/components/user/hotel/ReservationHeader';
@@ -207,6 +208,7 @@ function BookingsPage() {
                </div>
             </div>
          </div>
+         <Footer/>
       </div>
    );
 }
