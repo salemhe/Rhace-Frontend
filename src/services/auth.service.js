@@ -52,6 +52,23 @@ class AuthService {
     return res.data;
   }
 
+  async googleLogin(code) {
+    const res = await api.post("/users/auth/login/google", {
+      code,
+    })
+    const { token } = res.data;
+
+    localStorage.setItem("token", token);
+    return res.data;
+  } 
+
+  async googleRegister(code) {
+    const res = await api.post("/users/auth/register/google", {
+      code,
+    })
+    return res.data;
+  } 
+
   async vendorForgotPassword(email) {
     const res = await api.post("/vendors/auth/forgot-password", { email });
     return res.data;

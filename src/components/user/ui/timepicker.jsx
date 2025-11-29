@@ -13,14 +13,15 @@ export function TimePicker({
   value,
   onChange,
   className,
+  slot,
 }) {
   const [open, setOpen] = useState(false);
-  const slots = [
+  const [slots] = useState(slot || [
     '09:00 AM', '09:30 AM', '10:00 AM', '11:30 AM',
     '01:00 PM', '02:00 PM', '04:00 PM', '04:30 PM',
     '05:00 PM', '06:00 PM', '06:30 PM', '07:30 PM',
     '08:00 PM', '09:00 PM',
-  ];
+  ]);
 
   return (
     <div>

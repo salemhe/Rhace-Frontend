@@ -294,6 +294,7 @@ import { toast } from "sonner"
 import { useNavigate } from "react-router"
 import { authService } from "@/services/auth.service"
 import logo from "../../../assets/Rhace-11.png"
+import { useGoogleLogin } from "@react-oauth/google"
 
 const getCurrentYear = () => new Date().getFullYear();
 
@@ -302,6 +303,7 @@ const Signup = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsloading] = useState(false)
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState({
     firstName: "",
     lastName: "",
@@ -322,7 +324,7 @@ const Signup = () => {
       if (!formValidation()) return
       setError({ email: "", password: "", firstName: "", lastName: "", confirmPassword: "" })
       setIsloading(true)
-      const user = await authService.register(formData)
+      await authService.register(formData)
       toast.success("Congratulations! Next: verify your email")
       navigate(`/auth/user/otp?email=${formData.email}`)
     } catch (err) {
@@ -331,6 +333,26 @@ const Signup = () => {
       setIsloading(false)
     }
   }
+
+  const handleGoogleRegister = useGoogleLogin({
+    flow: 'auth-code',
+    onSuccess: async (tokenResponse) => {
+      console.log(tokenResponse);
+      try {
+        setGoogleLoading(true);
+        const code = tokenResponse.code;
+        await authService.googleRegister(code);
+        toast.success("Congratulations! Next: verify your email")
+        navigate('/auth/user/login')
+      } catch (error) {
+        console.error("Google login failed:", error);
+        toast.error("Google login failed. Please try again.");
+      } finally {
+        setGoogleLoading(false);
+      }
+    },
+    onError: error => console.log('Login Failed:', error)
+  });
 
   const getPasswordStrength = (password) => {
     let strength = 0
@@ -382,7 +404,7 @@ const Signup = () => {
       <div className="absolute top-6 left-4 sm:left-10 flex items-center gap-sm:top-[8%] sm:-translate-y-1/2">
         <a href="/" className="cursor-pointer">
           <img
-            src={logo} 
+            src={logo}
             alt="Rhace Logo"
             className="w-20 h-20 object-contain"
           />
@@ -540,19 +562,22 @@ const Signup = () => {
           {/* OR Divider */}
           <div className="flex items-center my-2">
             <div className="flex-1 h-px bg-[#0A6C6D]"></div>
-             <span className="px-3 text-sm text-[#074f55]">OR</span>
-              <div className="flex-1 h-px bg-[#0A6C6D]"></div>
-            </div>
-          
+            <span className="px-3 text-sm text-[#074f55]">OR</span>
+            <div className="flex-1 h-px bg-[#0A6C6D]"></div>
+          </div>
+
           {/* Google Login Button */}
           <button
+            onClick={handleGoogleRegister}
             type="button"
             className="w-full flex items-center justify-center gap-3 border border-gray-300 
-            bg-white py-3 rounded-md hover:bg-gray-50 transition-all"
+                                 bg-white py-3 rounded-md hover:bg-gray-50 transition-all"
           >
-          {/* Google Icon */}
-          <img src={GoogleIcon} alt="Google" className="h-5 w-5" />
-            <span className="text-sm text-gray-700 font-medium">Continue with Google</span>
+            {/* Google Icon */}
+            <img src={GoogleIcon} alt="Google" className="h-5 w-5" />
+            {googleLoading ? <Loader2 className="animate-spin h-4 w-4 text-gray-600" /> :
+              <span className="text-sm text-gray-700 font-medium">Continue with Google</span>
+            }
           </button>
 
           <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">

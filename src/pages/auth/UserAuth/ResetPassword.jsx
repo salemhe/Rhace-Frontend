@@ -36,7 +36,7 @@ const ResetPassword = () => {
         try {
             setIsloading(true)
             await authService.resetPassword(token, password)
-            toast.success("A reset password link has been sent to your Email")
+            toast.success("Password reset successful. Please login.")
             navigate("/auth/user/login")
         } catch (err) {
             toast.error(err.response.data.message)
