@@ -135,7 +135,7 @@ const TableGrid = ({ title }) => {
 
       {/* Desktop grid */}
       <div className="hidden sm:grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-        {restaurants.map((restaurant) => {
+        {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const restaurantId = restaurant._id || String(restaurant.id);
           const currentIndex = currentIndices[restaurantId] || 0;
@@ -262,7 +262,7 @@ const TableGrid = ({ title }) => {
 
       {/* Mobile scroll */}
       <div className="flex sm:hidden gap-4 overflow-x-auto scrollbar-hide">
-        {restaurants.map((restaurant) => {
+        {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const restaurantId = restaurant._id || String(restaurant._id);
           const currentIndex = currentIndices[restaurantId] || 0;
@@ -649,7 +649,7 @@ export const TableGridTwo = ({ title }) => {
 
       {/* Mobile scroll */}
       <div className="flex sm:hidden gap-4 overflow-x-auto scrollbar-hide">
-        {restaurants.map((restaurant) => {
+        {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const currentIndex = currentIndices[restaurant._id] || 0;
           const multipleImages = hasMultipleImages(restaurant);
@@ -1059,7 +1059,7 @@ export const TableGridThree = ({ title }) => {
 
       {/* Mobile scroll */}
       <div className="flex sm:hidden gap-4 overflow-x-auto scrollbar-hide">
-        {restaurants.map((restaurant, index) => {
+        {restaurants?.map((restaurant, index) => {
           const images = getImagesForRestaurant(restaurant);
           const currentIndex = currentIndices[restaurant._id] || 0;
           const multipleImages = hasMultipleImages(restaurant);
