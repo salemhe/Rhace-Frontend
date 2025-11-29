@@ -115,7 +115,12 @@ export default function PreSelectMeal({ id }) {
     setMenuItems(
       menuItems.map((item) => {
         if (item._id === id) {
-          return { ...item, selected: !item.selected };
+          if (item.quantity === 0) {
+            return { ...item, selected: true, quantity: 1 };
+          }
+          else {
+            return { ...item, selected: false, quantity: 0 };
+          }
         }
         return item;
       })

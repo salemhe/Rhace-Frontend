@@ -29,7 +29,6 @@ export default function ReservationSummary() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const { id } = useParams();
-  const [proposedPayment, setProposedPayment] = useState("full");
   const {
     guestCount,
     setGuestCount,
@@ -124,7 +123,7 @@ export default function ReservationSummary() {
 
   return (
     <div className="min-h-screen mb-[65px] mt-[20px] md:mt-0 bg-gray-50">
-      <ReservationHeader title="Reservation Details" index={2} />
+      <ReservationHeader title="Reservation Details" index={1} />
       <div className="md:hidden flex items-center gap-3 px-4 py-3 ">
         <button onClick={() => setPage(0)}>
           <svg

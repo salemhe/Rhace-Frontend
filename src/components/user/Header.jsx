@@ -11,7 +11,7 @@ import { useEffect, useState } from "react";
 import { useLocation } from "react-router";
 // import AccountTypeModal from "./AccountTypeModal";
 // import { AuthService } from "@/app/lib/api/services/userAuth.service";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // import { SearchSectionTwo } from "./SearchSection";
 import { logout } from "@/redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
@@ -112,6 +112,7 @@ const Header = () => {
                          outline-1 outline-offset-[-1px] outline-gray-200 gap-2 cursor-pointer"
             >
               <Avatar className="w-10 h-10">
+                <AvatarImage src={profile.profilePic} alt={`${profile.firstName} ${profile.lastName}`} />
                 <AvatarFallback>
                   {profile.firstName[0].toUpperCase()}
                   {profile.lastName[0].toUpperCase()}
@@ -125,6 +126,7 @@ const Header = () => {
             {/* Header */}
             <div className="flex items-center px-4 py-4">
               <Avatar className="w-10 h-10 mr-3">
+                <AvatarImage src={profile.profilePic} alt={`${profile.firstName} ${profile.lastName}`} />
                 <AvatarFallback>
                   {profile.firstName[0].toUpperCase()}
                   {profile.lastName[0].toUpperCase()}

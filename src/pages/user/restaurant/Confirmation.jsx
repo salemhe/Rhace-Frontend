@@ -184,12 +184,6 @@ export default function ConfirmPage() {
 
                 {/* Action Buttons */}
                 <div className="flex flex-col md:flex-row w-full gap-3">
-                    <Button
-                        variant="outline"
-                        className="flex-1 h-10 text-sm rounded-xl font-medium px-6 border-gray-300"
-                    >
-                        Get Direction
-                    </Button>
                     <form
                         action={async () => {
                             navigate(`/bookings`);
