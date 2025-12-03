@@ -4,12 +4,15 @@ import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from 'react-router'
 import { Toaster } from 'sonner'
+import { WebSocketProvider } from './contexts/WebSocketContext'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <BrowserRouter>
-      <App />
-      <Toaster />
-    </BrowserRouter>
+        <BrowserRouter>
+          <WebSocketProvider url="https://rhace-backend-mkne.onrender.com">
+            <App />
+            <Toaster />
+          </WebSocketProvider>
+        </BrowserRouter>
   </StrictMode>,
 )

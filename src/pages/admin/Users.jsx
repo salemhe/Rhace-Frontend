@@ -18,6 +18,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { getUsers } from "@/services/admin.service";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const extractArray = (p) => {
   if (Array.isArray(p)) return p;
@@ -36,6 +37,55 @@ export default function Users() {
   const tabs = ["All", "Active", "Inactive", "Suspended"];
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { subscribe, unsubscribe, sendMessage } = useWebSocket();
+  const [selectedUser, setSelectedUser] = useState(null);
+
+  const handleViewProfile = () => {
+    if (!selectedUser) return;
+    // TODO: Implement a user profile modal
+    alert(`Viewing profile of ${selectedUser.name}`);
+    setShowModal(false);
+  };
+
+  const handleSuspendAccount = async () => {
+    if (!selectedUser) return;
+    try {
+      // Assuming a service function `updateUserStatus` exists
+      // await updateUserStatus(selectedUser.id, { status: "Suspended" });
+      sendMessage("user-updated", { ...selectedUser, status: "Suspended" });
+      alert(`Suspended account of ${selectedUser.name}`);
+    } catch (e) {
+      console.error("Failed to suspend user", e);
+    }
+    setShowModal(false);
+  };
+
+  const handleResetPassword = () => {
+    if (!selectedUser) return;
+    // TODO: Implement password reset functionality
+    alert(`Resetting password for ${selectedUser.name}`);
+    setShowModal(false);
+  };
+
+  const handleMarkAsVIP = () => {
+    if (!selectedUser) return;
+    try {
+      // Assuming a service function `updateUser` exists
+      // await updateUser(selectedUser.id, { isVip: true });
+      sendMessage("user-updated", { ...selectedUser, isVip: true });
+      alert(`Marked ${selectedUser.name} as VIP`);
+    } catch (e) {
+      console.error("Failed to mark as VIP", e);
+    }
+    setShowModal(false);
+  };
+
+  const handleViewReservations = () => {
+    if (!selectedUser) return;
+    // TODO: Implement navigation to user's reservations
+    alert(`Viewing reservations of ${selectedUser.name}`);
+    setShowModal(false);
+  };
 
   useEffect(() => {
     let ignore = false;
@@ -55,8 +105,32 @@ export default function Users() {
       }
     };
     load();
-    return () => { ignore = true; };
-  }, []);
+
+    const handleUserUpdate = (updatedUser) => {
+      setUsers((prev) =>
+        prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+      );
+    };
+
+    const handleUserCreate = (newUser) => {
+      setUsers((prev) => [...prev, newUser]);
+    };
+
+    const handleUserDelete = (deletedUser) => {
+      setUsers((prev) => prev.filter((u) => u.id !== deletedUser.id));
+    };
+
+    subscribe("user-updated", handleUserUpdate);
+    subscribe("user-created", handleUserCreate);
+    subscribe("user-deleted", handleUserDelete);
+
+    return () => {
+      unsubscribe("user-updated");
+      unsubscribe("user-created");
+      unsubscribe("user-deleted");
+      ignore = true;
+    };
+  }, [subscribe, unsubscribe]);
 
   return (
     <div className="p-6 space-y-6">
@@ -161,7 +235,10 @@ export default function Users() {
                     <Button 
                       variant="ghost" 
                       size="sm"
-                      onClick={() => setShowModal(true)}
+                      onClick={() => {
+                        setSelectedUser(user);
+                        setShowModal(true);
+                      }}
                     >
                       <MoreVertical className="w-4 h-4" />
                     </Button>
@@ -195,23 +272,23 @@ export default function Users() {
             <DialogTitle>User Actions</DialogTitle>
           </DialogHeader>
           <div className="space-y-2">
-            <Button variant="ghost" className="w-full justify-start">
+            <Button variant="ghost" className="w-full justify-start" onClick={handleViewProfile}>
               <Eye className="w-4 h-4 mr-2" />
               View Profile
             </Button>
-            <Button variant="ghost" className="w-full justify-start">
+            <Button variant="ghost" className="w-full justify-start" onClick={handleSuspendAccount}>
               <UserX className="w-4 h-4 mr-2" />
               Suspend Account
             </Button>
-            <Button variant="ghost" className="w-full justify-start">
+            <Button variant="ghost" className="w-full justify-start" onClick={handleResetPassword}>
               <KeyRound className="w-4 h-4 mr-2" />
               Reset Password
             </Button>
-            <Button variant="ghost" className="w-full justify-start">
+            <Button variant="ghost" className="w-full justify-start" onClick={handleMarkAsVIP}>
               <Star className="w-4 h-4 mr-2" />
               Mark as VIP
             </Button>
-            <Button variant="ghost" className="w-full justify-start">
+            <Button variant="ghost" className="w-full justify-start" onClick={handleViewReservations}>
               <Calendar className="w-4 h-4 mr-2" />
               View Reservations
             </Button>

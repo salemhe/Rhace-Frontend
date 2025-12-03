@@ -11,7 +11,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getVendors } from "@/services/admin.service";
+import { getVendors, getVendorById, updateVendorStatus } from "@/services/admin.service";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const extractArray = (p) => {
   if (Array.isArray(p)) return p;
@@ -23,33 +24,79 @@ const extractArray = (p) => {
   return [];
 };
 
-
 export default function Vendors() {
   const [activeTab, setActiveTab] = useState("All");
   const tabs = ["All", "Active", "Inactive", "Pending"];
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const { subscribe, unsubscribe, sendMessage } = useWebSocket();
+
+  const loadVendors = async () => {
+    setLoading(true);
+    try {
+      const res = await getVendors({ page: 1, limit: 20 });
+      const payload = res?.data;
+      const list = extractArray(payload);
+      setVendors(list);
+    } catch (e) {
+      console.error("Failed to load vendors", e);
+      setVendors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let ignore = false;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const res = await getVendors({ page: 1, limit: 20 });
-        console.log("[Vendors] API response:", res?.data);
-        const payload = res?.data;
-        const list = extractArray(payload);
-        if (!ignore) setVendors(list);
-      } catch (e) {
-        console.error("Failed to load vendors", e);
-        if (!ignore) setVendors([]);
-      } finally {
-        if (!ignore) setLoading(false);
-      }
+    loadVendors();
+
+    const handleVendorUpdate = (updatedVendor) => {
+      setVendors((prev) =>
+        prev.map((v) => (v.id === updatedVendor.id ? updatedVendor : v))
+      );
     };
-    load();
-    return () => { ignore = true; };
-  }, []);
+
+    const handleVendorCreate = (newVendor) => {
+      setVendors((prev) => [...prev, newVendor]);
+    };
+
+    const handleVendorDelete = (deletedVendor) => {
+      setVendors((prev) => prev.filter((v) => v.id !== deletedVendor.id));
+    };
+
+    subscribe("vendor-updated", handleVendorUpdate);
+    subscribe("vendor-created", handleVendorCreate);
+    subscribe("vendor-deleted", handleVendorDelete);
+
+    return () => {
+      unsubscribe("vendor-updated");
+      unsubscribe("vendor-created");
+      unsubscribe("vendor-deleted");
+    };
+  }, [subscribe, unsubscribe]);
+
+  const handleViewDetails = async (vendor) => {
+    // TODO: Implement a modal to show vendor details
+    const detailed = await getVendorById(vendor.id);
+    alert(JSON.stringify(detailed.data, null, 2));
+  };
+
+  const handleEdit = async (vendor) => {
+    // TODO: Implement a modal or inline editing for vendors
+    alert(`Edit vendor ${vendor.id}`);
+  };
+
+  const handleDelete = async (vendor) => {
+    if (!window.confirm(`Are you sure you want to delete vendor ${vendor.id}?`)) {
+      return;
+    }
+    try {
+      await updateVendorStatus(vendor.id, { status: "Deleted" });
+      sendMessage("vendor-deleted", { id: vendor.id });
+    } catch (e) {
+      console.error(`Failed to delete vendor ${vendor.id}`, e);
+      alert("Failed to delete vendor");
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -129,7 +176,7 @@ export default function Vendors() {
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                        <span className="text-sm font-semibold">K</span>
+                        <span className="text-sm font-semibold">{vendor.businessName?.charAt(0) || 'V'}</span>
                       </div>
                       <div>
                         <p className="text-sm font-medium">{vendor.businessName || vendor.name || "-"}</p>
@@ -139,41 +186,45 @@ export default function Vendors() {
                   </td>
                   <td className="p-3">
                     <p className="text-sm">{vendor.contactPerson || vendor.contactName || vendor.ownerName || "-"}</p>
-                    <p className="text-xs text-muted-foreground">{vendor.email || vendor.contactEmail || vendor.user?.email || "-"}</p>
                   </td>
-                  <td className="p-3 text-sm">{vendor.branchesCount ?? vendor.branches?.length ?? 0}</td>
-                  <td className="p-3 text-sm">{vendor.reservationsCount ?? vendor.stats?.reservations ?? vendor.reservationStats?.total ?? 0}</td>
                   <td className="p-3">
-                    <Badge 
-                      variant={vendor.status === "Active" ? "default" : "secondary"}
-                      className={
-                        vendor.status === "Active" 
-                          ? "bg-success text-success-foreground" 
-                          : "bg-warning text-warning-foreground"
-                      }
-                    >
-                      {(vendor.status || vendor.approvalStatus || "").toString()}
+                    <p className="text-sm">{vendor.branches || 1}</p>
+                  </td>
+                  <td className="p-3">
+                    <p className="text-sm">{vendor.reservations || 0}</p>
+                  </td>
+                  <td className="p-3">
+                    <Badge variant={vendor.status === "Active" ? "default" : "outline"}>
+                      {vendor.status || "Inactive"}
                     </Badge>
                   </td>
-                  <td className="p-3 text-sm">{vendor.date || (vendor.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : "-")}</td>
+                  <td className="p-3">
+                    <p className="text-sm">{new Date(vendor.createdAt).toLocaleDateString()}</p>
+                  </td>
                   <td className="p-3">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="icon">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleViewDetails(vendor)}>
+                          View details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(vendor)}>
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(vendor)}>
+                          Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
+        </table>
         </div>
 
         <div className="flex items-center justify-between mt-4">

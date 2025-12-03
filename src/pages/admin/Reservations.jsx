@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Plus, Upload, SlidersHorizontal, ChevronDown, MoreVertical, Calendar, DollarSign, Users, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 
 export default function Reservations() {
@@ -30,8 +31,9 @@ export default function Reservations() {
     toDate: "",
     hasMeals: "",
   });
+  const { subscribe, unsubscribe, sendMessage } = useWebSocket();
 
-  const fetchReservations = async (extra = {}) => {
+  const fetchReservations = useCallback(async (extra = {}) => {
     setLoading(true);
     try {
       const params = {
@@ -54,37 +56,81 @@ export default function Reservations() {
     } finally {
       setLoading(false);
     }
+  }, [filters]);
+
+  useEffect(() => {
+    fetchReservations();
+
+    const handleReservationUpdate = (updatedReservation) => {
+      setReservations((prev) =>
+        prev.map((r) => (r.id === updatedReservation.id ? updatedReservation : r))
+      );
+      fetchCounters();
+    };
+
+    const handleReservationCreate = (newReservation) => {
+      setReservations((prev) => [newReservation, ...prev]);
+      fetchCounters();
+    };
+
+    const handleReservationDelete = (deletedReservation) => {
+      setReservations((prev) => prev.filter((r) => r.id !== deletedReservation.id));
+      fetchCounters();
+    };
+
+    subscribe("reservation-updated", handleReservationUpdate);
+    subscribe("reservation-created", handleReservationCreate);
+    subscribe("reservation-deleted", handleReservationDelete);
+
+    return () => {
+      unsubscribe("reservation-updated");
+      unsubscribe("reservation-created");
+      unsubscribe("reservation-deleted");
+    };
+  }, [subscribe, unsubscribe, fetchReservations]);
+
+  const fetchCounters = async () => {
+    try {
+      const countersRes = await getReservationCounters();
+      const c = countersRes?.data || {};
+      setCounters({
+        todays: c.todays ?? c.todaysReservations ?? 0,
+        prepaid: c.prepaid ?? c.prepaidReservations ?? 0,
+        expectedGuests: c.expectedGuests ?? 0,
+        pendingPayments: c.pendingPayments ?? 0,
+      });
+    } catch (e) {
+      console.error("Failed to load reservation counters", e);
+    }
   };
 
   useEffect(() => {
-    let ignore = false;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const [_, countersRes] = await Promise.all([
-          fetchReservations(),
-          getReservationCounters(),
-        ]);
-        const c = countersRes?.data || {};
-        if (!ignore) setCounters({
-          todays: c.todays ?? c.todaysReservations ?? 0,
-          prepaid: c.prepaid ?? c.prepaidReservations ?? 0,
-          expectedGuests: c.expectedGuests ?? 0,
-          pendingPayments: c.pendingPayments ?? 0,
-        });
-      } catch (e) {
-        console.error("Failed to load reservations", e);
-        if (!ignore) {
-          setReservations([]);
-          setCounters({ todays: 0, prepaid: 0, expectedGuests: 0, pendingPayments: 0 });
-        }
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    };
-    load();
-    return () => { ignore = true; };
+    fetchCounters();
   }, []);
+  
+  const handleViewDetails = (reservation) => {
+    // TODO: Implement a reservation details modal
+    alert(`Viewing details for reservation ${reservation.id}`);
+  };
+
+  const handleEdit = (reservation) => {
+    // TODO: Implement reservation editing
+    alert(`Editing reservation ${reservation.id}`);
+  };
+
+  const handleCancel = async (reservation) => {
+    if (!window.confirm("Are you sure you want to cancel this reservation?")) {
+      return;
+    }
+    try {
+      // Assuming a service function `updateReservationStatus` exists
+      // await updateReservationStatus(reservation.id, { status: "Cancelled" });
+      sendMessage("reservation-updated", { ...reservation, status: "Cancelled" });
+      alert(`Cancelled reservation ${reservation.id}`);
+    } catch (e) {
+      console.error("Failed to cancel reservation", e);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
