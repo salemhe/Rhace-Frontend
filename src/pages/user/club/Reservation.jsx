@@ -15,13 +15,11 @@ const Reservation = () => {
 const searchParams = useSearchParams();
 const date = searchParams.get("date");
 const time = searchParams.get("time");
-const table = searchParams.get("table");
 const guests = searchParams.get("guests");
 const specialRequest= searchParams.get("specialRequest");
 const searchQuery = {
     date: date ?? "",
     time: time ?? "",
-    table: table ?? "",
     guests: guests ?? "",
     specialRequest: specialRequest ?? ""
 }

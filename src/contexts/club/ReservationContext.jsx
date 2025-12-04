@@ -21,7 +21,7 @@ export function ReservationsProvider({
   const [page, setPage] = useState(0);
   const [date, setDate] = useState();
   const [time, setTime] = useState("");
-  const [table, setTable] = useState("");
+  // const [table, setTable] = useState("");
   const [vendor, setVendor] = useState(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [proposedPayment, setProposedPayment] = useState(0)
@@ -76,7 +76,7 @@ export function ReservationsProvider({
         totalAmount: partPay ? totalPrice/2 : totalPrice,
         vendor: vendor?._id,
         businessName: vendor?.businessName,
-        table,
+        // table,
         location: vendor?.address,
         image: vendor?.profileImages?.[0],
       };
@@ -119,8 +119,8 @@ export function ReservationsProvider({
         setDate,
         time,
         setTime,
-        table,
-        setTable,
+        // table,
+        // setTable,
         vendor,
         setVendor,
         handleSubmit,

@@ -183,12 +183,14 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
+import GoogleIcon from "@/assets/auth/google.svg";
 import { authService } from "@/services/auth.service"
 import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
 import { setUser } from "@/redux/slices/authSlice"
 import logo from "../../../assets/Rhace-11.png"
+import { useGoogleLogin } from "@react-oauth/google"
 
 const getCurrentYear = () => new Date().getFullYear();
 
@@ -197,6 +199,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsloading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState({
     email: "",
     password: "",
@@ -204,6 +207,27 @@ const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+  });
+
+  const handleGoogleLogin = useGoogleLogin({
+    flow: 'auth-code',
+    onSuccess: async (tokenResponse) => {
+      console.log(tokenResponse);
+      try {
+        setGoogleLoading(true);
+        const code = tokenResponse.code;
+        const user = await authService.googleLogin(code);
+        dispatch(setUser(user?.user));
+        toast.success("Welcome back!");
+        navigate(redirectTo);
+      } catch (error) {
+        console.error("Google login failed:", error);
+        toast.error("Google login failed. Please try again.");
+      } finally {
+        setGoogleLoading(false);
+      }
+    },
+    onError: error => console.log('Login Failed:', error)
   });
 
   const [searchParams] = useSearchParams();
@@ -256,7 +280,7 @@ const Login = () => {
       <div className="absolute top-6 left-4 sm:left-10 flex items-center gap-2 sm:top-[8%] sm:-translate-y-1/2">
         <a href="/" className="cursor-pointer">
           <img
-            src={logo} 
+            src={logo}
             alt="Rhace Logo"
             className="w-20 h-20 object-contain"
           />
@@ -267,7 +291,7 @@ const Login = () => {
       <Card className="w-full max-w-md bg-white shadow-md rounded-2xl border border-gray-100 mt-16 sm:mt-24">
         <CardHeader className="text-left pb-4">
           <h1 className="text-2xl font-semibold text-gray-900">Welcome Back</h1>
-          <p className="text-sm text-gray-600 mt-1">
+          <p className="text-sm text-gray-600 mt-1 mb-[-7px]">
             We're glad to see you again. Please log in to your account.
           </p>
         </CardHeader>
@@ -346,6 +370,28 @@ const Login = () => {
             )}
           </Button>
 
+          {/* OR Divider */}
+          <div className="flex items-center my-2">
+            <div className="flex-1 h-px bg-[#0A6C6D]"></div>
+            <span className="px-3 text-sm text-[#074f55]">OR</span>
+            <div className="flex-1 h-px bg-[#0A6C6D]"></div>
+          </div>
+
+          {/* Google Login Button */}
+          <button
+            onClick={handleGoogleLogin}
+            type="button"
+            className="w-full flex items-center justify-center gap-3 border border-gray-300 
+                       bg-white py-3 rounded-md hover:bg-gray-50 transition-all"
+          >
+            {/* Google Icon */}
+            <img src={GoogleIcon} alt="Google" className="h-5 w-5" />
+            {googleLoading ? <Loader2 className="animate-spin h-4 w-4 text-gray-600" /> :
+              <span className="text-sm text-gray-700 font-medium">Continue with Google</span>
+            }
+          </button> 
+
+
           <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
             Don’t Have An Account?{" "}
             <a href="/auth/user/signup" className="text-[#0a646d] hover:underline font-medium">
@@ -371,3 +417,15 @@ const Login = () => {
 };
 
 export default Login;
+
+
+
+
+
+
+
+
+
+
+
+

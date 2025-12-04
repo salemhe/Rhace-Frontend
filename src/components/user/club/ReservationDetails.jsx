@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import { useEffect, useRef, useState } from "react";
 import DatePicker from "../ui/datepicker";
 import { GuestPicker } from "../ui/guestpicker";
-import { TablePicker } from "../ui/tablepicker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router";
@@ -46,8 +45,6 @@ export default function ReservationDetails({
     setDate,
     time,
     setTime,
-    table,
-    setTable,
     setVendor,
     vendor,
     setProposedPayment,
@@ -156,12 +153,11 @@ export default function ReservationDetails({
     fetchVIPS();
     setDate(new Date(searchQuery.date));
     setTime(searchQuery.time);
-    setTable(searchQuery.table);
     setGuestCount(searchQuery.guests);
   }, []);
 
   const handleContinue = () => {
-    if (!date || !guestCount || !time || !table) {
+    if (!date || !guestCount || !time) {
       toast.error("Fill the required field");
       return;
     }
@@ -272,8 +268,7 @@ export default function ReservationDetails({
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
               <DatePicker value={date} onChange={setDate} />
-              <TimePicker value={time} onChange={setTime} />
-              <TablePicker value={table} onChange={setTable} />
+              <TimePicker value={time} onChange={setTime} slot={['09:00 AM', '09:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM', '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM', '02:00 PM', '02:30 PM', '03:00 PM']} />
               <GuestPicker value={guestCount} onChange={setGuestCount} />
             </div>
           </div>
@@ -325,17 +320,22 @@ export default function ReservationDetails({
                       animate={isInView ? { opacity: 1, scale: 1 } : {}}
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       className={`${item.selected
-                        ? "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
-                        : "flex-shrink-0 w-full sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
-                        } p-1 w-[254px]`}
+                        && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
+                        } p-1 h-max w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]`}
                     >
                       <div className="p-2 w-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB]">
-                        <div className="relative w-full overflow-hidden rounded-2xl">
-                          <img
+                        <div className="relative w-full h-[150px] overflow-hidden rounded-2xl">
+                          {item.image ? (
+                            <img
                             src={item.image}
                             alt={item.name}
                             className="object-cover size-full"
-                          />
+                            />
+                          ) : (
+                            <div className="bg-gray-200 size-full flex items-center justify-center">
+                              No Image
+                            </div>
+                          )}
                           {item.specials && (
                             <div className="absolute bg-[#E5E7EB] rounded-full top-2 left-2 px-3 text-xs font-medium text-[#111827] py-1">
                               {item.specials}
@@ -565,7 +565,7 @@ export default function ReservationDetails({
           <Button
             className="bg-teal-600 hover:bg-teal-700 px-8 w-full max-w-xs rounded-xl cursor-pointer"
             onClick={handleContinue}
-            disabled={!date || !guestCount || !time || !table}
+            disabled={!date || !guestCount || !time}
           >
             Complete Reservations
           </Button>

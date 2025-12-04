@@ -5,14 +5,22 @@ import App from './App.jsx'
 import { BrowserRouter } from 'react-router'
 import { Toaster } from 'sonner'
 import { WebSocketProvider } from './contexts/WebSocketContext'
+import { GoogleOAuthProvider } from "@react-oauth/google";
+import { LocationProvider } from './contexts/LocationContext'
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-        <BrowserRouter>
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <BrowserRouter>
+        <LocationProvider>
           <WebSocketProvider url="https://rhace-backend-mkne.onrender.com">
             <App />
             <Toaster />
           </WebSocketProvider>
-        </BrowserRouter>
-  </StrictMode>,
+        </LocationProvider>
+      </BrowserRouter>
+    </GoogleOAuthProvider>
+  </StrictMode>
 )

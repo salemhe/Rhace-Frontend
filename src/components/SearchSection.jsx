@@ -7,7 +7,7 @@ import { DateDropdown } from "./DateDropdown";
 import { GuestDropdown } from "./GuestDropdown";
 import { TimeDropdown } from "./TimeDropdown";
 
-const SearchSection = ({ activeTab, onSearch }) => {
+const SearchSection = ({ activeTab, onSearch, location }) => {
   const [date, setDate] = useState();
   const [time, setTime] = useState();
   const [searchQuery, setSearchQuery] = useState('');
@@ -18,6 +18,7 @@ const SearchSection = ({ activeTab, onSearch }) => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const totalGuests = guests.adults + guests.children + guests.infants;
+    const location = localStorage.getItem('userLocation') || '';
     const searchData = {
       query: searchQuery,
       tab: activeTab,
@@ -25,6 +26,7 @@ const SearchSection = ({ activeTab, onSearch }) => {
       time: time || undefined,
       guests: totalGuests.toString(),
       timestamp: new Date().toISOString(),
+      location: location ? JSON.parse(location) : undefined,
     };
 
     // Store in localStorage
@@ -135,6 +137,7 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
   const [time, setTime] = useState(null);
   const [guests, setGuests] = useState({ adults: 2, children: 0, infants: 0 });
   const [searchQuery, setSearchQuery] = useState('');
+  const [tab, setTab] = useState('restaurants');
 
   const navigate = useNavigate();
 
@@ -144,6 +147,7 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
       if (searchData.query) setSearchQuery(searchData.query);
       if (searchData.date) setDate(new Date(searchData.date));
       if (searchData.time) setTime(searchData.time);
+      if (searchData.tab) setTab(searchData.tab);
       if (searchData.guests) {
         const guestsNum = parseInt(searchData.guests, 10);
         setGuests({ adults: guestsNum || 2, children: 0, infants: 0 });
@@ -157,6 +161,7 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
           if (parsed.query) setSearchQuery(parsed.query);
           if (parsed.date) setDate(new Date(parsed.date));
           if (parsed.time) setTime(parsed.time);
+          if (parsed.tab) setTab(parsed.tab);
           if (parsed.guests) {
             const guestsNum = parseInt(parsed.guests, 10);
             setGuests({ adults: guestsNum || 2, children: 0, infants: 0 });
@@ -173,7 +178,7 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
     const totalGuests = guests.adults + guests.children + guests.infants;
     const newSearchData = {
       query: searchQuery,
-      tab: 'restaurants',
+      tab: tab,
       date: date ? format(date, "yyyy-MM-dd") : undefined,
       time: time || undefined,
       guests: totalGuests.toString(),
@@ -197,7 +202,7 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
           {/* Restaurant/Cuisine */}
           <div className="flex flex-col justify-center h-full px-4 border-r border-gray-200 min-w-0 w-1/4">
             <label className="text-xs text-text-secondary text-left mb-1">
-              Restaurant/Cuisine
+              {tab === "restaurants" ? "Restaurant/Cuisine" : tab === "hotels" ? "Hotels" : "Clubs"}
             </label>
             {/* <input
               type="text"
@@ -209,7 +214,15 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
             <SearchAutocomplete
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="Enter Restaurant or Cuisine"
+              placeholder={
+              tab === "restaurants"
+                ? "Enter Restaurant or Cuisine"
+                : tab === "hotels"
+                  ? "Enter Hotels"
+                  : tab === "clubs"
+                    ? "Enter Clubs"
+                    : ""
+            }
             />
           </div>
 

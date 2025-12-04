@@ -1,157 +1,425 @@
-// logo imports — 
-import logoBlack from '@/assets/Rhace-11.png';
-import { Mail, MapPin, Phone, ArrowUpRight, Instagram, Twitter, Facebook } from 'lucide-react';
-import { useState } from 'react';
+// =======================FIRST FOOTER (GREEN BG)========================
+// import { Mail, MapPin, Phone } from 'lucide-react';
+// import logo from "../assets/Rhace-11.png";
+
+// const Footer = () => {
+//   return (
+//     <footer className="bg-[#E9EBF3] border border-[#DDE1ED] text-[#111827]">
+//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+//         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+//           {/* Company Info */}
+//           <div className="space-y-4">
+//             <div className="flex items-center space-x-2 mt-[-20px]">
+//              <img
+//               src={logo} 
+//               alt="Rhace Logo"
+//               className="w-20 h-20 object-contain"
+//             />
+//             </div>
+//             <p className="text-[#111827] leading-relaxed font-normal mt-[-15px]">
+//               Making restaurant reservations simple and enjoyable.
+//             </p>
+//           </div>
+
+//           {/* Quick Links */}
+//           <div>
+//             <h3 className="text-lg font-semibold mb-4">Explore</h3>
+//             <ul className="space-y-2">
+//               <li><a href="#" className="text-[#111827] font-normal leading-normal hover:text-gray-500 transition-colors duration-200">Restaurants</a></li>
+//               <li><a href="#" className="text-[#111827] font-normal leading-normal hover:text-gray-500 transition-colors duration-200">Hotels</a></li>
+//               <li><a href="#" className="text-[#111827] font-normal leading-normal hover:text-gray-500 transition-colors duration-200">Top Restaurant </a></li>
+//             </ul>
+//           </div>
+
+//           {/* Support */}
+//           <div>
+//             <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+//             <ul className="space-y-2">
+//               <li><a href="/about" className="text-[#111827] hover:text-gray-500 font-normal leading-normal transition-colors duration-200">About Us</a></li>
+//               <li><a href="/contact" className="text-[#111827] hover:text-gray-500 font-normal leading-normal transition-colors duration-200">Contact</a></li>
+//               <li><a href="/faq" className="text-[#111827] hover:text-gray-500 font-normal leading-normal transition-colors duration-200">Faq</a></li>
+//             </ul>
+//           </div>
+
+//           {/* Contact */}
+//           <div>
+//             <h3 className="text-lg font-semibold mb-4">Contact</h3>
+//             <div className="space-y-3">
+              
+//               <div className="flex items-center space-x-3">
+//                 <Phone className="w-5 h-5 text-[#111827] flex-shrink-0" />
+//                 <span className="text-[#111827] font-normal leading-normal ">+23412345678</span>
+//               </div>
+//               <div className="flex items-center space-x-3">
+//                 <Mail className="w-5 h-5 text-[#111827] flex-shrink-0" />
+//                 <span className="text-[#111827] font-normal leading-normal">Kapadoccia@gmail.com</span>
+//               </div>
+//               <div className="flex items-center space-x-3">
+//                 <MapPin className="w-5 h-5 text-[#111827] flex-shrink-0" />
+//                 <span className="text-[#111827] font-normal leading-normal">16, Idowu Taylor Street, Victoria Island 101241 Nigeria</span>
+//               </div>
+//             </div>
+//           </div>
+//         </div>
+
+//         <div className="border-t border-gray-800 mt-12 pt-8 sm:flex sm:items-center sm:justify-between">
+//           <p className="text-[#111827]">
+//             © 2024 Bookme. All rights reserved. 
+//           </p>
+//           <div className="flex justify-start items-center gap-8">
+//             <div className="justify-start text-gray-900 text-base font-normal font-['Inter'] leading-normal">Privacy Policy</div>
+//             <div className="justify-start text-gray-900 text-base font-normal font-['Inter'] leading-normal">Terms of Service</div>
+//           </div>
+//         </div>
+//       </div>
+//     </footer>
+//   );
+// };
+
+// export default Footer;
+// =======================FIRST FOOTER (GREEN BG)========================
+
+
+
+
+// =======================SECOND FOOTER (BLACK BG)========================
+// import { Mail, MapPin, Phone, Facebook, Instagram, Twitter } from "lucide-react";
+// import { motion } from "framer-motion";
+// import logo from "../assets/Rhace-09.png";
+
+// const Footer = () => {
+//   const fadeIn = {
+//     hidden: { opacity: 0, y: 20 },
+//     visible: (i) => ({
+//       opacity: 1,
+//       y: 0,
+//       transition: { delay: i * 0.2, duration: 0.7, ease: "easeOut" },
+//     }),
+//   };
+
+//   return (
+//     <footer className="relative bg-[#0B0B0B] text-gray-300 border-t border-gray-800 overflow-hidden">
+//       {/* Background gradient glow */}
+//       <div className="absolute inset-0 bg-gradient-to-t from-black via-[#111111]/90 to-transparent opacity-80"></div>
+
+//       <div className="relative max-w-7xl mx-auto px-6 sm:px-8 py-16">
+//         <motion.div
+//           className="grid grid-cols-1 md:grid-cols-4 gap-12"
+//           initial="hidden"
+//           whileInView="visible"
+//           viewport={{ once: true }}
+//         >
+//           {/* Company Info */}
+//           <motion.div variants={fadeIn} custom={0}>
+//             <div className="flex items-center space-x-3 mb-4">
+//               <motion.img
+//                 src={logo}
+//                 alt="Rhace Logo"
+//                 className="w-20 h-20 object-contain rounded-xl"
+//                 whileHover={{ scale: 1.05, rotate: 3 }}
+//                 transition={{ type: "spring", stiffness: 200 }}
+//               />
+//             </div>
+//             <p className="text-gray-400 leading-relaxed text-sm">
+//               Making restaurant reservations simple, elegant, and unforgettable.
+//             </p>
+//           </motion.div>
+
+//           {/* Explore */}
+//           <motion.div variants={fadeIn} custom={1}>
+//             <h3 className="text-lg font-semibold text-white mb-5 tracking-wide">Explore</h3>
+//             <ul className="space-y-3">
+//               {["Restaurants", "Hotels", "Top Spots"].map((item, i) => (
+//                 <motion.li
+//                   key={i}
+//                   whileHover={{ x: 6 }}
+//                   transition={{ type: "spring", stiffness: 300 }}
+//                 >
+//                   <a
+//                     href="#"
+//                     className="text-gray-400 hover:text-white transition-colors duration-300"
+//                   >
+//                     {item}
+//                   </a>
+//                 </motion.li>
+//               ))}
+//             </ul>
+//           </motion.div>
+
+//           {/* Quick Links */}
+//           <motion.div variants={fadeIn} custom={2}>
+//             <h3 className="text-lg font-semibold text-white mb-5 tracking-wide">Quick Links</h3>
+//             <ul className="space-y-3">
+//               {[
+//                 { name: "About Us", href: "/about" },
+//                 { name: "Contact", href: "/contact" },
+//                 { name: "FAQ", href: "/faq" },
+//               ].map((link, i) => (
+//                 <motion.li
+//                   key={i}
+//                   whileHover={{ x: 6 }}
+//                   transition={{ type: "spring", stiffness: 300 }}
+//                 >
+//                   <a
+//                     href={link.href}
+//                     className="text-gray-400 hover:text-white transition-colors duration-300"
+//                   >
+//                     {link.name}
+//                   </a>
+//                 </motion.li>
+//               ))}
+//             </ul>
+//           </motion.div>
+
+//           {/* Contact */}
+//           <motion.div variants={fadeIn} custom={3}>
+//             <h3 className="text-lg font-semibold text-white mb-5 tracking-wide">Get in Touch</h3>
+//             <div className="space-y-4">
+//               <motion.div className="flex items-center space-x-3" whileHover={{ x: 6 }}>
+//                 <Phone className="w-5 h-5 text-gray-400" />
+//                 <span className="text-gray-400">+234 123 456 78</span>
+//               </motion.div>
+//               <motion.div className="flex items-center space-x-3" whileHover={{ x: 6 }}>
+//                 <Mail className="w-5 h-5 text-gray-400" />
+//                 <span className="text-gray-400">contact@bookme.com</span>
+//               </motion.div>
+//               <motion.div className="flex items-center space-x-3" whileHover={{ x: 6 }}>
+//                 <MapPin className="w-5 h-5 text-gray-400" />
+//                 <span className="text-gray-400">
+//                   16, Idowu Taylor Street, Victoria Island, Lagos
+//                 </span>
+//               </motion.div>
+//             </div>
+//           </motion.div>
+//         </motion.div>
+
+//         {/* Divider */}
+//         <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col sm:flex-row items-center justify-between">
+//           {/* Social icons */}
+//           <motion.div
+//             className="flex items-center space-x-5 mb-6 sm:mb-0"
+//             initial={{ opacity: 0, y: 10 }}
+//             whileInView={{ opacity: 1, y: 0 }}
+//             transition={{ delay: 0.6, duration: 0.6 }}
+//           >
+//             {[
+//               { Icon: Facebook, href: "#" },
+//               { Icon: Instagram, href: "#" },
+//               { Icon: Twitter, href: "#" },
+//             ].map(({ Icon, href }, i) => (
+//               <motion.a
+//                 key={i}
+//                 href={href}
+//                 whileHover={{ scale: 1.2 }}
+//                 className="bg-white/5 p-2 rounded-full hover:bg-white/10 transition-all duration-300"
+//               >
+//                 <Icon className="w-5 h-5 text-gray-300" />
+//               </motion.a>
+//             ))}
+//           </motion.div>
+
+//           {/* Copyright + Legal */}
+//           <motion.div
+//             className="text-sm text-gray-500 text-center sm:text-right"
+//             initial={{ opacity: 0, y: 10 }}
+//             whileInView={{ opacity: 1, y: 0 }}
+//             transition={{ delay: 0.8, duration: 0.6 }}
+//           >
+//             <p>© 2025 BookMe. All rights reserved.</p>
+//             <div className="flex justify-center sm:justify-end gap-4 mt-2">
+//               {["Privacy Policy", "Terms of Service"].map((text, i) => (
+//                 <motion.a
+//                   key={i}
+//                   href="#"
+//                   whileHover={{ scale: 1.05, color: "#fff" }}
+//                   transition={{ type: "spring", stiffness: 300 }}
+//                   className="text-gray-500 hover:text-white transition-colors"
+//                 >
+//                   {text}
+//                 </motion.a>
+//               ))}
+//             </div>
+//           </motion.div>
+//         </div>
+//       </div>
+//     </footer>
+//   );
+// };
+
+// export default Footer;
+// =======================SECOND FOOTER (BLACK BG)========================
+
+
+
+import { Mail, MapPin, Phone, Facebook, Instagram, Twitter } from "lucide-react";
+import { motion } from "framer-motion";
+import logo from "../assets/Rhace-09.png";
 
 const Footer = () => {
-  const [hoveredLink, setHoveredLink] = useState(null);
+  const fadeIn = {
+    hidden: { opacity: 0, y: 10 },
+    visible: (i) => ({
+      opacity: 1,
+      y: 0,
+      transition: { delay: i * 0.1, duration: 0.4, ease: "easeOut" }, // faster animation
+    }),
+  };
 
   return (
-    <footer className="bg-gradient-to-br from-[#E9EBF3] via-[#F3F4F8] to-[#E9EBF3] text-[#111827] relative overflow-hidden">
-      {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-teal-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse"></div>
-      <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-pulse" style={{ animationDelay: '1s' }}></div>
-      
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          {/* Company Info */}
-          <div className="space-y-6 transform hover:scale-105 transition-transform duration-300">
-            <div className="flex">
-              <div className="shrink-0 flex items-center">
-                <a href="/" className="flex items-center space-x-2">
-                  <img
-                    src={logoBlack}
-                    alt="Rhace Logo"
-                    className="h-6 w-auto object-contain transition-all duration-300"
-                  />
-                </a>
-              </div>
-            </div>
-            <p className="text-[#111827] leading-relaxed font-normal text-sm">
-              Making restaurant reservations simple and enjoyable.
-            </p>
-          </div>
+    <footer className="relative bg-[#050505] text-gray-300 overflow-hidden">
+      {/* Background logo overlay */}
+      <div className="absolute inset-0 flex justify-center items-center opacity-10">
+        <img
+          src={logo}
+          alt="Rhace Logo Background"
+          className="w-[450px] sm:w-[550px] md:w-[650px] object-contain"
+        />
+      </div>
 
-          {/* Quick Links - Explore */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold mb-6 bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+      {/* Subtle gradient tint */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black via-[#0B2210]/80 to-transparent mix-blend-multiply"></div>
+
+      <div className="relative max-w-7xl mx-auto px-6 sm:px-8 py-20">
+        <motion.div
+          className="grid grid-cols-1 md:grid-cols-4 gap-12"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true }}
+        >
+          {/* Brand Section */}
+          <motion.div variants={fadeIn} custom={0}>
+            <div className="flex flex-col items-start space-y-4">
+              <motion.img
+                src={logo}
+                alt="Rhace Logo"
+                className="w-28 h-28 object-contain rounded-xl drop-shadow-lg"
+                whileHover={{ scale: 1.08, rotate: 2 }}
+                transition={{ type: "spring", stiffness: 250 }}
+              />
+              <p className="text-gray-400 max-w-xs text-sm leading-relaxed">
+                Redefining how people make reservations. Discover, book, and enjoy
+                moments that matter.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* Explore */}
+          <motion.div variants={fadeIn} custom={1}>
+            <h3 className="text-lg font-semibold text-white mb-5 tracking-wide uppercase">
               Explore
             </h3>
             <ul className="space-y-3">
-              {['Restaurants', 'Hotels', 'Top Restaurant'].map((item, idx) => (
-                <li key={idx}>
+              {["Restaurants", "Hotels", "Experiences"].map((item, i) => (
+                <motion.li
+                  key={i}
+                  whileHover={{ x: 6 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
                   <a
                     href="#"
-                    onMouseEnter={() => setHoveredLink(`explore-${idx}`)}
-                    onMouseLeave={() => setHoveredLink(null)}
-                    className="group flex items-center text-[#111827] font-normal hover:text-blue-600 transition-all duration-200"
+                    className="text-gray-400 hover:text-green-400 transition-colors duration-300"
                   >
-                    <span className={`transform transition-transform duration-200 ${hoveredLink === `explore-${idx}` ? 'translate-x-2' : ''}`}>
-                      {item}
-                    </span>
-                    <ArrowUpRight className={`w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200`} />
+                    {item}
                   </a>
-                </li>
+                </motion.li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Quick Links */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold mb-6 bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
+          <motion.div variants={fadeIn} custom={2}>
+            <h3 className="text-lg font-semibold text-white mb-5 tracking-wide uppercase">
               Quick Links
             </h3>
             <ul className="space-y-3">
               {[
-                { name: 'About Us', href: '/about' },
-                { name: 'Contact', href: '/contact' },
-                { name: 'FAQ', href: '/faq' }
-              ].map((item, idx) => (
-                <li key={idx}>
+                { name: "About Us", href: "/about" },
+                { name: "Contact", href: "/contact" },
+                { name: "FAQ", href: "/faq" },
+              ].map((link, i) => (
+                <motion.li
+                  key={i}
+                  whileHover={{ x: 6 }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                >
                   <a
-                    href={item.href}
-                    onMouseEnter={() => setHoveredLink(`quick-${idx}`)}
-                    onMouseLeave={() => setHoveredLink(null)}
-                    className="group flex items-center text-[#111827] font-normal hover:text-blue-600 transition-all duration-200"
+                    href={link.href}
+                    className="text-gray-400 hover:text-green-400 transition-colors duration-300"
                   >
-                    <span className={`transform transition-transform duration-200 ${hoveredLink === `quick-${idx}` ? 'translate-x-2' : ''}`}>
-                      {item.name}
-                    </span>
-                    <ArrowUpRight className={`w-4 h-4 ml-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200`} />
+                    {link.name}
                   </a>
-                </li>
+                </motion.li>
               ))}
             </ul>
-          </div>
+          </motion.div>
 
           {/* Contact */}
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold mb-6 bg-gradient-to-r from-teal-600 to-cyan-600 bg-clip-text text-transparent">
-              Contact
+          <motion.div variants={fadeIn} custom={3}>
+            <h3 className="text-lg font-semibold text-white mb-5 tracking-wide uppercase">
+              Get in Touch
             </h3>
-            <div className="space-y-4">
-              <a href="tel:+23412345678" className="group flex items-start space-x-3 hover:bg-white/50 p-3 rounded-lg transition-all duration-200 -ml-3">
-                <div className="p-2 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg group-hover:shadow-lg transition-shadow">
-                  <Phone className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-[#111827] font-normal text-sm pt-2">+23412345678</span>
-              </a>
-              
-              <a href="mailto:Kapadoccia@gmail.com" className="group flex items-start space-x-3 hover:bg-white/50 p-3 rounded-lg transition-all duration-200 -ml-3">
-                <div className="p-2 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg group-hover:shadow-lg transition-shadow">
-                  <Mail className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-[#111827] font-normal text-sm pt-2 break-all">Kapadoccia@gmail.com</span>
-              </a>
-              
-              <div className="group flex items-start space-x-3 hover:bg-white/50 p-3 rounded-lg transition-all duration-200 -ml-3">
-                <div className="p-2 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg group-hover:shadow-lg transition-shadow flex-shrink-0">
-                  <MapPin className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-[#111827] font-normal text-sm pt-2">
-                  16, Idowu Taylor Street, Victoria Island 101241 Nigeria
+            <div className="space-y-4 text-sm">
+              <motion.div className="flex items-center space-x-3" whileHover={{ x: 6 }}>
+                <Phone className="w-5 h-5 text-green-400" />
+                <span className="text-gray-400">+234 123 456 78</span>
+              </motion.div>
+              <motion.div className="flex items-center space-x-3" whileHover={{ x: 6 }}>
+                <Mail className="w-5 h-5 text-green-400" />
+                <span className="text-gray-400">hello@bookme.com</span>
+              </motion.div>
+              <motion.div className="flex items-center space-x-3" whileHover={{ x: 6 }}>
+                <MapPin className="w-5 h-5 text-green-400" />
+                <span className="text-gray-400 max-w-[200px]">
+                  16, Idowu Taylor Street, Victoria Island, Lagos
                 </span>
-              </div>
+              </motion.div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        {/* Bottom Section */}
-        <div className="border-t border-gray-300 mt-16 pt-8">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            <p className="text-[#111827] text-sm text-center lg:text-left">
-              © 2024 Bookme. All rights reserved.
-            </p>
-            
-            {/* Social Media Icons */}
-            <div className="flex items-center gap-4">
-              {[
-                { Icon: Facebook, href: '#' },
-                { Icon: Twitter, href: '#' },
-                { Icon: Instagram, href: '#' }
-              ].map(({ Icon, href }, idx) => (
-                <a
-                  key={idx}
-                  href={href}
-                  className="p-2 bg-white rounded-full hover:bg-gradient-to-r hover:from-teal-500 hover:to-cyan-600 text-gray-700 hover:text-white transform hover:scale-110 hover:rotate-12 transition-all duration-300 shadow-md hover:shadow-xl"
+        {/* Bottom Bar */}
+        <motion.div
+          className="mt-16 pt-8 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between"
+          initial={{ opacity: 0, y: 10 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+        >
+          {/* Social Media Icons */}
+          <div className="flex items-center space-x-5 mb-6 sm:mb-0">
+            {[
+              { Icon: Facebook, href: "#" },
+              { Icon: Instagram, href: "#" },
+              { Icon: Twitter, href: "#" },
+            ].map(({ Icon, href }, i) => (
+              <motion.a
+                key={i}
+                href={href}
+                whileHover={{ scale: 1.2 }}
+                className="bg-white/5 p-2 rounded-full hover:bg-green-500/20 transition-all duration-300"
+              >
+                <Icon className="w-5 h-5 text-gray-300" />
+              </motion.a>
+            ))}
+          </div>
+
+          {/* Legal */}
+          <div className="text-sm text-gray-500 text-center sm:text-right">
+            <p>© 2025 Rhace. All rights reserved.</p>
+            <div className="flex justify-center sm:justify-end gap-5 mt-2">
+              {["Privacy Policy", "Terms of Service"].map((text, i) => (
+                <motion.a
+                  key={i}
+                  href="#"
+                  whileHover={{ scale: 1.05, color: "#22c55e" }}
+                  transition={{ type: "spring", stiffness: 300 }}
+                  className="text-gray-500 hover:text-green-400 transition-colors"
                 >
-                  <Icon className="w-5 h-5" />
-                </a>
+                  {text}
+                </motion.a>
               ))}
             </div>
-            
-            <div className="flex flex-wrap justify-center items-center gap-6 text-sm">
-              <a href="#" className="text-[#111827] hover:text-teal-600 font-normal transition-colors duration-200 relative group">
-                Privacy Policy
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-teal-500 to-cyan-600 group-hover:w-full transition-all duration-300"></span>
-              </a>
-              <a href="#" className="text-[#111827] hover:text-teal-600 font-normal transition-colors duration-200 relative group">
-                Terms of Service
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-teal-500 to-cyan-600 group-hover:w-full transition-all duration-300"></span>
-              </a>
-            </div>
           </div>
-        </div>
+        </motion.div>
       </div>
     </footer>
   );

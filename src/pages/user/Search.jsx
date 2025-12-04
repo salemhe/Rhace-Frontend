@@ -3,6 +3,7 @@ import Header from "@/components/user/Header";
 import { restaurantService } from "@/services/rest.services";
 import { Heart, Loader2, Star } from "lucide-react";
 import { useCallback, useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router";
 
 const LoadingFallback = () => (
   <div className="min-h-screen mt-[100px] bg-gray-50">
@@ -23,13 +24,14 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchData, setSearchData] = useState(null);
+  const navigate = useNavigate()
   
   // Use ref to track if initial search has been performed
   const initialSearchDone = useRef(false);
 
   // Function to handle search - memoized without searchData dependency
   const handleSearch = useCallback(async (query) => {
-    if (!query?.trim()) {
+    if (!query) {
       setRestaurants([]);
       return;
     }
@@ -37,9 +39,9 @@ const SearchPage = () => {
     setLoading(true);
 
     try {
+      console.log("Performing search with query:", query);
       const response = await restaurantService.searchRestaurants(query);
       setRestaurants(response.data || []);
-      console.log('Search results:', response.data);
     } catch (err) {
       console.error("Search error:", err);
       setRestaurants([]);
@@ -62,7 +64,7 @@ const SearchPage = () => {
         // Perform initial search if query exists and not done yet
         if (parsed.query && !initialSearchDone.current) {
           initialSearchDone.current = true;
-          handleSearch(parsed.query);
+          handleSearch(parsed);
         }
       } catch (error) {
         console.error("Error parsing search data:", error);
@@ -87,7 +89,7 @@ const SearchPage = () => {
     localStorage.setItem("searchData", JSON.stringify(updatedSearchData));
     
     // Perform search
-    handleSearch(query);
+    handleSearch(updatedSearchData);
   }, [handleSearch]);
 
   if (!mounted) {
@@ -233,17 +235,17 @@ const SearchPage = () => {
           <div className="flex-1">
             <h1 className="text-2xl font-bold mb-6">
               {searchQuery
-                ? `${restaurants.length} Restaurant${
+                ? `${restaurants.length} ${searchData.tab.slice(0, -1)}${
                     restaurants.length !== 1 ? "s" : ""
                   } found for "${searchQuery}"`
-                : "Search for restaurants"}
+                : `Search for ${searchData.tab}`}
             </h1>
 
             {loading && (
               <div className="flex justify-center items-center py-12">
                 <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
                 <span className="ml-2 text-gray-600">
-                  Searching restaurants...
+                  Searching {searchData.tab}...
                 </span>
               </div>
             )}
@@ -251,7 +253,9 @@ const SearchPage = () => {
             {!loading && restaurants.length === 0 && searchQuery && (
               <div className="text-center py-12">
                 <p className="text-gray-500">
-                  No restaurants found for "{searchQuery}"
+                  No {searchData.tab.slice(0, -1)}{
+                    restaurants.length !== 1 ? "s" : ""
+                  } found for "{searchQuery}"
                 </p>
                 <p className="text-sm text-gray-400 mt-2">
                   Try searching with different keywords
@@ -262,7 +266,7 @@ const SearchPage = () => {
             {!loading && !searchQuery && restaurants.length === 0 && (
               <div className="text-center py-12">
                 <p className="text-gray-500">
-                  Enter a search query to find restaurants
+                  Enter a search query to find {searchData.tab}
                 </p>
               </div>
             )}
@@ -272,6 +276,7 @@ const SearchPage = () => {
                 {restaurants.map((restaurant) => (
                   <div
                     key={restaurant._id}
+                    onClick={() => navigate(`/${searchData.tab}/${restaurant._id}`)}
                     className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                   >
                     <div className="relative">

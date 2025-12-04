@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import Restaurant from "../../assets/find.png";
 import Hotel from "../../assets/find-hotel.jpg";
 import Club from "../../assets/find-club.png";
+import LocationModal from "@/components/LocationModal";
 
 function ReservationHomePage() {
   const [mounted, setMounted] = useState(false);
@@ -182,6 +183,7 @@ const SvgIcon3= ({ isActive }) => (
       )}
 
       <Footer/>
+      <LocationModal />
     </div>
   );
 }
