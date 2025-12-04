@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -33,6 +33,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { DialogDescription } from "@/components/ui/dialog";
 import { StatCard } from "@/components/Statcard";
 import {
   Wallet,
@@ -413,6 +414,9 @@ const kpisRes = await getDashboardKPIs();
                       <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
                           <DialogTitle>Edit Bank Details</DialogTitle>
+                          <DialogDescription>
+                            Update your bank account information for payouts.
+                          </DialogDescription>
                         </DialogHeader>
                         <div className="grid gap-4 py-4">
                           <div className="grid grid-cols-4 items-center gap-4">
@@ -476,6 +480,9 @@ const kpisRes = await getDashboardKPIs();
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
                     <DialogTitle>Add Bank Account</DialogTitle>
+                    <DialogDescription>
+                      Add a new bank account for receiving payouts.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">

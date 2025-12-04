@@ -25,7 +25,6 @@ import Onboard from "./pages/auth/VendorAuth/Onboard";
 
 // Admin Auth
 import AdminLogin from "./pages/auth/AdminAuth/Login";
-import AdminSignup from "./pages/auth/AdminAuth/Signup";
 
 // User Pages
 import ReservationHomePage from "./pages/user/ReservationHomePage";
@@ -87,6 +86,7 @@ import AdminSettings from "./pages/admin/Settings";
 import ProtectedRoute from "./components/ProtectedRoutes";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 // Route Arrays
 const authRoutes = {
@@ -105,7 +105,6 @@ const authRoutes = {
     { path: "otp", element: <VendorOtp /> },
   ],
   admin: [
-    { path: "signup", element: <AdminSignup /> },
     { path: "login", element: <AdminLogin /> },
   ],
 };
@@ -141,7 +140,7 @@ const userGeneralRoutes = [
 
 const adminDashboardRoutes = [
   { path: "", element: <AdminDashboard /> },
-  { path: "vendors", element: <AdminVendors /> },
+  { path: "vendors", element: <ErrorBoundary><AdminVendors /></ErrorBoundary> },
   { path: "users", element: <AdminUsers /> },
   { path: "reservations", element: <AdminReservations /> },
   { path: "payments", element: <AdminPayments /> },

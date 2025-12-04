@@ -149,12 +149,6 @@ const AdminLogin = () => {
               </Button>
             </CardContent>
             <CardFooter className="flex flex-col space-y-4 pt-6">
-              <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
-                Don't Have An Account?{" "}
-                <a href="/auth/admin/signup" className="text-[#0a646d] hover:underline font-medium">
-                  Sign up
-                </a>
-              </p>
               <p className="text-center text-sm text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
                 <a href="/auth/vendor/login" className="underline">
                   Sign in as Vendor

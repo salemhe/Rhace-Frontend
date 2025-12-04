@@ -17,7 +17,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getUsers } from "@/services/admin.service";
+import { getUsers, updateUserStatus, toggleUserVIP } from "@/services/admin.service";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const extractArray = (p) => {
@@ -47,17 +47,21 @@ export default function Users() {
     setShowModal(false);
   };
 
-  const handleSuspendAccount = async () => {
-    if (!selectedUser) return;
+  const handleSuspendAccount = async (user) => {
+    if (!user) return;
+    const userId = user.id || user._id || user.userId;
+    if (!userId) {
+      console.error("User ID not found", user);
+      alert("User ID not found");
+      return;
+    }
     try {
-      // Assuming a service function `updateUserStatus` exists
-      // await updateUserStatus(selectedUser.id, { status: "Suspended" });
-      sendMessage("user-updated", { ...selectedUser, status: "Suspended" });
-      alert(`Suspended account of ${selectedUser.name}`);
+      await updateUserStatus(userId, { status: "Suspended" });
+      // WebSocket will handle the real-time update
     } catch (e) {
       console.error("Failed to suspend user", e);
+      alert("Failed to suspend user");
     }
-    setShowModal(false);
   };
 
   const handleResetPassword = () => {
@@ -67,17 +71,21 @@ export default function Users() {
     setShowModal(false);
   };
 
-  const handleMarkAsVIP = () => {
-    if (!selectedUser) return;
-    try {
-      // Assuming a service function `updateUser` exists
-      // await updateUser(selectedUser.id, { isVip: true });
-      sendMessage("user-updated", { ...selectedUser, isVip: true });
-      alert(`Marked ${selectedUser.name} as VIP`);
-    } catch (e) {
-      console.error("Failed to mark as VIP", e);
+  const handleMarkAsVIP = async (user) => {
+    if (!user) return;
+    const userId = user.id || user._id || user.userId;
+    if (!userId) {
+      console.error("User ID not found", user);
+      alert("User ID not found");
+      return;
     }
-    setShowModal(false);
+    try {
+      await toggleUserVIP(userId, { isVip: !user.isVip });
+      // WebSocket will handle the real-time update
+    } catch (e) {
+      console.error("Failed to toggle VIP status", e);
+      alert("Failed to update VIP status");
+    }
   };
 
   const handleViewReservations = () => {
@@ -188,19 +196,18 @@ export default function Users() {
                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">Email</th>
                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">Phone number</th>
                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">Reservations</th>
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Status</th>
                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">Last Active</th>
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground"></th>
+                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Status</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td className="p-3 text-sm text-muted-foreground" colSpan={8}>Loading users...</td>
+                  <td className="p-3 text-sm text-muted-foreground" colSpan={7}>Loading users...</td>
                 </tr>
               ) : users.length === 0 ? (
                 <tr>
-                  <td className="p-3 text-sm text-muted-foreground" colSpan={8}>No users found.</td>
+                  <td className="p-3 text-sm text-muted-foreground" colSpan={7}>No users found.</td>
                 </tr>
               ) : users.map((user, i) => (
                 <tr key={i} className="border-b hover:bg-accent/50">
@@ -218,30 +225,62 @@ export default function Users() {
                   <td className="p-3 text-sm">{user.email}</td>
                   <td className="p-3 text-sm">{user.phone || user.phoneNumber || user.mobile || "-"}</td>
                   <td className="p-3 text-sm text-center">{user.reservations ?? user.stats?.reservations ?? 0}</td>
-                  <td className="p-3">
-                    <Badge 
-                      variant={user.status === "Active" ? "default" : "secondary"}
-                      className={
-                        user.status === "Active" 
-                          ? "bg-success text-success-foreground" 
-                          : "bg-warning text-warning-foreground"
-                      }
-                    >
-                      {(user.status || user.accountStatus || "").toString()}
-                    </Badge>
-                  </td>
                   <td className="p-3 text-sm">{user.date || (user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleDateString() : "-")}</td>
                   <td className="p-3">
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => {
-                        setSelectedUser(user);
-                        setShowModal(true);
-                      }}
-                    >
-                      <MoreVertical className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center justify-between">
+                      <Badge
+                        variant={user.status === "Active" ? "default" : "secondary"}
+                        className={
+                          user.status === "Active"
+                            ? "bg-success text-success-foreground"
+                            : "bg-warning text-warning-foreground"
+                        }
+                      >
+                        {(user.status || user.accountStatus || "").toString()}
+                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="ml-2"
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedUser(user);
+                            handleViewProfile();
+                          }}>
+                            <Eye className="w-4 h-4 mr-2" />
+                            View Profile
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleSuspendAccount(user)}>
+                            <UserX className="w-4 h-4 mr-2" />
+                            Suspend Account
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedUser(user);
+                            handleResetPassword();
+                          }}>
+                            <KeyRound className="w-4 h-4 mr-2" />
+                            Reset Password
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleMarkAsVIP(user)}>
+                            <Star className="w-4 h-4 mr-2" />
+                            Mark as VIP
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedUser(user);
+                            handleViewReservations();
+                          }}>
+                            <Calendar className="w-4 h-4 mr-2" />
+                            View Reservations
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </td>
                 </tr>
               ))}
