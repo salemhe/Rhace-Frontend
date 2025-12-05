@@ -110,7 +110,7 @@ const TableGrid = ({ title }) => {
       try {
         setIsLoading(true);
         const res = await userService.getVendor("restaurant");
-        console.log(res);
+        // console.log(res);
         setRestaurants(res.data);
       } catch (error) {
         console.log(error);
@@ -1169,7 +1169,7 @@ export const TableGridThree = ({ title }) => {
                 </div>
                 <Button
                   variant="outline"
-                  className="mt-4 w-full text-center text-sm font-medium text-gray-900"
+                  className="mt-4 w-full text-center text-sm font-medium text-white bg-teal-400"
                   onClick={() => {
                     navigate(`/clubs/${restaurant._id}`);
                   }}
