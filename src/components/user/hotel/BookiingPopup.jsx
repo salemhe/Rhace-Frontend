@@ -57,8 +57,8 @@ const navigate = useNavigate();
             </button>
           <form onSubmit={handleSubmit} className="space-y-6 mt-6">
             <div className="flex flex-col md:flex-row w-full gap-4">
-              <DatePicker className="bg-white" value={date} onChange={setDate} />
-              <DatePicker className="bg-white" value={date2} onChange={setDate2} />
+              <DatePicker title="Check in Date" className="bg-white" value={date} onChange={setDate} />
+              <DatePicker title="Check out Date" className="bg-white" value={date2} onChange={setDate2} />
             </div>
             <GuestPicker className="bg-white" value={guests} onChange={setGuests} />
             <div className="flex flex-col gap-y-3">

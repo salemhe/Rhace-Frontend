@@ -4,7 +4,7 @@ import Images from "@/components/user/ui/Image";
 import Images2 from "@/components/user/ui/Image2";
 import { ClubsData } from "@/lib/api";
 import { useParams } from "react-router";
-import Footer from "@/components/user/Footer";
+import Footer from "@/components/Footer";
 import ClubInfo from "@/components/user/club/ClubInfo";
 import BookingPopup from "@/components/user/club/BookingPopup";
 import BookingForm from "@/components/user/club/BookingForm";

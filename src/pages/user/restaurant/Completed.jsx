@@ -10,9 +10,9 @@ import UniversalLoader from "@/components/user/ui/LogoLoader";
 export default function CompletedPage() {
   const navigate = useNavigate()
   const { id } = useParams();
-  const [data, setData] = useState();
+  const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true)
-  const categories = isLoading ? [] : [...new Set(data.menus.map((meal) => meal.menu.category))];
+  const categories = isLoading ? [] : data.menus ? [...new Set(data.menus.map((meal) => meal.menu.category))] : [];
 
   useEffect(() => {
     const fetchReservation = async () => {
@@ -21,7 +21,8 @@ export default function CompletedPage() {
         const res = await userService.fetchReservations({ bookingId: id });
         setData(res.data[0])
       } catch (err) {
-        toast.error(err.response.data.message)
+        toast.error("Error Fetching Reservation")
+        console.log(err);
       } finally {
         setIsLoading(false)
       }

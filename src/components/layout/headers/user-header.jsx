@@ -209,7 +209,7 @@ function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, use
       {/* Menu Items Section 2 */}
       <div className="py-1">
         <MenuItem text="Account" onClick={() => handleNavigation('/account')} />
-        <MenuItem text="Help Center" onClick={() => handleNavigation('/help')} />
+        <MenuItem text="Help Center" onClick={() => handleNavigation('/contact')} />
       </div>
 
       <div className="border-t border-gray-200"></div>

@@ -163,7 +163,7 @@ const Header = () => {
               <a href="/account">Account</a>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="  px-4 py-2">
-              <a href="/help">Help Center</a>
+              <a href="/contact">Help Center</a>
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
