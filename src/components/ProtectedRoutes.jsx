@@ -1,22 +1,30 @@
 // components/ProtectedRoute.jsx
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 
 export default function ProtectedRoute() {
-  const vendor = useSelector((state) => state.auth.vendor);
+  const { vendor, admin } = useSelector((state) => state.auth);
+  const location = useLocation();
 
-  const isAuthenticated = vendor;
+  const isAuthenticated = vendor || admin;
 
   const authorized = () => {
-    if (!vendor) return false;
+    const path = location.pathname;
+
+    if (admin) {
+      return path.startsWith("/dashboard/admin");
+    }
+
+    if (!vendor) {
+      return false;
+    }
+
+    if (!vendor.isOnboarded) {
+        return path.startsWith("/auth/vendor/onboarding");
+    }
+
     const businessType = vendor.vendorType;
-    const isOnboarded = vendor.isOnboarded;
-    const path = window.location.pathname;
-    console.log('Business Type:', businessType);
-    console.log('Current Path:', path);
-    if (!isOnboarded && path.startsWith("/auth/vendor/onboarding")) {
-      return true;
-    };
+
     if (businessType === 'restaurant' && path.startsWith('/dashboard/restaurant') ) {
       return true;
     }
@@ -26,16 +34,30 @@ export default function ProtectedRoute() {
     if (businessType === 'club' && path.startsWith('/dashboard/club')) {
         return true;
     }
-    if (vendor.role === 'admin' && path.startsWith('/dashboard/admin')) {
-      return true;
-    }
     return false;
   }
   const isAuthorized = authorized();
-  console.log('Is Authorized:', isAuthorized);
 
+  if (!isAuthenticated) {
+    // Redirect to appropriate login based on the path
+    if (location.pathname.startsWith("/dashboard/admin")) {
+      return <Navigate to="/auth/admin/login" replace />;
+    }
+    return <Navigate to="/auth/vendor/login" replace />;
+  }
 
-  if (!isAuthenticated || !isAuthorized) {
+  if (!isAuthorized) {
+    if (admin) {
+      return <Navigate to="/dashboard/admin" replace />;
+    }
+    if (vendor && !vendor.isOnboarded) {
+        return <Navigate to="/auth/vendor/onboarding" replace />;
+    }
+    if (vendor) {
+        // Redirect to their correct dashboard if they try to access a wrong one
+        return <Navigate to={`/dashboard/${vendor.vendorType}`} replace />;
+    }
+    // Fallback if something is wrong
     return <Navigate to="/auth/vendor/login" replace />;
   }
 

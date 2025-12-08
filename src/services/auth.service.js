@@ -98,9 +98,14 @@ class AuthService {
   }
 
   async adminLogin(email, password) {
-    const res = await api.post("/vendors/auth/login", { email, password });
+    const res = await api.post("/admin/login", { email, password });
     const { token } = res.data;
     localStorage.setItem("token", token);
+    return res.data;
+  }
+
+  async adminRegister(adminData) {
+    const res = await api.post("/auth/register-admin", adminData);
     return res.data;
   }
 }

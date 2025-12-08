@@ -7,6 +7,7 @@ import { BarChart3, TrendingUp, Users, DollarSign, Calendar, Download, Filter } 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from "recharts";
 import { useEffect, useState } from "react";
 import { getRevenueTrends, getTopVendors } from "@/services/admin.service";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 
 const userGrowthData = [
@@ -41,39 +42,48 @@ export default function Reports() {
   const [topPerformers, setTopPerformers] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    let ignore = false;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const [rev, tv] = await Promise.all([
-          getRevenueTrends(),
-          getTopVendors().catch(() => ({ data: [] })),
-        ]);
-        const revList = Array.isArray(rev?.data) ? rev.data : (rev?.data?.items || rev?.data?.data || []);
-        const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        const mapped = revList.map((r) => ({
-          month: r.monthName || months[(r.month ?? (r._id?.month ?? 1)) - 1] || "",
-          revenue: r.totalRevenue ?? r.revenue ?? 0,
-          bookings: r.totalBookings ?? r.bookings ?? 0,
-        }));
-        if (!ignore) setRevenueData(mapped);
+  const { subscribe, unsubscribe } = useWebSocket();
 
-        const tvList = Array.isArray(tv?.data) ? tv.data : (tv?.data?.items || tv?.data?.data || []);
-        if (!ignore) setTopPerformers(tvList);
-      } catch (e) {
-        console.error("Failed to load reports data", e);
-        if (!ignore) {
-          setRevenueData([]);
-          setTopPerformers([]);
-        }
-      } finally {
-        if (!ignore) setLoading(false);
-      }
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [rev, tv] = await Promise.all([
+        getRevenueTrends(),
+        getTopVendors().catch(() => ({ data: [] })),
+      ]);
+      const revList = Array.isArray(rev?.data) ? rev.data : (rev?.data?.items || rev?.data?.data || []);
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const mapped = revList.map((r) => ({
+        month: r.monthName || months[(r.month ?? (r._id?.month ?? 1)) - 1] || "",
+        revenue: r.totalRevenue ?? r.revenue ?? 0,
+        bookings: r.totalBookings ?? r.bookings ?? 0,
+      }));
+      setRevenueData(mapped);
+
+      const tvList = Array.isArray(tv?.data) ? tv.data : (tv?.data?.items || tv?.data?.data || []);
+      setTopPerformers(tvList);
+    } catch (e) {
+      console.error("Failed to load reports data", e);
+      setRevenueData([]);
+      setTopPerformers([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+
+    const handleReportReady = () => {
+      loadData();
     };
-    load();
-    return () => { ignore = true; };
-  }, []);
+
+    subscribe("report-ready", handleReportReady);
+
+    return () => {
+      unsubscribe("report-ready");
+    };
+  }, [subscribe, unsubscribe]);
 
   return (
     <div className="p-4 md:p-6 space-y-6">

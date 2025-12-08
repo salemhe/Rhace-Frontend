@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Plus, Upload, SlidersHorizontal, ChevronDown, MoreVertical } from "lucide-react";
+import { Plus, Upload, SlidersHorizontal, ChevronDown, MoreVertical, Eye, UserX, KeyRound, Star, Calendar, Mail, Phone, MapPin, Building, CreditCard, Globe, Clock, DollarSign, FileText, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -11,7 +11,22 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getVendors } from "@/services/admin.service";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { getVendors, getVendorById, updateVendorStatus } from "@/services/admin.service";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const extractArray = (p) => {
   if (Array.isArray(p)) return p;
@@ -23,33 +38,130 @@ const extractArray = (p) => {
   return [];
 };
 
-
 export default function Vendors() {
   const [activeTab, setActiveTab] = useState("All");
   const tabs = ["All", "Active", "Inactive", "Pending"];
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [vendorDetails, setVendorDetails] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [editingVendor, setEditingVendor] = useState(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const { subscribe, unsubscribe, sendMessage } = useWebSocket();
+
+  const loadVendors = async () => {
+    setLoading(true);
+    try {
+      const res = await getVendors({ page: 1, limit: 20 });
+      const payload = res?.data;
+      const list = extractArray(payload);
+      setVendors(list);
+    } catch (e) {
+      console.error("Failed to load vendors", e);
+      setVendors([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    let ignore = false;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const res = await getVendors({ page: 1, limit: 20 });
-        console.log("[Vendors] API response:", res?.data);
-        const payload = res?.data;
-        const list = extractArray(payload);
-        if (!ignore) setVendors(list);
-      } catch (e) {
-        console.error("Failed to load vendors", e);
-        if (!ignore) setVendors([]);
-      } finally {
-        if (!ignore) setLoading(false);
-      }
+    loadVendors();
+
+    const handleVendorUpdate = (updatedVendor) => {
+      setVendors((prev) =>
+        prev.map((v) => (v.id === updatedVendor.id || v._id === updatedVendor.id ? updatedVendor : v))
+      );
     };
-    load();
-    return () => { ignore = true; };
-  }, []);
+
+    const handleVendorCreate = (newVendor) => {
+      setVendors((prev) => [...prev, newVendor]);
+    };
+
+    const handleVendorDelete = (deletedVendor) => {
+      setVendors((prev) => prev.filter((v) => v.id !== deletedVendor.id && v._id !== deletedVendor.id));
+    };
+
+    subscribe("vendor-updated", handleVendorUpdate);
+    subscribe("vendor-created", handleVendorCreate);
+    subscribe("vendor-deleted", handleVendorDelete);
+
+    return () => {
+      unsubscribe("vendor-updated");
+      unsubscribe("vendor-created");
+      unsubscribe("vendor-deleted");
+    };
+  }, [subscribe, unsubscribe]);
+
+  const handleViewDetails = async (vendor) => {
+    const vendorId = vendor.id || vendor._id || vendor.vendorId;
+    if (!vendorId) {
+      console.error("Vendor ID not found", vendor);
+      return;
+    }
+
+    setSelectedVendor(vendor);
+    setDetailsOpen(true);
+    setDetailsLoading(true);
+    setVendorDetails(null);
+
+    try {
+      const response = await getVendorById(vendorId);
+      setVendorDetails(response.data);
+    } catch (e) {
+      console.error("Failed to get vendor details", e);
+      setVendorDetails(null);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const handleEdit = (vendor) => {
+    setEditingVendor(vendor);
+    setEditOpen(true);
+  };
+
+  const handleUpdateVendor = async (updatedData) => {
+    const vendorId = editingVendor.id || editingVendor._id || editingVendor.vendorId;
+    if (!vendorId) {
+      console.error("Vendor ID not found", editingVendor);
+      alert("Vendor ID not found");
+      return;
+    }
+    try {
+      // For now, just update local state since there's no general update API
+      setVendors((prev) =>
+        prev.map((v) => (v.id === vendorId || v._id === vendorId ? { ...v, ...updatedData } : v))
+      );
+      sendMessage("vendor-updated", { id: vendorId, ...updatedData });
+      setEditOpen(false);
+      setEditingVendor(null);
+    } catch (e) {
+      console.error(`Failed to update vendor ${vendorId}`, e);
+      alert("Failed to update vendor");
+    }
+  };
+
+  const handleDelete = async (vendor) => {
+    const vendorId = vendor.id || vendor._id || vendor.vendorId;
+    if (!vendorId) {
+      console.error("Vendor ID not found", vendor);
+      alert("Vendor ID not found");
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to delete vendor ${vendorId}?`)) {
+      return;
+    }
+    try {
+      await updateVendorStatus(vendorId, { status: "Deleted" });
+      setVendors((prev) => prev.filter((v) => v.id !== vendorId && v._id !== vendorId));
+      sendMessage("vendor-deleted", { id: vendorId });
+    } catch (e) {
+      console.error(`Failed to delete vendor ${vendorId}`, e);
+      alert("Failed to delete vendor");
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -69,7 +181,7 @@ export default function Vendors() {
 
       <Card className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-2">
+          <div className="flex gap-2" key={activeTab}>
             {tabs.map((tab) => (
               <button
                 key={tab}
@@ -129,51 +241,55 @@ export default function Vendors() {
                   <td className="p-3">
                     <div className="flex items-center gap-2">
                       <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                        <span className="text-sm font-semibold">K</span>
+                        <span className="text-sm font-semibold">{vendor.businessName?.charAt(0) || 'V'}</span>
                       </div>
                       <div>
-                        <p className="text-sm font-medium">{vendor.businessName || vendor.name || "-"}</p>
-                        <p className="text-xs text-muted-foreground">{vendor.category || vendor.type || ""}</p>
+                        <p className="text-sm font-medium">{String(vendor.businessName || vendor.name || "-")}</p>
+                        <p className="text-xs text-muted-foreground">{String(vendor.category || vendor.type || "")}</p>
                       </div>
                     </div>
                   </td>
                   <td className="p-3">
                     <p className="text-sm">{vendor.contactPerson || vendor.contactName || vendor.ownerName || "-"}</p>
-                    <p className="text-xs text-muted-foreground">{vendor.email || vendor.contactEmail || vendor.user?.email || "-"}</p>
                   </td>
-                  <td className="p-3 text-sm">{vendor.branchesCount ?? vendor.branches?.length ?? 0}</td>
-                  <td className="p-3 text-sm">{vendor.reservationsCount ?? vendor.stats?.reservations ?? vendor.reservationStats?.total ?? 0}</td>
                   <td className="p-3">
-                    <Badge 
-                      variant={vendor.status === "Active" ? "default" : "secondary"}
-                      className={
-                        vendor.status === "Active" 
-                          ? "bg-success text-success-foreground" 
-                          : "bg-warning text-warning-foreground"
-                      }
-                    >
-                      {(vendor.status || vendor.approvalStatus || "").toString()}
+                    <p className="text-sm">{vendor.branches || 1}</p>
+                  </td>
+                  <td className="p-3">
+                    <p className="text-sm">{vendor.reservations || 0}</p>
+                  </td>
+                  <td className="p-3">
+                    <Badge variant={vendor.status === "Active" ? "default" : "outline"}>
+                      {vendor.status || "Inactive"}
                     </Badge>
                   </td>
-                  <td className="p-3 text-sm">{vendor.date || (vendor.createdAt ? new Date(vendor.createdAt).toLocaleDateString() : "-")}</td>
+                  <td className="p-3">
+                    <p className="text-sm">{new Date(vendor.createdAt).toLocaleDateString()}</p>
+                  </td>
                   <td className="p-3">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
+                        <Button variant="ghost" size="icon">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                      <DropdownMenuContent>
+                        <DropdownMenuItem onClick={() => handleViewDetails(vendor)}>
+                          View details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(vendor)}>
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDelete(vendor)}>
+                          Delete
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
                 </tr>
               ))}
             </tbody>
-          </table>
+        </table>
         </div>
 
         <div className="flex items-center justify-between mt-4">
@@ -192,6 +308,316 @@ export default function Vendors() {
           </div>
         </div>
       </Card>
+
+      <Dialog open={detailsOpen} onOpenChange={setDetailsOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Eye className="w-5 h-5" />
+              Vendor Details
+            </DialogTitle>
+          </DialogHeader>
+
+          {detailsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-sm text-muted-foreground">Loading vendor details...</div>
+            </div>
+          ) : vendorDetails ? (
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-accent rounded-full flex items-center justify-center">
+                  <span className="text-xl font-semibold">
+                    {(vendorDetails.businessName || vendorDetails.name || "V").charAt(0)}
+                  </span>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    {String(vendorDetails.businessName || vendorDetails.name || "Unknown Vendor")}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {String(vendorDetails.category || vendorDetails.type || "No category")}
+                  </p>
+                  <Badge variant={vendorDetails.status === "Active" ? "default" : "outline"} className="mt-1">
+                    {vendorDetails.status || "Inactive"}
+                  </Badge>
+                </div>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Contact Information */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                    Contact Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <UserX className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {String(vendorDetails.contactPerson || vendorDetails.contactName || vendorDetails.ownerName || "Not specified")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {String(vendorDetails.email || "Not provided")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {String(vendorDetails.phone || "Not provided")}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {String(vendorDetails.address || "Not provided")}
+                      </span>
+                    </div>
+                    {vendorDetails.website && (
+                      <div className="flex items-center gap-2">
+                        <Globe className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {String(vendorDetails.website)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Business Information */}
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                    Business Information
+                  </h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                      <Building className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {vendorDetails.branches || 1} Branch{vendorDetails.branches > 1 ? 'es' : ''}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Star className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {vendorDetails.reservations || 0} Reservations
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        Joined {vendorDetails.createdAt ? new Date(vendorDetails.createdAt).toLocaleDateString() : "Unknown"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <KeyRound className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        ID: {vendorDetails.id || vendorDetails._id || "Unknown"}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Operating Hours */}
+              {(vendorDetails.operatingHours || vendorDetails.hours) && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                    Operating Hours
+                  </h4>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">
+                      {String(vendorDetails.operatingHours || vendorDetails.hours || "")}
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* Payment Information */}
+              {(vendorDetails.paymentMethods || vendorDetails.paymentDetails || vendorDetails.accountNumber || vendorDetails.bankDetails) && (
+                <div className="space-y-4">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                    Payment Information
+                  </h4>
+                  <div className="space-y-3">
+                    {vendorDetails.paymentMethods && (
+                      <div className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          Methods: {Array.isArray(vendorDetails.paymentMethods) ? vendorDetails.paymentMethods.join(", ") : vendorDetails.paymentMethods}
+                        </span>
+                      </div>
+                    )}
+
+                    {vendorDetails.accountNumber && (
+                      <div className="flex items-center gap-2">
+                        <DollarSign className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          Account: {vendorDetails.accountNumber}
+                        </span>
+                      </div>
+                    )}
+                    {vendorDetails.bankDetails && (
+                      <div className="flex items-center gap-2">
+                        <Building className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          Bank: {String(vendorDetails.bankDetails?.bankName || (typeof vendorDetails.bankDetails === 'object' ? JSON.stringify(vendorDetails.bankDetails) : vendorDetails.bankDetails) || 'Bank details available')}
+                        </span>
+                      </div>
+                    )}
+                    {vendorDetails.paymentDetails && (
+                      <div className="space-y-2">
+                        {vendorDetails.paymentDetails.accountName && (
+                          <p className="text-sm">
+                            Account Name: {vendorDetails.paymentDetails.accountName}
+                          </p>
+                        )}
+                        {vendorDetails.paymentDetails.accountNumber && (
+                          <p className="text-sm">
+                            Account Number: {vendorDetails.paymentDetails.accountNumber}
+                          </p>
+                        )}
+                        {vendorDetails.paymentDetails.bankName && (
+                          <p className="text-sm">
+                            Bank Name: {vendorDetails.paymentDetails.bankName}
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Additional Business Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {(vendorDetails.licenseNumber || vendorDetails.registrationNumber) && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                      Registration
+                    </h4>
+                    <div className="space-y-2">
+                      {vendorDetails.licenseNumber && (
+                        <p className="text-sm">License: {vendorDetails.licenseNumber}</p>
+                      )}
+                      {vendorDetails.registrationNumber && (
+                        <p className="text-sm">Registration: {vendorDetails.registrationNumber}</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {(vendorDetails.rating || vendorDetails.reviews) && (
+                  <div className="space-y-2">
+                    <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                      Ratings & Reviews
+                    </h4>
+                    <div className="space-y-2">
+                      {vendorDetails.rating && (
+                        <div className="flex items-center gap-2">
+                          <Star className="w-4 h-4 text-yellow-500" />
+                          <span className="text-sm">{vendorDetails.rating} stars</span>
+                        </div>
+                      )}
+                      {vendorDetails.reviews && (
+                        <p className="text-sm">{vendorDetails.reviews} reviews</p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Additional Details */}
+              {vendorDetails.description && (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-muted-foreground uppercase tracking-wide">
+                    Description
+                  </h4>
+                  <p className="text-sm">{String(vendorDetails.description || "")}</p>
+                </div>
+              )}
+
+              {/* Raw JSON for debugging */}
+              <details className="mt-6">
+                <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
+                  Raw Data (JSON)
+                </summary>
+                <pre className="mt-2 text-xs bg-muted p-3 rounded overflow-x-auto">
+                  {JSON.stringify(vendorDetails, null, 2)}
+                </pre>
+              </details>
+            </div>
+          ) : (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-sm text-muted-foreground">Failed to load vendor details</div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={editOpen} onOpenChange={setEditOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Vendor</DialogTitle>
+          </DialogHeader>
+          {editingVendor && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="businessName">Business Name</Label>
+                <Input
+                  id="businessName"
+                  value={editingVendor.businessName || editingVendor.name || ""}
+                  onChange={(e) => setEditingVendor({ ...editingVendor, businessName: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={editingVendor.email || ""}
+                  onChange={(e) => setEditingVendor({ ...editingVendor, email: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="phone">Phone</Label>
+                <Input
+                  id="phone"
+                  value={editingVendor.phone || ""}
+                  onChange={(e) => setEditingVendor({ ...editingVendor, phone: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={editingVendor.status || "Inactive"}
+                  onValueChange={(value) => setEditingVendor({ ...editingVendor, status: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Suspended">Suspended</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setEditOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => handleUpdateVendor(editingVendor)}>
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

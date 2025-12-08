@@ -2,17 +2,20 @@ import { Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 
 // Layouts
+import Layout from "./pages/layouts/Layout";
+import ReservationLayout from "./pages/layouts/ReservationLayout";
+import ClubReservationLayout from "./pages/layouts/ClubReservationLayout";
 import HotelReservationLayout from "./pages/layouts/HotelReservationLayout";
 import AdminLayout from "./components/layout/AdminLayout";
 
-// Auth - User
+// User Auth
 import Login from "./pages/auth/UserAuth/Login";
 import Signup from "./pages/auth/UserAuth/Signup";
 import ForgotPassword from "./pages/auth/UserAuth/ForgotPassword";
 import ResetPassword from "./pages/auth/UserAuth/ResetPassword";
 import Otp from "./pages/auth/UserAuth/Otp";
 
-// Auth - Vendor
+// Vendor Auth
 import VendorLogin from "./pages/auth/VendorAuth/Login";
 import VendorSignup from "./pages/auth/VendorAuth/Signup";
 import VendorForgotPassword from "./pages/auth/VendorAuth/ForgotPassword";
@@ -20,12 +23,10 @@ import VendorResetPassword from "./pages/auth/VendorAuth/ResetPassword";
 import VendorOtp from "./pages/auth/VendorAuth/Otp";
 import Onboard from "./pages/auth/VendorAuth/Onboard";
 
-// Layouts
-import Layout from "./pages/layouts/Layout";
-import ReservationLayout from "./pages/layouts/ReservationLayout";
-import ClubReservationLayout from "./pages/layouts/ClubReservationLayout";
+// Admin Auth
+import AdminLogin from "./pages/auth/AdminAuth/Login";
 
-// Pages
+// User Pages
 import ReservationHomePage from "./pages/user/ReservationHomePage";
 import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
 import Reservation from "./pages/user/restaurant/Reservation";
@@ -34,14 +35,14 @@ import CompletedPage from "./pages/user/restaurant/Completed";
 import ConfirmPage from "./pages/user/restaurant/Confirmation";
 import ClubPage from "./pages/user/club/ClubPage";
 import ClubReservation from "./pages/user/club/Reservation";
-
-// User Pages - Hotel
 import HotelsPage from "./pages/user/hotels/HotelsPage";
 import HotelReservation from "./pages/user/hotels/ReservationSummary";
-
-// Dashboard - Restaurant
 import BookingsPage from "./pages/user/Bookings";
 import SearchContent from "./pages/user/Search";
+import Favorites from "./pages/user/Favourites";
+import AboutRhace from "./pages/user/About";
+import ContactRhace from "./pages/user/Contact";
+import HelpCenterRhace from "./pages/user/HelpCenter";
 import NotFound from "./pages/user/NotFound";
 
 // Vendor Dashboard
@@ -51,26 +52,28 @@ import ReservationDashboard from "./pages/vendor/dashboard/restaurant/Reservatio
 import MenuDashboard from "./pages/vendor/dashboard/restaurant/MenuDashboard";
 import CreateReservation from "./pages/vendor/dashboard/restaurant/CreateReservation";
 import CreateMenu from "./pages/vendor/dashboard/restaurant/CreateMenu";
+import CreateMenuItem from "./pages/vendor/dashboard/restaurant/CreateMenuItem";
+import StaffManagementSystem from "./pages/vendor/dashboard/StaffManagement";
 
 // Vendor - Club
 import BottleServiceManager from "./pages/vendor/club/AddBottleSet";
 import { DrinksTable } from "./pages/vendor/club/DrinksTable";
+import ClubDashboard from "./pages/vendor/club/Dashboard";
+import ClubReservationTable from "./pages/vendor/club/reservations";
+import ClubSettings from "./pages/vendor/club/Settings";
 
 // Vendor - Hotel
 import AddRooms from "./pages/vendor/hotel/add-rooms/page";
 import BookingManagement from "./pages/vendor/hotel/bookings";
 import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
+import HotelDashboard from "./pages/vendor/hotel/Dashboard";
+import HotelSettings from "./pages/vendor/hotel/Settings";
 
 // Vendor - Settings
-
-// Settings
 import Settings from "./pages/vendor/settings/settings";
-import ClubDashboard from "./pages/vendor/club/Dashboard";
-import HotelDashboard from "./pages/vendor/hotel/Dashboard";
-import ClubReservationTable from "./pages/vendor/club/reservations";
+import RestaurantSettings from "./pages/vendor/dashboard/restaurant/Settings";
 
-
-// Admin
+// Admin Dashboard
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminVendors from "./pages/admin/Vendors";
 import AdminUsers from "./pages/admin/Users";
@@ -78,18 +81,14 @@ import AdminReservations from "./pages/admin/Reservations";
 import AdminPayments from "./pages/admin/Payments";
 import AdminReports from "./pages/admin/Reports";
 import AdminSettings from "./pages/admin/Settings";
+
+// Route Protection
 import ProtectedRoute from "./components/ProtectedRoutes";
 import UserProtectedRoute from "./components/UserProtectedRoute";
-import StaffManagementSystem from "./pages/vendor/dashboard/StaffManagement";
-import AboutRhace from "./pages/user/About";
-import ContactRhace from "./pages/user/Contact";
-import HelpCenterRhace from "./pages/user/HelpCenter";
-import CreateMenuItem from "./pages/vendor/dashboard/restaurant/CreateMenuItem";
-import HotelSettings from "./pages/vendor/hotel/Settings";
-import RestaurantSettings from "./pages/vendor/dashboard/restaurant/Settings";
-import ClubSettings from "./pages/vendor/club/Settings";
-import Favorites from "./pages/user/Favourites";
+import AdminProtectedRoute from "./components/AdminProtectedRoute";
+import ErrorBoundary from "./components/ErrorBoundary";
 
+// Route Arrays
 const authRoutes = {
   user: [
     { path: "signup", element: <Signup /> },
@@ -105,6 +104,9 @@ const authRoutes = {
     { path: "reset-password", element: <VendorResetPassword /> },
     { path: "otp", element: <VendorOtp /> },
   ],
+  admin: [
+    { path: "login", element: <AdminLogin /> },
+  ],
 };
 
 const restaurantRoutes = [
@@ -118,17 +120,13 @@ const restaurantReservationRoutes = [
   { path: "/restaurants/pre-payment/:id", element: <PrePaymentPage /> },
 ];
 
-const clubRoutes = [
-  { path: "/clubs/:id", element: <ClubPage /> },
-];
+const clubRoutes = [{ path: "/clubs/:id", element: <ClubPage /> }];
 
 const clubReservationRoutes = [
   { path: "/clubs/:id/reservations", element: <ClubReservation /> },
 ];
 
-const hotelRoutes = [
-  { path: "/hotels/:id", element: <HotelsPage /> },
-];
+const hotelRoutes = [{ path: "/hotels/:id", element: <HotelsPage /> }];
 
 const hotelReservationRoutes = [
   { path: "/hotels/:id/reservations", element: <HotelReservation /> },
@@ -137,17 +135,17 @@ const hotelReservationRoutes = [
 const userGeneralRoutes = [
   { path: "/bookings", element: <BookingsPage /> },
   { path: "/search", element: <SearchContent /> },
-{ path: "/favorites", element: <Favorites /> },
+  { path: "/favorites", element: <Favorites /> },
 ];
 
-const adminRoutes = [
-  { path: "admin", element: <AdminDashboard /> },
-  { path: "admin/vendors", element: <AdminVendors /> },
-  { path: "admin/users", element: <AdminUsers /> },
-  { path: "admin/reservations", element: <AdminReservations /> },
-  { path: "admin/payments", element: <AdminPayments /> },
-  { path: "admin/reports", element: <AdminReports /> },
-  { path: "admin/settings", element: <AdminSettings /> },
+const adminDashboardRoutes = [
+  { path: "", element: <AdminDashboard /> },
+  { path: "vendors", element: <ErrorBoundary><AdminVendors /></ErrorBoundary> },
+  { path: "users", element: <AdminUsers /> },
+  { path: "reservations", element: <AdminReservations /> },
+  { path: "payments", element: <AdminPayments /> },
+  { path: "reports", element: <AdminReports /> },
+  { path: "settings", element: <AdminSettings /> },
 ];
 
 const dashboardRestaurantRoutes = [
@@ -158,7 +156,7 @@ const dashboardRestaurantRoutes = [
   { path: "restaurant/reservation/new", element: <CreateReservation /> },
   { path: "restaurant/menu", element: <MenuDashboard /> },
   { path: "restaurant/menu/new", element: <CreateMenu /> },
-  { path: "restaurant/menu/item/new/", element: <CreateMenuItem /> },
+  { path: "restaurant/menu/item/new", element: <CreateMenuItem /> },
   { path: "restaurant/settings", element: <RestaurantSettings /> },
 ];
 
@@ -182,55 +180,71 @@ const clubVendorRoutes = [
   { path: "club/settings", element: <ClubSettings /> },
 ];
 
-
-
 function App() {
   return (
     <>
       <ScrollToTop />
       <Routes>
-        {/* User Layout */}
+        {/* Main Layout */}
         <Route element={<Layout />}>
-          {/* Home */}
+          {/* Home / Info Pages */}
           <Route path="/" element={<ReservationHomePage />} />
           <Route path="/about" element={<AboutRhace />} />
           <Route path="/contact" element={<ContactRhace />} />
           <Route path="/faq" element={<HelpCenterRhace />} />
 
-          {/* Authentication */}
+          {/* Authentication Routes */}
           <Route path="/auth">
+            {/* User */}
             <Route path="user">
               {authRoutes.user.map((route) => (
                 <Route key={route.path} path={route.path} element={route.element} />
               ))}
             </Route>
+
+            {/* Vendor */}
             <Route path="vendor">
               {authRoutes.vendor.map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+            </Route>
+
+            {/* Admin */}
+            <Route path="admin">
+              {authRoutes.admin.map((route) => (
                 <Route key={route.path} path={route.path} element={route.element} />
               ))}
             </Route>
           </Route>
 
           {/* Restaurants */}
-          {clubRoutes.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
-
           {restaurantRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />
           ))}
+          {restaurantReservationRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+
+          {/* Clubs */}
+          {clubRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+          {clubReservationRoutes.map((route) => (
+            <Route key={route.path} path={route.path} element={route.element} />
+          ))}
+
+          {/* Hotels */}
           {hotelRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />
           ))}
+
+          {/* Protected User Routes */}
           <Route element={<UserProtectedRoute />}>
-            {/* Hotels */}
             <Route element={<HotelReservationLayout />}>
               {hotelReservationRoutes.map((route) => (
                 <Route key={route.path} path={route.path} element={route.element} />
               ))}
             </Route>
-
-            {/* Club & Hotel Reservations */}
             <Route element={<ClubReservationLayout />}>
               {clubReservationRoutes.map((route) => (
                 <Route key={route.path} path={route.path} element={route.element} />
@@ -241,38 +255,32 @@ function App() {
                 <Route key={route.path} path={route.path} element={route.element} />
               ))}
             </Route>
-            {/* User General */}
             {userGeneralRoutes.map((route) => (
               <Route key={route.path} path={route.path} element={route.element} />
             ))}
           </Route>
+
+          {/* Protected Dashboard Routes */}
           <Route element={<ProtectedRoute />}>
-            {/* Onboarding */}
+            {/* Vendor Onboarding */}
             <Route path="/auth/vendor/onboarding" element={<Onboard />} />
-            {/* Admin Layout */}
-            <Route path="/dashboard">
-              {/* Admin Routes */}
-              {adminRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
-              ))}
-            </Route>
-            {/* Dashboard - Restaurant */}
-            <Route path="/dashboard">
-              {dashboardRestaurantRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
-              ))}
-            </Route>
 
-            {/* Vendor - Hotel */}
-            <Route path="/dashboard">
-              {hotelVendorRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
-              ))}
-            </Route>
+            {/* Vendor Dashboards */}
+            {dashboardRestaurantRoutes.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element} />
+            ))}
+            {hotelVendorRoutes.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element} />
+            ))}
+            {clubVendorRoutes.map((route) => (
+              <Route key={route.path} path={route.path} element={route.element} />
+            ))}
+          </Route>
 
-            {/* Vendor - Club */}
-            <Route path="/dashboard">
-              {clubVendorRoutes.map((route) => (
+          {/* Admin Dashboard - Separate Protection */}
+          <Route element={<AdminProtectedRoute />}>
+            <Route path="/dashboard/admin" element={<AdminLayout />}>
+              {adminDashboardRoutes.map((route) => (
                 <Route key={route.path} path={route.path} element={route.element} />
               ))}
             </Route>

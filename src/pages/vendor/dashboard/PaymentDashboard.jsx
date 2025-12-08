@@ -44,6 +44,7 @@ import { paymentService } from '@/services/payment.service';
 import { toast } from 'sonner';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useSelector } from 'react-redux';
+import { useWebSocket } from '@/contexts/WebSocketContext';
 
 const PaymentDashboard = () => {
   const [hideTab, setHideTab] = useState(false);
@@ -194,78 +195,85 @@ const PaymentDashboard = () => {
   ]
 
 
-  useEffect(() => {
+  const { subscribe, unsubscribe } = useWebSocket();
+
+  const fetchData = () => {
     const fetchPayments = async () => {
       try {
-        setLoading({
-          data: true
-        })
+        setLoading(prev => ({ ...prev, data: true }));
         const res = await paymentService.getPayments();
-        setData(res)
+        setData(res);
       } catch (error) {
-        console.error(error)
-        toast.error(error.response.message)
+        console.error(error);
+        toast.error(error.response?.message || "Failed to fetch payments");
       } finally {
-        setLoading({
-          data: false
-        })
+        setLoading(prev => ({ ...prev, data: false }));
       }
-    }
+    };
+
     const fetchPaymentStats = async () => {
       try {
-        setLoading({
-          stats: true
-        })
+        setLoading(prev => ({ ...prev, stats: true }));
         const res = await paymentService.getPaymentStats();
-        setStats(res)
+        setStats(res);
       } catch (error) {
-        console.error(error)
-        toast.error(error.response.message)
+        console.error(error);
+        toast.error(error.response?.message || "Failed to fetch payment stats");
       } finally {
-        setLoading({
-          stats: false
-        })
+        setLoading(prev => ({ ...prev, stats: false }));
       }
-    }
+    };
+
     const fetchTrends = async () => {
       try {
-        setLoading({
-          trend: true
-        })
+        setLoading(prev => ({ ...prev, trend: true }));
         const res = await paymentService.getTrends();
-        setTrends(res)
+        setTrends(res);
       } catch (error) {
-        console.error(error)
-        toast.error(error.response.message)
+        console.error(error);
+        toast.error(error.response?.message || "Failed to fetch payment trends");
       } finally {
-        setLoading({
-          trend: false
-        })
+        setLoading(prev => ({ ...prev, trend: false }));
       }
-    }
+    };
+
     const fetchPaymentInfo = async () => {
       try {
-        setLoading({
-          info: true
-        })
+        setLoading(prev => ({ ...prev, info: true }));
         const res = await paymentService.getPaymentInfo();
-        setInfo(res)
+        setInfo(res);
       } catch (error) {
-        console.error(error)
-        toast.error(error.response.message)
+        console.error(error);
+        toast.error(error.response?.message || "Failed to fetch payment info");
       } finally {
-        setLoading({
-          info: false
-        })
+        setLoading(prev => ({ ...prev, info: false }));
       }
-    }
+    };
 
+    fetchPayments();
+    fetchPaymentStats();
+    fetchTrends();
+    fetchPaymentInfo();
+  };
 
-    fetchPayments()
-    fetchPaymentStats()
-    fetchTrends()
-    fetchPaymentInfo()
-  }, [])
+  useEffect(() => {
+    fetchData();
+
+    const handlePaymentUpdate = () => {
+      fetchData();
+    };
+
+    subscribe("payment-updated", handlePaymentUpdate);
+    subscribe("payment-created", handlePaymentUpdate);
+    subscribe("payment-deleted", handlePaymentUpdate);
+
+    return () => {
+      unsubscribe("payment-updated");
+      unsubscribe("payment-created");
+      unsubscribe("payment-deleted");
+    };
+  }, [subscribe, unsubscribe]);
+
 
 
   const table = useReactTable({
