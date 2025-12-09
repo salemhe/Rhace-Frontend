@@ -549,7 +549,7 @@ const Favorites: React.FC = () => {
                         className="
                           w-ful text-sm font-semibold 
                           rounded-full px-3 py-3 tracking-wide 
-                          text-white 
+                          text-white cursor-pointer
                           bg-gradient-to-b from-teal-600 to-teal-500
                           hover:from-teal-700 hover:to-cyan-600
                           transition-all duration-200 shadow-sm

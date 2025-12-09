@@ -167,7 +167,7 @@ const TableGrid = ({ title }) => {
     <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex justify-between items-center mb-4 sm:mb-6 w-full sm:w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
+        className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-full sm:w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -312,7 +312,7 @@ const TableGrid = ({ title }) => {
                     className="
                       w-ful text-sm font-semibold 
                       rounded-full py-3 tracking-wide 
-                      text-white 
+                      text-white cursor-pointer
                       bg-gradient-to-b from-teal-600 to-teal-500
                       hover:from-teal-700 hover:to-cyan-600
                       transition-all duration-200 shadow-sm"
@@ -419,7 +419,7 @@ export const TableGridTwo = ({ title }) => {
                       <button
                         key={index}
                         onClick={(e) => handleDotClick(restaurantId, index, e)}
-                        className={`block rounded-full transition-all duration-300 ease-out cursor-pointer focus:outline-none ${
+                        className={`block rounded-full  transition-all duration-300 ease-out cursor-pointer focus:outline-none ${
                           index === currentIndex
                             ? "bg-white scale-125 w-4 sm:w-6 h-1.5 sm:h-2 shadow-md"
                             : "bg-white/70 w-1.5 sm:w-2 h-1.5 sm:h-2 hover:bg-white/90"
@@ -474,7 +474,7 @@ export const TableGridTwo = ({ title }) => {
                       className="
     w-ful text-sm font-semibold 
     rounded-full py-3 tracking-wide 
-    text-white 
+    text-white cursor-pointer
     bg-gradient-to-b from-teal-600 to-teal-500
     hover:from-teal-700 hover:to-cyan-600
     transition-all duration-200 shadow-sm"
@@ -654,13 +654,13 @@ export const TableGridThree = ({ title }) => {
                   </div>
                 </div>
 
-                <div className="mt-8 w-full flex justify-end items-end-safe">
+                <div className="mt-8 w-full cursor-pointer flex justify-end items-end-safe">
                   <Button
                     onClick={() => navigate(`/clubs/${restaurant._id}`)}
                     className="
     w-ful text-sm font-semibold 
     rounded-full py-3 tracking-wide 
-    text-white 
+    text-white cursor-pointer
     bg-gradient-to-b from-teal-600 to-teal-500
     hover:from-teal-700 hover:to-cyan-600
     transition-all duration-200 shadow-sm
