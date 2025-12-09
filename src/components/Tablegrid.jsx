@@ -312,12 +312,12 @@ const TableGrid = ({ title }) => {
                     className="
                       w-ful text-sm font-semibold 
                       rounded-full py-3 tracking-wide 
-                      text-white cursor-pointer
-                      bg-gradient-to-b from-teal-600 to-teal-500
-                      hover:from-teal-700 hover:to-cyan-600
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
                       transition-all duration-200 shadow-sm"
                   >
-                    Make a reservation
+                    Reserve Now
                   </Button>
                 </div>
               </div>
@@ -475,11 +475,9 @@ export const TableGridTwo = ({ title }) => {
     w-ful text-sm font-semibold 
     rounded-full py-3 tracking-wide 
     text-white cursor-pointer
-    bg-gradient-to-b from-teal-600 to-teal-500
-    hover:from-teal-700 hover:to-cyan-600
     transition-all duration-200 shadow-sm"
                     >
-                      Book now
+                      Book Now
                     </Button>
                   </div>
                 </div>
@@ -660,13 +658,11 @@ export const TableGridThree = ({ title }) => {
                     className="
     w-ful text-sm font-semibold 
     rounded-full py-3 tracking-wide 
-    text-white cursor-pointer
-    bg-gradient-to-b from-teal-600 to-teal-500
-    hover:from-teal-700 hover:to-cyan-600
+    text-white cursor-pointer                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
     transition-all duration-200 shadow-sm
   "
                   >
-                    Book now
+                    Book Now
                   </Button>
                 </div>
               </div>
