@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { getVendors, getVendorById, updateVendorStatus } from "@/services/admin.service";
+import { getVendors, getVendorById, updateVendorStatus, deleteVendor, exportVendors } from "@/services/admin.service";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const extractArray = (p) => {
@@ -42,7 +42,15 @@ export default function Vendors() {
   const [activeTab, setActiveTab] = useState("All");
   const tabs = ["All", "Active", "Inactive", "Pending"];
   const [vendors, setVendors] = useState([]);
+  const [filteredVendors, setFilteredVendors] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [filters, setFilters] = useState({ status: "", category: "" });
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [hideTabs, setHideTabs] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [vendorDetails, setVendorDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -54,10 +62,11 @@ export default function Vendors() {
   const loadVendors = async () => {
     setLoading(true);
     try {
-      const res = await getVendors({ page: 1, limit: 20 });
+      const res = await getVendors({ page: currentPage, limit: 20 });
       const payload = res?.data;
       const list = extractArray(payload);
       setVendors(list);
+      setTotalPages(payload?.totalPages || 1);
     } catch (e) {
       console.error("Failed to load vendors", e);
       setVendors([]);
@@ -93,6 +102,10 @@ export default function Vendors() {
       unsubscribe("vendor-deleted");
     };
   }, [subscribe, unsubscribe]);
+
+  useEffect(() => {
+    loadVendors();
+  }, [currentPage]);
 
   const handleViewDetails = async (vendor) => {
     const vendorId = vendor.id || vendor._id || vendor.vendorId;
@@ -154,7 +167,7 @@ export default function Vendors() {
       return;
     }
     try {
-      await updateVendorStatus(vendorId, { status: "Deleted" });
+      await deleteVendor(vendorId);
       setVendors((prev) => prev.filter((v) => v.id !== vendorId && v._id !== vendorId));
       sendMessage("vendor-deleted", { id: vendorId });
     } catch (e) {
@@ -163,16 +176,63 @@ export default function Vendors() {
     }
   };
 
+  const applyFilters = () => {
+    let filtered = vendors;
+    if (searchQuery) {
+      filtered = filtered.filter(vendor =>
+        (vendor.businessName || vendor.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (vendor.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (vendor.contactPerson || vendor.contactName || vendor.ownerName || "").toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+    if (activeTab !== "All") {
+      filtered = filtered.filter(vendor => (vendor.status || "").toString() === activeTab);
+    }
+    if (dateRange.from && dateRange.to) {
+      filtered = filtered.filter(vendor => {
+        const vendorDate = new Date(vendor.createdAt);
+        return vendorDate >= dateRange.from && vendorDate <= dateRange.to;
+      });
+    }
+    if (filters.status) {
+      filtered = filtered.filter(vendor => (vendor.status || "").toString() === filters.status);
+    }
+    if (filters.category) {
+      filtered = filtered.filter(vendor => vendor.category === filters.category);
+    }
+    setFilteredVendors(filtered);
+  };
+
+  useEffect(() => {
+    applyFilters();
+  }, [vendors, searchQuery, activeTab, dateRange, filters]);
+
+  const handleExport = async () => {
+    try {
+      const response = await exportVendors({ status: activeTab !== "All" ? activeTab : undefined });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', 'vendors.csv');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (e) {
+      console.error("Failed to export vendors", e);
+      alert("Failed to export vendors");
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Vendor's List</h1>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setHideTabs(!hideTabs)}>
             <SlidersHorizontal className="w-4 h-4 mr-2" />
             Hide tabs
           </Button>
-          <Button variant="outline" size="sm" className="bg-primary text-primary-foreground">
+          <Button variant="outline" size="sm" className="bg-primary text-primary-foreground" onClick={handleExport}>
             <Upload className="w-4 h-4 mr-2" />
             Export
           </Button>
@@ -181,28 +241,35 @@ export default function Vendors() {
 
       <Card className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex gap-2" key={activeTab}>
-            {tabs.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`px-4 py-2 text-sm rounded-md transition-colors ${
-                  activeTab === tab
-                    ? "bg-accent text-accent-foreground"
-                    : "hover:bg-accent/50"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
+          {!hideTabs && (
+            <div className="flex gap-2" key={activeTab}>
+              {tabs.map((tab) => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`px-4 py-2 text-sm rounded-md transition-colors ${
+                    activeTab === tab
+                      ? "bg-accent text-accent-foreground"
+                      : "hover:bg-accent/50"
+                  }`}
+                >
+                  {tab}
+                </button>
+              ))}
+            </div>
+          )}
 
           <div className="flex gap-2">
-            <Input placeholder="Search by name or email" className="w-64" />
-            <Button variant="outline" size="sm">
+            <Input
+              placeholder="Search by name or email"
+              className="w-64"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+            <Button variant="outline" size="sm" onClick={() => setShowFilterModal(true)}>
               Filter by date <ChevronDown className="w-4 h-4 ml-2" />
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setShowFilterModal(true)}>
               Advanced filter <SlidersHorizontal className="w-4 h-4 ml-2" />
             </Button>
           </div>
@@ -233,7 +300,7 @@ export default function Vendors() {
                 <tr>
                   <td className="p-3 text-sm text-muted-foreground" colSpan={8}>No vendors found.</td>
                 </tr>
-              ) : vendors.map((vendor, i) => (
+              ) : filteredVendors.map((vendor, i) => (
                 <tr key={i} className="border-b hover:bg-accent/50">
                   <td className="p-3">
                     <Checkbox />
@@ -293,13 +360,14 @@ export default function Vendors() {
         </div>
 
         <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">Page 1 of 30</p>
+          <p className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</p>
           <div className="flex gap-1">
-            {[1, 2, 3, "...", 10, 11, 12].map((page, i) => (
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
-                key={i}
+                key={page}
+                onClick={() => setCurrentPage(page)}
                 className={`w-8 h-8 text-sm rounded ${
-                  page === 1 ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+                  page === currentPage ? "bg-primary text-primary-foreground" : "hover:bg-accent"
                 }`}
               >
                 {page}
@@ -616,6 +684,52 @@ export default function Vendors() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showFilterModal} onOpenChange={setShowFilterModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Filter Vendors</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium">Status</label>
+              <select
+                className="w-full mt-1 p-2 border rounded"
+                value={filters.status}
+                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
+              >
+                <option value="">All</option>
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+                <option value="Pending">Pending</option>
+                <option value="Suspended">Suspended</option>
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">Category</label>
+              <select
+                className="w-full mt-1 p-2 border rounded"
+                value={filters.category}
+                onChange={(e) => setFilters({ ...filters, category: e.target.value })}
+              >
+                <option value="">All</option>
+                <option value="Restaurant">Restaurant</option>
+                <option value="Hotel">Hotel</option>
+                <option value="Service">Service</option>
+                <option value="Retail">Retail</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setShowFilterModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setShowFilterModal(false)}>
+              Apply
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

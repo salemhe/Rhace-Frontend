@@ -9,6 +9,7 @@ export const getVendors = (params) => api.get("/vendors", { params });
 export const getVendorById = (id) => api.get(`/vendors/${id}`);
 export const approveVendor = (id, data) => api.patch(`/vendors/${id}/approval`, data);
 export const updateVendorStatus = (id, data) => api.patch(`/vendors/${id}/status`, data);
+export const deleteVendor = (id) => api.delete(`/vendors/${id}`);
 export const updateVendorCommission = (id, data) => api.patch(`/vendors/${id}/commission`, data);
 export const bulkUpdateVendors = (data) => api.post("/vendors/bulk-update", data);
 export const submitVendorKYC = (id, data) => api.post(`/vendors/${id}/kyc`, data);
@@ -53,7 +54,7 @@ export const generateReservationsReport = (data) => api.post("/reports/reservati
 export const generatePaymentsReport = (data) => api.post("/reports/payments", data);
 export const generateUsersReport = (data) => api.post("/reports/users", data);
 export const generateVendorsReport = (data) => api.post("/reports/vendors", data);
-export const getReportStatus = (id) => api.get(`/reports/jobs/${id}`);
-export const downloadReport = (id) => api.get(`/reports/download/${id}`, { responseType: 'blob', headers: { Accept: 'application/octet-stream' } });
+export const getReportStatus = (id) => api.get(`/reports/${id}/status`);
+export const downloadReport = (id) => api.get(`/reports/${id}/download`, { responseType: 'blob', headers: { Accept: 'application/octet-stream' } });
 
 export const getTopVendors = () => api.get("/dashboard/top-vendors");

@@ -25,6 +25,14 @@ export const WebSocketProvider = ({ url, children }) => {
       console.log("Socket.IO disconnected");
     });
 
+    socket.current.on("report-update", (payload) => {
+      const handler = listeners.current.get("report-update");
+      if (handler) {
+        console.log("Report update received:", payload);
+        handler(payload);
+      }
+    });
+
     socket.current.on("payment_update", (payload) => {
       const handler = listeners.current.get("payment_update");
       if (handler) {
