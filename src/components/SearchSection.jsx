@@ -44,11 +44,11 @@ const SearchSection = ({ activeTab, onSearch }) => {
   return (
     <form
       onSubmit={handleSearchSubmit}
-      className="bg-white z-50 absolute top-6 sm:top-15 w-[100%] sm:w-[100%] mx-auto left-0 right-0 rounded-2xl sm:rounded-full p-4 pb-0 sm:p-2 justify-center mb-8 shadow-[0px_34px_10px_0px_rgba(122,122,122,0.00)] outline-2 outline-gray-200"
+      className="bg-white z-50 absolute top-6 sm:top-15 w-[100%] sm:w-[100%] mx-auto left-0 right-0 rounded-2xl lg:rounded-full p-4 pb-0 sm:p-2 justify-center mb-8 shadow-[0px_34px_10px_0px_rgba(122,122,122,0.00)] outline-2 outline-gray-200"
     >
-      <div className="grid gap- sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-  sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         {/* Row 1: Restaurant/Cuisine */}
-        <div className="flex flex-col  border-b sm:border-b-0 sm:border-r border-gray-200 pb-4 sm:pb-0 px-3 col-span-1 sm:col-span-2 lg:col-span-1">
+        <div className="flex flex-col  border-b sm:border-b-0 sm:border-r border-gray-200 pb-4 sm:pb-0 lg:px-3 col-span-1 sm:col-span-2 lg:col-span-1">
           <label className="text-xs text-text-secondary text-left mb-1">
             {activeTab === "restaurants"
               ? "Restaurant/Cuisine"
@@ -87,7 +87,7 @@ const SearchSection = ({ activeTab, onSearch }) => {
         </div>
 
         {/* Row 2: Date + Time */}
-        <div className="grid grid-cols-2 gap- col-span-1 sm:col-span-2 lg:col-span-2">
+        <div className="grid grid-cols-2  gap- col-span-1 sm:col-span-2 lg:col-span-2">
           {/* Date */}
           <div className="flex flex-col justify-center pt-2 sm:pt-0 border-b sm:border-b-0 border-r border-gray-200 pb-2 sm:pb-0 pr-1 sm:pr-4">
             <label className="text-xs text-text-secondary text-left mb-1">

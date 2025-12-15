@@ -1,9 +1,10 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { Heart, MapPin, ChevronRight } from "lucide-react";
+import { Heart, MapPin, ChevronRight, Star } from "lucide-react";
 import Header from "@/components/user/Header";
 import { FiStar, FiHeart, FiChevronsDown } from "react-icons/fi";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import { FaStar } from "react-icons/fa6";
 
 // Enhanced dummy data with multiple images
 const restaurantsData = [
@@ -318,7 +319,7 @@ const Favorites: React.FC = () => {
   const getButtonText = () => {
     switch (activeTab) {
       case "restaurants":
-        return "Make a reservation";
+        return "Reserve Table";
       case "clubs":
         return "Book now";
       case "hotels":
@@ -405,7 +406,7 @@ const Favorites: React.FC = () => {
               return (
                 <div
                   key={venueId}
-                  className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt-2 pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+                  className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer  pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
                   onMouseEnter={() =>
                     handleMouseEnter(
                       venueId,
@@ -417,8 +418,8 @@ const Favorites: React.FC = () => {
                   onMouseLeave={() => handleMouseLeave(venueId)}
                 >
                   {/* Image Section */}
-                  <div className="relative h-40 sm:h-44 w-full px-2 cursor-pointer aspect-video">
-                    <div className="relative h-full w-full overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
+                  <div className="relative h-40 sm:h-44 w-full px- cursor-pointer aspect-video">
+                    <div className="relative h-full w-full overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gray-100">
                       {images.map((image, index) => (
                         <img
                           key={index}
@@ -443,7 +444,7 @@ const Favorites: React.FC = () => {
                     </div>
 
                     {(venue.badge || venue.offer) && (
-                      <span className="absolute top-2 left-4 bg-white/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                      <span className="absolute top-2 left-4 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
                         {venue.badge || venue.offer}
                       </span>
                     )}
@@ -478,19 +479,20 @@ const Favorites: React.FC = () => {
                   {/* Info Section */}
                   <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
                     <div className="space-y-1.5">
-                      <div className="flex items-center">
-                        <FiStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
-                        <span className="text-sm font-semibold text-gray-900">
-                          {venue.rating?.toFixed(1)}
-                        </span>
-                        <span className="text-xs sm:text-sm text-gray-500 ml-1">
-                          ({venue.reviews?.toLocaleString() || 0} reviews)
-                        </span>
+                      <div className="flex w-full justify-between">
+                        <h3 className="text-base sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
+                          {venue.businessName}
+                        </h3>
+                        <div className="flex items-center">
+                          <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
+                          <span className="text-sm font-semibold text-gray-900">
+                            {venue.rating?.toFixed(1)}
+                          </span>
+                          {/* <span className="text-xs sm:text-sm text-gray-500 ml-1">
+                            ({venue.reviews?.toLocaleString() || 0} reviews)
+                          </span> */}
+                        </div>
                       </div>
-
-                      <h3 className="text-base sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
-                        {venue.businessName}
-                      </h3>
 
                       {categories.length > 0 && (
                         <div className="inline-flex flex-wrap gap-1.5 sm:gap-2 mt-2">
@@ -502,7 +504,7 @@ const Favorites: React.FC = () => {
                             return (
                               <div
                                 key={index}
-                                className={`px-2 py-1 rounded-sm outline-1 ${classes} text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                                className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                               >
                                 {category}
                               </div>
@@ -518,22 +520,22 @@ const Favorites: React.FC = () => {
                       )}
 
                       <p className="text-xs sm:text-sm text-gray-500 line-clamp-1 mt-1">
-                        {venue.address}
+                        📍 {venue.address}
                       </p>
 
                       {(activeTab === "clubs" || activeTab === "hotels") &&
                         venue.priceRange && (
-                          <div className="flex justify-start items-center gap-1">
+                          <div className="flex justify-start mt-4 text-teal-600 items-center gap-1">
                             {activeTab === "clubs" && (
-                              <div className="text-zinc-600 text-sm font-medium leading-none">
+                              <div className="text-zinc-00 text-sm font-medium leading-none">
                                 Table from
                               </div>
                             )}
-                            <div className="text-gray-900 text-sm font-medium leading-none">
+                            <div className=" text-sm font-medium leading-none">
                               ₦{venue.priceRange}
                             </div>
                             {activeTab === "hotels" && (
-                              <div className="text-zinc-600 text-xs font-normal leading-none">
+                              <div className="text-zinc-00 text-xs font-normal leading-none">
                                 /night
                               </div>
                             )}
@@ -541,13 +543,13 @@ const Favorites: React.FC = () => {
                         )}
                     </div>
 
-                    <div className="mt-8 w-full flex justify-end items-end-safe">
+                    <div className="mt-4 w-full flex justify- items-en-safe">
                       <Button
                         variant={"primary"}
                         size={10}
                         onClick={() => handleClick(venueId)}
                         className="
-                          w-ful text-sm font-semibold 
+                          w-full text-sm font-semibold 
                           rounded-full px-3 py-3 tracking-wide 
                           text-white cursor-pointer
                           bg-gradient-to-b from-teal-600 to-teal-500
