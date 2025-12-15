@@ -1,15 +1,16 @@
 import { userService } from "@/services/user.service";
 import { useEffect, useState } from "react";
-import { FaStar } from "react-icons/fa6";
 import {
   FiChevronRight,
   FiChevronsDown,
   FiHeart,
+  FiMapPin,
   FiStar,
 } from "react-icons/fi";
 import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import UniversalLoader from "./user/ui/LogoLoader";
+import { FaStar } from "react-icons/fa6";
 
 // Common carousel logic hook
 const useCarouselLogic = () => {
@@ -312,9 +313,12 @@ const TableGrid = ({ title }) => {
                         )}
                     </div>
                   )}
-                  <p className="text-xs sm:text-sm text-gray-500 line-clamp-1 mt-4">
-                    📍 {restaurant.address}
-                  </p>
+                  <div className="flex  mt-4 items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
+                    <FiMapPin />
+                    <p className="line-clamp-1 ">
+                      <span>{restaurant.address}</span>
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-4 w-full flex justify-ed items-ed-safe">
@@ -503,9 +507,12 @@ export const TableGridTwo = ({ title }) => {
                     </div>
                   )}
 
-                  <p className="text-xs sm:text-sm text-gray-500 line-clamp-1 mt-1">
-                    📍 {restaurant.address}
-                  </p>
+                  <div className="flex  mt-4 items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
+                    <FiMapPin />
+                    <p className="line-clamp-1 ">
+                      <span>{restaurant.address}</span>
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-4">
@@ -693,9 +700,12 @@ export const TableGridThree = ({ title }) => {
                     </div>
                   )}
 
-                  <p className="text-xs sm:text-sm text-gray-500 line-clamp-1">
-                    📍 {restaurant.address}
-                  </p>
+                  <div className="flex  mt-4 items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
+                    <FiMapPin />
+                    <p className="line-clamp-1 ">
+                      <span>{restaurant.address}</span>
+                    </p>
+                  </div>
 
                   <div className="flex text-teal-600 mt-4 justify-start items-center gap-1">
                     <div className="text-teal-600 text-sm font-medium leading-none">
