@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useEffect } from "react";
-import { Heart, MapPin, ChevronRight, Star } from "lucide-react";
-import Header from "@/components/user/Header";
-import { FiStar, FiHeart, FiChevronsDown } from "react-icons/fi";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
+import Header from "@/components/user/Header";
+import { Heart } from "lucide-react";
+import React, { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa6";
+import { FiHeart, FiMapPin } from "react-icons/fi";
 
 // Enhanced dummy data with multiple images
 const restaurantsData = [
@@ -519,9 +519,12 @@ const Favorites: React.FC = () => {
                         </div>
                       )}
 
-                      <p className="text-xs sm:text-sm text-gray-500 line-clamp-1 mt-1">
-                        📍 {venue.address}
-                      </p>
+                      <div className="flex  mt-4 items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
+                        <FiMapPin />
+                        <p className="line-clamp-1 ">
+                          <span>{venue.address}</span>
+                        </p>
+                      </div>
 
                       {(activeTab === "clubs" || activeTab === "hotels") &&
                         venue.priceRange && (
