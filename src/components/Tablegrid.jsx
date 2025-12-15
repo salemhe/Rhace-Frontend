@@ -1,5 +1,6 @@
 import { userService } from "@/services/user.service";
 import { useEffect, useState } from "react";
+import { FaStar } from "react-icons/fa6";
 import {
   FiChevronRight,
   FiChevronsDown,
@@ -145,15 +146,15 @@ const hasMultipleImages = (restaurant) => {
 };
 
 // Common cuisine color palette
-const cuisineColorPalette = [
-  "bg-orange-100 outline-orange-200",
-  "bg-green-100 outline-green-200",
-  "bg-blue-100 outline-blue-200",
-  "bg-purple-100 outline-purple-200",
-  "bg-pink-100 outline-pink-200",
-  "bg-yellow-100 outline-yellow-200",
-  "bg-teal-100 outline-teal-200",
-];
+// const cuisineColorPalette = [
+//   "bg-orange-100 outline-orange-200",
+//   "bg-green-100 outline-green-200",
+//   "bg-blue-100 outline-blue-200",
+//   "bg-purple-100 outline-purple-200",
+//   "bg-pink-100 outline-pink-200",
+//   "bg-yellow-100 outline-yellow-200",
+//   "bg-teal-100 outline-teal-200",
+// ];
 
 const TableGrid = ({ title }) => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
@@ -180,6 +181,12 @@ const TableGrid = ({ title }) => {
           const restaurantId = restaurant._id || String(restaurant.id);
           const currentIndex = currentIndices[restaurantId] || 0;
           const multipleImages = hasMultipleImages(restaurant);
+          const cuisinesArray = Array.isArray(restaurant.cuisines)
+            ? restaurant.cuisines
+            : restaurant.cuisines
+                ?.split(",")
+                .map((c) => c.trim())
+                .filter(Boolean) || [];
 
           return (
             <div
@@ -222,7 +229,7 @@ const TableGrid = ({ title }) => {
                 </div>
 
                 {(restaurant.badge || restaurant.offer) && (
-                  <span className="absolute top-2 left-2 bg-white/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                  <span className="absolute top-2 left-2 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
                     {restaurant.badge || restaurant.offer}
                   </span>
                 )}
@@ -251,73 +258,77 @@ const TableGrid = ({ title }) => {
               {/* Info Section */}
               <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
                 <div className="space-y-1.5">
-                  <div className="flex items-center">
-                    <FiStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
-                    <span className="text-sm font-semibold text-gray-900">
-                      {restaurant.rating?.toFixed(1)}
-                    </span>
-                    <span className="text-xs sm:text-sm text-gray-500 ml-1">
-                      ({restaurant.reviews?.toLocaleString() || 0} reviews)
-                    </span>
+                  <div className="flex w-full justify-between">
+                    <h3 className="text-base sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
+                      {restaurant.businessName}
+                    </h3>
+                    <div className="flex items-center">
+                      <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
+                      <span className="text-sm font-semibold text-gray-900">
+                        {restaurant.rating?.toFixed(1)}
+                      </span>
+                      {/* <span className="text-xs sm:text-sm text-gray-500 ml-1">
+                        ({restaurant.reviews?.toLocaleString() || 0} reviews)
+                      </span> */}
+                    </div>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
-                    {restaurant.businessName}
-                  </h3>
-
-                  <div className="inline-flex flex-wrap gap-1.5 sm:gap-2 mt-2">
-                    {(Array.isArray(restaurant.cuisines)
-                      ? restaurant.cuisines
-                      : restaurant.cuisines?.split(",").map((c) => c.trim()) ||
-                        []
-                    )
-                      .slice(0, 3)
-                      .map((category, index) => {
-                        const classes =
-                          cuisineColorPalette[
-                            index % cuisineColorPalette.length
-                          ];
-                        return (
-                          <div
-                            key={index}
-                            className={`px-2 py-1 rounded-sm outline-1 ${classes} text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
-                          >
-                            {category}
+                  {cuisinesArray.length > 0 && (
+                    <div className="inline-flex flex-wrap gap-1.5  sm:gap-2 mt-2">
+                      {(Array.isArray(restaurant.cuisines)
+                        ? restaurant.cuisines
+                        : restaurant.cuisines
+                            ?.split(",")
+                            .map((c) => c.trim()) || []
+                      )
+                        .slice(0, 3)
+                        .map((category, index) => {
+                          // const classes =
+                          //   cuisineColorPalette[
+                          //     index % cuisineColorPalette.length
+                          //   ];
+                          return (
+                            <div
+                              key={index}
+                              className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                            >
+                              {category}
+                            </div>
+                          );
+                        })}
+                      {restaurant.cuisines &&
+                        (Array.isArray(restaurant.cuisines)
+                          ? restaurant.cuisines.length
+                          : restaurant.cuisines.split(",").length) > 3 && (
+                          <div className="px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
+                            +
+                            {Math.max(
+                              0,
+                              (Array.isArray(restaurant.cuisines)
+                                ? restaurant.cuisines.length
+                                : restaurant.cuisines.split(",").length) - 3
+                            )}
                           </div>
-                        );
-                      })}
-                    {restaurant.cuisines &&
-                      (Array.isArray(restaurant.cuisines)
-                        ? restaurant.cuisines.length
-                        : restaurant.cuisines.split(",").length) > 3 && (
-                        <div className="px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
-                          +
-                          {Math.max(
-                            0,
-                            (Array.isArray(restaurant.cuisines)
-                              ? restaurant.cuisines.length
-                              : restaurant.cuisines.split(",").length) - 3
-                          )}
-                        </div>
-                      )}
-                  </div>
-                  <p className="text-xs sm:text-sm text-gray-500 line-clamp-1 mt-1">
-                    {restaurant.address}
+                        )}
+                    </div>
+                  )}
+                  <p className="text-xs sm:text-sm text-gray-500 line-clamp-1 mt-4">
+                    📍 {restaurant.address}
                   </p>
                 </div>
 
-                <div className="mt-8 w-full flex justify-end items-end-safe">
+                <div className="mt-4 w-full flex justify-ed items-ed-safe">
                   <Button
                     onClick={() => navigate(`/restaurants/${restaurant._id}`)}
                     className="
-                      w-ful text-sm font-semibold 
+                      w-full text-sm font-semibold 
                       rounded-full py-3 tracking-wide 
                       text-white hover:cursor-pointer
                       bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                       
                       transition-all duration-200 shadow-sm"
                   >
-                    Reserve Now
+                    Reserve Table
                   </Button>
                 </div>
               </div>
@@ -362,7 +373,12 @@ export const TableGridTwo = ({ title }) => {
           const restaurantId = restaurant._id || String(restaurant.id);
           const currentIndex = currentIndices[restaurantId] || 0;
           const multipleImages = hasMultipleImages(restaurant);
-
+          const cuisinesArray = Array.isArray(restaurant.cuisines)
+            ? restaurant.cuisines
+            : restaurant.cuisines
+                ?.split(",")
+                .map((c) => c.trim())
+                .filter(Boolean) || [];
           return (
             <div
               key={restaurantId}
@@ -378,8 +394,8 @@ export const TableGridTwo = ({ title }) => {
               onMouseLeave={() => handleMouseLeave(restaurantId)}
             >
               {/* Image Section */}
-              <div className="relative h-40 sm:h-44 w-full px-2 cursor-pointer aspect-video">
-                <div className="relative h-full w-full overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
+              <div className="relative h-40 sm:h-44 w-full  cursor-pointer aspect-video">
+                <div className="relative h-full w-full overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gray-100">
                   {images.map((image, index) => (
                     <img
                       key={index}
@@ -403,12 +419,11 @@ export const TableGridTwo = ({ title }) => {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                 </div>
 
-                {restaurant.offer && (
-                  <span className="absolute top-2 left-4 bg-white/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
-                    {restaurant.offer}
+                {(restaurant.badge || restaurant.offer) && (
+                  <span className="absolute top-2 left-2 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                    {restaurant.badge || restaurant.offer}
                   </span>
                 )}
-
                 <button className="absolute top-2 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
                   <FiHeart />
                 </button>
@@ -433,46 +448,83 @@ export const TableGridTwo = ({ title }) => {
               {/* Info Section */}
               <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
                 <div className="space-y-1.5">
-                  <div className="flex items-center">
-                    <FiStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
-                    <span className="text-sm font-semibold text-gray-900">
-                      {restaurant.rating?.toFixed(1)}
-                    </span>
-                    <span className="text-xs sm:text-sm text-gray-500 ml-1">
-                      ({restaurant.reviews?.toLocaleString() || 0} reviews)
-                    </span>
+                  <div className="flex w-full justify-between">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 capitalize leading-tight line-clamp-1">
+                      {restaurant.businessName}
+                    </h3>
+                    <div className="flex items-center">
+                      <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
+                      <span className="text-sm font-semibold text-gray-900">
+                        {restaurant.rating?.toFixed(1)}
+                      </span>
+                      {/* <span className="text-xs sm:text-sm text-gray-500 ml-1">
+                        ({restaurant.reviews?.toLocaleString() || 0} reviews)
+                      </span> */}
+                    </div>
                   </div>
 
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-900 capitalize leading-tight line-clamp-1">
-                    {restaurant.businessName}
-                  </h3>
-
-                  <p className="text-xs sm:text-sm text-gray-500">
-                    {restaurant.cuisines}
-                  </p>
+                  {cuisinesArray.length > 0 && (
+                    <div className="inline-flex flex-wrap gap-1.5  sm:gap-2 mt-2">
+                      {(Array.isArray(restaurant.cuisines)
+                        ? restaurant.cuisines
+                        : restaurant.cuisines
+                            ?.split(",")
+                            .map((c) => c.trim()) || []
+                      )
+                        .slice(0, 3)
+                        .map((category, index) => {
+                          // const classes =
+                          //   cuisineColorPalette[
+                          //     index % cuisineColorPalette.length
+                          //   ];
+                          return (
+                            <div
+                              key={index}
+                              className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                            >
+                              {category}
+                            </div>
+                          );
+                        })}
+                      {restaurant.cuisines &&
+                        (Array.isArray(restaurant.cuisines)
+                          ? restaurant.cuisines.length
+                          : restaurant.cuisines.split(",").length) > 3 && (
+                          <div className="px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
+                            +
+                            {Math.max(
+                              0,
+                              (Array.isArray(restaurant.cuisines)
+                                ? restaurant.cuisines.length
+                                : restaurant.cuisines.split(",").length) - 3
+                            )}
+                          </div>
+                        )}
+                    </div>
+                  )}
 
                   <p className="text-xs sm:text-sm text-gray-500 line-clamp-1 mt-1">
-                    {restaurant.address}
+                    📍 {restaurant.address}
                   </p>
                 </div>
 
-                <div className="mt-2">
+                <div className="mt-4">
                   <div className="flex justify-between items-center mb-3">
-                    <div className="flex justify-start items-center gap-1">
-                      <div className="text-gray-900 text-sm font-medium leading-none">
+                    <div className="flex text-teal-600 justify-start items-center gap-1">
+                      <div className="text-gr text-sm font-medium leading-none">
                         ₦{restaurant.priceRange}
                       </div>
-                      <div className="text-zinc-600 text-xs font-normal leading-none">
+                      <div className="text-zc-600 text-xs font-normal leading-none">
                         /night
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-8 w-full flex justify-end items-end-safe">
+                  <div className="mt-4 w-full flex ">
                     <Button
                       onClick={() => navigate(`/hotels/${restaurant._id}`)}
                       className="
-    w-ful text-sm font-semibold 
+    w-full text-sm font-semibold 
     rounded-full py-3 tracking-wide 
     text-white cursor-pointer
     transition-all duration-200 shadow-sm"
@@ -533,7 +585,7 @@ export const TableGridThree = ({ title }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt-2 pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+              className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt- pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -545,8 +597,8 @@ export const TableGridThree = ({ title }) => {
               onMouseLeave={() => handleMouseLeave(restaurantId)}
             >
               {/* Image Section */}
-              <div className="relative h-40 sm:h-44 w-full px-2 cursor-pointer aspect-video">
-                <div className="relative h-full w-full overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
+              <div className="relative h-40 sm:h-44 w-full  cursor-pointer aspect-video">
+                <div className="relative h-full w-full overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gray-100">
                   {images.map((image, index) => (
                     <img
                       key={index}
@@ -571,7 +623,7 @@ export const TableGridThree = ({ title }) => {
                 </div>
 
                 {restaurant.offer && (
-                  <span className="absolute top-2 left-4 bg-white/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                  <span className="absolute top-2 left-4 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
                     {restaurant.offer}
                   </span>
                 )}
@@ -600,21 +652,33 @@ export const TableGridThree = ({ title }) => {
               {/* Info Section */}
               <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
                 <div className="space-y-1.5">
-                  <h3 className="text-base sm:text-lg font-semibold capitalize  text-gray-900 leading-tight line-clamp-1">
-                    {restaurant.businessName}
-                  </h3>
+                  <div className="flex w-full justify-between">
+                    <h3 className="text-base sm:text-lg font-semibold capitalize  text-gray-900 leading-tight line-clamp-1">
+                      {restaurant.businessName}
+                    </h3>
+
+                    <div className="flex items-center">
+                      <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
+                      <span className="text-sm font-semibold text-gray-900">
+                        {restaurant.rating?.toFixed(1)}
+                      </span>
+                      {/* <span className="text-xs sm:text-sm text-gray-500 ml-1">
+                        ({restaurant.reviews?.toLocaleString() || 0} reviews)
+                      </span> */}
+                    </div>
+                  </div>
 
                   {categories.length > 0 && (
                     <div className="inline-flex flex-wrap gap-1.5 sm:gap-2 ">
                       {categories.slice(0, 3).map((category, index) => {
-                        const classes =
-                          cuisineColorPalette[
-                            index % cuisineColorPalette.length
-                          ];
+                        // const classes =
+                        //   cuisineColorPalette[
+                        //     index % cuisineColorPalette.length
+                        //   ];
                         return (
                           <div
                             key={index}
-                            className={`px-2 py-1 rounded-sm outline-1 ${classes} text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                            className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                           >
                             {category}
                           </div>
@@ -630,33 +694,24 @@ export const TableGridThree = ({ title }) => {
                   )}
 
                   <p className="text-xs sm:text-sm text-gray-500 line-clamp-1">
-                    {restaurant.address}
+                    📍 {restaurant.address}
                   </p>
 
-                  <div className="flex items-center">
-                    <FiStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
-                    <span className="text-sm font-semibold text-gray-900">
-                      {restaurant.rating?.toFixed(1)}
-                    </span>
-                    <span className="text-xs sm:text-sm text-gray-500 ml-1">
-                      ({restaurant.reviews?.toLocaleString() || 0} reviews)
-                    </span>
-                  </div>
-                  <div className="flex justify-start items-center gap-1">
-                    <div className="text-zinc-600 text-sm font-medium leading-none">
+                  <div className="flex text-teal-600 mt-4 justify-start items-center gap-1">
+                    <div className="text-teal-600 text-sm font-medium leading-none">
                       Table from
                     </div>
-                    <div className="text-gray-900 text-sm font-medium leading-none">
+                    <div className="text-sm font-medium leading-none">
                       ₦{restaurant.priceRange}
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-8 w-full cursor-pointer flex justify-end items-end-safe">
+                <div className="mt-4 w-full cursor-pointer flex ">
                   <Button
                     onClick={() => navigate(`/clubs/${restaurant._id}`)}
                     className="
-    w-ful text-sm font-semibold 
+    w-full text-sm font-semibold 
     rounded-full py-3 tracking-wide 
     text-white cursor-pointer                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
     transition-all duration-200 shadow-sm
