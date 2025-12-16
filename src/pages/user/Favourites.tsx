@@ -504,7 +504,7 @@ const Favorites: React.FC = () => {
                             return (
                               <div
                                 key={index}
-                                className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                                className={`px-3 py-2 rounded-full ${classes} text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                               >
                                 {category}
                               </div>
