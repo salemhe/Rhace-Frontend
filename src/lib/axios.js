@@ -27,4 +27,31 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Response interceptor to handle 401 errors
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      // Clear authentication data on 401
+      localStorage.removeItem("token");
+      localStorage.removeItem("auth_token");
+      localStorage.removeItem("vendor-token");
+      localStorage.removeItem("vendor_token");
+
+      // If we're in a browser environment, redirect to appropriate login
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
+        if (currentPath.startsWith('/dashboard/admin')) {
+          window.location.href = '/auth/admin/login';
+        } else if (currentPath.startsWith('/dashboard/')) {
+          window.location.href = '/auth/vendor/login';
+        } else {
+          window.location.href = '/auth/user/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export default api;

@@ -1,19 +1,18 @@
 import React from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { AdminList } from './SideMenuList';
 import { X } from 'lucide-react';
 
-const AdminSidebar = ({ isOpen, onClose, onNavigate }) => {
+const AdminSidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   const isActiveRoute = (itemPath) => {
     return location.pathname === itemPath;
   };
 
   const handleItemClick = (item) => {
-    if (onNavigate) {
-      onNavigate(item.path);
-    }
+    navigate(item.path);
     if (onClose && window.innerWidth < 1024) {
       onClose();
     }

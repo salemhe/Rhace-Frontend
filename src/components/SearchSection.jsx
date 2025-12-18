@@ -7,10 +7,10 @@ import { DateDropdown } from "./DateDropdown";
 import { GuestDropdown } from "./GuestDropdown";
 import { TimeDropdown } from "./TimeDropdown";
 
-const SearchSection = ({ activeTab, onSearch, location }) => {
+const SearchSection = ({ activeTab, onSearch }) => {
   const [date, setDate] = useState();
   const [time, setTime] = useState();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [guests, setGuests] = useState({ adults: 2, children: 0, infants: 0 });
 
   const navigate = useNavigate();
@@ -18,7 +18,7 @@ const SearchSection = ({ activeTab, onSearch, location }) => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const totalGuests = guests.adults + guests.children + guests.infants;
-    const location = localStorage.getItem('userLocation') || '';
+    const location = localStorage.getItem("userLocation") || "";
     const searchData = {
       query: searchQuery,
       tab: activeTab,
@@ -30,7 +30,7 @@ const SearchSection = ({ activeTab, onSearch, location }) => {
     };
 
     // Store in localStorage
-    localStorage.setItem('searchData', JSON.stringify(searchData));
+    localStorage.setItem("searchData", JSON.stringify(searchData));
 
     // Call onSearch callback if provided
     if (onSearch) {
@@ -44,13 +44,17 @@ const SearchSection = ({ activeTab, onSearch, location }) => {
   return (
     <form
       onSubmit={handleSearchSubmit}
-      className="bg-white z-50 absolute top-6 sm:top-15 w-[100%] sm:w-[100%] mx-auto left-0 right-0 rounded-2xl sm:rounded-full p-4 pb-0 sm:p-2 justify-center mb-8 shadow-[0px_34px_10px_0px_rgba(122,122,122,0.00)] outline-2 outline-gray-200"
+      className="bg-white z-50 absolute top-6 sm:top-15 w-[100%] sm:w-[100%] mx-auto left-0 right-0 rounded-2xl lg:rounded-full p-4 pb-0 sm:p-2 justify-center mb-8 shadow-[0px_34px_10px_0px_rgba(122,122,122,0.00)] outline-2 outline-gray-200"
     >
-      <div className="grid gap- sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-  sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5">
         {/* Row 1: Restaurant/Cuisine */}
-        <div className="flex flex-col  border-b sm:border-b-0 sm:border-r border-gray-200 pb-4 sm:pb-0 px-3 col-span-1 sm:col-span-2 lg:col-span-1">
+        <div className="flex flex-col  border-b sm:border-b-0 sm:border-r border-gray-200 pb-4 sm:pb-0 lg:px-3 col-span-1 sm:col-span-2 lg:col-span-1">
           <label className="text-xs text-text-secondary text-left mb-1">
-            {activeTab === "restaurants" ? "Restaurant/Cuisine" : activeTab === "hotels" ? "Hotels" : "Clubs"}
+            {activeTab === "restaurants"
+              ? "Restaurant/Cuisine"
+              : activeTab === "hotels"
+              ? "Hotels"
+              : "Clubs"}
           </label>
           {/* <input
             type="text"
@@ -68,22 +72,22 @@ const SearchSection = ({ activeTab, onSearch, location }) => {
             className="w-full focus:outline-none text-text-primary placeholder:text-text-secondary text-sm sm:text-base"
           /> */}
           <SearchAutocomplete
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder={
+            value={searchQuery}
+            onChange={setSearchQuery}
+            placeholder={
               activeTab === "restaurants"
                 ? "Enter Restaurant or Cuisine"
                 : activeTab === "hotels"
-                  ? "Enter Hotels"
-                  : activeTab === "clubs"
-                    ? "Enter Clubs"
-                    : ""
+                ? "Enter Hotels"
+                : activeTab === "clubs"
+                ? "Enter Clubs"
+                : ""
             }
-            />
+          />
         </div>
 
         {/* Row 2: Date + Time */}
-        <div className="grid grid-cols-2 gap- col-span-1 sm:col-span-2 lg:col-span-2">
+        <div className="grid grid-cols-2  gap- col-span-1 sm:col-span-2 lg:col-span-2">
           {/* Date */}
           <div className="flex flex-col justify-center pt-2 sm:pt-0 border-b sm:border-b-0 border-r border-gray-200 pb-2 sm:pb-0 pr-1 sm:pr-4">
             <label className="text-xs text-text-secondary text-left mb-1">
@@ -115,10 +119,11 @@ const SearchSection = ({ activeTab, onSearch, location }) => {
           <div className="flex items-center justify-center ml-2 sm:ml-0 sm:justify-end w-full">
             <button
               type="submit"
-              className={`flex items-center gap-2 cursor-pointer text-white rounded-full px-6 py-3 transition w-full sm:w-auto justify-center ${activeTab === "restaurants"
-                ? "bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]"
-                : "bg-gradient-to-b from-blue-800 to-violet-500 hover:from-blue-900 hover:to-violet-600"
-                }`}
+              className={`flex items-center gap-2 cursor-pointer text-white rounded-full px-6 py-3 transition w-full sm:w-auto justify-center ${
+                activeTab === "restaurants"
+                  ? "bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]"
+                  : "bg-gradient-to-b from-blue-800 to-violet-500 hover:from-blue-900 hover:to-violet-600"
+              }`}
             >
               <FiSearch className="w-5 h-5" />
               <span className="text-sm sm:text-base">Search</span>
@@ -136,8 +141,8 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
   const [date, setDate] = useState(null);
   const [time, setTime] = useState(null);
   const [guests, setGuests] = useState({ adults: 2, children: 0, infants: 0 });
-  const [searchQuery, setSearchQuery] = useState('');
-  const [tab, setTab] = useState('restaurants');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [tab, setTab] = useState("restaurants");
 
   const navigate = useNavigate();
 
@@ -154,7 +159,7 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
       }
     } else {
       // On mount, load from localStorage if available
-      const stored = localStorage.getItem('searchData');
+      const stored = localStorage.getItem("searchData");
       if (stored) {
         try {
           const parsed = JSON.parse(stored);
@@ -167,7 +172,7 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
             setGuests({ adults: guestsNum || 2, children: 0, infants: 0 });
           }
         } catch {
-          console.error('Failed to parse searchData from localStorage');
+          console.error("Failed to parse searchData from localStorage");
         }
       }
     }
@@ -185,7 +190,7 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
       timestamp: new Date().toISOString(),
     };
 
-    localStorage.setItem('searchData', JSON.stringify(newSearchData));
+    localStorage.setItem("searchData", JSON.stringify(newSearchData));
 
     if (onSearch) {
       onSearch(newSearchData);
@@ -202,7 +207,11 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
           {/* Restaurant/Cuisine */}
           <div className="flex flex-col justify-center h-full px-4 border-r border-gray-200 min-w-0 w-1/4">
             <label className="text-xs text-text-secondary text-left mb-1">
-              {tab === "restaurants" ? "Restaurant/Cuisine" : tab === "hotels" ? "Hotels" : "Clubs"}
+              {tab === "restaurants"
+                ? "Restaurant/Cuisine"
+                : tab === "hotels"
+                ? "Hotels"
+                : "Clubs"}
             </label>
             {/* <input
               type="text"
@@ -215,14 +224,14 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
               value={searchQuery}
               onChange={setSearchQuery}
               placeholder={
-              tab === "restaurants"
-                ? "Enter Restaurant or Cuisine"
-                : tab === "hotels"
+                tab === "restaurants"
+                  ? "Enter Restaurant or Cuisine"
+                  : tab === "hotels"
                   ? "Enter Hotels"
                   : tab === "clubs"
-                    ? "Enter Clubs"
-                    : ""
-            }
+                  ? "Enter Clubs"
+                  : ""
+              }
             />
           </div>
 
@@ -278,7 +287,8 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={"Enter Restaurant or Cuisine"
+              placeholder={
+                "Enter Restaurant or Cuisine"
                 // activeTab === "restaurants"
                 //   ? "Enter Restaurant or Cuisine"
                 //   : activeTab === "hotels"

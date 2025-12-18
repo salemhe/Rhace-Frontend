@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Plus, Upload, SlidersHorizontal, ChevronDown, MoreVertical, Calendar, DollarSign, Users, AlertCircle } from "lucide-react";
+import { useEffect, useState, useCallback } from "react";
+import { Plus, Upload, SlidersHorizontal, ChevronDown, MoreVertical, Calendar, DollarSign, Users, AlertCircle, Edit, Save, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
@@ -14,6 +14,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 
 export default function Reservations() {
@@ -30,8 +40,21 @@ export default function Reservations() {
     toDate: "",
     hasMeals: "",
   });
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [editForm, setEditForm] = useState({
+    guests: "",
+    date: "",
+    time: "",
+    status: "",
+    paymentStatus: "",
+  });
+  const [dateFilter, setDateFilter] = useState("Today");
+  const [paymentFilter, setPaymentFilter] = useState("All");
+  const { subscribe, unsubscribe, sendMessage } = useWebSocket();
 
-  const fetchReservations = async (extra = {}) => {
+  const fetchReservations = useCallback(async (extra = {}) => {
     setLoading(true);
     try {
       const params = {
@@ -54,37 +77,104 @@ export default function Reservations() {
     } finally {
       setLoading(false);
     }
+  }, [filters]);
+
+  useEffect(() => {
+    fetchReservations();
+
+    const handleReservationUpdate = (updatedReservation) => {
+      setReservations((prev) =>
+        prev.map((r) => (r.id === updatedReservation.id ? updatedReservation : r))
+      );
+      fetchCounters();
+    };
+
+    const handleReservationCreate = (newReservation) => {
+      setReservations((prev) => [newReservation, ...prev]);
+      fetchCounters();
+    };
+
+    const handleReservationDelete = (deletedReservation) => {
+      setReservations((prev) => prev.filter((r) => r.id !== deletedReservation.id));
+      fetchCounters();
+    };
+
+    subscribe("reservation-updated", handleReservationUpdate);
+    subscribe("reservation-created", handleReservationCreate);
+    subscribe("reservation-deleted", handleReservationDelete);
+
+    return () => {
+      unsubscribe("reservation-updated");
+      unsubscribe("reservation-created");
+      unsubscribe("reservation-deleted");
+    };
+  }, [subscribe, unsubscribe, fetchReservations]);
+
+  const fetchCounters = async () => {
+    try {
+      const countersRes = await getReservationCounters();
+      const c = countersRes?.data || {};
+      setCounters({
+        todays: c.todays ?? c.todaysReservations ?? 0,
+        prepaid: c.prepaid ?? c.prepaidReservations ?? 0,
+        expectedGuests: c.expectedGuests ?? 0,
+        pendingPayments: c.pendingPayments ?? 0,
+      });
+    } catch (e) {
+      console.error("Failed to load reservation counters", e);
+    }
   };
 
   useEffect(() => {
-    let ignore = false;
-    const load = async () => {
-      try {
-        setLoading(true);
-        const [_, countersRes] = await Promise.all([
-          fetchReservations(),
-          getReservationCounters(),
-        ]);
-        const c = countersRes?.data || {};
-        if (!ignore) setCounters({
-          todays: c.todays ?? c.todaysReservations ?? 0,
-          prepaid: c.prepaid ?? c.prepaidReservations ?? 0,
-          expectedGuests: c.expectedGuests ?? 0,
-          pendingPayments: c.pendingPayments ?? 0,
-        });
-      } catch (e) {
-        console.error("Failed to load reservations", e);
-        if (!ignore) {
-          setReservations([]);
-          setCounters({ todays: 0, prepaid: 0, expectedGuests: 0, pendingPayments: 0 });
-        }
-      } finally {
-        if (!ignore) setLoading(false);
-      }
-    };
-    load();
-    return () => { ignore = true; };
+    fetchCounters();
   }, []);
+  
+  const handleViewDetails = (reservation) => {
+    setSelectedReservation(reservation);
+    setDetailsModalOpen(true);
+  };
+
+  const handleEdit = (reservation) => {
+    setSelectedReservation(reservation);
+    setEditForm({
+      guests: reservation.guests || "",
+      date: reservation.date || reservation.checkInDate || "",
+      time: reservation.time || reservation.checkInTime || "",
+      status: reservation.status || reservation.reservationStatus || "",
+      paymentStatus: reservation.paymentStatus || reservation.payment?.status || "",
+    });
+    setEditModalOpen(true);
+  };
+
+  const handleCancel = async (reservation) => {
+    if (!window.confirm("Are you sure you want to cancel this reservation?")) {
+      return;
+    }
+    try {
+      sendMessage("reservation-updated", { ...reservation, status: "Cancelled" });
+    } catch (e) {
+      console.error("Failed to cancel reservation", e);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedReservation) return;
+    try {
+      const updatedReservation = {
+        ...selectedReservation,
+        guests: editForm.guests,
+        date: editForm.date,
+        time: editForm.time,
+        status: editForm.status,
+        paymentStatus: editForm.paymentStatus,
+      };
+      sendMessage("reservation-updated", updatedReservation);
+      setEditModalOpen(false);
+      setSelectedReservation(null);
+    } catch (e) {
+      console.error("Failed to update reservation", e);
+    }
+  };
 
   return (
     <div className="p-6 space-y-6">
@@ -147,14 +237,37 @@ export default function Reservations() {
             ))}
           </div>
 
-          <div className="flex gap-2">
-            <Input placeholder="Search by guest name or ID" className="w-64" />
-            <Button variant="outline" size="sm">
-              Today <ChevronDown className="w-4 h-4 ml-2" />
-            </Button>
-            <Button variant="outline" size="sm">
-              Payment Status <ChevronDown className="w-4 h-4 ml-2" />
-            </Button>
+          <div className="flex gap-4 items-start">
+            <Input placeholder="Search by guest name or ID" className="flex-1 min-w-[200px]" />
+            <div className="flex flex-col gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="min-w-[120px]">
+                    {dateFilter} <ChevronDown className="w-4 h-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setDateFilter("Today")}>Today</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDateFilter("Tomorrow")}>Tomorrow</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDateFilter("This Week")}>This Week</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDateFilter("This Month")}>This Month</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setDateFilter("All")}>All</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="min-w-[140px]">
+                    {paymentFilter} <ChevronDown className="w-4 h-4 ml-2" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setPaymentFilter("All")}>All</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPaymentFilter("Paid")}>Paid</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPaymentFilter("Pending")}>Pending</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setPaymentFilter("Failed")}>Failed</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
             <Button variant="outline" size="icon" aria-label="Advanced filter" onClick={() => setFiltersOpen(true)}>
               <SlidersHorizontal className="w-4 h-4" />
             </Button>
@@ -240,9 +353,9 @@ export default function Reservations() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem>View Details</DropdownMenuItem>
-                        <DropdownMenuItem>Edit</DropdownMenuItem>
-                        <DropdownMenuItem>Cancel</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewDetails(res)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleEdit(res)}>Edit</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleCancel(res)}>Cancel</DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </td>
@@ -324,6 +437,125 @@ export default function Reservations() {
           </div>
         </div>
       )}
+
+      {/* Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Reservation Details</DialogTitle>
+          </DialogHeader>
+          {selectedReservation && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Customer</Label>
+                  <p className="text-sm">{selectedReservation.customer || selectedReservation.customerName || selectedReservation.user?.name || "Guest"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">ID</Label>
+                  <p className="text-sm">{selectedReservation.id || selectedReservation._id || selectedReservation.reference}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Date</Label>
+                  <p className="text-sm">{selectedReservation.date || selectedReservation.checkInDate || selectedReservation.createdAt}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Time</Label>
+                  <p className="text-sm">{selectedReservation.time || selectedReservation.checkInTime}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Guests</Label>
+                  <p className="text-sm">{selectedReservation.guests}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <Badge variant="secondary">{selectedReservation.status || selectedReservation.reservationStatus}</Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Payment</Label>
+                  <Badge variant="secondary">{selectedReservation.payment || selectedReservation.paymentStatus || selectedReservation.payment?.status || "-"}</Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Meal</Label>
+                  <Badge variant="secondary">{selectedReservation.meal === "Yes" || selectedReservation.mealPreselected || selectedReservation.meal?.preselected ? "✓ Yes" : "✗ No"}</Badge>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Modal */}
+      <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Reservation</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="edit-guests">Guests</Label>
+                <Input
+                  id="edit-guests"
+                  type="number"
+                  value={editForm.guests}
+                  onChange={(e) => setEditForm(f => ({ ...f, guests: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-date">Date</Label>
+                <Input
+                  id="edit-date"
+                  type="date"
+                  value={editForm.date}
+                  onChange={(e) => setEditForm(f => ({ ...f, date: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-time">Time</Label>
+                <Input
+                  id="edit-time"
+                  type="time"
+                  value={editForm.time}
+                  onChange={(e) => setEditForm(f => ({ ...f, time: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label htmlFor="edit-status">Status</Label>
+                <Select value={editForm.status} onValueChange={(value) => setEditForm(f => ({ ...f, status: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Upcoming">Upcoming</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Cancelled">Cancelled</SelectItem>
+                    <SelectItem value="No-show">No-show</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="edit-payment">Payment Status</Label>
+                <Select value={editForm.paymentStatus} onValueChange={(value) => setEditForm(f => ({ ...f, paymentStatus: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="paid">Paid</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="failed">Failed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditModalOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveEdit}>Save Changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 }
