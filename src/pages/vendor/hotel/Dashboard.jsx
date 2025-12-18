@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Users, DollarSign, User, Clock, X, ChevronRight, ExternalLink } from 'lucide-react';
 import DashboardLayout from '@/components/layout/DashboardLayout';
-import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
+import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/public/icons/icons';
 import { cn } from '@/lib/utils';
 import { useSelector } from 'react-redux';
 import { capitalize } from '@/utils/helper';

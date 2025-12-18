@@ -7,8 +7,8 @@ import { logout } from '@/redux/slices/authSlice';
 
 
 // logo imports — 
-import logoWhite from '@/assets/Rhace-09.png';
-import logoBlack from '@/assets/Rhace-11.png';
+import logoWhite from '@/public/images/Rhace-09.png';
+import logoBlack from '@/public/images/Rhace-11.png';
 
 
 const UserHeader = () => {

@@ -8,7 +8,7 @@ import  { UsersIcon,
   LogoutIcon,
   MenuIcon,
   PeopleIcon,
-} from "../../../assets/icons/icons";
+} from "../../../public/icons/icons";
 
 export const AdminList = {
   topItems: [

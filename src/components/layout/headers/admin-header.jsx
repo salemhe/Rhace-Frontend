@@ -1,6 +1,6 @@
 import React from 'react';
 import { Menu, Bell } from 'lucide-react';
-import { LogoutIcon } from '../../../assets/icons/icons';
+import { LogoutIcon } from '../../../public/icons/icons';
 
 const AdminHeader = ({ onMenuClick }) => {
   return (

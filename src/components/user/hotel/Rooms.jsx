@@ -1,7 +1,7 @@
 // "use client"
 import React, { useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Wifi, Users, Bed, Coffee, Car, Building } from 'lucide-react';
-import { RoomsData } from '@/lib/api';
+// import { RoomsData } from '@/lib/api';
 import { hotelService } from '@/services/hotel.service';
 import UniversalLoader from '../ui/LogoLoader';
 import { toast } from 'sonner';

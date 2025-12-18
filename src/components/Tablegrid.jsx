@@ -9,8 +9,9 @@ import { Link, useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import { userService } from "@/services/user.service";
 import UniversalLoader from "./user/ui/LogoLoader";
+import { Heart, Bike, Star, } from "lucide-react";
 
-const TableGrid = ({ title }) => {
+const TableGrid = ({ title, type }) => {
   const [currentIndices, setCurrentIndices] = useState({});
   const [resetTimeouts, setResetTimeouts] = useState({});
   const [isHovering, setIsHovering] = useState({});
@@ -109,9 +110,18 @@ const TableGrid = ({ title }) => {
     const fetchRestaurant = async () => {
       try {
         setIsLoading(true);
-        const res = await userService.getVendor("restaurant");
-        console.log(res);
-        setRestaurants(res.data);
+        if (type && type === "nearby") {
+          const location = localStorage.getItem("userLocation");
+          const loc = JSON.parse(location);
+          console.log("User location from localStorage:", loc);
+          const res = await userService.getNearest({ longitude: loc.lng, latitude: loc.lat, type: "restaurant" });
+          console.log(res);
+          setRestaurants(res.data);
+        } else {
+          const res = await userService.getVendor("restaurant");
+          console.log(res);
+          setRestaurants(res.data);
+        }
       } catch (error) {
         console.log(error);
       } finally {
@@ -388,7 +398,7 @@ const TableGrid = ({ title }) => {
 
 export default TableGrid;
 
-export const TableGridTwo = ({ title }) => {
+export const TableGridTwo = ({ title, type }) => {
   const [currentIndices, setCurrentIndices] = useState({});
   const [resetTimeouts, setResetTimeouts] = useState({});
   const [isHovering, setIsHovering] = useState({});
@@ -485,9 +495,18 @@ export const TableGridTwo = ({ title }) => {
     const fetchRestaurant = async () => {
       try {
         setIsLoading(true);
-        const res = await userService.getVendor("hotel");
-        console.log(res);
-        setRestaurants(res.data);
+        if (type && type === "nearby") {
+          const location = localStorage.getItem("userLocation");
+          const loc = JSON.parse(location);
+          console.log("User location from localStorage:", loc);
+          const res = await userService.getNearest({ longitude: loc.lng, latitude: loc.lat, type: "hotel" });
+          console.log(res);
+          setRestaurants(res.data);
+        } else {
+          const res = await userService.getVendor("hotel");
+          console.log(res);
+          setRestaurants(res.data);
+        }
       } catch (error) {
         console.log(error);
       } finally {
@@ -770,7 +789,7 @@ export const TableGridTwo = ({ title }) => {
     </div>
   );
 };
-export const TableGridThree = ({ title }) => {
+export const TableGridThree = ({ title, type }) => {
   const [currentIndices, setCurrentIndices] = useState({});
   const [resetTimeouts, setResetTimeouts] = useState({});
   const [isHovering, setIsHovering] = useState({});
@@ -877,9 +896,18 @@ export const TableGridThree = ({ title }) => {
     const fetchRestaurant = async () => {
       try {
         setIsLoading(true);
-        const res = await userService.getVendor("club");
-        console.log(res);
-        setRestaurants(res.data);
+        if (type && type === "nearby") {
+          const location = localStorage.getItem("userLocation");
+          const loc = JSON.parse(location);
+          console.log("User location from localStorage:", loc);
+          const res = await userService.getNearest({ longitude: loc.lng, latitude: loc.lat, type: "club" });
+          console.log(res);
+          setRestaurants(res.data);
+        } else {
+          const res = await userService.getVendor("club");
+          console.log(res);
+          setRestaurants(res.data);
+        }
       } catch (error) {
         console.log(error);
       } finally {
@@ -1180,6 +1208,109 @@ export const TableGridThree = ({ title }) => {
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-6 text-center">
+        <button className="text-teal-700 mb-6 hover:underline flex items-center justify-center mx-auto transition-colors duration-200">
+          <span className="text-sm font-medium">Show more</span>
+          <FiChevronsDown className="text-center w-6 h-5 ml-1" />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export const TableGridFour = ({ title }) => {
+  const [menus, setMenus] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchRestaurant = async () => {
+      try {
+        setIsLoading(true);
+          const res = await userService.getOffers();
+          console.log(res);
+          setMenus(res.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRestaurant();
+  }, []);
+
+  if (isLoading) return <UniversalLoader />;
+
+  return (
+    <div className="mb-[92px]">
+      <Button
+        variant="outline"
+        className="flex justify-between items-center mb-6 text-gray-900 text-sm font-medium leading-none"
+      >
+        <h2 className="">{title}</h2>
+        <FiChevronRight className="ml-1" />
+      </Button>
+
+      <div className="sm:grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+        {menus?.map((menu) => (
+          <div className="w-[220px] bg-white rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-3 border border-gray-100 font-sans">
+      
+      {/* Image Container */}
+      <div className="relative h-32 w-full mb-3">
+        <img 
+          src={menu.image || "/placeholder.jpg"} 
+          alt={title} 
+          className="w-full h-full object-cover rounded-xl"
+        />
+      </div>
+
+      {/* Content */}
+      <div className="space-y-1">
+        
+        {/* Title and Heart Row */}
+        <div className="flex justify-between items-start">
+          <h3 className="font-bold text-lg text-gray-900 leading-tight">
+            {title}
+          </h3>
+          <button className="text-gray-400 hover:text-red-500 transition-colors">
+            <Heart size={20} />
+          </button>
+        </div>
+
+        {/* Price */}
+        <div className="font-bold text-gray-900">
+          {menu.price} <span className="text-xs uppercase">{menu.currency}</span>
+        </div>
+
+        {/* Meta Info (Distance & Rating) */}
+        <div className="flex flex-col gap-1 mt-1">
+          
+          {/* Distance */}
+          <div className="flex items-center gap-1.5 text-gray-500 text-xs font-medium">
+            <div className="bg-gray-100 p-0.5 rounded-full">
+               <Bike size={14} />
+            </div>
+            <span>{menu.distance} km</span>
+          </div>
+
+          {/* Rating */}
+          <div className="flex items-center gap-1.5 text-xs">
+            <Star size={14} className="fill-orange-400 text-orange-400" />
+            <span className="font-bold text-gray-800">{menu.rating}</span>
+            <span className="text-gray-500">{menu.reviewCount}+ ratings</span>
+          </div>
+        </div>
+
+        {/* Add Button */}
+        <button className="w-full mt-3 py-1.5 border border-orange-500 text-orange-500 font-bold rounded-lg hover:bg-orange-50 transition-colors text-sm">
+          Add
+        </button>
+
+      </div>
+    </div>
+        ))}
       </div>
 
       <div className="mt-6 text-center">

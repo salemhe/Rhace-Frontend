@@ -10,7 +10,7 @@ import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
 import { setVendor, setAdmin } from "@/redux/slices/authSlice"
-import logo from "../../../assets/Rhace-11.png"
+import logo from "../../../public/images/Rhace-11.png"
 
 const getCurrentYear = () => new Date().getFullYear();
 

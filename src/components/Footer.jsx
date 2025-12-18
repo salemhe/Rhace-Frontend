@@ -1,6 +1,6 @@
 // =======================FIRST FOOTER (GREEN BG)========================
 // import { Mail, MapPin, Phone } from 'lucide-react';
-// import logo from "../assets/Rhace-11.png";
+// import logo from "../public/Rhace-11.png";
 
 // const Footer = () => {
 //   return (
@@ -85,7 +85,7 @@
 // =======================SECOND FOOTER (BLACK BG)========================
 // import { Mail, MapPin, Phone, Facebook, Instagram, Twitter } from "lucide-react";
 // import { motion } from "framer-motion";
-// import logo from "../assets/Rhace-09.png";
+// import logo from "../public/Rhace-09.png";
 
 // const Footer = () => {
 //   const fadeIn = {
@@ -253,7 +253,7 @@
 
 import { Mail, MapPin, Phone, Facebook, Instagram, Twitter } from "lucide-react";
 import { motion } from "framer-motion";
-import logo from "../assets/Rhace-09.png";
+import logo from "../public/images/Rhace-09.png";
 
 const Footer = () => {
   const fadeIn = {

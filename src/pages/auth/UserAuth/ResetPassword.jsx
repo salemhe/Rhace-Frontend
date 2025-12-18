@@ -2,7 +2,7 @@ import HeroImage from "@/components/auth/HeroImage"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useState } from "react"
-import logo from "../../../assets/Rhace-11.png";
+import logo from "../../../public/images/Rhace-11.png";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { toast } from "sonner";
 import { authService } from "@/services/auth.service";

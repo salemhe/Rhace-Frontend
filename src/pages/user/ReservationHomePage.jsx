@@ -1,11 +1,11 @@
 import Footer from "@/components/Footer";
 import UserHeader from "@/components/layout/headers/user-header";
 import SearchSection from "@/components/SearchSection";
-import TableGrid, { TableGridThree, TableGridTwo } from "@/components/Tablegrid";
+import TableGrid, { TableGridFour, TableGridThree, TableGridTwo } from "@/components/Tablegrid";
 import { useEffect, useState } from "react";
-import Restaurant from "../../assets/find.png";
-import Hotel from "../../assets/find-hotel.jpg";
-import Club from "../../assets/find-club.png";
+import Restaurant from "../../public/images/find.png";
+import Hotel from "../../public/images/find-hotel.jpg";
+import Club from "../../public/images/find-club.png";
 import LocationModal from "@/components/LocationModal";
 
 function ReservationHomePage() {
@@ -165,6 +165,8 @@ const SvgIcon3= ({ isActive }) => (
        {activeTab === "restaurants" &&(
         <div className=" mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <TableGrid title="Popular Searches" />
+          <TableGrid title="Nearby Searches" type="nearby" />
+          <TableGridFour title="Offers" type="offers" />
           {/* <TableGrid title="In High Demand" />
           <TableGrid title="Your History" /> */}
 
@@ -174,11 +176,13 @@ const SvgIcon3= ({ isActive }) => (
        {activeTab === "hotels" && (
         <div className=" mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
            <TableGridTwo title="Popular Searches" />
+          <TableGridTwo title="Nearby Searches" type="nearby" />
         </div>
       ) }
       {activeTab === "clubs" && (
-         <div className=" mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className=" mt-36 sm:mt-[65px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
            <TableGridThree title="Popular Clubs" />
+           <TableGridThree title="Nearby Searches" type="nearby" />
         </div>
       )}
 

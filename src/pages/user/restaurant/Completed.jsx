@@ -1,7 +1,7 @@
 import { Check, Mail, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router";
-import { RestaurantBooking } from "@/lib/api";
+// import { RestaurantBooking } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
 import { toast } from "sonner";

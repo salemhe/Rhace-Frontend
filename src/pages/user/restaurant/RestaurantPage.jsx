@@ -8,7 +8,7 @@ import RestaurantInfo from "@/components/user/restaurant/RestaurantInfo";
 import MapComponent from "@/components/user/ui/mapComponent";
 import { Mail, MapPin, Phone, Star } from "lucide-react";
 import { useParams } from "react-router";
-import { RestaurantData } from "@/lib/api";
+// import { RestaurantData } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
 import StarRating from "@/components/ui/starrating";

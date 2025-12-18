@@ -1,4 +1,4 @@
-import { PeopleIcon } from '@/assets/icons/icons';
+import { PeopleIcon } from '@/public/icons/icons';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import UniversalLoader from '@/components/user/ui/LogoLoader';
 import { staffService } from '@/services/staff.service';

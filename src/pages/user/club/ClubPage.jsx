@@ -2,7 +2,7 @@ import { Mail, MapPin, Phone, Star } from "lucide-react";
 import MapComponent from "@/components/user/ui/mapComponent";
 import Images from "@/components/user/ui/Image";
 import Images2 from "@/components/user/ui/Image2";
-import { ClubsData } from "@/lib/api";
+// import { ClubsData } from "@/lib/api";
 import { useParams } from "react-router";
 import Footer from "@/components/Footer";
 import ClubInfo from "@/components/user/club/ClubInfo";
