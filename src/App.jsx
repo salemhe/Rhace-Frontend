@@ -87,6 +87,9 @@ import ProtectedRoute from "./components/ProtectedRoutes";
 import UserProtectedRoute from "./components/UserProtectedRoute";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
+import BookingDetails from "./pages/user/BookingDetails";
+import Payments from "./pages/admin/Payments";
+import PaymentsHistory from "./pages/user/Payments";
 
 // Route Arrays
 const authRoutes = {
@@ -136,6 +139,8 @@ const userGeneralRoutes = [
   { path: "/bookings", element: <BookingsPage /> },
   { path: "/search", element: <SearchContent /> },
   { path: "/favorites", element: <Favorites /> },
+  { path: "/bookings/:id", element: <BookingDetails /> },
+  { path: "/payments", element: <PaymentsHistory />}
 ];
 
 const adminDashboardRoutes = [
@@ -221,15 +226,8 @@ function App() {
           {restaurantRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />
           ))}
-          {restaurantReservationRoutes.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
-
           {/* Clubs */}
           {clubRoutes.map((route) => (
-            <Route key={route.path} path={route.path} element={route.element} />
-          ))}
-          {clubReservationRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />
           ))}
 
@@ -266,6 +264,7 @@ function App() {
             <Route path="/auth/vendor/onboarding" element={<Onboard />} />
 
             {/* Vendor Dashboards */}
+            <Route path="/dashboard">
             {dashboardRestaurantRoutes.map((route) => (
               <Route key={route.path} path={route.path} element={route.element} />
             ))}
@@ -275,6 +274,7 @@ function App() {
             {clubVendorRoutes.map((route) => (
               <Route key={route.path} path={route.path} element={route.element} />
             ))}
+            </Route>
           </Route>
 
           {/* Admin Dashboard - Separate Protection */}

@@ -9,7 +9,6 @@ import ReservationHeader from "./ReservationHeader";
 import { useReservations } from "@/contexts/restaurant/ReservationContext";
 import { toast } from "sonner";
 // import { MenusData } from "@/lib/api";
-import { useNavigate } from "react-router";
 import { menuService } from "@/services/menu.service";
 export default function PreSelectMeal({ id }) {
   const {
@@ -30,7 +29,6 @@ export default function PreSelectMeal({ id }) {
   } = useReservations();
   const [visibleCount, setVisibleCount] = useState(3);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const tabs = [
     {
@@ -142,9 +140,6 @@ export default function PreSelectMeal({ id }) {
     );
   };
 
-  const handleClick = () => {
-    navigate(`/restaurants/completed/${id}`);
-  };
 
   if (loading) {
     return (
@@ -490,7 +485,7 @@ export default function PreSelectMeal({ id }) {
         <div className="flex justify-between gap-2 items-center max-w-4xl mx-auto p-4">
           <div className="hidden md:flex justify-between items-center w-full">
             <Button
-              onClick={handleClick}
+              onClick={handleSkip}
               variant="ghost"
               className="text-teal-600"
             >

@@ -100,8 +100,6 @@ function BookingCard ({ booking, onEdit, onDelete }) {
               </span>
             </div>
           </div>
-
-          
         </div>
 
       </div>
@@ -117,7 +115,7 @@ function BookingCard ({ booking, onEdit, onDelete }) {
             <button
               className="px-6 py-2 rounded-full text-sm font-medium transition-colors w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white"
               onClick={() => {
-                navigate(`/restaurants/confirmation/${booking._id}`)
+                navigate(`/bookings/${booking._id}`)
               }}
             >
               {getButtonText(booking.paymentStatus)}

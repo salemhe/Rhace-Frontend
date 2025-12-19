@@ -167,8 +167,6 @@ const SvgIcon3= ({ isActive }) => (
           <TableGrid title="Popular Searches" />
           <TableGrid title="Nearby Searches" type="nearby" />
           <TableGridFour title="Offers" type="offers" />
-          {/* <TableGrid title="In High Demand" />
-          <TableGrid title="Your History" /> */}
 
          </div>
           

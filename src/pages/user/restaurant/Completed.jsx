@@ -103,7 +103,7 @@ export default function CompletedPage() {
         </div>
 
         {/* Meal Selection */}
-        {data.menus.length > 0 && (
+        {data.menus && data.menus.length > 0 && (
           <div className="bg-white rounded-2xl border p-5 space-y-4 border-gray-200 mb-6">
             <h2 className="text-lg font-semibold text-[#111827]">
               Your Meal Selection

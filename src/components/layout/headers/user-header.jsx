@@ -198,9 +198,8 @@ function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, use
 
       {/* Menu Items Section 1 */}
       <div className="py-1">
-        <MenuItem text="Messages" onClick={() => handleNavigation('/messages')} />
         <MenuItem text="Bookings/Reservation" onClick={() => handleNavigation('/bookings')} />
-        <MenuItem text="Wishlist" onClick={() => handleNavigation('/wishlist')} />
+        <MenuItem text="Wishlist" onClick={() => handleNavigation('/favorites')} />
         <MenuItem text="Payments/Transaction" onClick={() => handleNavigation('/payments')} />
       </div>
 
