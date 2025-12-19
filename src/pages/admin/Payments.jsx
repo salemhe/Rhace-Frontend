@@ -72,7 +72,7 @@ import {
   getTotalEarnings,
 } from "@/services/admin.service";
 import { useWebSocket } from "@/contexts/WebSocketContext";
-import placeholderLogo from "@/assets/placeholder-logo.png";
+import placeholderLogo from "@/public/images/Rhace-11.png";
 
 const earningsData = [
   { date: "Jan 1", value: 150000 },

@@ -183,13 +183,13 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-import GoogleIcon from "@/assets/auth/google.svg";
+import GoogleIcon from "@/public/auth/google.svg";
 import { authService } from "@/services/auth.service"
 import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
 import { setUser } from "@/redux/slices/authSlice"
-import logo from "../../../assets/Rhace-11.png"
+import logo from "../../../public/images/Rhace-11.png"
 import { useGoogleLogin } from "@react-oauth/google"
 
 const getCurrentYear = () => new Date().getFullYear();

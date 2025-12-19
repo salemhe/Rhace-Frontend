@@ -1,16 +1,13 @@
 "use client";
 import React, { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { GuestPicker } from "../ui/guestpicker";
+import DatePicker from "../ui/datepicker";
 
 const HotelBookingForm = ({ id, selectedRoom }) => {
   const [date, setDate] = useState();
@@ -100,57 +97,9 @@ const HotelBookingForm = ({ id, selectedRoom }) => {
         </p>
       )}
       <form onSubmit={handleSubmit} className="space-y-6 mt-6">
-        <div className="flex flex-col md:flex-row w-full gap-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "flex-1 justify-start text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
-                  !date && "text-muted-foreground"
-                )}
-              >
-                <Label htmlFor="date" className="text-black">
-                  Check in Date
-                </Label>
-                {date ? format(date, "do MMM, yyyy") : "Select date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="single"
-                selected={date}
-                onSelect={setDate}
-                disabled={(date) => date < new Date()}
-              />
-            </PopoverContent>
-          </Popover>
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "flex-1 justify-start text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
-                  !date2 && "text-muted-foreground"
-                )}
-              >
-                <Label htmlFor="date" className="text-black">
-                  Check out Date
-                </Label>
-                {date2 ? format(date2, "do MMM, yyyy") : "Select date"}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                initialFocus
-                mode="single"
-                selected={date2}
-                onSelect={setDate2}
-                disabled={(date) => date < new Date()}
-              />
-            </PopoverContent>
-          </Popover>
+        <div className="grid grid-cols-2 w-full gap-4 justify-between">
+          <DatePicker title="Check In Date" value={date} onChange={setDate} />
+          <DatePicker title="Check out Date" value={date2} onChange={setDate2} />
         </div>
         <GuestPicker value={guests} onChange={setGuests} />
         <div className="flex flex-col gap-y-3">

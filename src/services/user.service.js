@@ -6,6 +6,16 @@ class UserService {
     return res.data;
   }
 
+  async getOffers(id) {
+    const res = await api.get(`/vendors/offers?id=${id ? id : ""}`);
+    return res.data;
+  }
+  
+  async getNearest({ longitude, latitude, type }) {
+    const res = await api.get(`/vendors/nearest?longitude=${longitude || ""}&latitude=${latitude || ""}&type=${type || ""}`);
+    return res.data;
+  }
+
   async createReservation(data) {
     const res = await api.post("/bookings/create", data);
     return res.data;

@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { BrowserRouter } from 'react-router'
-import { Toaster } from 'sonner'
+import { Toaster } from "@/components/ui/sonner"
 import { WebSocketProvider } from './contexts/WebSocketContext'
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { LocationProvider } from './contexts/LocationContext'

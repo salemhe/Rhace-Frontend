@@ -23,10 +23,69 @@ export function ReservationsProvider({
   const [time, setTime] = useState("");
   const [vendor, setVendor] = useState(undefined);
   const [isLoading, setIsLoading] = useState(false);
+  const [isSkipLoading, setIsSkipLoading] = useState(false);
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
 
   const occasions = ["Birthday", "Casual", "Business", "Anniversary", "Other"];
+
+  const handleSkip = async () => {
+    try {
+      setIsSkipLoading(true);
+      if (!date || !seatingPreference || !guestCount || !time) {
+        throw new Error("Please fill in all required fields.");
+      }
+
+      if (!vendor._id) {
+        throw new Error("Vendor information is missing.");
+      }
+
+      const parsedGuestCount = parseInt(guestCount, 10);
+      if (isNaN(parsedGuestCount) || parsedGuestCount < 1) {
+        throw new Error("Please enter a valid number of guests.");
+      }
+
+      const reservationData = {
+        // _id: "1",
+        reservationType: "restaurant",
+        customerName: `${user.firstName} ${user.lastName}`.trim(),
+        customerEmail: user.email,
+        customerId: user._id,
+        date: date.toISOString(),
+        time,
+        guests: parsedGuestCount,
+        seatingPreference,
+        specialOccasion: selectedOccasion || "other",
+        specialRequest,
+        totalAmount: 1000,
+        vendor: vendor._id,
+        location: vendor.address,
+        image: vendor.profileImages?.[0],
+      };
+
+      const res = await userService.createReservation(reservationData);
+
+      const reservationResponse = res.data;
+
+
+      toast.success("Reservation submitted successfully!");
+
+      // Navigate to confirmation page
+      navigate(`/restaurants/completed/${reservationResponse._id}`);
+    } catch (error) {
+      console.error(error)
+      let errorMessage = "Failed to submit reservation. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error;
+        errorMessage = axiosError.response?.data?.message || "Failed to submit reservation. Please try again.";
+      }
+      toast.error(errorMessage);
+    } finally {
+      setIsSkipLoading(false);
+    }
+  }
 
 
   const handleSubmit = async () => {
@@ -75,7 +134,7 @@ export function ReservationsProvider({
           quantity: item.quantity || 1,
           specialRequest: item.specialRequest || "",
         })),
-        totalAmount: totalPrice,
+        totalAmount: totalPrice + 1000,
         vendor: vendor._id,
         location: vendor.address,
         image: vendor.profileImages?.[0],
@@ -144,6 +203,8 @@ export function ReservationsProvider({
         vendor,
         setVendor,
         handleSubmit,
+        handleSkip,
+        isSkipLoading,
         isLoading,
       }}
     >

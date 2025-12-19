@@ -52,7 +52,10 @@ export const SearchAutocomplete = ({
   const fetchSuggestions = async () => {
     setIsLoading(true);
     try {
-      const res = await restaurantService.getSuggestions();
+      const location = localStorage.getItem("userLocation");
+      const loc = JSON.parse(location);
+      console.log("User location from localStorage:", loc);
+      const res = await restaurantService.getSuggestions({lat: loc.lat, lng: loc.lng});
       console.log("Full API response:", res);
       
       // Safely extract the correct layer
