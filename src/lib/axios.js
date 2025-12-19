@@ -14,7 +14,11 @@ api.interceptors.request.use((config) => {
     localStorage.getItem("token") ||
     localStorage.getItem("auth_token") ||
     localStorage.getItem("vendor-token") ||
-    localStorage.getItem("vendor_token");
+    localStorage.getItem("vendor_token") ||
+    localStorage.getItem("admin-token") ||
+    localStorage.getItem("admin_token");
+
+  console.log("API baseURL:", import.meta.env.VITE_API_BASE_URL);
 
   if (token) {
     // Avoid double Bearer prefix

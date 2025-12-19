@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Plus, Upload, SlidersHorizontal, ChevronDown, MoreVertical, Eye, UserX, KeyRound, Star, Calendar, Mail, Phone, MapPin, Building, CreditCard, Globe, Clock, DollarSign, FileText, Award } from "lucide-react";
+import { Plus, Upload, SlidersHorizontal, ChevronDown, MoreVertical, Eye, UserX, KeyRound, Star, Calendar, Mail, Phone, MapPin, Building, CreditCard, Globe, Clock, DollarSign, FileText, Award, CheckCircle, XCircle, AlertCircle, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -25,7 +27,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { getVendors, getVendorById, updateVendorStatus, deleteVendor, exportVendors } from "@/services/admin.service";
+import { getVendors, getVendorById, updateVendorStatus, deleteVendor, exportVendors, getUsers, getVendorStats } from "@/services/admin.service";
+import { toast } from "sonner";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const extractArray = (p) => {
@@ -57,16 +60,58 @@ export default function Vendors() {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editingVendor, setEditingVendor] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [totalVendors, setTotalVendors] = useState(0);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    pending: 0,
+    suspended: 0
+  });
   const { subscribe, unsubscribe, sendMessage } = useWebSocket();
+
+  const loadStats = async () => {
+    try {
+      const statsRes = await getVendorStats();
+      const statsData = statsRes?.data;
+
+      setStats({
+        total: statsData?.total || 0,
+        active: statsData?.active || 0,
+        inactive: statsData?.inactive || 0,
+        pending: statsData?.pending || 0,
+        suspended: statsData?.suspended || 0
+      });
+      setTotalVendors(statsData?.total || 0);
+    } catch (e) {
+      console.error("Failed to load stats", e);
+    }
+  };
 
   const loadVendors = async () => {
     setLoading(true);
     try {
+      // Fetch current page vendors
       const res = await getVendors({ page: currentPage, limit: 20 });
       const payload = res?.data;
       const list = extractArray(payload);
       setVendors(list);
       setTotalPages(payload?.totalPages || 1);
+      // Set totalVendors from the API response total, fallback to list length
+      setTotalVendors(payload?.total || list.length);
+
+      // Calculate basic stats from the vendor list as fallback
+      const calculatedStats = {
+        total: list.length,
+        active: list.filter(v => v.status === 'Active').length,
+        inactive: list.filter(v => v.status === 'Inactive').length,
+        pending: list.filter(v => v.status === 'Pending').length,
+        suspended: list.filter(v => v.status === 'Suspended').length,
+      };
+      setStats(calculatedStats);
+
+      // Load stats separately for other stats like active/inactive, which will override if API succeeds
+      await loadStats();
     } catch (e) {
       console.error("Failed to load vendors", e);
       setVendors([]);
@@ -82,14 +127,28 @@ export default function Vendors() {
       setVendors((prev) =>
         prev.map((v) => (v.id === updatedVendor.id || v._id === updatedVendor.id ? updatedVendor : v))
       );
+      // Recalculate stats for real-time updates
+      loadStats();
     };
 
     const handleVendorCreate = (newVendor) => {
-      setVendors((prev) => [...prev, newVendor]);
+      setVendors((prev) => {
+        const next = [...prev, newVendor];
+        setTotalVendors((t) => (Number(t) || 0) + 1);
+        return next;
+      });
+      // Recalculate stats for real-time updates
+      loadStats();
     };
 
     const handleVendorDelete = (deletedVendor) => {
-      setVendors((prev) => prev.filter((v) => v.id !== deletedVendor.id && v._id !== deletedVendor.id));
+      setVendors((prev) => {
+        const next = prev.filter((v) => v.id !== deletedVendor.id && v._id !== deletedVendor.id);
+        setTotalVendors((t) => Math.max(0, (Number(t) || 0) - 1));
+        return next;
+      });
+      // Recalculate stats for real-time updates
+      loadStats();
     };
 
     subscribe("vendor-updated", handleVendorUpdate);
@@ -101,83 +160,10 @@ export default function Vendors() {
       unsubscribe("vendor-created");
       unsubscribe("vendor-deleted");
     };
-  }, [subscribe, unsubscribe]);
-
-  useEffect(() => {
-    loadVendors();
-  }, [currentPage]);
-
-  const handleViewDetails = async (vendor) => {
-    const vendorId = vendor.id || vendor._id || vendor.vendorId;
-    if (!vendorId) {
-      console.error("Vendor ID not found", vendor);
-      return;
-    }
-
-    setSelectedVendor(vendor);
-    setDetailsOpen(true);
-    setDetailsLoading(true);
-    setVendorDetails(null);
-
-    try {
-      const response = await getVendorById(vendorId);
-      setVendorDetails(response.data);
-    } catch (e) {
-      console.error("Failed to get vendor details", e);
-      setVendorDetails(null);
-    } finally {
-      setDetailsLoading(false);
-    }
-  };
-
-  const handleEdit = (vendor) => {
-    setEditingVendor(vendor);
-    setEditOpen(true);
-  };
-
-  const handleUpdateVendor = async (updatedData) => {
-    const vendorId = editingVendor.id || editingVendor._id || editingVendor.vendorId;
-    if (!vendorId) {
-      console.error("Vendor ID not found", editingVendor);
-      alert("Vendor ID not found");
-      return;
-    }
-    try {
-      // For now, just update local state since there's no general update API
-      setVendors((prev) =>
-        prev.map((v) => (v.id === vendorId || v._id === vendorId ? { ...v, ...updatedData } : v))
-      );
-      sendMessage("vendor-updated", { id: vendorId, ...updatedData });
-      setEditOpen(false);
-      setEditingVendor(null);
-    } catch (e) {
-      console.error(`Failed to update vendor ${vendorId}`, e);
-      alert("Failed to update vendor");
-    }
-  };
-
-  const handleDelete = async (vendor) => {
-    const vendorId = vendor.id || vendor._id || vendor.vendorId;
-    if (!vendorId) {
-      console.error("Vendor ID not found", vendor);
-      alert("Vendor ID not found");
-      return;
-    }
-    if (!window.confirm(`Are you sure you want to delete vendor ${vendorId}?`)) {
-      return;
-    }
-    try {
-      await deleteVendor(vendorId);
-      setVendors((prev) => prev.filter((v) => v.id !== vendorId && v._id !== vendorId));
-      sendMessage("vendor-deleted", { id: vendorId });
-    } catch (e) {
-      console.error(`Failed to delete vendor ${vendorId}`, e);
-      alert("Failed to delete vendor");
-    }
-  };
+  }, []);
 
   const applyFilters = () => {
-    let filtered = vendors;
+    let filtered = [...vendors];
     if (searchQuery) {
       filtered = filtered.filter(vendor =>
         (vendor.businessName || vendor.name || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -207,6 +193,8 @@ export default function Vendors() {
     applyFilters();
   }, [vendors, searchQuery, activeTab, dateRange, filters]);
 
+
+
   const handleExport = async () => {
     try {
       const response = await exportVendors({ status: activeTab !== "All" ? activeTab : undefined });
@@ -223,20 +211,136 @@ export default function Vendors() {
     }
   };
 
+  const handleViewDetails = async (vendor) => {
+    setSelectedVendor(vendor);
+    setDetailsLoading(true);
+    setDetailsOpen(true);
+    try {
+      const response = await getVendorById(vendor.id || vendor._id);
+      setVendorDetails(response.data);
+    } catch (e) {
+      console.error("Failed to load vendor details", e);
+      toast.error("Failed to load vendor details");
+      setVendorDetails(null);
+    } finally {
+      setDetailsLoading(false);
+    }
+  };
+
+  const handleEdit = (vendor) => {
+    setEditingVendor(vendor);
+    setEditOpen(true);
+  };
+
+  const handleDelete = async (vendor) => {
+    if (!window.confirm(`Are you sure you want to delete ${vendor.businessName || vendor.name}?`)) return;
+    try {
+      await deleteVendor(vendor.id || vendor._id);
+      toast.success("Vendor deleted successfully");
+      // The WebSocket will handle the real-time update
+    } catch (e) {
+      console.error("Failed to delete vendor", e);
+      toast.error("Failed to delete vendor");
+    }
+  };
+
+  const handleUpdateVendor = async (vendor) => {
+    try {
+      await updateVendorStatus(vendor.id || vendor._id, { status: vendor.status });
+      toast.success("Vendor updated successfully");
+      setEditOpen(false);
+      setEditingVendor(null);
+      // Trigger real-time update by reloading vendors
+      loadVendors();
+    } catch (e) {
+      console.error("Failed to update vendor", e);
+      toast.error("Failed to update vendor");
+    }
+  };
+
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Vendor's List</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setHideTabs(!hideTabs)}>
-            <SlidersHorizontal className="w-4 h-4 mr-2" />
-            Hide tabs
-          </Button>
-          <Button variant="outline" size="sm" className="bg-primary text-primary-foreground" onClick={handleExport}>
-            <Upload className="w-4 h-4 mr-2" />
-            Export
-          </Button>
+      {/* Header Section */}
+      <div className="flex flex-col space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Vendor Management</h1>
+            <p className="text-gray-600 mt-2">Manage and monitor all vendor accounts in your system</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => setHideTabs(!hideTabs)}>
+              <SlidersHorizontal className="w-4 h-4 mr-2" />
+              Hide tabs
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleExport}>
+              <Upload className="w-4 h-4 mr-2" />
+              Export
+            </Button>
+          </div>
         </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-blue-700">Total Vendors</p>
+                <p className="text-3xl font-bold text-gray-900">{totalVendors.toLocaleString()}</p>
+              </div>
+              <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                <Building className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+            <Progress value={(totalVendors / (totalVendors || 1)) * 100} className="mt-4 h-1" />
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-green-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-emerald-700">Active Vendors</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.active.toLocaleString()}</p>
+              </div>
+              <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                <CheckCircle className="h-6 w-6 text-emerald-600" />
+              </div>
+            </div>
+            <Progress value={(stats.active / (stats.total || 1)) * 100} className="mt-4 h-1" />
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-amber-700">Inactive Vendors</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.inactive.toLocaleString()}</p>
+              </div>
+              <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                <XCircle className="h-6 w-6 text-amber-600" />
+              </div>
+            </div>
+            <Progress value={(stats.inactive / (stats.total || 1)) * 100} className="mt-4 h-1" />
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-sm bg-gradient-to-br from-rose-50 to-pink-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-rose-700">Suspended Vendors</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.suspended.toLocaleString()}</p>
+              </div>
+              <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                <Shield className="h-6 w-6 text-rose-600" />
+              </div>
+            </div>
+            <Progress value={(stats.suspended / (stats.total || 1)) * 100} className="mt-4 h-1" />
+          </CardContent>
+        </Card>
       </div>
 
       <Card className="p-4">
@@ -275,7 +379,8 @@ export default function Vendors() {
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Desktop Table View */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b">
@@ -301,14 +406,14 @@ export default function Vendors() {
                   <td className="p-3 text-sm text-muted-foreground" colSpan={8}>No vendors found.</td>
                 </tr>
               ) : filteredVendors.map((vendor, i) => (
-                <tr key={i} className="border-b hover:bg-accent/50">
+                <tr key={i} className="border-b hover:bg-accent/50 transition-colors">
                   <td className="p-3">
                     <Checkbox />
                   </td>
                   <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                        <span className="text-sm font-semibold">{vendor.businessName?.charAt(0) || 'V'}</span>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-semibold text-primary">{vendor.businessName?.charAt(0) || 'V'}</span>
                       </div>
                       <div>
                         <p className="text-sm font-medium">{String(vendor.businessName || vendor.name || "-")}</p>
@@ -326,7 +431,7 @@ export default function Vendors() {
                     <p className="text-sm">{vendor.reservations || 0}</p>
                   </td>
                   <td className="p-3">
-                    <Badge variant={vendor.status === "Active" ? "default" : "outline"}>
+                    <Badge variant={vendor.status === "Active" ? "default" : "outline"} className={vendor.status === "Active" ? "bg-green-100 text-green-800" : ""}>
                       {vendor.status || "Inactive"}
                     </Badge>
                   </td>
@@ -336,18 +441,19 @@ export default function Vendors() {
                   <td className="p-3">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="hover:bg-accent">
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuItem onClick={() => handleViewDetails(vendor)}>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleViewDetails(vendor)} className="cursor-pointer">
+                          <Eye className="w-4 h-4 mr-2" />
                           View details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleEdit(vendor)}>
+                        <DropdownMenuItem onClick={() => handleEdit(vendor)} className="cursor-pointer">
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(vendor)}>
+                        <DropdownMenuItem onClick={() => handleDelete(vendor)} className="cursor-pointer text-destructive">
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
@@ -356,7 +462,67 @@ export default function Vendors() {
                 </tr>
               ))}
             </tbody>
-        </table>
+          </table>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-4">
+          {loading ? (
+            <div className="text-center py-8">
+              <div className="text-sm text-muted-foreground">Loading vendors...</div>
+            </div>
+          ) : vendors.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-sm text-muted-foreground">No vendors found.</div>
+            </div>
+          ) : filteredVendors.map((vendor, i) => (
+            <Card key={i} className="p-4 hover:shadow-md transition-shadow">
+              <div className="flex items-start justify-between">
+                <div className="flex items-center gap-3 flex-1">
+                  <Checkbox />
+                  <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-primary/10 rounded-full flex items-center justify-center">
+                    <span className="text-sm font-semibold text-primary">{vendor.businessName?.charAt(0) || 'V'}</span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">{String(vendor.businessName || vendor.name || "-")}</p>
+                    <p className="text-xs text-muted-foreground">{String(vendor.category || vendor.type || "")}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{vendor.contactPerson || vendor.contactName || vendor.ownerName || "-"}</p>
+                  </div>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="hover:bg-accent">
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleViewDetails(vendor)} className="cursor-pointer">
+                      <Eye className="w-4 h-4 mr-2" />
+                      View details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleEdit(vendor)} className="cursor-pointer">
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleDelete(vendor)} className="cursor-pointer text-destructive">
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+              <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                <div className="flex items-center gap-4">
+                  <Badge variant={vendor.status === "Active" ? "default" : "outline"} className={vendor.status === "Active" ? "bg-green-100 text-green-800" : ""}>
+                    {vendor.status || "Inactive"}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground">{new Date(vendor.createdAt).toLocaleDateString()}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-muted-foreground">Branches: {vendor.branches || 1}</p>
+                  <p className="text-xs text-muted-foreground">Reservations: {vendor.reservations || 0}</p>
+                </div>
+              </div>
+            </Card>
+          ))}
         </div>
 
         <div className="flex items-center justify-between mt-4">
@@ -735,3 +901,4 @@ export default function Vendors() {
     </div>
   );
 }
+

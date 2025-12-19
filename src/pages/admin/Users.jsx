@@ -1,22 +1,33 @@
 import { useEffect, useState } from "react";
-import { Plus, Upload, SlidersHorizontal, ChevronDown, MoreVertical, Eye, UserX, KeyRound, Star, Calendar } from "lucide-react";
+import { Plus, Upload, SlidersHorizontal, ChevronDown, MoreVertical, Eye, UserX, KeyRound, Star, Calendar, Search, Filter, Download, UserCheck, UserMinus, Users, Shield, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Label } from "@/components/ui/label";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getUsers, getUserById, updateUserStatus, toggleUserVIP, exportUsers } from "@/services/admin.service";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
@@ -30,20 +41,18 @@ const extractArray = (p) => {
   return [];
 };
 
-
-export default function Users() {
-  const [activeTab, setActiveTab] = useState("All");
-  const [showModal, setShowModal] = useState(false);
+export default function UserManagement() {
+  const [activeTab, setActiveTab] = useState("all");
   const [showFilterModal, setShowFilterModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false);
-  const [hideTabs, setHideTabs] = useState(false);
-  const tabs = ["All", "Active", "Inactive", "Suspended"];
   const [users, setUsers] = useState([]);
   const [filteredUsers, setFilteredUsers] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
-  const [dateRange, setDateRange] = useState({ from: null, to: null });
-  const [filters, setFilters] = useState({ status: "", role: "" });
+  const [filters, setFilters] = useState({ 
+    status: "", 
+    role: "", 
+    dateRange: { from: null, to: null } 
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const { subscribe, unsubscribe, sendMessage } = useWebSocket();
@@ -54,6 +63,14 @@ export default function Users() {
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [reservationsOpen, setReservationsOpen] = useState(false);
   const [userReservations, setUserReservations] = useState([]);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [stats, setStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    suspended: 0,
+    vip: 0
+  });
 
   const handleViewProfile = async (user) => {
     const userId = user.id || user._id || user.userId;
@@ -89,7 +106,6 @@ export default function Users() {
     try {
       await updateUserStatus(userId, { status: "Suspended" });
       alert(`User ${user.name || user.email || "account"} has been suspended successfully`);
-      // WebSocket will handle the real-time update
     } catch (e) {
       console.error("Failed to suspend user", e);
       alert("Failed to suspend user");
@@ -106,7 +122,6 @@ export default function Users() {
     try {
       // TODO: Implement actual password reset API call
       alert(`Password reset initiated for ${user.name || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email || "user"}`);
-      // For now, just show success message
     } catch (e) {
       console.error("Failed to reset password", e);
       alert("Failed to reset password");
@@ -123,11 +138,9 @@ export default function Users() {
     }
     try {
       await toggleUserVIP(userId, { isVip: !user.isVip });
-      // Update local state immediately
       setUsers((prev) =>
         prev.map((u) => (u.id === userId || u._id === userId ? { ...u, isVip: !user.isVip } : u))
       );
-      // Send WebSocket message for real-time updates
       sendMessage("user-updated", { id: userId, isVip: !user.isVip });
       alert(`VIP status updated successfully for ${user.name || user.email || "user"}`);
     } catch (e) {
@@ -144,11 +157,9 @@ export default function Users() {
       return;
     }
     try {
-      // TODO: Implement actual reservations fetch API call
       setSelectedUser(user);
-      setUserReservations([]); // Placeholder for actual reservations data
+      setUserReservations([]);
       setReservationsOpen(true);
-      // For now, just show the modal with placeholder content
     } catch (e) {
       console.error("Failed to load reservations", e);
       alert("Failed to load reservations");
@@ -157,11 +168,11 @@ export default function Users() {
 
   const handleExport = async () => {
     try {
-      const response = await exportUsers({ status: activeTab !== "All" ? activeTab : undefined });
+      const response = await exportUsers({ status: activeTab !== "all" ? activeTab : undefined });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'users.csv');
+      link.setAttribute('download', `users-export-${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
@@ -179,14 +190,8 @@ export default function Users() {
         user.email.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
-    if (activeTab !== "All") {
-      filtered = filtered.filter(user => (user.status || user.accountStatus || "").toString() === activeTab);
-    }
-    if (dateRange.from && dateRange.to) {
-      filtered = filtered.filter(user => {
-        const userDate = new Date(user.createdAt || user.lastActiveAt);
-        return userDate >= dateRange.from && userDate <= dateRange.to;
-      });
+    if (activeTab !== "all") {
+      filtered = filtered.filter(user => (user.status || user.accountStatus || "").toString().toLowerCase() === activeTab);
     }
     if (filters.status) {
       filtered = filtered.filter(user => (user.status || user.accountStatus || "").toString() === filters.status);
@@ -199,20 +204,44 @@ export default function Users() {
 
   useEffect(() => {
     applyFilters();
-  }, [users, searchQuery, activeTab, dateRange, filters]);
+  }, [users, searchQuery, activeTab, filters]);
 
   const loadUsers = async () => {
     setLoading(true);
     try {
+      // Fetch current page users
       const res = await getUsers({ page: currentPage, limit: 20 });
-      console.log("[Users] API response:", res?.data);
       const payload = res?.data;
       const list = extractArray(payload);
       setUsers(list);
       setTotalPages(payload?.totalPages || 1);
+      setTotalUsers(payload?.totalDocs || 0);
+
+      // Calculate stats
+      const total = payload?.totalDocs || 0;
+      const active = list.filter(user => (user.status || user.accountStatus || "").toString().toLowerCase() === "active").length;
+      const inactive = list.filter(user => (user.status || user.accountStatus || "").toString().toLowerCase() === "inactive").length;
+      const suspended = list.filter(user => (user.status || user.accountStatus || "").toString().toLowerCase() === "suspended").length;
+      const vip = list.filter(user => user.isVip).length;
+
+      setStats({
+        total,
+        active,
+        inactive,
+        suspended,
+        vip
+      });
     } catch (e) {
       console.error("Failed to load users", e);
       setUsers([]);
+      setTotalUsers(0);
+      setStats({
+        total: 0,
+        active: 0,
+        inactive: 0,
+        suspended: 0,
+        vip: 0
+      });
     } finally {
       setLoading(false);
     }
@@ -228,11 +257,20 @@ export default function Users() {
     };
 
     const handleUserCreate = (newUser) => {
-      setUsers((prev) => [...prev, newUser]);
+      setUsers((prev) => {
+        // update users list and increment totalUsers for real-time display
+        const next = [...prev, newUser];
+        setTotalUsers((t) => (Number(t) || 0) + 1);
+        return next;
+      });
     };
 
     const handleUserDelete = (deletedUser) => {
-      setUsers((prev) => prev.filter((u) => u.id !== deletedUser.id));
+      setUsers((prev) => {
+        const next = prev.filter((u) => u.id !== deletedUser.id && u._id !== deletedUser.id);
+        setTotalUsers((t) => Math.max(0, (Number(t) || 0) - 1));
+        return next;
+      });
     };
 
     subscribe("user-updated", handleUserUpdate);
@@ -252,303 +290,558 @@ export default function Users() {
 
   return (
     <div className="p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">User Management</h1>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setHideTabs(!hideTabs)}>
-            <SlidersHorizontal className="w-4 h-4 mr-2" />
-            Hide tabs
-          </Button>
-          <Button variant="outline" size="sm" className="bg-primary text-primary-foreground" onClick={handleExport}>
-            <Upload className="w-4 h-4 mr-3" />
-            Export
-          </Button>
+      {/* Header Section */}
+      <div className="flex flex-col space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900">User Management</h1>
+            <p className="text-gray-600 mt-2">Manage and monitor all user accounts in your system</p>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowFilterModal(true)}
+              className="gap-2"
+            >
+              <Filter className="w-4 h-4" />
+              Filters
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExport}
+              className="gap-2 bg-white hover:bg-gray-50"
+            >
+              <Download className="w-4 h-4" />
+              Export
+            </Button>
+          </div>
         </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-blue-50 to-indigo-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-700">Total Users</p>
+                  <p className="text-3xl font-bold text-gray-900">{totalUsers.toLocaleString()}</p>
+                </div>
+                <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                  <Users className="h-6 w-6 text-blue-600" />
+                </div>
+              </div>
+              <Progress value={(stats.total / (stats.total || 1)) * 100} className="mt-4 h-1" />
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-green-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-emerald-700">Active Users</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.active.toLocaleString()}</p>
+                </div>
+                <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                  <UserCheck className="h-6 w-6 text-emerald-600" />
+                </div>
+              </div>
+              <Progress value={(stats.active / (stats.total || 1)) * 100} className="mt-4 h-1" />
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-amber-50 to-orange-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-amber-700">Inactive Users</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.inactive.toLocaleString()}</p>
+                </div>
+                <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                  <UserMinus className="h-6 w-6 text-amber-600" />
+                </div>
+              </div>
+              <Progress value={(stats.inactive / (stats.total || 1)) * 100} className="mt-4 h-1" />
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-rose-50 to-pink-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-rose-700">Suspended</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.suspended.toLocaleString()}</p>
+                </div>
+                <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                  <Shield className="h-6 w-6 text-rose-600" />
+                </div>
+              </div>
+              <Progress value={(stats.suspended / (stats.total || 1)) * 100} className="mt-4 h-1" />
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-sm bg-gradient-to-br from-purple-50 to-violet-50">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-purple-700">VIP Users</p>
+                  <p className="text-3xl font-bold text-gray-900">{stats.vip.toLocaleString()}</p>
+                </div>
+                <div className="h-12 w-12 rounded-lg bg-white flex items-center justify-center shadow-sm">
+                  <Star className="h-6 w-6 text-purple-600" />
+                </div>
+              </div>
+              <Progress value={(stats.vip / (stats.total || 1)) * 100} className="mt-4 h-1" />
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search and Filter Bar */}
+        <Card className="border-0 shadow-sm">
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search by name, email, or phone number..."
+                    className="pl-9 w-full md:w-[400px]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full md:w-auto">
+                  <TabsList className="bg-gray-100 p-1">
+                    <TabsTrigger value="all" className="data-[state=active]:bg-white">All Users</TabsTrigger>
+                    <TabsTrigger value="active" className="data-[state=active]:bg-white">Active</TabsTrigger>
+                    <TabsTrigger value="inactive" className="data-[state=active]:bg-white">Inactive</TabsTrigger>
+                    <TabsTrigger value="suspended" className="data-[state=active]:bg-white">Suspended</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      <Card className="p-4">
-        <div className="flex items-center justify-between mb-4">
-          {!hideTabs && (
-            <div className="flex gap-2" key={activeTab}>
-              {tabs.map((tab) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`px-4 py-2 text-sm rounded-md transition-colors ${
-                    activeTab === tab
-                      ? "bg-accent text-accent-foreground"
-                      : "hover:bg-accent/50"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
+      {/* Users Table */}
+      <Card className="border-0 shadow-sm overflow-hidden">
+        <CardHeader className="bg-gray-50/50 border-b">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-lg font-semibold">User Directory</CardTitle>
+              <CardDescription>{filteredUsers.length} users found</CardDescription>
             </div>
-          )}
-
-          <div className="flex gap-2">
-            <Input
-              placeholder="Search by name or email"
-              className="w-64"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-            <Button variant="outline" size="sm" onClick={() => setShowFilterModal(true)}>
-              Filter by date <ChevronDown className="w-4 h-4 ml-2" />
-            </Button>
-            <Button variant="outline" size="sm" onClick={() => setShowFilterModal(true)}>
-              Advanced filter <SlidersHorizontal className="w-4 h-4 ml-2" />
-            </Button>
+            <Badge variant="outline" className="bg-white">
+              <Activity className="h-3 w-3 mr-1" />
+              Real-time Updates
+            </Badge>
           </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-accent/30">
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground">
-                  <Checkbox />
-                </th>
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Vendor's Name</th>
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Email</th>
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Phone number</th>
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Reservations</th>
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Last Active</th>
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground">VIP</th>
-                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+        </CardHeader>
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50/50">
                 <tr>
-                  <td className="p-3 text-sm text-muted-foreground" colSpan={8}>Loading users...</td>
-                </tr>
-              ) : users.length === 0 ? (
-                <tr>
-                  <td className="p-3 text-sm text-muted-foreground" colSpan={8}>No users found.</td>
-                </tr>
-              ) : filteredUsers.map((user, i) => (
-                <tr key={i} className="border-b hover:bg-accent/50">
-                  <td className="p-3">
+                  <th className="text-left p-4 text-sm font-semibold text-gray-700">
                     <Checkbox />
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
-                        <span className="text-sm font-semibold">K</span>
+                  </th>
+                  <th className="text-left p-4 text-sm font-semibold text-gray-700">User</th>
+                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Contact</th>
+                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Reservations</th>
+                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Last Active</th>
+                  <th className="text-left p-4 text-sm font-semibold text-gray-700">VIP</th>
+                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Status</th>
+                  <th className="text-left p-4 text-sm font-semibold text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="border-b hover:bg-gray-50/50">
+                      <td className="p-4"><Skeleton className="h-4 w-4" /></td>
+                      <td className="p-4">
+                        <div className="flex items-center gap-3">
+                          <Skeleton className="h-10 w-10 rounded-full" />
+                          <div className="space-y-2">
+                            <Skeleton className="h-4 w-24" />
+                            <Skeleton className="h-3 w-32" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-4"><Skeleton className="h-4 w-32" /></td>
+                      <td className="p-4"><Skeleton className="h-4 w-16" /></td>
+                      <td className="p-4"><Skeleton className="h-4 w-24" /></td>
+                      <td className="p-4"><Skeleton className="h-6 w-12 rounded-full" /></td>
+                      <td className="p-4"><Skeleton className="h-6 w-16 rounded-full" /></td>
+                      <td className="p-4"><Skeleton className="h-8 w-8 rounded-md" /></td>
+                    </tr>
+                  ))
+                ) : filteredUsers.length === 0 ? (
+                  <tr>
+                    <td colSpan={8} className="p-12 text-center">
+                      <div className="flex flex-col items-center justify-center">
+                        <div className="h-16 w-16 rounded-full bg-gray-100 flex items-center justify-center mb-4">
+                          <Users className="h-8 w-8 text-gray-400" />
+                        </div>
+                        <h3 className="font-semibold text-gray-900 mb-1">No users found</h3>
+                        <p className="text-gray-500">Try adjusting your search or filters</p>
                       </div>
-                      <span className="text-sm font-medium">{user.name || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || user.email || "-"}</span>
-                    </div>
-                  </td>
-                  <td className="p-3 text-sm">{user.email}</td>
-                  <td className="p-3 text-sm">{user.phone || user.phoneNumber || user.mobile || "-"}</td>
-                  <td className="p-3 text-sm text-center">{user.reservations ?? user.stats?.reservations ?? 0}</td>
-                  <td className="p-3 text-sm">{user.date || (user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleDateString() : "-")}</td>
-                  <td className="p-3">
-                    <Badge variant={user.isVip ? "default" : "secondary"}>
-                      {user.isVip ? "VIP" : "Regular"}
-                    </Badge>
-                  </td>
-                  <td className="p-3">
-                    <div className="flex items-center justify-between">
-                      <Badge
-                        variant={user.status === "Active" ? "default" : "secondary"}
-                        className={
-                          user.status === "Active"
-                            ? "bg-success text-success-foreground"
-                            : "bg-warning text-warning-foreground"
+                    </td>
+                  </tr>
+                ) : filteredUsers.map((user, i) => (
+                  <tr key={i} className="border-b hover:bg-gray-50/50 transition-colors">
+                    <td className="p-4">
+                      <Checkbox />
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-10 w-10 border-2 border-white shadow-sm">
+                          <AvatarFallback className="bg-gradient-to-br from-blue-100 to-indigo-100 text-blue-600">
+                            {user.name?.charAt(0) || user.email?.charAt(0).toUpperCase() || "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {user.name || `${user.firstName ?? ""} ${user.lastName ?? ""}`.trim() || "Unnamed User"}
+                          </div>
+                          <div className="text-sm text-gray-500">{user.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="space-y-1">
+                        <div className="text-sm text-gray-900">{user.email}</div>
+                        <div className="text-sm text-gray-500">{user.phone || user.phoneNumber || user.mobile || "-"}</div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="text-center">
+                        <div className="text-lg font-semibold text-gray-900">{user.reservations ?? user.stats?.reservations ?? 0}</div>
+                        <div className="text-xs text-gray-500">reservations</div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <div className="text-sm text-gray-600">
+                        {user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleDateString() : "Never"}
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <Badge 
+                        variant={user.isVip ? "default" : "outline"} 
+                        className={user.isVip 
+                          ? "bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600" 
+                          : "bg-gray-100"
                         }
                       >
-                        {(user.status || user.accountStatus || "").toString()}
+                        {user.isVip ? "VIP" : "Regular"}
                       </Badge>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="ml-2"
-                          >
-                            <MoreVertical className="w-4 h-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleViewProfile(user)}>
-                            <Eye className="w-4 h-4 mr-2" />
-                            View Profile
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleSuspendAccount(user)}>
-                            <UserX className="w-4 h-4 mr-2" />
-                            Suspend Account
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleResetPassword(user)}>
-                            <KeyRound className="w-4 h-4 mr-2" />
-                            Reset Password
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleMarkAsVIP(user)}>
-                            <Star className="w-4 h-4 mr-2" />
-                            {user.isVip ? "Remove VIP" : "Mark as VIP"}
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleViewReservations(user)}>
-                            <Calendar className="w-4 h-4 mr-2" />
-                            View Reservations
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <div className="flex items-center justify-between mt-4">
-          <p className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</p>
-          <div className="flex gap-1">
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`w-8 h-8 text-sm rounded ${
-                  page === currentPage ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-                }`}
-              >
-                {page}
-              </button>
-            ))}
+                    </td>
+                    <td className="p-4">
+                      <Badge
+                        variant="outline"
+                        className={
+                          user.status === "Active" 
+                            ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                            : user.status === "Suspended"
+                            ? "bg-rose-50 text-rose-700 border-rose-200"
+                            : "bg-gray-50 text-gray-700 border-gray-200"
+                        }
+                      >
+                        {(user.status || user.accountStatus || "Unknown").toString()}
+                      </Badge>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 hover:bg-gray-100"
+                          onClick={() => handleViewProfile(user)}
+                          title="View Profile"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-56">
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => handleViewProfile(user)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              View Profile
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleResetPassword(user)}>
+                              <KeyRound className="h-4 w-4 mr-2" />
+                              Reset Password
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleMarkAsVIP(user)}>
+                              <Star className="h-4 w-4 mr-2" />
+                              {user.isVip ? "Remove VIP" : "Mark as VIP"}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewReservations(user)}>
+                              <Calendar className="h-4 w-4 mr-2" />
+                              View Reservations
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem 
+                              onClick={() => handleSuspendAccount(user)}
+                              className="text-red-600"
+                            >
+                              <UserX className="h-4 w-4 mr-2" />
+                              Suspend Account
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between p-4 border-t">
+            <div className="text-sm text-gray-600">
+              Showing {filteredUsers.length} of {totalUsers} users
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                Previous
+              </Button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      className="h-8 w-8"
+                      onClick={() => setCurrentPage(pageNum)}
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </CardContent>
       </Card>
 
-      <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>User Actions</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-2">
-            <Button variant="ghost" className="w-full justify-start" onClick={() => handleViewProfile(selectedUser)}>
-              <Eye className="w-4 h-4 mr-2" />
-              View Profile
-            </Button>
-            <Button variant="ghost" className="w-full justify-start" onClick={() => handleSuspendAccount(selectedUser)}>
-              <UserX className="w-4 h-4 mr-2" />
-              Suspend Account
-            </Button>
-            <Button variant="ghost" className="w-full justify-start" onClick={() => handleResetPassword(selectedUser)}>
-              <KeyRound className="w-4 h-4 mr-2" />
-              Reset Password
-            </Button>
-            <Button variant="ghost" className="w-full justify-start" onClick={() => handleMarkAsVIP(selectedUser)}>
-              <Star className="w-4 h-4 mr-2" />
-              Mark as VIP
-            </Button>
-            <Button variant="ghost" className="w-full justify-start" onClick={() => handleViewReservations(selectedUser)}>
-              <Calendar className="w-4 h-4 mr-2" />
-              View Reservations
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>User Profile</DialogTitle>
-          </DialogHeader>
-          {detailsLoading ? (
-            <p>Loading...</p>
-          ) : userDetails ? (
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium">Name</label>
-                <p>{userDetails.name || `${userDetails.firstName ?? ""} ${userDetails.lastName ?? ""}`.trim() || "-"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Email</label>
-                <p>{userDetails.email || "-"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Phone</label>
-                <p>{userDetails.phone || userDetails.phoneNumber || userDetails.mobile || "-"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Status</label>
-                <p>{userDetails.status || userDetails.accountStatus || "-"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">VIP</label>
-                <p>{userDetails.isVip ? "Yes" : "No"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Reservations</label>
-                <p>{userDetails.reservations ?? userDetails.stats?.reservations ?? 0}</p>
-              </div>
-            </div>
-          ) : (
-            <p>No user details available.</p>
-          )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={reservationsOpen} onOpenChange={setReservationsOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>User Reservations</DialogTitle>
-          </DialogHeader>
-          {userReservations.length > 0 ? (
-            <div className="space-y-2">
-              {userReservations.map((reservation, index) => (
-                <div key={index} className="border p-2 rounded">
-                  <p>Reservation {index + 1}</p>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <p>No reservations found.</p>
-          )}
-        </DialogContent>
-      </Dialog>
-
+      {/* Filter Modal */}
       <Dialog open={showFilterModal} onOpenChange={setShowFilterModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Filter Users</DialogTitle>
+            <DialogDescription>Refine your search with advanced filters</DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="text-sm font-medium">Status</label>
-              <select
-                className="w-full mt-1 p-2 border rounded"
-                value={filters.status}
-                onChange={(e) => setFilters({ ...filters, status: e.target.value })}
-              >
-                <option value="">All</option>
-                <option value="Active">Active</option>
-                <option value="Inactive">Inactive</option>
-                <option value="Suspended">Suspended</option>
-              </select>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Status</Label>
+              <Select value={filters.status} onValueChange={(value) => setFilters({ ...filters, status: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                  <SelectItem value="Suspended">Suspended</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label className="text-sm font-medium">Role</label>
-              <select
-                className="w-full mt-1 p-2 border rounded"
-                value={filters.role}
-                onChange={(e) => setFilters({ ...filters, role: e.target.value })}
-              >
-                <option value="">All</option>
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-              </select>
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Role</Label>
+              <Select value={filters.role} onValueChange={(value) => setFilters({ ...filters, role: value })}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Roles</SelectItem>
+                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="vendor">Vendor</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <Separator />
+            
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Date Range</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Input type="date" placeholder="From" />
+                <Input type="date" placeholder="To" />
+              </div>
             </div>
           </div>
-          <div className="flex justify-end gap-2 mt-4">
-            <Button variant="outline" onClick={() => setShowFilterModal(false)}>
-              Cancel
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => {
+              setFilters({ status: "", role: "", dateRange: { from: null, to: null } });
+              setShowFilterModal(false);
+            }}>
+              Clear Filters
             </Button>
             <Button onClick={() => setShowFilterModal(false)}>
-              Apply
+              Apply Filters
             </Button>
-          </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Profile Modal */}
+      <Dialog open={profileOpen} onOpenChange={setProfileOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>User Profile</DialogTitle>
+            <DialogDescription>Detailed information about the selected user</DialogDescription>
+          </DialogHeader>
+          {detailsLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-24 w-24 rounded-full mx-auto" />
+              <Skeleton className="h-8 w-48 mx-auto" />
+              <div className="grid grid-cols-2 gap-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+          ) : userDetails ? (
+            <div className="space-y-6">
+              <div className="flex flex-col items-center text-center">
+                <Avatar className="h-24 w-24 border-4 border-white shadow-lg">
+                  <AvatarFallback className="text-2xl bg-gradient-to-br from-blue-100 to-indigo-100">
+                    {userDetails.name?.charAt(0) || userDetails.email?.charAt(0).toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <h3 className="mt-4 text-xl font-semibold">
+                  {userDetails.name || `${userDetails.firstName ?? ""} ${userDetails.lastName ?? ""}`.trim()}
+                </h3>
+                <p className="text-gray-600">{userDetails.email}</p>
+              </div>
+              
+              <Separator />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Phone</Label>
+                  <p className="text-gray-900">{userDetails.phone || userDetails.phoneNumber || userDetails.mobile || "-"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Status</Label>
+                  <Badge variant="outline" className={
+                    userDetails.status === "Active" 
+                      ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                      : userDetails.status === "Suspended"
+                      ? "bg-rose-50 text-rose-700 border-rose-200"
+                      : "bg-gray-50 text-gray-700 border-gray-200"
+                  }>
+                    {userDetails.status || userDetails.accountStatus || "-"}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">VIP Status</Label>
+                  <Badge variant={userDetails.isVip ? "default" : "outline"}>
+                    {userDetails.isVip ? "VIP Member" : "Regular User"}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Reservations</Label>
+                  <p className="text-gray-900">{userDetails.reservations ?? userDetails.stats?.reservations ?? 0}</p>
+                </div>
+                <div className="col-span-2">
+                  <Label className="text-sm font-medium text-gray-500">Last Active</Label>
+                  <p className="text-gray-900">
+                    {userDetails.lastActiveAt 
+                      ? new Date(userDetails.lastActiveAt).toLocaleString()
+                      : "Never"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No user details available.</p>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setProfileOpen(false)}>Close</Button>
+            <Button onClick={() => {
+              handleResetPassword(userDetails);
+              setProfileOpen(false);
+            }}>Reset Password</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reservations Modal */}
+      <Dialog open={reservationsOpen} onOpenChange={setReservationsOpen}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Reservations</DialogTitle>
+            <DialogDescription>Reservation history for {selectedUser?.name || selectedUser?.email}</DialogDescription>
+          </DialogHeader>
+          {userReservations.length > 0 ? (
+            <div className="space-y-4">
+              {userReservations.map((reservation, index) => (
+                <Card key={index}>
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="font-medium">Reservation #{index + 1}</p>
+                        <p className="text-sm text-gray-600">Placeholder reservation data</p>
+                      </div>
+                      <Badge variant="outline">Active</Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-8">
+              <div className="h-12 w-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                <Calendar className="h-6 w-6 text-gray-400" />
+              </div>
+              <h3 className="font-semibold text-gray-900 mb-1">No reservations found</h3>
+              <p className="text-gray-500">This user hasn't made any reservations yet.</p>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReservationsOpen(false)}>Close</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
