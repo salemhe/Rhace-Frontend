@@ -1,26 +1,32 @@
-import { fetchRoomTypes, selectRoomTypes } from '@/redux/slices/vendorSlice';
-import { hotelService } from '@/services/hotel.service';
-import { Plus } from 'lucide-react';
-import { useEffect, useState, useRef } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
-import DeleteConfirmationModal from './DeleteRoom';
-import ImageGalleryModal from './ImageGalleryModal';
-import RoomCard from './RoomCard';
-import RoomDetailsModal from './RoomDetailsModal';
-import RoomModal from './RoomModal';
-import RoomTable from './RoomTable';
-import ViewToggle from './ViewToggle';
-import NoDataFallback from '@/components/NoDataFallback';
-import UniversalLoader from '@/components/user/ui/LogoLoader';
-import RoomFilter from './RoomFilter';
+import { fetchRoomTypes, selectRoomTypes } from "@/redux/slices/vendorSlice";
+import { hotelService } from "@/services/hotel.service";
+import { Plus } from "lucide-react";
+import { useEffect, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import DeleteConfirmationModal from "./DeleteRoom";
+import ImageGalleryModal from "./ImageGalleryModal";
+import RoomCard from "./RoomCard";
+import RoomDetailsModal from "./RoomDetailsModal";
+import RoomModal from "./RoomModal";
+import RoomTable from "./RoomTable";
+import ViewToggle from "./ViewToggle";
+import NoDataFallback from "@/components/NoDataFallback";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
+import RoomFilter from "./RoomFilter";
+import DashboardButton from "@/components/dashboard/ui/DashboardButton";
+import { Add } from "@/components/dashboard/ui/svg";
 
-const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalItemsChange }) => {
+const RoomsManagementComponent = ({
+  currentPage = 1,
+  itemsPerPage = 12,
+  onTotalItemsChange,
+}) => {
   const [rooms, setRooms] = useState([]);
   const [filteredRooms, setFilteredRooms] = useState([]);
   const [activeFilters, setActiveFilters] = useState(null);
-  const [view, setView] = useState('grid');
+  const [view, setView] = useState("grid");
   const [viewImages, setViewImages] = useState(null);
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
@@ -30,7 +36,7 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
   const navigate = useNavigate();
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [roomToDelete, setRoomToDelete] = useState(null);
-  
+
   // Ref to access RoomFilter methods
   const filterRef = useRef();
 
@@ -38,8 +44,18 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
   const roomTypesState = useSelector(selectRoomTypes);
   const vendor = useSelector((state) => state.auth.vendor);
 
+  useEffect(() => {
+    if (onTotalItemsChange) {
+      onTotalItemsChange(
+        Array.isArray(filteredRooms) ? filteredRooms.length : 0
+      );
+    }
+  }, [filteredRooms, onTotalItemsChange]);
   // Apply filters function
   const applyFilters = (filters, roomsToFilter) => {
+    if (!Array.isArray(roomsToFilter)) {
+      return [];
+    }
     if (!filters) {
       return roomsToFilter;
     }
@@ -47,62 +63,65 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
     let filtered = [...roomsToFilter];
 
     // Search filter - search in room name/type and description
-    if (filters.search && filters.search.trim() !== '') {
+    if (filters.search && filters.search.trim() !== "") {
       const searchLower = filters.search.toLowerCase().trim();
-      filtered = filtered.filter(room => {
-        const name = (room.name || room.roomType || '').toLowerCase();
-        const description = (room.description || '').toLowerCase();
-        const roomNumber = (room.roomNumber || '').toString().toLowerCase();
-        
-        return name.includes(searchLower) || 
-               description.includes(searchLower) || 
-               roomNumber.includes(searchLower);
+      filtered = filtered.filter((room) => {
+        const name = (room.name || room.roomType || "").toLowerCase();
+        const description = (room.description || "").toLowerCase();
+        const roomNumber = (room.roomNumber || "").toString().toLowerCase();
+
+        return (
+          name.includes(searchLower) ||
+          description.includes(searchLower) ||
+          roomNumber.includes(searchLower)
+        );
       });
     }
 
     // Category filter
-    if (filters.category && filters.category !== 'all') {
-      filtered = filtered.filter(room => {
-        const roomType = (room.type || room.roomType || '').toLowerCase();
+    if (filters.category && filters.category !== "all") {
+      filtered = filtered.filter((room) => {
+        const roomType = (room.type || room.roomType || "").toLowerCase();
         return roomType.includes(filters.category.toLowerCase());
       });
     }
 
     // Price range filter
-    if (filters.priceRange?.min && filters.priceRange.min !== '') {
+    if (filters.priceRange?.min && filters.priceRange.min !== "") {
       const minPrice = parseFloat(filters.priceRange.min);
-      filtered = filtered.filter(room => {
+      filtered = filtered.filter((room) => {
         const price = room.pricePerNight || room.price || 0;
         return price >= minPrice;
       });
     }
 
-    if (filters.priceRange?.max && filters.priceRange.max !== '') {
+    if (filters.priceRange?.max && filters.priceRange.max !== "") {
       const maxPrice = parseFloat(filters.priceRange.max);
-      filtered = filtered.filter(room => {
+      filtered = filtered.filter((room) => {
         const price = room.pricePerNight || room.price || 0;
         return price <= maxPrice;
       });
     }
 
     // Capacity filter
-    if (filters.capacity && filters.capacity !== '') {
+    if (filters.capacity && filters.capacity !== "") {
       const minCapacity = parseInt(filters.capacity);
-      filtered = filtered.filter(room => {
-        const totalCapacity = (room.adultsCapacity || 0) + (room.childrenCapacity || 0);
+      filtered = filtered.filter((room) => {
+        const totalCapacity =
+          (room.adultsCapacity || 0) + (room.childrenCapacity || 0);
         return totalCapacity >= minCapacity;
       });
     }
 
     // Status filter
-    if (filters.status && filters.status !== 'all') {
-      filtered = filtered.filter(room => {
-        if (filters.status === 'available') {
-          return room.isAvailable && room.maintenanceStatus !== 'maintenance';
-        } else if (filters.status === 'occupied') {
-          return !room.isAvailable && room.maintenanceStatus !== 'maintenance';
-        } else if (filters.status === 'maintenance') {
-          return room.maintenanceStatus === 'maintenance';
+    if (filters.status && filters.status !== "all") {
+      filtered = filtered.filter((room) => {
+        if (filters.status === "available") {
+          return room.isAvailable && room.maintenanceStatus !== "maintenance";
+        } else if (filters.status === "occupied") {
+          return !room.isAvailable && room.maintenanceStatus !== "maintenance";
+        } else if (filters.status === "maintenance") {
+          return room.maintenanceStatus === "maintenance";
         }
         return true;
       });
@@ -110,12 +129,10 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
 
     // Amenities filter - room must have ALL selected amenities
     if (filters.amenities && filters.amenities.length > 0) {
-      filtered = filtered.filter(room => {
+      filtered = filtered.filter((room) => {
         const roomAmenities = room.amenities || [];
-        return filters.amenities.every(amenity => 
-          roomAmenities.some(ra => 
-            ra.toLowerCase() === amenity.toLowerCase()
-          )
+        return filters.amenities.every((amenity) =>
+          roomAmenities.some((ra) => ra.toLowerCase() === amenity.toLowerCase())
         );
       });
     }
@@ -125,7 +142,7 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
 
   // Handle filter changes
   const handleFilterChange = (filters) => {
-    console.log('Filters applied:', filters);
+    console.log("Filters applied:", filters);
     setActiveFilters(filters);
     const filtered = applyFilters(filters, rooms);
     setFilteredRooms(filtered);
@@ -143,12 +160,12 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
     const fetchRoomTypesData = async () => {
       try {
         const res = await hotelService.getRoomTypes(vendor._id);
-        console.log('Fetched rooms:', res);
+        console.log("Fetched rooms:", res);
         setRooms(res);
         setFilteredRooms(res); // Initialize filtered rooms
       } catch (error) {
         console.error(error);
-        toast.error(error?.response?.data?.message || 'Failed to fetch rooms');
+        toast.error(error?.response?.data?.message || "Failed to fetch rooms");
       } finally {
         setIsLoading(false);
       }
@@ -160,20 +177,24 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
   useEffect(() => {
     const hotelId = vendor?.vendor?._id;
 
-    if (hotelId && roomTypesState.status === 'idle') {
+    if (hotelId && roomTypesState.status === "idle") {
       dispatch(fetchRoomTypes(hotelId));
     }
   }, [dispatch, roomTypesState.status, vendor]);
 
   // Map Redux room types to component state
   useEffect(() => {
-    if (roomTypesState.status === 'succeeded' && Array.isArray(roomTypesState.items) && roomTypesState.items.length > 0) {
+    if (
+      roomTypesState.status === "succeeded" &&
+      Array.isArray(roomTypesState.items) &&
+      roomTypesState.items.length > 0
+    ) {
       const mapped = roomTypesState.items.map((rt, idx) => ({
         _id: rt._id || `rt-${idx}`,
         roomNumber: rt.roomNumber || String(idx + 1),
         name: rt.name || `Room ${idx + 1}`,
         roomType: rt.name || `Room ${idx + 1}`,
-        type: rt.name || 'standard',
+        type: rt.name || "standard",
         pricePerNight: rt.pricePerNight || rt.price || 0,
         price: rt.pricePerNight || rt.price || 0,
         adultsCapacity: rt.adultsCapacity || 0,
@@ -181,9 +202,10 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
         capacity: (rt.adultsCapacity || 0) + (rt.childrenCapacity || 0),
         amenities: Array.isArray(rt.amenities) ? rt.amenities : [],
         features: [],
-        description: rt.description || '',
-        isAvailable: (typeof rt.totalUnits === 'number') ? rt.totalUnits > 0 : true,
-        maintenanceStatus: rt.maintenanceStatus || 'available',
+        description: rt.description || "",
+        isAvailable:
+          typeof rt.totalUnits === "number" ? rt.totalUnits > 0 : true,
+        maintenanceStatus: rt.maintenanceStatus || "available",
         images: Array.isArray(rt.images) ? rt.images : [],
         createdAt: rt.createdAt,
         updatedAt: rt.updatedAt,
@@ -196,8 +218,8 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
         setFilteredRooms(mapped);
       }
     }
-    if (roomTypesState.status === 'failed') {
-      console.error('Failed to load room types:', roomTypesState.error);
+    if (roomTypesState.status === "failed") {
+      console.error("Failed to load room types:", roomTypesState.error);
     }
   }, [roomTypesState]);
 
@@ -218,7 +240,13 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
   }, [filteredRooms.length, onTotalItemsChange]);
 
   // Calculate paginated rooms from filtered results
+  // Calculate paginated rooms from filtered results
   const getPaginatedRooms = () => {
+    // Ensure filteredRooms is an array
+    if (!Array.isArray(filteredRooms)) {
+      return [];
+    }
+
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     return filteredRooms.slice(startIndex, endIndex);
@@ -234,7 +262,7 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
 
   const handleAddRoom = () => {
     setEditingRoom(undefined);
-    navigate('/dashboard/hotel/addrooms');
+    navigate("/dashboard/hotel/addrooms");
   };
 
   const handleDeleteRoom = (roomId) => {
@@ -247,12 +275,12 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
     const hotelId = vendor._id;
 
     try {
-      setRooms(prev => prev.filter(room => room._id !== roomToDelete));
+      setRooms((prev) => prev.filter((room) => room._id !== roomToDelete));
       await hotelService.deleteRoomType(hotelId, roomToDelete);
-      toast.success('Room deleted successfully');
+      toast.success("Room deleted successfully");
     } catch (error) {
-      console.error('Failed to delete room:', error);
-      toast.error('Failed to delete room');
+      console.error("Failed to delete room:", error);
+      toast.error("Failed to delete room");
     } finally {
       setIsDeleteModalOpen(false);
       setRoomToDelete(null);
@@ -277,35 +305,37 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
 
   const handleSaveRoom = (roomData) => {
     if (editingRoom) {
-      setRooms(prev => prev.map(room =>
-        room._id === editingRoom._id ? { ...room, ...roomData } : room
-      ));
+      setRooms((prev) =>
+        prev.map((room) =>
+          room._id === editingRoom._id ? { ...room, ...roomData } : room
+        )
+      );
     } else {
       const newRoom = {
         _id: String(Date.now()),
         ...roomData,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
+        updatedAt: new Date().toISOString(),
       };
-      setRooms(prev => [...prev, newRoom]);
+      setRooms((prev) => [...prev, newRoom]);
     }
     setIsEditModalOpen(false);
   };
 
   if (isLoading) {
-    return <UniversalLoader fullscreen />
+    return <UniversalLoader fullscreen />;
   }
 
   // Check if filters are active
-  const hasActiveFilters = activeFilters && (
-    (activeFilters.search && activeFilters.search.trim() !== '') ||
-    (activeFilters.category && activeFilters.category !== 'all') ||
-    (activeFilters.priceRange?.min && activeFilters.priceRange.min !== '') ||
-    (activeFilters.priceRange?.max && activeFilters.priceRange.max !== '') ||
-    (activeFilters.capacity && activeFilters.capacity !== '') ||
-    (activeFilters.status && activeFilters.status !== 'all') ||
-    (activeFilters.amenities && activeFilters.amenities.length > 0)
-  );
+  const hasActiveFilters =
+    activeFilters &&
+    ((activeFilters.search && activeFilters.search.trim() !== "") ||
+      (activeFilters.category && activeFilters.category !== "all") ||
+      (activeFilters.priceRange?.min && activeFilters.priceRange.min !== "") ||
+      (activeFilters.priceRange?.max && activeFilters.priceRange.max !== "") ||
+      (activeFilters.capacity && activeFilters.capacity !== "") ||
+      (activeFilters.status && activeFilters.status !== "all") ||
+      (activeFilters.amenities && activeFilters.amenities.length > 0));
 
   return (
     <div className="min-h-screen text-gray-900 p-4 sm:p-0">
@@ -313,25 +343,31 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <h1 className="text-xl font-bold text-gray-900">Room Management</h1>
           <div className="flex items-center gap-3">
-            <ViewToggle view={view} onViewChange={setView} />
-            <button
+            {/* <ViewToggle view={view} onViewChange={setView} /> */}
+            <DashboardButton
               onClick={handleAddRoom}
+              variant="primary"
+              text="Add Room"
+              icon={<Add fill="#fff" />}
               className="flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors shadow-sm"
-            >
-              <Plus size={20} className="mr-2" />
-              Add Room
-            </button>
+            />
           </div>
         </div>
-        
-        <RoomFilter ref={filterRef} onFilterChange={handleFilterChange}/>
-        
+
+        <RoomFilter
+          ref={filterRef}
+          onFilterChange={handleFilterChange}
+          view={view}
+          setView={setView}
+        />
+
         {/* Filter Results Info */}
         {hasActiveFilters && filteredRooms.length > 0 && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <div className="flex justify-between items-center">
               <p className="text-blue-700 text-sm font-medium">
-                Found {filteredRooms.length} room{filteredRooms.length !== 1 ? 's' : ''} matching your filters
+                Found {filteredRooms.length} room
+                {filteredRooms.length !== 1 ? "s" : ""} matching your filters
               </p>
               <button
                 onClick={handleClearFilters}
@@ -354,12 +390,26 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
           <div className="bg-white rounded-lg shadow p-12 text-center">
             <div className="max-w-md mx-auto">
               <div className="text-gray-400 mb-4">
-                <svg className="mx-auto h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg
+                  className="mx-auto h-12 w-12"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No rooms match your filters</h3>
-              <p className="text-gray-500 mb-4">Try adjusting your filter criteria to see more results.</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                No rooms match your filters
+              </h3>
+              <p className="text-gray-500 mb-4">
+                Try adjusting your filter criteria to see more results.
+              </p>
               <button
                 onClick={handleClearFilters}
                 className="px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 transition-colors"
@@ -368,7 +418,7 @@ const RoomsManagementComponent = ({ currentPage = 1, itemsPerPage = 12, onTotalI
               </button>
             </div>
           </div>
-        ) : view === 'grid' ? (
+        ) : view === "grid" ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {paginatedRooms.map((room) => (
               <RoomCard

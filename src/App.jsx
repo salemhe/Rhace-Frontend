@@ -69,7 +69,6 @@ import ClubDashboard from "./pages/vendor/club/Dashboard";
 import HotelDashboard from "./pages/vendor/hotel/Dashboard";
 import ClubReservationTable from "./pages/vendor/club/reservations";
 
-
 // Admin
 import AdminDashboard from "./pages/admin/Dashboard";
 import AdminVendors from "./pages/admin/Vendors";
@@ -89,6 +88,7 @@ import HotelSettings from "./pages/vendor/hotel/Settings";
 import RestaurantSettings from "./pages/vendor/dashboard/restaurant/Settings";
 import ClubSettings from "./pages/vendor/club/Settings";
 import Favorites from "./pages/user/Favourites";
+import VendornHomePage from "./pages/vendor/landingPage/page";
 
 const authRoutes = {
   user: [
@@ -118,17 +118,13 @@ const restaurantReservationRoutes = [
   { path: "/restaurants/pre-payment/:id", element: <PrePaymentPage /> },
 ];
 
-const clubRoutes = [
-  { path: "/clubs/:id", element: <ClubPage /> },
-];
+const clubRoutes = [{ path: "/clubs/:id", element: <ClubPage /> }];
 
 const clubReservationRoutes = [
   { path: "/clubs/:id/reservations", element: <ClubReservation /> },
 ];
 
-const hotelRoutes = [
-  { path: "/hotels/:id", element: <HotelsPage /> },
-];
+const hotelRoutes = [{ path: "/hotels/:id", element: <HotelsPage /> }];
 
 const hotelReservationRoutes = [
   { path: "/hotels/:id/reservations", element: <HotelReservation /> },
@@ -137,7 +133,7 @@ const hotelReservationRoutes = [
 const userGeneralRoutes = [
   { path: "/bookings", element: <BookingsPage /> },
   { path: "/search", element: <SearchContent /> },
-{ path: "/favorites", element: <Favorites /> },
+  { path: "/favorites", element: <Favorites /> },
 ];
 
 const adminRoutes = [
@@ -182,8 +178,6 @@ const clubVendorRoutes = [
   { path: "club/settings", element: <ClubSettings /> },
 ];
 
-
-
 function App() {
   return (
     <>
@@ -196,17 +190,26 @@ function App() {
           <Route path="/about" element={<AboutRhace />} />
           <Route path="/contact" element={<ContactRhace />} />
           <Route path="/faq" element={<HelpCenterRhace />} />
+          <Route path="/reservation-home" element={<VendornHomePage />} />
 
           {/* Authentication */}
           <Route path="/auth">
             <Route path="user">
               {authRoutes.user.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
             <Route path="vendor">
               {authRoutes.vendor.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
           </Route>
@@ -226,24 +229,40 @@ function App() {
             {/* Hotels */}
             <Route element={<HotelReservationLayout />}>
               {hotelReservationRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
 
             {/* Club & Hotel Reservations */}
             <Route element={<ClubReservationLayout />}>
               {clubReservationRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
             <Route element={<ReservationLayout />}>
               {restaurantReservationRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
             {/* User General */}
             {userGeneralRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
+              <Route
+                key={route.path}
+                path={route.path}
+                element={route.element}
+              />
             ))}
           </Route>
           <Route element={<ProtectedRoute />}>
@@ -253,27 +272,43 @@ function App() {
             <Route path="/dashboard">
               {/* Admin Routes */}
               {adminRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
             {/* Dashboard - Restaurant */}
             <Route path="/dashboard">
               {dashboardRestaurantRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
 
             {/* Vendor - Hotel */}
             <Route path="/dashboard">
               {hotelVendorRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
 
             {/* Vendor - Club */}
             <Route path="/dashboard">
               {clubVendorRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
           </Route>

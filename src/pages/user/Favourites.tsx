@@ -555,8 +555,7 @@ const Favorites: React.FC = () => {
                           w-full text-sm font-semibold 
                           rounded-full px-3 py-3 tracking-wide 
                           text-white cursor-pointer
-                          bg-gradient-to-b from-teal-600 to-teal-500
-                          hover:from-teal-700 hover:to-cyan-600
+                          bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                           transition-all duration-200 shadow-sm
                         "
                       >

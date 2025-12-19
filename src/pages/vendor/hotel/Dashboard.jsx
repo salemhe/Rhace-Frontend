@@ -1,19 +1,23 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Users, DollarSign, User, Clock, X, ChevronRight, ExternalLink } from 'lucide-react';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
-import { cn } from '@/lib/utils';
-import { useSelector } from 'react-redux';
-import { capitalize } from '@/utils/helper';
-import { reservationService } from '@/services/reservation.service';
-import { formatDate, formatTime } from '@/utils/formatDate';
-import UniversalLoader from '@/components/user/ui/LogoLoader';
+import {
+  BookingsIcon,
+  GuestsIcon,
+  PendingPaymentIcon,
+  PrepaidIcon,
+} from "@/assets/icons/icons";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
+import { reservationService } from "@/services/reservation.service";
+import { formatDate } from "@/utils/formatDate";
+import { capitalize } from "@/utils/helper";
+import { ChevronRight, Clock, ExternalLink, User, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 const HotelDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);
-  const [timeFilter, setTimeFilter] = useState('Weekly');
-  const [revenueFilter, setRevenueFilter] = useState('Weekly');
-  const [sourceFilter, setSourceFilter] = useState('Weekly');
+  const [timeFilter, setTimeFilter] = useState("Weekly");
+  const [revenueFilter, setRevenueFilter] = useState("Weekly");
+  const [sourceFilter, setSourceFilter] = useState("Weekly");
   const [currentTime, setCurrentTime] = useState(new Date());
   const [reservationStats, setReservationStats] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -30,57 +34,74 @@ const HotelDashboard = () => {
   // Stats data configuration
   const statsConfig = [
     {
-      title: 'Reservations made today',
+      title: "Reservations made today",
       icon: BookingsIcon,
       iconColors: "#60A5FA",
-      bgColor: 'bg-blue-50',
-      iconColor: 'text-blue-600'
+      bgColor: "bg-blue-50",
+      iconColor: "text-blue-600",
     },
     {
-      title: 'Prepaid Reservations',
+      title: "Prepaid Reservations",
       icon: PrepaidIcon,
       iconColors: "#06CD02",
-      bgColor: 'bg-green-50',
-      iconColor: 'text-green-600'
+      bgColor: "bg-green-50",
+      iconColor: "text-green-600",
     },
     {
-      title: 'Expected Guests Today',
+      title: "Expected Guests Today",
       icon: GuestsIcon,
-      bgColor: 'bg-purple-50',
-      iconColor: 'text-purple-600'
+      bgColor: "bg-purple-50",
+      iconColor: "text-purple-600",
     },
     {
-      title: 'Pending Payments',
+      title: "Pending Payments",
       icon: PendingPaymentIcon,
-      bgColor: 'bg-yellow-50',
-      iconColor: 'text-yellow-600'
-    }
+      bgColor: "bg-yellow-50",
+      iconColor: "text-yellow-600",
+    },
   ];
 
   // Filter only hotel reservations
   const getHotelReservations = () => {
     if (!reservationStats?.todaysReservations) return [];
     return reservationStats.todaysReservations.filter(
-      reservation => reservation.reservationType === 'hotelReservation'
+      (reservation) => reservation.reservationType === "hotelReservation"
     );
   };
 
   // Calculate hotel-specific stats
   const getHotelStats = () => {
     const hotelReservations = getHotelReservations();
-    
+
     const totalReservations = hotelReservations.length;
-    const prepaidReservations = hotelReservations.filter(r => r.paymentStatus === 'Paid').length;
-    const totalGuests = hotelReservations.reduce((sum, r) => sum + (r.guests || 0), 0);
+    const prepaidReservations = hotelReservations.filter(
+      (r) => r.paymentStatus === "Paid"
+    ).length;
+    const totalGuests = hotelReservations.reduce(
+      (sum, r) => sum + (r.guests || 0),
+      0
+    );
     const pendingPayments = hotelReservations
-      .filter(r => r.paymentStatus !== 'Paid')
+      .filter((r) => r.paymentStatus !== "Paid")
       .reduce((sum, r) => sum + (r.totalAmount || 0), 0);
 
     return [
-      { details: totalReservations, change: reservationStats.todayStats[0]?.change || 0 },
-      { details: prepaidReservations, change: reservationStats.todayStats[1]?.change || 0 },
-      { details: totalGuests, change: reservationStats.todayStats[2]?.change || 0 },
-      { details: pendingPayments, change: reservationStats.todayStats[3]?.change || 0 }
+      {
+        details: totalReservations,
+        change: reservationStats.todayStats[0]?.change || 0,
+      },
+      {
+        details: prepaidReservations,
+        change: reservationStats.todayStats[1]?.change || 0,
+      },
+      {
+        details: totalGuests,
+        change: reservationStats.todayStats[2]?.change || 0,
+      },
+      {
+        details: pendingPayments,
+        change: reservationStats.todayStats[3]?.change || 0,
+      },
     ];
   };
 
@@ -89,32 +110,35 @@ const HotelDashboard = () => {
   // Chart data based on filter - hotel reservations only
   const getChartData = () => {
     if (!reservationStats?.reservationTrends?.daily) return [];
-    
-    if (timeFilter === 'Weekly') {
-      return reservationStats.reservationTrends.daily.map(item => ({
-        day: new Date(item.date).toLocaleDateString('en-US', { weekday: 'short' }),
-        value: item.count
+
+    if (timeFilter === "Weekly") {
+      return reservationStats.reservationTrends.daily.map((item) => ({
+        day: new Date(item.date).toLocaleDateString("en-US", {
+          weekday: "short",
+        }),
+        value: item.count,
       }));
     } else {
       return reservationStats.reservationTrends.daily.map((item, index) => ({
         day: `Week ${Math.floor(index / 7) + 1}`,
-        value: item.count
+        value: item.count,
       }));
     }
   };
 
   const chartData = getChartData();
-  const maxValue = chartData.length > 0 ? Math.max(...chartData.map(d => d.value)) : 1;
+  const maxValue =
+    chartData.length > 0 ? Math.max(...chartData.map((d) => d.value)) : 1;
 
   // Revenue data for hotel reservations only
   const getRevenueData = () => {
     const hotelReservations = getHotelReservations();
-    
+
     if (hotelReservations.length === 0) {
       return {
         total: 0,
         change: 0,
-        items: []
+        items: [],
       };
     }
 
@@ -122,11 +146,11 @@ const HotelDashboard = () => {
     const revenueByRoom = {};
     let totalRevenue = 0;
 
-    hotelReservations.forEach(reservation => {
+    hotelReservations.forEach((reservation) => {
       // Use room ID or type as category
-      const roomType = reservation.room || 'Standard Room';
+      const roomType = reservation.room || "Standard Room";
       const amount = reservation.totalAmount || 0;
-      
+
       if (!revenueByRoom[roomType]) {
         revenueByRoom[roomType] = 0;
       }
@@ -136,20 +160,28 @@ const HotelDashboard = () => {
 
     // Convert to array and calculate percentages
     const items = Object.entries(revenueByRoom).map(([room, amount], index) => {
-      const colors = ['bg-teal-600', 'bg-red-500', 'bg-yellow-400', 'bg-purple-500', 'bg-teal-300'];
-      
+      const colors = [
+        "bg-teal-600",
+        "bg-red-500",
+        "bg-yellow-400",
+        "bg-purple-500",
+        "bg-teal-300",
+      ];
+
       return {
-        category: typeof room === 'string' && room.length > 20 ? 'Room Type' : room,
-        percentage: totalRevenue > 0 ? ((amount / totalRevenue) * 100).toFixed(1) : 0,
+        category:
+          typeof room === "string" && room.length > 20 ? "Room Type" : room,
+        percentage:
+          totalRevenue > 0 ? ((amount / totalRevenue) * 100).toFixed(1) : 0,
         amount: amount,
-        color: colors[index % colors.length]
+        color: colors[index % colors.length],
       };
     });
 
     return {
       total: totalRevenue,
       change: reservationStats.reservationTrends?.trendChange || 0,
-      items: items
+      items: items,
     };
   };
 
@@ -160,14 +192,14 @@ const HotelDashboard = () => {
     if (!reservationStats?.customerFrequency) {
       return { total: 0, new: 0, returning: 0 };
     }
-    
+
     const newCount = reservationStats.customerFrequency.new || 0;
     const returningCount = reservationStats.customerFrequency.returning || 0;
-    
+
     return {
       total: newCount + returningCount,
       new: newCount,
-      returning: returningCount
+      returning: returningCount,
     };
   };
 
@@ -177,12 +209,12 @@ const HotelDashboard = () => {
   const getSourceData = () => {
     const hotelReservations = getHotelReservations();
     const total = hotelReservations.length;
-    
+
     return {
       total: total,
       sources: [
-        { name: `${total} bookings`, value: 100, color: 'bg-teal-600' }
-      ]
+        { name: `${total} bookings`, value: 100, color: "bg-teal-600" },
+      ],
     };
   };
 
@@ -191,11 +223,11 @@ const HotelDashboard = () => {
   // Calculate upcoming hotel reservations (within 30 minutes)
   const getUpcomingCount = () => {
     const hotelReservations = getHotelReservations();
-    
+
     const now = new Date();
     const thirtyMinutesFromNow = new Date(now.getTime() + 30 * 60000);
-    
-    return hotelReservations.filter(reservation => {
+
+    return hotelReservations.filter((reservation) => {
       const reservationDate = new Date(reservation.checkInDate);
       return reservationDate >= now && reservationDate <= thirtyMinutesFromNow;
     }).length;
@@ -218,10 +250,10 @@ const HotelDashboard = () => {
       try {
         setLoading(true);
         const res = await reservationService.getSummary();
-        console.log('Summary Data:', res);
+        console.log("Summary Data:", res);
         setReservationStats(res.data);
       } catch (error) {
-        console.error('Error fetching summary data:', error);
+        console.error("Error fetching summary data:", error);
       } finally {
         setLoading(false);
       }
@@ -231,9 +263,15 @@ const HotelDashboard = () => {
 
   if (loading) {
     return (
-      <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
+      <DashboardLayout
+        type={vendor.vendorType}
+        section="dashboard"
+        settings={false}
+      >
         <div className="min-h-screen flex items-center justify-center">
-          <p className="text-gray-500 text-lg animate-pulse">Loading dashboard...</p>
+          <p className="text-gray-500 text-lg animate-pulse">
+            Loading dashboard...
+          </p>
         </div>
       </DashboardLayout>
     );
@@ -241,7 +279,11 @@ const HotelDashboard = () => {
 
   if (!reservationStats) {
     return (
-      <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
+      <DashboardLayout
+        type={vendor.vendorType}
+        section="dashboard"
+        settings={false}
+      >
         <UniversalLoader fullscreen />
       </DashboardLayout>
     );
@@ -250,7 +292,11 @@ const HotelDashboard = () => {
   const hotelReservations = getHotelReservations();
 
   return (
-    <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
+    <DashboardLayout
+      type={vendor.vendorType}
+      section="dashboard"
+      settings={false}
+    >
       <div className="min-h-screen bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Alert Banner */}
@@ -259,10 +305,14 @@ const HotelDashboard = () => {
               <div className="flex items-center">
                 <Clock className="w-5 h-5 text-yellow-600 mr-3" />
                 <p className="text-yellow-800 text-sm font-medium">
-                  {upcomingCount} Hotel Check-in{upcomingCount > 1 ? 's' : ''} in the next 30 minutes
+                  {upcomingCount} Hotel Check-in{upcomingCount > 1 ? "s" : ""}{" "}
+                  in the next 30 minutes
                 </p>
               </div>
-              <button onClick={() => setShowAlert(false)} className="text-yellow-600 hover:text-yellow-800">
+              <button
+                onClick={() => setShowAlert(false)}
+                className="text-yellow-600 hover:text-yellow-800"
+              >
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -271,8 +321,12 @@ const HotelDashboard = () => {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Welcome Back, {capitalize(vendor.businessName)}!</h1>
-              <p className="text-gray-600 mt-1">Here's what is happening with your hotel today.</p>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome Back, {capitalize(vendor.businessName)}!
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Here's what is happening with your hotel today.
+              </p>
             </div>
           </div>
 
@@ -283,10 +337,12 @@ const HotelDashboard = () => {
               return (
                 <div key={index} className="flex justify-between p-5">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">{statsConfig[index].title}</p>
+                    <p className="text-sm text-gray-600 mb-1">
+                      {statsConfig[index].title}
+                    </p>
                     <p className="text-3xl font-bold text-gray-900 mb-2">
                       {index === 3
-                        ? `₦${stat.details.toLocaleString('en-US', {
+                        ? `₦${stat.details.toLocaleString("en-US", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}`
@@ -294,10 +350,12 @@ const HotelDashboard = () => {
                     </p>
                     <p
                       className={`text-sm flex items-center ${
-                        stat.change >= 0 ? 'text-green-600' : 'text-red-600'
+                        stat.change >= 0 ? "text-green-600" : "text-red-600"
                       }`}
                     >
-                      <span className="mr-1">{stat.change >= 0 ? '↑' : '↓'}</span>
+                      <span className="mr-1">
+                        {stat.change >= 0 ? "↑" : "↓"}
+                      </span>
                       {stat.change}% vs last week
                     </p>
                   </div>
@@ -322,8 +380,13 @@ const HotelDashboard = () => {
             {/* Today's Hotel Reservations */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Today's Hotel Reservations</h3>
-                <a href={`/dashboard/${vendor.vendorType}/bookings`} className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Today's Hotel Reservations
+                </h3>
+                <a
+                  href={`/dashboard/${vendor.vendorType}/bookings`}
+                  className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center"
+                >
                   View All
                 </a>
               </div>
@@ -339,26 +402,35 @@ const HotelDashboard = () => {
                           <User className="w-5 h-5 text-gray-600" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="font-medium text-gray-900">{reservation.customerName}</p>
-                          <p className="text-xs text-gray-500">Check-in: {formatDate(reservation.checkInDate)}</p>
+                          <p className="font-medium text-gray-900">
+                            {reservation.customerName}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Check-in: {formatDate(reservation.checkInDate)}
+                          </p>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <p className="text-sm text-gray-900">{formatDate(reservation.checkOutDate)}</p>
+                          <p className="text-sm text-gray-900">
+                            {formatDate(reservation.checkOutDate)}
+                          </p>
                           <p className="text-xs text-gray-500">Check-out</p>
                         </div>
                         <div className="text-center min-w-[70px]">
-                          <p className="text-sm font-medium text-gray-900">{reservation.guests} Guest{reservation.guests > 1 ? 's' : ''}</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {reservation.guests} Guest
+                            {reservation.guests > 1 ? "s" : ""}
+                          </p>
                         </div>
                         <div className="min-w-[90px]">
                           <span
                             className={`inline-block px-3 py-1 text-xs font-medium rounded ${
-                              reservation.reservationStatus === 'Upcoming'
-                                ? 'bg-teal-50 text-teal-700'
-                                : reservation.reservationStatus === 'Completed'
-                                ? 'bg-green-50 text-green-700'
-                                : 'bg-gray-50 text-gray-700'
+                              reservation.reservationStatus === "Upcoming"
+                                ? "bg-teal-50 text-teal-700"
+                                : reservation.reservationStatus === "Completed"
+                                ? "bg-green-50 text-green-700"
+                                : "bg-gray-50 text-gray-700"
                             }`}
                           >
                             {reservation.reservationStatus}
@@ -368,7 +440,9 @@ const HotelDashboard = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 text-gray-500">No hotel reservations today</div>
+                  <div className="text-center py-8 text-gray-500">
+                    No hotel reservations today
+                  </div>
                 )}
               </div>
             </div>
@@ -376,7 +450,9 @@ const HotelDashboard = () => {
             {/* Reservations Trends */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-gray-900">Hotel Booking Trends</h3>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Hotel Booking Trends
+                </h3>
                 <div className="flex items-center gap-3">
                   <button className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
                     View All
@@ -396,11 +472,15 @@ const HotelDashboard = () => {
                 <div className="flex items-center gap-6 mb-6">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-teal-600 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600">This {timeFilter.toLowerCase().slice(0, -2)}</span>
+                    <span className="text-sm text-gray-600">
+                      This {timeFilter.toLowerCase().slice(0, -2)}
+                    </span>
                   </div>
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-blue-300 rounded-full mr-2"></div>
-                    <span className="text-sm text-gray-600">Last {timeFilter.toLowerCase().slice(0, -2)}</span>
+                    <span className="text-sm text-gray-600">
+                      Last {timeFilter.toLowerCase().slice(0, -2)}
+                    </span>
                   </div>
                 </div>
                 <p className="text-3xl font-bold text-gray-900 mb-1">
@@ -408,28 +488,40 @@ const HotelDashboard = () => {
                 </p>
                 <p className="text-sm text-green-600 mb-6 flex items-center">
                   <span className="mr-1">↑</span>
-                  {reservationStats.reservationTrends?.trendChange || 0}% vs last{' '}
-                  {timeFilter.toLowerCase().slice(0, -2)}
+                  {reservationStats.reservationTrends?.trendChange || 0}% vs
+                  last {timeFilter.toLowerCase().slice(0, -2)}
                 </p>
 
                 {/* Bar Chart */}
                 {chartData.length > 0 ? (
                   <div className="flex items-end justify-between h-40 gap-2">
                     {chartData.map((item, index) => (
-                      <div key={index} className="flex-1 flex flex-col items-center justify-end h-full group">
-                        <div className="w-full flex flex-col justify-end relative" style={{ height: '100%' }}>
+                      <div
+                        key={index}
+                        className="flex-1 flex flex-col items-center justify-end h-full group"
+                      >
+                        <div
+                          className="w-full flex flex-col justify-end relative"
+                          style={{ height: "100%" }}
+                        >
                           <div
                             className="w-16 mx-auto bg-gradient-to-t from-teal-600 to-teal-400 rounded-t transition-all duration-300 hover:from-teal-700 hover:to-teal-500 cursor-pointer"
-                            style={{ height: `${(item.value / maxValue) * 100}%` }}
+                            style={{
+                              height: `${(item.value / maxValue) * 100}%`,
+                            }}
                             title={`${item.value} reservations`}
                           ></div>
                         </div>
-                        <span className="text-xs text-gray-600 mt-2">{item.day}</span>
+                        <span className="text-xs text-gray-600 mt-2">
+                          {item.day}
+                        </span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">No trend data available</div>
+                  <div className="text-center py-8 text-gray-500">
+                    No trend data available
+                  </div>
                 )}
               </div>
             </div>
@@ -440,7 +532,9 @@ const HotelDashboard = () => {
             {/* Customer Frequency */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Guest Frequency</h3>
+                <h3 className="text-base font-semibold text-gray-900">
+                  Guest Frequency
+                </h3>
                 <div className="flex items-center gap-2">
                   <select
                     value={timeFilter}
@@ -463,7 +557,10 @@ const HotelDashboard = () => {
                   const total = customerData.total;
 
                   const newPaths = generateDonutPath(newCustomers, total);
-                  const returningPaths = generateDonutPath(returningCustomers, total);
+                  const returningPaths = generateDonutPath(
+                    returningCustomers,
+                    total
+                  );
 
                   return (
                     <>
@@ -497,8 +594,12 @@ const HotelDashboard = () => {
 
                         {/* Center Label */}
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <p className="text-xs text-gray-500 mb-1">Total Guests</p>
-                          <p className="text-2xl font-bold text-gray-900">{total.toLocaleString()}</p>
+                          <p className="text-xs text-gray-500 mb-1">
+                            Total Guests
+                          </p>
+                          <p className="text-2xl font-bold text-gray-900">
+                            {total.toLocaleString()}
+                          </p>
                         </div>
                       </div>
 
@@ -507,17 +608,25 @@ const HotelDashboard = () => {
                         <div className="flex items-center gap-3">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-teal-600 rounded-full mr-2"></div>
-                            <span className="text-sm text-gray-600">{newPaths.percentage.toFixed(1)}%</span>
+                            <span className="text-sm text-gray-600">
+                              {newPaths.percentage.toFixed(1)}%
+                            </span>
                           </div>
-                          <span className="text-sm text-gray-900 font-medium">New Guests</span>
+                          <span className="text-sm text-gray-900 font-medium">
+                            New Guests
+                          </span>
                         </div>
 
                         <div className="flex items-center gap-3">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-yellow-400 rounded-full mr-2"></div>
-                            <span className="text-sm text-gray-600">{returningPaths.percentage.toFixed(1)}%</span>
+                            <span className="text-sm text-gray-600">
+                              {returningPaths.percentage.toFixed(1)}%
+                            </span>
                           </div>
-                          <span className="text-sm text-gray-900 font-medium">Returning Guests</span>
+                          <span className="text-sm text-gray-900 font-medium">
+                            Returning Guests
+                          </span>
                         </div>
                       </div>
                     </>
@@ -529,7 +638,9 @@ const HotelDashboard = () => {
             {/* Revenue (Room Category) */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Revenue (Room Category)</h3>
+                <h3 className="text-base font-semibold text-gray-900">
+                  Revenue (Room Category)
+                </h3>
                 <div className="flex items-center gap-2">
                   <select
                     value={revenueFilter}
@@ -546,10 +657,13 @@ const HotelDashboard = () => {
               </div>
               <div className="p-5">
                 <div className="mb-4">
-                  <p className="text-2xl font-bold text-gray-900">₦{revenueData.total.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">
+                    ₦{revenueData.total.toLocaleString()}
+                  </p>
                   <p className="text-sm text-green-600 flex items-center">
                     <span className="mr-1">↑</span>
-                    {revenueData.change}% vs last {revenueFilter.toLowerCase().slice(0, -2)}
+                    {revenueData.change}% vs last{" "}
+                    {revenueFilter.toLowerCase().slice(0, -2)}
                   </p>
                 </div>
 
@@ -562,7 +676,9 @@ const HotelDashboard = () => {
                           key={index}
                           className={`${item.color} transition-all duration-300 hover:opacity-80 cursor-pointer`}
                           style={{ width: `${item.percentage}%` }}
-                          title={`${item.category}: ₦${item.amount.toLocaleString()}`}
+                          title={`${
+                            item.category
+                          }: ₦${item.amount.toLocaleString()}`}
                         />
                       ))}
                     </div>
@@ -575,19 +691,29 @@ const HotelDashboard = () => {
                           className="flex items-center justify-between text-sm hover:bg-gray-50 p-1 rounded transition-colors"
                         >
                           <div className="flex items-center">
-                            <div className={`w-3 h-3 rounded-sm ${item.color} mr-2`}></div>
-                            <span className="text-gray-900 font-medium">{item.category}</span>
+                            <div
+                              className={`w-3 h-3 rounded-sm ${item.color} mr-2`}
+                            ></div>
+                            <span className="text-gray-900 font-medium">
+                              {item.category}
+                            </span>
                           </div>
                           <div className="flex items-center gap-4">
-                            <span className="text-gray-900 font-medium">{item.percentage}%</span>
-                            <span className="text-gray-500">(₦{item.amount.toLocaleString()})</span>
+                            <span className="text-gray-900 font-medium">
+                              {item.percentage}%
+                            </span>
+                            <span className="text-gray-500">
+                              (₦{item.amount.toLocaleString()})
+                            </span>
                           </div>
                         </div>
                       ))}
                     </div>
                   </>
                 ) : (
-                  <div className="text-center py-8 text-gray-500">No revenue data available</div>
+                  <div className="text-center py-8 text-gray-500">
+                    No revenue data available
+                  </div>
                 )}
               </div>
             </div>
@@ -595,7 +721,9 @@ const HotelDashboard = () => {
             {/* Reservation Source */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Booking Source</h3>
+                <h3 className="text-base font-semibold text-gray-900">
+                  Booking Source
+                </h3>
                 <div className="flex items-center gap-2">
                   <select
                     value={sourceFilter}
@@ -615,7 +743,7 @@ const HotelDashboard = () => {
                   <svg className="w-full h-full -rotate-90">
                     {sourceData.sources.map((source, index) => {
                       const paths = generateDonutPath(source.value, 100);
-                      const colors = ['#14b8a6', '#fbbf24', '#60a5fa'];
+                      const colors = ["#14b8a6", "#fbbf24", "#60a5fa"];
 
                       return (
                         <circle
@@ -634,7 +762,9 @@ const HotelDashboard = () => {
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
                     <p className="text-xs text-gray-500 mb-1">Total Bookings</p>
-                    <p className="text-2xl font-bold text-gray-900">{sourceData.total}</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {sourceData.total}
+                    </p>
                   </div>
                 </div>
                 <div className="space-y-2 w-full">
@@ -644,10 +774,16 @@ const HotelDashboard = () => {
                       className="flex items-center justify-between hover:bg-gray-50 p-1 rounded transition-colors"
                     >
                       <div className="flex items-center">
-                        <div className={`w-3 h-3 ${source.color} rounded-full mr-2`}></div>
-                        <span className="text-sm text-gray-900 font-medium">{source.name}</span>
+                        <div
+                          className={`w-3 h-3 ${source.color} rounded-full mr-2`}
+                        ></div>
+                        <span className="text-sm text-gray-900 font-medium">
+                          {source.name}
+                        </span>
                       </div>
-                      <span className="text-sm text-gray-600">{source.value}%</span>
+                      <span className="text-sm text-gray-600">
+                        {source.value}%
+                      </span>
                     </div>
                   ))}
                 </div>

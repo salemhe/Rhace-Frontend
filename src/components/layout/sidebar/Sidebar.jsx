@@ -1,19 +1,23 @@
-import { logout } from '@/redux/slices/authSlice';
-import { X } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { ClubList, HotelList, RestaurantList } from './SideMenuList';
+import { logout } from "@/redux/slices/authSlice";
+import { X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
+import { ClubList, HotelList, RestaurantList } from "./SideMenuList";
 import logo from "../../../assets/Rhace-09.png";
-
-
 
 // Hook to get current menu configuration
 const useMenuConfig = (businessType) => {
   const location = useLocation();
 
   const getMenuList = () => {
-    return businessType === 'hotel' ? HotelList : businessType === 'restaurant' ? RestaurantList : businessType === 'club' ? ClubList : ClubList;
+    return businessType === "hotel"
+      ? HotelList
+      : businessType === "restaurant"
+      ? RestaurantList
+      : businessType === "club"
+      ? ClubList
+      : ClubList;
   };
 
   const isActiveRoute = (itemPath) => {
@@ -23,14 +27,14 @@ const useMenuConfig = (businessType) => {
   const menuList = getMenuList();
 
   // Add active state to menu items
-  const menuItems = menuList.topItems.map(item => ({
+  const menuItems = menuList.topItems.map((item) => ({
     ...item,
-    active: isActiveRoute(item.path)
+    active: isActiveRoute(item.path),
   }));
 
-  const bottomItems = menuList.bottomItems.map(item => ({
+  const bottomItems = menuList.bottomItems.map((item) => ({
     ...item,
-    active: isActiveRoute(item.path)
+    active: isActiveRoute(item.path),
   }));
 
   return { menuItems, bottomItems, businessType };
@@ -65,11 +69,11 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
   const handleItemClick = (item) => {
     // If the clicked item is Logout, dispatch logout first, clear local profile,
     // then navigate to the login route and close the mobile sidebar.
-    if (item.label === 'Logout') {
-      console.log('Sidebar: logging out');
+    if (item.label === "Logout") {
+      console.log("Sidebar: logging out");
       dispatch(logout());
       setTimeout(() => {
-        navigate('/auth/vendor/login');
+        navigate("/auth/vendor/login");
       }, 500);
       setProfile(null);
       if (onNavigate) onNavigate(item.path);
@@ -87,7 +91,11 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
   };
 
   const getBusinessName = () => {
-    return type === 'hotel' ? 'Hotel 1 - HQ' : type === 'restaurant' ? 'Restaurant 1 - HQ' : 'Club 1 - HQ';
+    return type === "hotel"
+      ? "Hotel 1 - HQ"
+      : type === "restaurant"
+      ? "Restaurant 1 - HQ"
+      : "Club 1 - HQ";
   };
 
   return (
@@ -99,7 +107,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
           <div className="flex items-center h-16 px-4">
             <div className="flex items-center">
               <img
-                src={logo} 
+                src={logo}
                 alt="Rhace Logo"
                 className="w-20 h-20 object-contain"
               />
@@ -119,12 +127,13 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
               <button
                 key={item.label}
                 onClick={() => {
-                  handleItemClick(item)
+                  handleItemClick(item);
                 }}
-                className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${location.pathname === item.path 
-                    ? 'bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]'
-                    : 'text-teal-100 hover:bg-teal-700 hover:text-white'
-                  }`}
+                className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
+                  location.pathname === item.path
+                    ? "bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]"
+                    : "text-teal-100 hover:bg-teal-700 hover:text-white"
+                }`}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
@@ -138,10 +147,11 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
               <button
                 key={item.label}
                 onClick={() => handleItemClick(item)}
-                className={`w-[90%] flex items-center pl-7 py-2 rounded-tr-[36px] rounded-br-[36px] text-left gap-3 transition-colors duration-200 ${item.active
-                    ? 'bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]'
-                    : 'text-teal-100 hover:bg-teal-700 hover:text-white'
-                  }`}
+                className={`w-[90%] flex items-center pl-7 py-2 rounded-tr-[36px] rounded-br-[36px] text-left gap-3 transition-colors duration-200 ${
+                  item.active
+                    ? "bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]"
+                    : "text-teal-100 hover:bg-teal-700 hover:text-white"
+                }`}
               >
                 <item.icon className="w-5 h-5 " />
                 {item.label}
@@ -153,8 +163,9 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
 
       {/* Mobile Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-teal-800 text-white transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-teal-800 text-white transform transition-transform duration-300 ease-in-out lg:hidden ${
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
       >
         {/* Mobile Logo with close button */}
         <div className="flex items-center justify-between h-16 px-4 bg-teal-900">
@@ -185,10 +196,11 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
             <button
               key={item.label}
               onClick={() => handleItemClick(item)}
-              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${item.active
-                  ? 'bg-teal-700 text-white'
-                  : 'text-teal-100 hover:bg-teal-700 hover:text-white'
-                }`}
+              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
+                item.active
+                  ? "bg-teal-700 text-white"
+                  : "text-teal-100 hover:bg-teal-700 hover:text-white"
+              }`}
             >
               <item.icon className="w-5 h-5 mr-3" />
               {item.label}
@@ -202,10 +214,11 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
             <button
               key={item.label}
               onClick={() => handleItemClick(item)}
-              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${item.active
-                  ? 'bg-teal-700 text-white'
-                  : 'text-teal-100 hover:bg-teal-700 hover:text-white'
-                }`}
+              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
+                item.active
+                  ? "bg-teal-700 text-white"
+                  : "text-teal-100 hover:bg-teal-700 hover:text-white"
+              }`}
             >
               <item.icon className="w-5 h-5 mr-3" />
               {item.label}
