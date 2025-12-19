@@ -255,7 +255,7 @@
 //   Twitter,
 // } from "lucide-react";
 // import { motion } from "framer-motion";
-// import logo from "../assets/Rhace-09.png";
+// import logo from "../public/Rhace-09.png";
 
 // const Footer = () => {
 //   const fadeIn = {
@@ -438,7 +438,7 @@
 
 // export default Footer;
 import { motion } from "framer-motion";
-import logoWhite from "@/assets/Rhace-09.png";
+import logoWhite from "@/public/images/Rhace-09.png";
 
 export default function Footer() {
   return (

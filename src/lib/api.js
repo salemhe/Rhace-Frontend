@@ -10,7 +10,7 @@ import {
   ClubImage4,
   ClubImage5,
   ClubImage2,
-} from "@/assets";
+} from "@/public";
 
 export const RestaurantData = {
   data: [

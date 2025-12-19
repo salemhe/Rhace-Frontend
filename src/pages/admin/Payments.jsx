@@ -1,16 +1,77 @@
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { DialogDescription } from "@/components/ui/dialog";
 import { StatCard } from "@/components/Statcard";
-import { Wallet, TrendingUp, CheckCircle, Clock, ArrowUpRight, ArrowDownRight, MoreVertical, Search, SlidersHorizontal, Edit, Plus, ChevronLeft, ChevronRight, CreditCard } from "lucide-react";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { getPayouts, getVendorEarnings } from "@/services/admin.service";
+import {
+  Wallet,
+  TrendingUp,
+  CheckCircle,
+  Clock,
+  ArrowUpRight,
+  ArrowDownRight,
+  MoreVertical,
+  Search,
+  SlidersHorizontal,
+  Edit,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+} from "lucide-react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  getPayouts,
+  getVendorsEarnings,
+  getVendorEarnings,
+  getVendors,
+  initiatePayout,
+  approvePayout,
+  getDashboardKPIs,
+  getRevenueTrends,
+} from "@/services/admin.service";
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import placeholderLogo from "@/public/images/Rhace-11.png";
 
 const earningsData = [
   { date: "Jan 1", value: 150000 },
@@ -23,7 +84,19 @@ const earningsData = [
   { date: "Feb 18", value: 400000 },
 ];
 
-
+const bankLogos = {
+  "Zenith Bank": placeholderLogo,
+  "Guaranty Trust Bank": placeholderLogo,
+  "First Bank": placeholderLogo,
+  "Access Bank": placeholderLogo,
+  "United Bank for Africa": placeholderLogo,
+  "Fidelity Bank": placeholderLogo,
+  "Union Bank": placeholderLogo,
+  "Ecobank": placeholderLogo,
+  "Stanbic IBTC": placeholderLogo,
+  "Wema Bank": placeholderLogo,
+  Default: placeholderLogo,
+};
 
 export default function Payments() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -33,16 +106,167 @@ export default function Payments() {
   const [payoutHistory, setPayoutHistory] = useState([]);
   const [loadingEarnings, setLoadingEarnings] = useState(false);
   const [loadingPayouts, setLoadingPayouts] = useState(false);
+  const [dashboardKPIs, setDashboardKPIs] = useState({});
+  const [revenueTrends, setRevenueTrends] = useState([]);
+  const [loadingKPIs, setLoadingKPIs] = useState(false);
+  const [bankDetails, setBankDetails] = useState({
+    bankName: "Zenith Bank",
+    accountNumber: "••••••123456",
+    accountName: "Joseph Eyebiokun",
+  });
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [tempBankDetails, setTempBankDetails] = useState({ ...bankDetails });
+  const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [tempAddDetails, setTempAddDetails] = useState({
+    bankName: "",
+    accountNumber: "",
+    accountName: "",
+  });
+  const { subscribe, unsubscribe } = useWebSocket();
+
+  const load = async () => {
+    try {
+      setLoadingEarnings(true);
+      const earningsRes = await getVendorsEarnings();
+      console.log("Earnings API response:", earningsRes);
+
+      const earnings = Array.isArray(earningsRes?.data)
+        ? earningsRes.data
+        : earningsRes?.data?.data || earningsRes?.data?.items || [];
+
+      console.log("Processed earnings array:", earnings);
+
+      const vendorsWithEarnings = earnings.map((vendor) => ({
+        id: vendor.id,
+        name: vendor.businessName || vendor.name,
+        totalEarned: vendor.totalEarned
+          ? `₦${vendor.totalEarned.toLocaleString()}`
+          : "₦0",
+        commission: vendor.commission
+          ? `₦${vendor.commission.toLocaleString()}`
+          : "₦0",
+        amountDue: vendor.amountDue
+          ? `₦${vendor.amountDue.toLocaleString()}`
+          : "₦0",
+        lastPayout: vendor.lastPayout
+          ? new Date(vendor.lastPayout).toLocaleDateString()
+          : "-",
+        status: vendor.status || "Pending",
+      }));
+
+      console.log("Vendors with earnings:", vendorsWithEarnings);
+      setVendorsEarnings(vendorsWithEarnings);
+    } catch (e) {
+      console.error("Failed to load vendors earnings", e);
+      setVendorsEarnings([]);
+    } finally {
+      setLoadingEarnings(false);
+    }
+  };
+
+  const handleInitiatePayout = async (vendorId, amount) => {
+    try {
+      await initiatePayout({ vendorId, amount: parseFloat(amount) });
+      // Refresh data after successful payout initiation
+      load();
+      alert("Payout initiated successfully");
+    } catch (error) {
+      console.error("Failed to initiate payout:", error);
+      alert("Failed to initiate payout");
+    }
+  };
+
+  const handleApprovePayout = async (payoutId) => {
+    try {
+      await approvePayout(payoutId);
+      // Refresh payout history after approval
+      const loadPayouts = async () => {
+        const res = await getPayouts({ page: 1, limit: 20 });
+        const payload = res?.data;
+        const list = Array.isArray(payload)
+          ? payload
+          : payload?.data || payload?.items || payload?.results || [];
+        setPayoutHistory(Array.isArray(list) ? list : []);
+      };
+      loadPayouts();
+      alert("Payout approved successfully");
+    } catch (error) {
+      console.error("Failed to approve payout:", error);
+      alert("Failed to approve payout");
+    }
+  };
+
+  const handleEditBankDetails = () => {
+    setTempBankDetails({ ...bankDetails });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveBankDetails = () => {
+    setBankDetails({ ...tempBankDetails });
+    setEditDialogOpen(false);
+    // Optionally save to localStorage or API
+    localStorage.setItem("bankDetails", JSON.stringify(tempBankDetails));
+  };
+
+  const handleCancelEdit = () => {
+    setTempBankDetails({ ...bankDetails });
+    setEditDialogOpen(false);
+  };
+
+  const handleAddAccount = () => {
+    setTempAddDetails({
+      bankName: "",
+      accountNumber: "",
+      accountName: "",
+    });
+    setAddDialogOpen(true);
+  };
+
+  const handleSaveAddAccount = () => {
+    setBankDetails({ ...tempAddDetails });
+    setAddDialogOpen(false);
+    localStorage.setItem("bankDetails", JSON.stringify(tempAddDetails));
+  };
+
+  const handleCancelAdd = () => {
+    setTempAddDetails({
+      bankName: "",
+      accountNumber: "",
+      accountName: "",
+    });
+    setAddDialogOpen(false);
+  };
 
   useEffect(() => {
+    const savedBankDetails = localStorage.getItem("bankDetails");
+    if (savedBankDetails) {
+      setBankDetails(JSON.parse(savedBankDetails));
+    }
     let ignore = false;
-    const load = async () => {
+
+    const loadKPIs = async () => {
       try {
-        setLoadingEarnings(true);
-        // If admin-wide earnings endpoint exists, replace vendorId or implement list
-        // For now, we'll just leave empty or expect backend to provide a list endpoint.
+        setLoadingKPIs(true);
+const kpisRes = await getDashboardKPIs();
+        if (!ignore) setDashboardKPIs(kpisRes?.data || {});
+      } catch (e) {
+        console.error("Failed to load KPIs", e);
+        if (!ignore) setDashboardKPIs({});
       } finally {
-        if (!ignore) setLoadingEarnings(false);
+        if (!ignore) setLoadingKPIs(false);
+      }
+    };
+
+    const loadRevenueTrends = async () => {
+      try {
+        const trendsRes = await getRevenueTrends();
+        const trends = Array.isArray(trendsRes?.data)
+          ? trendsRes.data
+          : trendsRes?.data?.data || [];
+        if (!ignore) setRevenueTrends(trends);
+      } catch (e) {
+        console.error("Failed to load revenue trends", e);
+        if (!ignore) setRevenueTrends([]);
       }
     };
 
@@ -53,7 +277,7 @@ export default function Payments() {
         const payload = res?.data;
         const list = Array.isArray(payload)
           ? payload
-          : (payload?.data || payload?.items || payload?.results || []);
+          : payload?.data || payload?.items || payload?.results || [];
         if (!ignore) setPayoutHistory(Array.isArray(list) ? list : []);
       } catch (e) {
         console.error("Failed to load payouts", e);
@@ -65,8 +289,46 @@ export default function Payments() {
 
     load();
     loadPayouts();
-    return () => { ignore = true; };
-  }, []);
+    loadKPIs();
+    loadRevenueTrends();
+
+    const handlePaymentUpdate = (payload) => {
+      console.log("Payment update received in Payments component:", payload);
+      load();
+      loadPayouts();
+    };
+
+    subscribe("payment_update", handlePaymentUpdate);
+    subscribe("payout_update", handlePaymentUpdate);
+
+    return () => {
+      ignore = true;
+      unsubscribe("payment_update");
+      unsubscribe("payout_update");
+    };
+  }, [subscribe, unsubscribe]);
+
+  // Compute available balance and last payment date from loaded data
+  useEffect(() => {
+    const totalAvailableBalance = vendorsEarnings.reduce((sum, vendor) => {
+      const amountStr = vendor.amountDue;
+      const amount = parseFloat(amountStr.replace('₦', '').replace(/,/g, '')) || 0;
+      return sum + amount;
+    }, 0);
+
+    const lastPayment = payoutHistory.length > 0 ? payoutHistory.reduce((latest, payout) => {
+      const dateStr = payout.createdAt || payout.date;
+      if (!dateStr) return latest;
+      const date = new Date(dateStr);
+      return date > latest ? date : latest;
+    }, new Date(0)) : null;
+
+    setDashboardKPIs(prev => ({
+      ...prev,
+      availableBalance: totalAvailableBalance,
+      lastPaymentDate: lastPayment && lastPayment.getTime() > 0 ? lastPayment.toISOString() : null
+    }));
+  }, [vendorsEarnings, payoutHistory]);
 
   return (
     <div className="p-4 md:p-6 space-y-6">
@@ -81,36 +343,36 @@ export default function Payments() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 w-full">
               <StatCard
                 title="Total Earnings"
-                value="₦2,567,456.00"
-                change="+12% from last year"
-                trend="up"
+                value={dashboardKPIs.totalEarnings ? `₦${dashboardKPIs.totalEarnings.toLocaleString()}` : "₦0"}
+                change={dashboardKPIs.totalEarningsChange || "+0% from last year"}
+                trend={dashboardKPIs.totalEarningsTrend || "up"}
                 icon={Wallet}
                 iconBg="bg-blue-500/10"
                 iconColor="text-blue-500"
               />
               <StatCard
                 title="Earnings this Week"
-                value="₦525,345.00"
-                change="+6% vs last week"
-                trend="up"
+                value={dashboardKPIs.weeklyEarnings ? `₦${dashboardKPIs.weeklyEarnings.toLocaleString()}` : "₦0"}
+                change={dashboardKPIs.weeklyEarningsChange || "+0% vs last week"}
+                trend={dashboardKPIs.weeklyEarningsTrend || "up"}
                 icon={TrendingUp}
                 iconBg="bg-success/10"
                 iconColor="text-success"
               />
               <StatCard
                 title="Completed Payments"
-                value="₦372,556.00"
-                change="+8% vs last week"
-                trend="up"
+                value={dashboardKPIs.completedPayments ? `₦${dashboardKPIs.completedPayments.toLocaleString()}` : "₦0"}
+                change={dashboardKPIs.completedPaymentsChange || "+0% vs last week"}
+                trend={dashboardKPIs.completedPaymentsTrend || "up"}
                 icon={CheckCircle}
                 iconBg="bg-purple-500/10"
                 iconColor="text-purple-500"
               />
               <StatCard
                 title="Today's Earnings"
-                value="₦152,789.00"
-                change="-5% vs last week"
-                trend="down"
+                value={dashboardKPIs.todayEarnings ? `₦${dashboardKPIs.todayEarnings.toLocaleString()}` : "₦0"}
+                change={dashboardKPIs.todayEarningsChange || "+0% vs last week"}
+                trend={dashboardKPIs.todayEarningsTrend || "down"}
                 icon={Clock}
                 iconBg="bg-warning/10"
                 iconColor="text-warning"
@@ -123,40 +385,153 @@ export default function Payments() {
               <div className="flex justify-between items-start">
                 <div>
                   <p className="text-sm text-muted-foreground">Available Balance</p>
-                  <h3 className="text-2xl md:text-3xl font-bold mt-1">₦567,456.00</h3>
-                  <p className="text-xs text-muted-foreground mt-1">Last payment processed on May 31st, 2025</p>
+                  <h3 className="text-2xl md:text-3xl font-bold mt-1">{dashboardKPIs.availableBalance ? `₦${dashboardKPIs.availableBalance.toLocaleString()}` : "₦0"}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">Last payment processed on {dashboardKPIs.lastPaymentDate ? new Date(dashboardKPIs.lastPaymentDate).toLocaleDateString() : "N/A"}</p>
                 </div>
               </div>
 
-              <Button className="w-full">
+              <Button className="w-full" onClick={() => alert('Please select a vendor from the table below to initiate a payout')}>
                 <Wallet className="mr-2 h-4 w-4" />
                 Initiate Payout
               </Button>
 
-              <Card className="bg-gradient-to-br from-primary/90 to-primary text-white p-6 space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="h-5 w-5" />
-                      <span className="text-sm font-medium">Zenith Bank</span>
+              <Card className="bg-gradient-to-br from-primary to-primary/80 text-white border-0 shadow-lg">
+                <CardContent className="p-6 space-y-4">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{bankDetails.bankName}</span>
+                      </div>
+                      <p className="text-xs opacity-90 mt-1">Verified Account</p>
                     </div>
-                    <p className="text-xs opacity-90 mt-1">Verified Account</p>
+                    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button size="sm" variant="secondary" className="h-8" onClick={handleEditBankDetails}>
+                          <Edit className="h-3 w-3 mr-1" />
+                          Edit
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[425px]">
+                        <DialogHeader>
+                          <DialogTitle>Edit Bank Details</DialogTitle>
+                          <DialogDescription>
+                            Update your bank account information for payouts.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="grid gap-4 py-4">
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="bankName" className="text-right">
+                              Bank Name
+                            </Label>
+                            <Input
+                              id="bankName"
+                              value={tempBankDetails.bankName}
+                              onChange={(e) => setTempBankDetails({ ...tempBankDetails, bankName: e.target.value })}
+                              className="col-span-3"
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="accountNumber" className="text-right">
+                              Account Number
+                            </Label>
+                            <Input
+                              id="accountNumber"
+                              value={tempBankDetails.accountNumber}
+                              onChange={(e) => setTempBankDetails({ ...tempBankDetails, accountNumber: e.target.value })}
+                              className="col-span-3"
+                            />
+                          </div>
+                          <div className="grid grid-cols-4 items-center gap-4">
+                            <Label htmlFor="accountName" className="text-right">
+                              Account Name
+                            </Label>
+                            <Input
+                              id="accountName"
+                              value={tempBankDetails.accountName}
+                              onChange={(e) => setTempBankDetails({ ...tempBankDetails, accountName: e.target.value })}
+                              className="col-span-3"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2">
+                          <Button variant="outline" onClick={handleCancelEdit}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleSaveBankDetails}>
+                            Save Changes
+                          </Button>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
-                  <Button size="sm" variant="secondary" className="h-8">
-                    <Edit className="h-3 w-3 mr-1" />
-                    Edit
-                  </Button>
-                </div>
-                <div className="pt-4">
-                  <p className="text-xl tracking-wider">••••••123456</p>
-                  <p className="text-sm mt-2">Joseph Eyebiokun</p>
-                </div>
+                  <div className="pt-4">
+                    <p className="text-xl tracking-wider">{bankDetails.accountNumber}</p>
+                    <p className="text-sm mt-2">{bankDetails.accountName}</p>
+                  </div>
+                </CardContent>
               </Card>
 
-              <Button variant="outline" className="w-full">
+              <Button variant="outline" className="w-full" onClick={handleAddAccount}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Account
               </Button>
+
+              <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Add Bank Account</DialogTitle>
+                    <DialogDescription>
+                      Add a new bank account for receiving payouts.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="addBankName" className="text-right">
+                        Bank Name
+                      </Label>
+                      <Input
+                        id="addBankName"
+                        value={tempAddDetails.bankName}
+                        onChange={(e) => setTempAddDetails({ ...tempAddDetails, bankName: e.target.value })}
+                        className="col-span-3"
+                        placeholder="Enter bank name"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="addAccountNumber" className="text-right">
+                        Account Number
+                      </Label>
+                      <Input
+                        id="addAccountNumber"
+                        value={tempAddDetails.accountNumber}
+                        onChange={(e) => setTempAddDetails({ ...tempAddDetails, accountNumber: e.target.value })}
+                        className="col-span-3"
+                        placeholder="Enter account number"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="addAccountName" className="text-right">
+                        Account Name
+                      </Label>
+                      <Input
+                        id="addAccountName"
+                        value={tempAddDetails.accountName}
+                        onChange={(e) => setTempAddDetails({ ...tempAddDetails, accountName: e.target.value })}
+                        className="col-span-3"
+                        placeholder="Enter account name"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2">
+                    <Button variant="outline" onClick={handleCancelAdd}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleSaveAddAccount}>
+                      Add Account
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </Card>
 
             <Card className="p-6 lg:col-span-2">
@@ -164,10 +539,10 @@ export default function Payments() {
                 <div>
                   <h3 className="font-semibold">Earnings Trends</h3>
                   <div className="flex items-center gap-4 mt-2">
-                    <span className="text-2xl font-bold">104</span>
+                    <span className="text-2xl font-bold">{revenueTrends.length > 0 ? revenueTrends.length : 0}</span>
                     <span className="text-sm text-success flex items-center">
                       <ArrowUpRight className="h-4 w-4 mr-1" />
-                      8% vs last week
+                      {dashboardKPIs.revenueChange || "0% vs last week"}
                     </span>
                   </div>
                 </div>
@@ -183,7 +558,7 @@ export default function Payments() {
                 </Select>
               </div>
               <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={earningsData}>
+                <LineChart data={revenueTrends.length > 0 ? revenueTrends : earningsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                   <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
                   <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
@@ -274,7 +649,7 @@ export default function Payments() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>View Details</DropdownMenuItem>
-                            <DropdownMenuItem>Initiate Payout</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleInitiatePayout(vendor.id, vendor.amountDue.replace('₦', '').replace(/,/g, ''))}>Initiate Payout</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -290,36 +665,36 @@ export default function Payments() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatCard
               title="Total Payouts"
-              value="₦2,567,456.00"
-              change="+12% from last year"
-              trend="up"
+              value={dashboardKPIs.totalPayouts ? `₦${dashboardKPIs.totalPayouts.toLocaleString()}` : "₦0"}
+              change={dashboardKPIs.totalPayoutsChange || "+0% from last year"}
+              trend={dashboardKPIs.totalPayoutsTrend || "up"}
               icon={Wallet}
               iconBg="bg-blue-500/10"
               iconColor="text-blue-500"
             />
             <StatCard
               title="Pending Payouts"
-              value="₦525,345.00"
-              change="+2% vs last week"
-              trend="up"
+              value={dashboardKPIs.pendingPayouts ? `₦${dashboardKPIs.pendingPayouts.toLocaleString()}` : "₦0"}
+              change={dashboardKPIs.pendingPayoutsChange || "+0% vs last week"}
+              trend={dashboardKPIs.pendingPayoutsTrend || "up"}
               icon={Clock}
               iconBg="bg-warning/10"
               iconColor="text-warning"
             />
             <StatCard
               title="Successful Payouts"
-              value="₦372,556.00"
-              change="+8% vs last week"
-              trend="up"
+              value={dashboardKPIs.successfulPayouts ? `₦${dashboardKPIs.successfulPayouts.toLocaleString()}` : "₦0"}
+              change={dashboardKPIs.successfulPayoutsChange || "+0% vs last week"}
+              trend={dashboardKPIs.successfulPayoutsTrend || "up"}
               icon={CheckCircle}
               iconBg="bg-success/10"
               iconColor="text-success"
             />
             <StatCard
               title="Last Payout"
-              value="₦152,789.00"
-              change="-5% vs last week"
-              trend="down"
+              value={dashboardKPIs.lastPayout ? `₦${dashboardKPIs.lastPayout.toLocaleString()}` : "₦0"}
+              change={dashboardKPIs.lastPayoutChange || "+0% vs last week"}
+              trend={dashboardKPIs.lastPayoutTrend || "down"}
               icon={TrendingUp}
               iconBg="bg-purple-500/10"
               iconColor="text-purple-500"
@@ -389,7 +764,7 @@ export default function Payments() {
                       <TableCell colSpan={7} className="text-sm text-muted-foreground">Loading payouts...</TableCell>
                     </TableRow>
                   ) : payoutHistory.map((payout, index) => (
-                    <TableRow key={index}>
+                    <TableRow key={payout.id || index}>
                       <TableCell className="font-mono text-sm">{payout.id}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -422,6 +797,9 @@ export default function Payments() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>View Details</DropdownMenuItem>
+                            {(payout.status === "Pending" || payout.status === "pending") && (
+                              <DropdownMenuItem onClick={() => handleApprovePayout(payout.id)}>Approve</DropdownMenuItem>
+                            )}
                             <DropdownMenuItem>Download Receipt</DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

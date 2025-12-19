@@ -9,6 +9,7 @@ export const getVendors = (params) => api.get("/vendors", { params });
 export const getVendorById = (id) => api.get(`/vendors/${id}`);
 export const approveVendor = (id, data) => api.patch(`/vendors/${id}/approval`, data);
 export const updateVendorStatus = (id, data) => api.patch(`/vendors/${id}/status`, data);
+export const deleteVendor = (id) => api.delete(`/vendors/${id}`);
 export const updateVendorCommission = (id, data) => api.patch(`/vendors/${id}/commission`, data);
 export const bulkUpdateVendors = (data) => api.post("/vendors/bulk-update", data);
 export const submitVendorKYC = (id, data) => api.post(`/vendors/${id}/kyc`, data);
@@ -26,9 +27,12 @@ export const waiveReservationPenalty = (id, data) => api.patch(`/reservations/${
 export const getReservationCounters = () => api.get("/reservations/counters");
 export const exportReservations = (params) => api.get("/reservations/export", { params, responseType: 'blob', headers: { Accept: 'application/octet-stream' } });
 
+export const getVendorsEarnings = () => api.get("/payments/vendors-earnings");
 export const getVendorEarnings = (vendorId) => api.get(`/payments/vendor-earnings/${vendorId}`);
-export const initiatePayout = (data) => api.post("/payments/payout", data);
+export const initiatePayout = (data) => api.post("/payments/payouts", data);
 export const getPayouts = (params) => api.get("/payments/payouts", { params });
+export const getPayoutById = (id) => api.get(`/payments/payouts/${id}`);
+export const getVendorPayouts = (vendorId) => api.get(`/payments/payouts/vendor/${vendorId}`);
 export const approvePayout = (id, data) => api.patch(`/payments/payouts/${id}/approve`, data);
 export const getPayoutReceipt = (id) => api.get(`/payments/payouts/${id}/receipt`, { responseType: 'blob', headers: { Accept: 'application/octet-stream' } });
 
@@ -50,7 +54,7 @@ export const generateReservationsReport = (data) => api.post("/reports/reservati
 export const generatePaymentsReport = (data) => api.post("/reports/payments", data);
 export const generateUsersReport = (data) => api.post("/reports/users", data);
 export const generateVendorsReport = (data) => api.post("/reports/vendors", data);
-export const getReportStatus = (id) => api.get(`/reports/jobs/${id}`);
-export const downloadReport = (id) => api.get(`/reports/download/${id}`, { responseType: 'blob', headers: { Accept: 'application/octet-stream' } });
+export const getReportStatus = (id) => api.get(`/reports/${id}/status`);
+export const downloadReport = (id) => api.get(`/reports/${id}/download`, { responseType: 'blob', headers: { Accept: 'application/octet-stream' } });
 
-export const getTopVendors = () => api.get("/dashboard/top-vendors"); // Assuming this endpoint exists
+export const getTopVendors = () => api.get("/dashboard/top-vendors");

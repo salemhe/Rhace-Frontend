@@ -7,7 +7,7 @@ import { authService } from "@/services/auth.service"
 import { useNavigate, useSearchParams } from "react-router"
 import { toast } from "sonner"
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
-import logo from "../../../assets/Rhace-11.png"
+import logo from "../../../public/images/Rhace-11.png"
 
 const getCurrentYear = () => new Date().getFullYear();
 

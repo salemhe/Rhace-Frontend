@@ -8,45 +8,45 @@ import  { UsersIcon,
   LogoutIcon,
   MenuIcon,
   PeopleIcon,
-} from "../../../assets/icons/icons";
+} from "../../../public/icons/icons";
 
 export const AdminList = {
   topItems: [
     {
       label: "Dashboard",
-      path: "/admin/dashboard",
+      path: "/dashboard/admin",
       icon: DashBoardIcon,
     },
     {
       label: "Vendors",
-      path: "/admin/vendors",
+      path: "/dashboard/admin/vendors",
       icon: BranchesIcon,
     },
     {
       label: "Users",
-      path: "/admin/users",
+      path: "/dashboard/admin/users",
       icon: UsersIcon,
     },
     {
       label: "Reservations",
-      path: "/admin/reservations",
+      path: "/dashboard/admin/reservations",
       icon: BookingsIcon,
     },
     {
       label: "Payments",
-      path: "/admin/payments",
+      path: "/dashboard/admin/payments",
       icon: PaymentIcon,
     },
     {
       label: "Reports",
-      path: "/admin/reports",
+      path: "/dashboard/admin/reports",
       icon: Amenities,
     },
   ],
   bottomItems: [
     {
       label: "Settings",
-      path: "/admin/settings",
+      path: "/dashboard/admin/settings",
       icon: SettingsIcon,
     },
   ],

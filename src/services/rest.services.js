@@ -25,9 +25,9 @@ export const restaurantService = {
     }
   },
 
-  async getSuggestions() {
+  async getSuggestions({ lat, lng }) {
     try {
-      const response = await api.get(`/search/suggestions`);
+      const response = await api.get(`/search/suggestions?latitude=${lat}&longitude=${lng}`);
       return response; // ✅ ADD THIS - return the response
     } catch (err) {
       console.error(err);

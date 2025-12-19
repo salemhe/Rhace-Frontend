@@ -6,8 +6,8 @@
 
 @font-face {
   font-family: "Inter";
-  src: local("Inter"),
-    url("./assets/fonts/Inter/Inter-VariableFont_opsz_wght.ttf");
+  src:local("Inter"),
+  url('./public/fonts/Inter/Inter-VariableFont_opsz_wght.ttf') 
 }
 
 @theme inline {

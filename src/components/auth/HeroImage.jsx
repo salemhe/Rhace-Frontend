@@ -1,6 +1,6 @@
 import React from "react";
-import HeroUser from "../../assets/auth/HeroUser.jpg";
-import HeroVendor from "../../assets/auth/HeroVendor.svg";
+import HeroUser from "../../public/auth/HeroUser.jpg";
+import HeroVendor from "../../public/auth/HeroVendor.svg";
 
 const HeroImage = ({ role }) => {
   return (

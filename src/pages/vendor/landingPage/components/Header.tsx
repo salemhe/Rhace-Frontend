@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 
 // logo imports —
-import logoBlack from "@/assets/Rhace-11.png";
+import logoBlack from "@/public/images/Rhace-11.png";
 import { useNavigate } from "react-router";
 export function Header() {
   const navigate = useNavigate();

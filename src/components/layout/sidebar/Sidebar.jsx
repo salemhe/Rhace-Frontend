@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ClubList, HotelList, RestaurantList } from "./SideMenuList";
-import logo from "../../../assets/Rhace-09.png";
+import logo from "@/public/images/Rhace-09.png";
 
 // Hook to get current menu configuration
 const useMenuConfig = (businessType) => {

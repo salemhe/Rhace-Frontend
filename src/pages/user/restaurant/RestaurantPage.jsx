@@ -1,4 +1,3 @@
-import Footer from "@/components/user/Footer";
 import Header from "@/components/user/Header";
 import BookingForm from "@/components/user/restaurant/BookingForm";
 import BookingPopup from "@/components/user/restaurant/BookingPopup";
@@ -9,11 +8,12 @@ import RestaurantInfo from "@/components/user/restaurant/RestaurantInfo";
 import MapComponent from "@/components/user/ui/mapComponent";
 import { Mail, MapPin, Phone, Star } from "lucide-react";
 import { useParams } from "react-router";
-import { RestaurantData } from "@/lib/api";
+// import { RestaurantData } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
 import StarRating from "@/components/ui/starrating";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
+import Footer from "@/components/Footer";
 
 const RestaurantsPage = () => {
     const { id } = useParams();

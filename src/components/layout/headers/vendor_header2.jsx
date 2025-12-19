@@ -3,7 +3,7 @@ import { Search, Bell, Menu, User, ChevronDown } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { ArrowLeft } from '@/components/dashboard/ui/svg';
 import { useSelector } from 'react-redux';
-import logo from '@/assets/Rhace-11.png';
+import logo from '@/public/images/Rhace-11.png';
 
 const Header2 = ({ title }) => {
     const vendor = useSelector(state => state.auth.vendor)

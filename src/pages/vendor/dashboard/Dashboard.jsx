@@ -1,4 +1,4 @@
-import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/assets/icons/icons';
+import { BookingsIcon, GuestsIcon, PendingPaymentIcon, PrepaidIcon } from '@/public/icons/icons';
 import DashboardLayout from '@/components/layout/DashboardLayout';
 import UniversalLoader from '@/components/user/ui/LogoLoader';
 import { reservationService } from '@/services/reservation.service';

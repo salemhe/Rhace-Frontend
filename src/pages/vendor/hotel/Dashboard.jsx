@@ -1,17 +1,27 @@
-import {
-  BookingsIcon,
-  GuestsIcon,
-  PendingPaymentIcon,
-  PrepaidIcon,
-} from "@/assets/icons/icons";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
 import { reservationService } from "@/services/reservation.service";
 import { formatDate } from "@/utils/formatDate";
 import { capitalize } from "@/utils/helper";
-import { ChevronRight, Clock, ExternalLink, User, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
+import {
+  Calendar,
+  Users,
+  DollarSign,
+  User,
+  Clock,
+  X,
+  ChevronRight,
+  ExternalLink,
+} from "lucide-react";
+import {
+  BookingsIcon,
+  GuestsIcon,
+  PendingPaymentIcon,
+  PrepaidIcon,
+} from "@/public/icons/icons";
+import { cn } from "@/lib/utils";
 
 const HotelDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);

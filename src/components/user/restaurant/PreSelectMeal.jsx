@@ -8,8 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReservationHeader from "./ReservationHeader";
 import { useReservations } from "@/contexts/restaurant/ReservationContext";
 import { toast } from "sonner";
-import { MenusData } from "@/lib/api";
-import { useNavigate } from "react-router";
+// import { MenusData } from "@/lib/api";
 import { menuService } from "@/services/menu.service";
 export default function PreSelectMeal({ id }) {
   const {
@@ -24,11 +23,12 @@ export default function PreSelectMeal({ id }) {
     guestCount,
     date,
     handleSubmit,
+    handleSkip,
+    isSkipLoading,
     isLoading,
   } = useReservations();
   const [visibleCount, setVisibleCount] = useState(3);
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   const tabs = [
     {
@@ -140,9 +140,6 @@ export default function PreSelectMeal({ id }) {
     );
   };
 
-  const handleClick = () => {
-    navigate(`/restaurants/completed/${id}`);
-  };
 
   if (loading) {
     return (
@@ -285,12 +282,12 @@ export default function PreSelectMeal({ id }) {
                         <div className={`relative h-24 w-32 sm:h-32 flex-shrink-0 `}>
                           <img
                             src={item.coverImage || "/placeholder.svg"}
-                            alt={item.dishName}
+                            alt={item.name}
                             className={`object-cover rounded-2xl size-full border-3 md:border-0 ${item.selected ? "border-[#1E3A8A]" : "border-transparent"}`}
                           />
                         </div>
                         <div className="md:hidden flex-1 min-w-0">
-                          <h3 className="font-medium">{item.dishName}</h3>
+                          <h3 className="font-medium">{item.name}</h3>
                           <p className="text-sm truncate text-gray-600 mt-1">
                             {item.description} 
                           </p>
@@ -302,7 +299,7 @@ export default function PreSelectMeal({ id }) {
                       <div className="flex-1">
                         <div className="flex justify-between items-start">
                           <div className="hidden md:block">
-                            <h3 className="font-medium">{item.dishName}</h3>
+                            <h3 className="font-medium">{item.name}</h3>
                             <p className="text-sm text-gray-600 mt-1">
                               {item.description}
                             </p>
@@ -458,7 +455,7 @@ export default function PreSelectMeal({ id }) {
               {selectedItems.map((item) => (
                 <div key={item._id} className="flex justify-between text-sm">
                   <span>
-                    {item.quantity}x {item.dishName}
+                    {item.quantity}x {item.name}
                   </span>
                   <span>₦{(item.price * item.quantity).toLocaleString()}</span>
                 </div>
@@ -488,7 +485,7 @@ export default function PreSelectMeal({ id }) {
         <div className="flex justify-between gap-2 items-center max-w-4xl mx-auto p-4">
           <div className="hidden md:flex justify-between items-center w-full">
             <Button
-              onClick={handleClick}
+              onClick={handleSkip}
               variant="ghost"
               className="text-teal-600"
             >
@@ -517,11 +514,17 @@ export default function PreSelectMeal({ id }) {
             ) : (
               <>
                 <Button
-                  onClick={handleClick}
+                  onClick={handleSkip}
                   variant="ghost"
                   className="text-teal-600"
                 >
-                  Skip for now
+                  {isSkipLoading ? (
+                    <span className="flex gap-2">
+                      <Loader2 className="animate-spin" /> Loading
+                    </span>
+                  ) : (
+                    "Skip for now"
+                  )}
                 </Button>
                 <Button
                   onClick={handleSubmit}

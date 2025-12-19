@@ -1,5 +1,5 @@
 
-import  { Amenities, Plate, SvgIcon,  } from '@/assets/icons/icons';
+import  { Amenities, Plate, SvgIcon,  } from '@/public/icons/icons';
 import { Check } from 'lucide-react';
 
 
