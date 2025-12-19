@@ -353,7 +353,7 @@ export default function ReservationSummary() {
                 </div>
                 <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
                   <p>Sub Total</p>
-                  <p>#{partPay ? `${(room.pricePerNight * nights).toLocaleString()/2} (half)` : (room.pricePerNight * nights).toLocaleString()}</p>
+                  <p>#{partPay ? ((room.pricePerNight * nights)/2).toLocaleString() : (room.pricePerNight * nights).toLocaleString()}</p>
                 </div>
               </div>
             </div>

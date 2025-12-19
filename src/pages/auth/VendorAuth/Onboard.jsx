@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import logo from "../../../assets/Rhace-11.png"
+import logo from "../../../public/images/Rhace-11.png"
 import { setVendor } from "@/redux/slices/authSlice"
 import {
   Building2,

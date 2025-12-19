@@ -7,8 +7,8 @@ import { logout } from '@/redux/slices/authSlice';
 
 
 // logo imports — 
-import logoWhite from '@/assets/Rhace-09.png';
-import logoBlack from '@/assets/Rhace-11.png';
+import logoWhite from '@/public/images/Rhace-09.png';
+import logoBlack from '@/public/images/Rhace-11.png';
 
 
 const UserHeader = () => {
@@ -198,9 +198,8 @@ function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, use
 
       {/* Menu Items Section 1 */}
       <div className="py-1">
-        <MenuItem text="Messages" onClick={() => handleNavigation('/messages')} />
         <MenuItem text="Bookings/Reservation" onClick={() => handleNavigation('/bookings')} />
-        <MenuItem text="Wishlist" onClick={() => handleNavigation('/wishlist')} />
+        <MenuItem text="Wishlist" onClick={() => handleNavigation('/favorites')} />
         <MenuItem text="Payments/Transaction" onClick={() => handleNavigation('/payments')} />
       </div>
 
@@ -209,7 +208,7 @@ function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, use
       {/* Menu Items Section 2 */}
       <div className="py-1">
         <MenuItem text="Account" onClick={() => handleNavigation('/account')} />
-        <MenuItem text="Help Center" onClick={() => handleNavigation('/help')} />
+        <MenuItem text="Help Center" onClick={() => handleNavigation('/contact')} />
       </div>
 
       <div className="border-t border-gray-200"></div>

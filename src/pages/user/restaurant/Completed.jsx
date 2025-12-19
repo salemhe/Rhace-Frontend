@@ -1,7 +1,7 @@
 import { Check, Mail, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate, useParams } from "react-router";
-import { RestaurantBooking } from "@/lib/api";
+// import { RestaurantBooking } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
 import { toast } from "sonner";
@@ -10,9 +10,9 @@ import UniversalLoader from "@/components/user/ui/LogoLoader";
 export default function CompletedPage() {
   const navigate = useNavigate()
   const { id } = useParams();
-  const [data, setData] = useState();
+  const [data, setData] = useState([]);
   const [isLoading, setIsLoading] = useState(true)
-  const categories = isLoading ? [] : [...new Set(data.menus.map((meal) => meal.menu.category))];
+  const categories = isLoading ? [] : data.menus ? [...new Set(data.menus.map((meal) => meal.menu.category))] : [];
 
   useEffect(() => {
     const fetchReservation = async () => {
@@ -21,7 +21,8 @@ export default function CompletedPage() {
         const res = await userService.fetchReservations({ bookingId: id });
         setData(res.data[0])
       } catch (err) {
-        toast.error(err.response.data.message)
+        toast.error("Error Fetching Reservation")
+        console.log(err);
       } finally {
         setIsLoading(false)
       }
@@ -102,7 +103,7 @@ export default function CompletedPage() {
         </div>
 
         {/* Meal Selection */}
-        {data.menus.length > 0 && (
+        {data.menus && data.menus.length > 0 && (
           <div className="bg-white rounded-2xl border p-5 space-y-4 border-gray-200 mb-6">
             <h2 className="text-lg font-semibold text-[#111827]">
               Your Meal Selection

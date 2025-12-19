@@ -8,7 +8,7 @@ import HeroImage from '../../../components/auth/HeroImage'
 import { authService } from "@/services/auth.service"
 import { toast } from "sonner"
 import { useNavigate } from "react-router"
-import logo from "../../../assets/Rhace-11.png"
+import logo from "../../../public/images/Rhace-11.png"
 
 const getCurrentYear = () => new Date().getFullYear();
 

@@ -82,7 +82,7 @@ const Images = ({
                 sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1200px"
                 onError={(e) => {
                   const img = e.target;
-                  img.src = "/assets/fallback-image.jpg";
+                  img.src = "/public/fallback-image.jpg";
                 }}
               />
             </div>

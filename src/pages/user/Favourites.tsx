@@ -496,7 +496,7 @@ const Favorites: React.FC = () => {
 
                       {categories.length > 0 && (
                         <div className="inline-flex flex-wrap gap-1.5 sm:gap-2 mt-2">
-                          {categories.slice(0, 3).map((category, index) => {
+                          {categories.slice(0, 2).map((category, index) => {
                             const classes =
                               cuisineColorPalette[
                                 index % cuisineColorPalette.length
@@ -504,16 +504,16 @@ const Favorites: React.FC = () => {
                             return (
                               <div
                                 key={index}
-                                className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                                className={`px-3 py-2 rounded-full ${classes} text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                               >
                                 {category}
                               </div>
                             );
                           })}
 
-                          {categories.length > 3 && (
+                          {categories.length > 2 && (
                             <div className="px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
-                              +{categories.length - 3}
+                              +{categories.length - 2}
                             </div>
                           )}
                         </div>
@@ -528,13 +528,13 @@ const Favorites: React.FC = () => {
 
                       {(activeTab === "clubs" || activeTab === "hotels") &&
                         venue.priceRange && (
-                          <div className="flex justify-start mt-4 text-teal-600 items-center gap-1">
+                          <div className="flex justify-start text-xl mt-4 text-black items-center gap-1">
                             {activeTab === "clubs" && (
-                              <div className="text-zinc-00 text-sm font-medium leading-none">
+                              <div className="text-zinc-00 text-sm font-bold leading-none">
                                 Table from
                               </div>
                             )}
-                            <div className=" text-sm font-medium leading-none">
+                            <div className=" text-sm font-bold leading-none">
                               ₦{venue.priceRange}
                             </div>
                             {activeTab === "hotels" && (

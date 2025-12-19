@@ -11,6 +11,7 @@ import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import UniversalLoader from "./user/ui/LogoLoader";
 import { FaStar } from "react-icons/fa6";
+import { Bike, Heart, Star } from "lucide-react";
 
 // Common carousel logic hook
 const useCarouselLogic = () => {
@@ -108,7 +109,7 @@ const useCarouselLogic = () => {
 };
 
 // Common restaurant data fetching hook
-const useRestaurantData = (vendorType) => {
+const useRestaurantData = (vendorType, type) => {
   const [restaurants, setRestaurants] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -116,11 +117,17 @@ const useRestaurantData = (vendorType) => {
     const fetchRestaurant = async () => {
       try {
         setIsLoading(true);
-        const res = await userService.getVendor(vendorType);
-        console.log(res);
-        setRestaurants(res.data);
+        if (type && type === "nearby") {
+          const location = localStorage.getItem("userLocation");
+          const loc = JSON.parse(location);
+          const res = await userService.getNearest({ longitude: loc.lng, latitude: loc.lat, type: vendorType});
+          setRestaurants(res.data);
+        } else {
+          const res = await userService.getVendor(vendorType);
+          setRestaurants(res.data);
+        }
       } catch (error) {
-        console.log(error);
+        console.error(error);
       } finally {
         setIsLoading(false);
       }
@@ -147,29 +154,52 @@ const hasMultipleImages = (restaurant) => {
 };
 
 // Common cuisine color palette
-// const cuisineColorPalette = [
-//   "bg-orange-100 outline-orange-200",
-//   "bg-green-100 outline-green-200",
-//   "bg-blue-100 outline-blue-200",
-//   "bg-purple-100 outline-purple-200",
-//   "bg-pink-100 outline-pink-200",
-//   "bg-yellow-100 outline-yellow-200",
-//   "bg-teal-100 outline-teal-200",
-// ];
+const cuisineColorPalette = [
+  "bg-orange-100 outline-orange-200",
+  "bg-green-100 outline-green-200",
+  "bg-blue-100 outline-blue-200",
+  "bg-purple-100 outline-purple-200",
+  "bg-pink-100 outline-pink-200",
+  "bg-yellow-100 outline-yellow-200",
+  "bg-teal-100 outline-teal-200",
+];
 
-const TableGrid = ({ title }) => {
+const TableGrid = ({ title, type }) => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
     useCarouselLogic();
-  const { restaurants, isLoading } = useRestaurantData("restaurant");
+  const { restaurants, isLoading } = useRestaurantData("restaurant", type);
   const navigate = useNavigate();
 
-  if (isLoading) return <UniversalLoader />;
+  
+  if (isLoading) return (
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} class="rounded-2xl bg-white shadow-md overflow-hidden">
+          <div class="h-44 w-full bg-gray-200 animate-pulse"></div>
+          <div class="p-4 space-y-4">
+            <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+          <div class="flex gap-2">
+            <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+            <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+            <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+          </div>
+          <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+          <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+        </div>
+      </div>
+  ))};
+    </div>
+  );
+
+  if (!restaurants || restaurants.length === 0) return null;
+
+  let limit = 4;
 
   return (
     <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-full sm:w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
+        className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -284,14 +314,14 @@ const TableGrid = ({ title }) => {
                       )
                         .slice(0, 3)
                         .map((category, index) => {
-                          // const classes =
-                          //   cuisineColorPalette[
-                          //     index % cuisineColorPalette.length
-                          //   ];
+                          const classes =
+                            cuisineColorPalette[
+                              index % cuisineColorPalette.length
+                            ];
                           return (
                             <div
                               key={index}
-                              className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                              className={`px-3 py-2 ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                             >
                               {category}
                             </div>
@@ -342,29 +372,55 @@ const TableGrid = ({ title }) => {
       </div>
 
       {/* Show more - responsive */}
-      <div className="mt-6 sm:mt-8 text-center">
-        <button className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
-          <span>Show more</span>
+      {(restaurants.length > limit && (
+        <div className="mt-6 sm:mt-8 text-center">
+        <button onClick={() => {
+          limit += 4
+        }} className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
+          <span>Show more offers</span>
           <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
+      ))}
     </div>
   );
 };
 
-export const TableGridTwo = ({ title }) => {
+export const TableGridTwo = ({ title, type }) => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
     useCarouselLogic();
-  const { restaurants, isLoading } = useRestaurantData("hotel");
+  const { restaurants, isLoading } = useRestaurantData("hotel", type);
   const navigate = useNavigate();
 
-  if (isLoading) return <UniversalLoader />;
+  if (isLoading) return (
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} class="rounded-2xl bg-white shadow-md overflow-hidden">
+          <div class="h-44 w-full bg-gray-200 animate-pulse"></div>
+          <div class="p-4 space-y-4">
+            <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+          <div class="flex gap-2">
+            <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+            <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+            <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+          </div>
+          <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+          <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+        </div>
+      </div>
+  ))};
+    </div>
+  );
+
+  if (!restaurants || restaurants.length === 0) return null;
+
+  let limit = 4;
 
   return (
     <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex justify-between items-center mb-4 sm:mb-6 w-full sm:w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
+        className="flex justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -477,14 +533,14 @@ export const TableGridTwo = ({ title }) => {
                       )
                         .slice(0, 3)
                         .map((category, index) => {
-                          // const classes =
-                          //   cuisineColorPalette[
-                          //     index % cuisineColorPalette.length
-                          //   ];
+                          const classes =
+                            cuisineColorPalette[
+                              index % cuisineColorPalette.length
+                            ];
                           return (
                             <div
                               key={index}
-                              className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                              className={`px-3 py-2 ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                             >
                               {category}
                             </div>
@@ -517,11 +573,11 @@ export const TableGridTwo = ({ title }) => {
 
                 <div className="mt-4">
                   <div className="flex justify-between items-center mb-3">
-                    <div className="flex text-teal-600 justify-start items-center gap-1">
-                      <div className="text-gr text-sm font-medium leading-none">
+                    <div className="flex text-black justify-start items-center gap-1">
+                      <div className="text-lg font-bold leading-none">
                         ₦{restaurant.priceRange}
                       </div>
-                      <div className="text-zc-600 text-xs font-normal leading-none">
+                      <div className="text-xs font-normal leading-none">
                         /night
                       </div>
                     </div>
@@ -547,29 +603,55 @@ export const TableGridTwo = ({ title }) => {
       </div>
 
       {/* Show more - responsive */}
-      <div className="mt-6 sm:mt-8 text-center">
-        <button className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
-          <span>Show more</span>
+      {(restaurants.length > limit && (
+        <div className="mt-6 sm:mt-8 text-center">
+        <button onClick={() => {
+          limit += 4
+        }} className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
+          <span>Show more offers</span>
           <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
+      ))}
     </div>
   );
 };
 
-export const TableGridThree = ({ title }) => {
+export const TableGridThree = ({ title, type }) => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
     useCarouselLogic();
-  const { restaurants, isLoading } = useRestaurantData("club");
+  const { restaurants, isLoading } = useRestaurantData("club", type);
   const navigate = useNavigate();
 
-  if (isLoading) return <UniversalLoader />;
+  if (isLoading) return (
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} class="rounded-2xl bg-white shadow-md overflow-hidden">
+          <div class="h-44 w-full bg-gray-200 animate-pulse"></div>
+          <div class="p-4 space-y-4">
+            <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+          <div class="flex gap-2">
+            <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+            <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+            <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+          </div>
+          <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+          <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+        </div>
+      </div>
+  ))};
+    </div>
+  );
+
+  if (!restaurants || restaurants.length === 0) return null;
+
+  let limit = 4;
 
   return (
     <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex justify-between items-center mb-4 sm:mb-6 w-full sm:w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
+        className="flex justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -678,14 +760,14 @@ export const TableGridThree = ({ title }) => {
                   {categories.length > 0 && (
                     <div className="inline-flex flex-wrap gap-1.5 sm:gap-2 ">
                       {categories.slice(0, 3).map((category, index) => {
-                        // const classes =
-                        //   cuisineColorPalette[
-                        //     index % cuisineColorPalette.length
-                        //   ];
+                        const classes =
+                          cuisineColorPalette[
+                            index % cuisineColorPalette.length
+                          ];
                         return (
                           <div
                             key={index}
-                            className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                            className={`px-3 py-2 ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                           >
                             {category}
                           </div>
@@ -707,11 +789,11 @@ export const TableGridThree = ({ title }) => {
                     </p>
                   </div>
 
-                  <div className="flex text-teal-600 mt-4 justify-start items-center gap-1">
-                    <div className="text-teal-600 text-sm font-medium leading-none">
+                  <div className="flex text-black mt-4 justify-start items-center gap-1">
+                    <div className="font-bold leading-none">
                       Table from
                     </div>
-                    <div className="text-sm font-medium leading-none">
+                    <div className="font-bold leading-none">
                       ₦{restaurant.priceRange}
                     </div>
                   </div>
@@ -737,14 +819,176 @@ export const TableGridThree = ({ title }) => {
       </div>
 
       {/* Show more - responsive */}
-      <div className="mt-6 sm:mt-8 text-center">
-        <button className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
-          <span>Show more</span>
+      {(restaurants.length > limit && (
+        <div className="mt-6 sm:mt-8 text-center">
+        <button onClick={() => {
+          limit += 4
+        }} className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
+          <span>Show more offers</span>
           <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
         </button>
       </div>
+      ))}
     </div>
   );
 };
 
 export default TableGrid;
+
+
+
+export const TableGridFour = ({ title }) => {
+  const [menus, setMenus] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchRestaurant = async () => {
+      try {
+        setIsLoading(true);
+        const res = await userService.getOffers();
+        setMenus(res.data);
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRestaurant();
+  }, []);
+
+  if (isLoading) return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
+      {Array.from({ length: 4 }).map((_, index) => (
+        <div key={index} className="rounded-2xl bg-white shadow-md overflow-hidden">
+          <div className="h-48 w-full bg-gray-200 animate-pulse"></div>
+          <div className="p-4 space-y-4">
+            <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+            <div className="flex gap-2">
+              <div className="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
+            <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+            <div className="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (!menus || menus.length === 0) return null;
+
+  let limit = 4;
+
+  return (
+    <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
+      <Button
+        variant="outline"
+        className="flex justify-between items-center mb-4 sm:mb-6 w-full sm:w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
+      >
+        <h2>{title}</h2>
+        <FiChevronRight className="ml-1 sm:ml-2" />
+      </Button>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
+        {menus.slice(0, limit)?.map((menu) => (
+          <div
+            key={menu._id}
+            onClick={() => navigate(`/restaurants/${menu.vendor._id}`)}
+            className="group cursor-pointer bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden h-full flex flex-col"
+          >
+            {/* Image Container */}
+            <div className="relative h-40 sm:h-48 w-full overflow-hidden bg-gray-100">
+              <img
+                src={menu.coverImage}
+                alt={menu.name}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              />
+              
+              {/* Badge */}
+              <div className="absolute top-3 left-3 bg-orange-500/95 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg">
+                {menu.mealTimes?.[0] || 'Special'}
+              </div>
+
+              {/* Heart Button */}
+              <button className="absolute top-3 right-3 text-white cursor-pointer text-lg transition-all duration-300 hover:scale-110 drop-shadow-md bg-black/20 rounded-full p-2 hover:bg-black/40">
+                <Heart size={18} />
+              </button>
+            </div>
+
+            {/* Content Section */}
+            <div className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+              <div className="space-y-2">
+                {/* Dish Name */}
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 line-clamp-2 leading-tight">
+                  {menu.name}
+                </h3>
+
+                {/* Restaurant Info */}
+                <div className="flex items-center gap-2">
+                  <div className="text-xs sm:text-sm text-gray-600 font-medium">
+                    {menu.vendor.businessName}
+                  </div>
+                  {menu.vendor.rating && (
+                    <div className="flex items-center gap-1">
+                      <FaStar className="text-yellow-500 text-xs" />
+                      <span className="text-xs font-semibold text-gray-700">
+                        {menu.vendor.rating?.toFixed(1)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Tags */}
+                {menu.menuType && menu.menuType.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {menu.menuType.slice(0, 2).map((type, idx) => (
+                      <span
+                        key={idx}
+                        className="text-xs bg-orange-50 text-orange-600 px-2 py-1 rounded-full font-medium"
+                      >
+                        {type}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Price and Button */}
+              <div className="mt-4 space-y-3">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    ₦{menu.price.toLocaleString()}
+                  </span>
+                  <span className="text-xs text-gray-500">{menu.pricingModel}</span>
+                </div>
+
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/restaurants/${menu.vendor._id}`);
+                  }}
+                  className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-full transition-all duration-300 text-sm sm:text-base shadow-md hover:shadow-lg active:scale-95"
+                >
+                  Order Now
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Show more */}
+      {(menus.length > limit && (
+        <div className="mt-6 sm:mt-8 text-center">
+        <button onClick={() => {
+          limit += 4
+        }} className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
+          <span>Show more offers</span>
+          <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+        </button>
+      </div>
+      ))}
+    </div>
+  );
+};

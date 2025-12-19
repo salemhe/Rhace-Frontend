@@ -12,7 +12,7 @@ import { useNavigate } from 'react-router'
 // import API from '@/lib/api/axios'
 
 //logo image
-import logo from '@/assets/Rhace-11.png';
+import logo from '@/public/images/Rhace-11.png';
 
 
 

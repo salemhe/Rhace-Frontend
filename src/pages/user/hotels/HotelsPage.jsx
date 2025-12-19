@@ -5,7 +5,7 @@ import HotelInfo from "../../../components/user/hotel/HotelInfo";
 import HotelSaveCopy from "@/components/user/ui/SaveCopy";
 import Images from "@/components/user/ui/Image";
 import Images2 from "@/components/user/ui/Image2";
-import Footer from "@/components/user/Footer";
+import Footer from "@/components/Footer";
 import { useParams } from "react-router";
 import HotelBookingForm from "@/components/user/hotel/BookingForm";
 import MapComponent from "@/components/user/ui/mapComponent";

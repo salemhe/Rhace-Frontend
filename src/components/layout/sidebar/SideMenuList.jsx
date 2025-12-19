@@ -1,4 +1,4 @@
-import { BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, PeopleIcon, SettingIcon } from '@/assets/icons/icons';
+import { BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, PeopleIcon, SettingIcon } from '@/public/icons/icons';
 import { Users } from 'lucide-react';
 
 // Menu configurations

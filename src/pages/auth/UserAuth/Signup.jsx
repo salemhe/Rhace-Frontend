@@ -289,11 +289,11 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-import GoogleIcon from "@/assets/auth/google.svg";
+import GoogleIcon from "@/public/auth/google.svg";
 import { toast } from "sonner"
 import { useNavigate } from "react-router"
 import { authService } from "@/services/auth.service"
-import logo from "../../../assets/Rhace-11.png"
+import logo from "../../../public/images/Rhace-11.png"
 import { useGoogleLogin } from "@react-oauth/google"
 
 const getCurrentYear = () => new Date().getFullYear();

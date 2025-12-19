@@ -58,14 +58,14 @@ const MenuReservation = ({ menuFiltered, setMenuItems, menuItems }) => {
                       <div className="relative w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
                         <img
                           src={item.itemImage || "/placeholder.svg"}
-                          alt={item.dishName}
+                          alt={item.name}
                           className="object-contain size-full"
                         />
                       </div>
                       <div className="flex-1 p-4">
                         <div className="flex justify-between items-start">
                           <div>
-                            <h3 className="font-medium">{item.dishName}</h3>
+                            <h3 className="font-medium">{item.name}</h3>
                             <p className="text-sm text-gray-600 mt-1">
                               {item.description}
                             </p>

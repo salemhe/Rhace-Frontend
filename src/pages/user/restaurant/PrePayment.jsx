@@ -2,7 +2,7 @@ import { Banknote, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ReservationHeader from "@/components/user/restaurant/ReservationHeader";
-import { RestaurantBooking } from "@/lib/api";
+// import { RestaurantBooking } from "@/lib/api";
 import { useEffect, useState } from "react";
 import PaymentPage from "@/components/user/ui/Payment";
 import { toast } from "sonner";
