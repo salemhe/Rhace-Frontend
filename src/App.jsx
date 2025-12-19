@@ -190,7 +190,7 @@ function App() {
           <Route path="/about" element={<AboutRhace />} />
           <Route path="/contact" element={<ContactRhace />} />
           <Route path="/faq" element={<HelpCenterRhace />} />
-          <Route path="/reservation-home" element={<VendornHomePage />} />
+          <Route path="/partner" element={<VendornHomePage />} />
 
           {/* Authentication */}
           <Route path="/auth">

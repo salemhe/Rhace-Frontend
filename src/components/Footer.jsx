@@ -496,7 +496,7 @@ export default function Footer() {
             },
             {
               title: "Company",
-              links: ["About", "Blog", "Careers", "Contact"],
+              links: ["Home", "About", "Partner", "Contact"],
             },
             {
               title: "Support",
@@ -512,20 +512,23 @@ export default function Footer() {
             >
               <h4 className="text-white mb-4">{section.title}</h4>
               <ul className="space-y-2">
-                {section.links.map((link, linkIndex) => (
-                  <motion.li
-                    key={linkIndex}
-                    whileHover={{ x: 5 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <a
-                      href={link.toLowerCase().replace(" ", "-")}
-                      className="hover:text-teal-400 transition-colors"
+                {section.links.map((link, linkIndex) => {
+                  const href = link.toLowerCase().replace(" ", "-");
+                  return (
+                    <motion.li
+                      key={linkIndex}
+                      whileHover={{ x: 5 }}
+                      transition={{ duration: 0.2 }}
                     >
-                      {link}
-                    </a>
-                  </motion.li>
-                ))}
+                      <a
+                        href={href === "home" ? `/` : href}
+                        className="hover:text-teal-400 transition-colors"
+                      >
+                        {link}
+                      </a>
+                    </motion.li>
+                  );
+                })}
               </ul>
             </motion.div>
           ))}
