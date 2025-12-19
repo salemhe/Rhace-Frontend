@@ -154,15 +154,15 @@ const hasMultipleImages = (restaurant) => {
 };
 
 // Common cuisine color palette
-// const cuisineColorPalette = [
-//   "bg-orange-100 outline-orange-200",
-//   "bg-green-100 outline-green-200",
-//   "bg-blue-100 outline-blue-200",
-//   "bg-purple-100 outline-purple-200",
-//   "bg-pink-100 outline-pink-200",
-//   "bg-yellow-100 outline-yellow-200",
-//   "bg-teal-100 outline-teal-200",
-// ];
+const cuisineColorPalette = [
+  "bg-orange-100 outline-orange-200",
+  "bg-green-100 outline-green-200",
+  "bg-blue-100 outline-blue-200",
+  "bg-purple-100 outline-purple-200",
+  "bg-pink-100 outline-pink-200",
+  "bg-yellow-100 outline-yellow-200",
+  "bg-teal-100 outline-teal-200",
+];
 
 const TableGrid = ({ title, type }) => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
@@ -199,7 +199,7 @@ const TableGrid = ({ title, type }) => {
     <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-full sm:w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
+        className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -314,14 +314,14 @@ const TableGrid = ({ title, type }) => {
                       )
                         .slice(0, 3)
                         .map((category, index) => {
-                          // const classes =
-                          //   cuisineColorPalette[
-                          //     index % cuisineColorPalette.length
-                          //   ];
+                          const classes =
+                            cuisineColorPalette[
+                              index % cuisineColorPalette.length
+                            ];
                           return (
                             <div
                               key={index}
-                              className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                              className={`px-3 py-2 ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                             >
                               {category}
                             </div>
@@ -420,7 +420,7 @@ export const TableGridTwo = ({ title, type }) => {
     <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex justify-between items-center mb-4 sm:mb-6 w-full sm:w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
+        className="flex justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -533,14 +533,14 @@ export const TableGridTwo = ({ title, type }) => {
                       )
                         .slice(0, 3)
                         .map((category, index) => {
-                          // const classes =
-                          //   cuisineColorPalette[
-                          //     index % cuisineColorPalette.length
-                          //   ];
+                          const classes =
+                            cuisineColorPalette[
+                              index % cuisineColorPalette.length
+                            ];
                           return (
                             <div
                               key={index}
-                              className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                              className={`px-3 py-2 ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                             >
                               {category}
                             </div>
@@ -651,7 +651,7 @@ export const TableGridThree = ({ title, type }) => {
     <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex justify-between items-center mb-4 sm:mb-6 w-full sm:w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
+        className="flex justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -760,14 +760,14 @@ export const TableGridThree = ({ title, type }) => {
                   {categories.length > 0 && (
                     <div className="inline-flex flex-wrap gap-1.5 sm:gap-2 ">
                       {categories.slice(0, 3).map((category, index) => {
-                        // const classes =
-                        //   cuisineColorPalette[
-                        //     index % cuisineColorPalette.length
-                        //   ];
+                        const classes =
+                          cuisineColorPalette[
+                            index % cuisineColorPalette.length
+                          ];
                         return (
                           <div
                             key={index}
-                            className={`px-3 py-2 rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                            className={`px-3 py-2 ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                           >
                             {category}
                           </div>
