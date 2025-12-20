@@ -5,43 +5,35 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Building2, Clock, DollarSign, Globe, Phone, Tag } from "lucide-react";
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { BusinessLogo } from "../../settings/part/BusinessInfo";
+import { authService } from "@/services/auth.service";
+import { setVendor } from "@/redux/slices/authSlice";
+import { toast } from "sonner";
 
 const RestaurantSettings = () => {
-   const [formData, setFormData] = useState({
-      businessName: "Joe's Platter",
-      description: '',
-      phone: '+234 000 111 234',
-      website: '',
-      address: '',
-      priceRange: 1000,
-      offer: '',
-      openingTime: '09:00',
-      closingTime: '22:00',
-      cuisines: ['Italian', 'Nigerian'],
-      availableSlots: ['Breakfast', 'Lunch', 'Dinner'],
-   });
-
    const vendor = useSelector((state) => state.auth.vendor);
+   const [formData, setFormData] = useState(vendor);
+   const [isLoading, setIsLoading] = useState(false);
+   const dispatch = useDispatch();
 
    const updateField = (field, value) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
    };
 
-   const addTag = (field, value) => {
-      setFormData((prev) => ({
-         ...prev,
-         [field]: [...prev[field], value],
-      }));
-   };
-
-   const removeTag = (field, value) => {
-      setFormData((prev) => ({
-         ...prev,
-         [field]: prev[field].filter((item) => item !== value),
-      }));
-   };
+   const handleSubmit = async () => {
+      setIsLoading(true);
+      try {
+         const user = await authService.vendorUpdate(formData)
+         dispatch(setVendor(user?.vendor)); 
+         toast.success("Succesfully updated settings!");
+      } catch (error) {
+         console.error("Error updating settings:", error);
+         toast.error("Failed to update settings. Please try again.");
+      } finally {
+         setIsLoading(false);
+      }
+   }
 
    return (
 
@@ -53,7 +45,7 @@ const RestaurantSettings = () => {
                   <h1 className="text-xl font-bold text-gray-900">Restaurant Settings</h1>
                </div>
                <div className="md:w-[49%]">
-                  <BusinessLogo />
+                  <BusinessLogo value={formData.logo} onChange={(value) => updateField('logo', value)} />
                </div>
 
                {/* Business Information */}
@@ -85,8 +77,8 @@ const RestaurantSettings = () => {
                   <Textarea
                      label="Business Description"
                      placeholder="Tell customers what makes your restaurant special..."
-                     value={formData.description}
-                     onChange={(e) => updateField('description', e.target.value)}
+                     value={formData.businessDescription}
+                     onChange={(e) => updateField('businessDescription', e.target.value)}
                   />
                   <Textarea
                      label="Address"
@@ -118,28 +110,6 @@ const RestaurantSettings = () => {
                   </div>
                </Card>
 
-               {/* Menu & Services */}
-               <Card className="p-6 space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                     <Tag className="w-5 h-5 text-[#0A6C6D]" />
-                     Menu & Services
-                  </h2>
-                  <TagInput
-                     label="Cuisines"
-                     placeholder="Add cuisine type (e.g., Italian, Chinese)"
-                     tags={formData.cuisines}
-                     onAdd={(value) => addTag('cuisines', value)}
-                     onRemove={(value) => removeTag('cuisines', value)}
-                  />
-                  <TagInput
-                     label="Available Meal Slots"
-                     placeholder="Add time slots (e.g., Breakfast, Lunch)"
-                     tags={formData.availableSlots}
-                     onAdd={(value) => addTag('availableSlots', value)}
-                     onRemove={(value) => removeTag('availableSlots', value)}
-                  />
-               </Card>
-
                {/* Pricing */}
                <Card className="p-6 space-y-4">
                   <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
@@ -162,11 +132,11 @@ const RestaurantSettings = () => {
 
                {/* Action Buttons */}
                <div className="flex justify-end gap-3">
-                  <button className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                  <button onClick={() => setFormData(vendor)} className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                      Reset
                   </button>
-                  <button className="px-6 py-2 bg-[#0A6C6D] text-white rounded-md hover:bg-[#085555] transition-colors">
-                     Save Changes
+                  <button disabled={isLoading} onClick={handleSubmit} className="px-6 py-2 bg-[#0A6C6D] text-white rounded-md hover:bg-[#085555] transition-colors">
+                    {isLoading ? "Saving..." : "Save Changes"}
                   </button>
                </div>
             </div>

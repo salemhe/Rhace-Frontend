@@ -69,7 +69,8 @@ export default function Reservations() {
       };
       const listRes = await getReservations(params);
       const payload = listRes?.data;
-      const list = Array.isArray(payload) ? payload : (payload?.data || payload?.items || payload?.results || []);
+      // FIX: Access the 'reservations' property from the response data
+      const list = payload?.docs || payload?.reservations || payload?.data || payload?.items || payload?.results || [];
       setReservations(Array.isArray(list) ? list : []);
     } catch (e) {
       console.error("Failed to load reservations", e);
@@ -86,22 +87,29 @@ export default function Reservations() {
       setReservations((prev) =>
         prev.map((r) => (r.id === updatedReservation.id ? updatedReservation : r))
       );
-      fetchCounters();
     };
 
     const handleReservationCreate = (newReservation) => {
       setReservations((prev) => [newReservation, ...prev]);
-      fetchCounters();
     };
 
     const handleReservationDelete = (deletedReservation) => {
       setReservations((prev) => prev.filter((r) => r.id !== deletedReservation.id));
-      fetchCounters();
+    };
+
+    const handleCountersUpdate = (updatedCounters) => {
+      setCounters({
+        todays: updatedCounters.todays ?? updatedCounters.todaysReservations ?? 0,
+        prepaid: updatedCounters.prepaid ?? updatedCounters.prepaidReservations ?? 0,
+        expectedGuests: updatedCounters.expectedGuests ?? 0,
+        pendingPayments: updatedCounters.pendingPayments ?? 0,
+      });
     };
 
     subscribe("reservation-updated", handleReservationUpdate);
     subscribe("reservation-created", handleReservationCreate);
     subscribe("reservation-deleted", handleReservationDelete);
+    subscribe("reservation-counters-updated", handleCountersUpdate);
 
     return () => {
       unsubscribe("reservation-updated");
@@ -115,9 +123,9 @@ export default function Reservations() {
       const countersRes = await getReservationCounters();
       const c = countersRes?.data || {};
       setCounters({
-        todays: c.todays ?? c.todaysReservations ?? 0,
-        prepaid: c.prepaid ?? c.prepaidReservations ?? 0,
-        expectedGuests: c.expectedGuests ?? 0,
+        todays: c.reservationsToday ?? c.todays ?? c.todaysReservations ?? 0,
+        prepaid: c.prepaidReservations ?? c.prepaid ?? 0,
+        expectedGuests: c.expectedGuestsToday ?? c.expectedGuests ?? 0,
         pendingPayments: c.pendingPayments ?? 0,
       });
     } catch (e) {

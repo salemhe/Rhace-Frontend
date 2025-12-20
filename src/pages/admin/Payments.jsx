@@ -69,6 +69,7 @@ import {
   approvePayout,
   getDashboardKPIs,
   getRevenueTrends,
+  getTotalEarnings,
 } from "@/services/admin.service";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 import placeholderLogo from "@/public/images/Rhace-11.png";
@@ -128,33 +129,28 @@ export default function Payments() {
     try {
       setLoadingEarnings(true);
       const earningsRes = await getVendorsEarnings();
-      console.log("Earnings API response:", earningsRes);
-
-      const earnings = Array.isArray(earningsRes?.data)
-        ? earningsRes.data
-        : earningsRes?.data?.data || earningsRes?.data?.items || [];
-
-      console.log("Processed earnings array:", earnings);
+      
+      // FIX: Access the 'earnings' property from the response data
+      const earnings = earningsRes?.data?.earnings || [];
 
       const vendorsWithEarnings = earnings.map((vendor) => ({
-        id: vendor.id,
-        name: vendor.businessName || vendor.name,
-        totalEarned: vendor.totalEarned
-          ? `₦${vendor.totalEarned.toLocaleString()}`
+        id: vendor.vendorId || vendor._id,
+        name: vendor.vendorName || vendor.businessName || vendor.name,
+        totalEarned: vendor.totalEarnings
+          ? `₦${vendor.totalEarnings.toLocaleString()}`
           : "₦0",
-        commission: vendor.commission
-          ? `₦${vendor.commission.toLocaleString()}`
+        commission: vendor.totalPayments
+          ? `₦${vendor.totalPayments.toLocaleString()}`
           : "₦0",
-        amountDue: vendor.amountDue
-          ? `₦${vendor.amountDue.toLocaleString()}`
+        amountDue: vendor.totalEarnings
+          ? `₦${vendor.totalEarnings.toLocaleString()}`
           : "₦0",
-        lastPayout: vendor.lastPayout
-          ? new Date(vendor.lastPayout).toLocaleDateString()
+        lastPayout: vendor.lastPaymentDate
+          ? new Date(vendor.lastPaymentDate).toLocaleDateString()
           : "-",
         status: vendor.status || "Pending",
       }));
 
-      console.log("Vendors with earnings:", vendorsWithEarnings);
       setVendorsEarnings(vendorsWithEarnings);
     } catch (e) {
       console.error("Failed to load vendors earnings", e);
@@ -247,12 +243,28 @@ export default function Payments() {
     const loadKPIs = async () => {
       try {
         setLoadingKPIs(true);
-const kpisRes = await getDashboardKPIs();
-        if (!ignore) setDashboardKPIs(kpisRes?.data || {});
-      } catch (e) {
-        console.error("Failed to load KPIs", e);
-        if (!ignore) setDashboardKPIs({});
-      } finally {
+        const kpisRes = await getDashboardKPIs();
+        const kpis = kpisRes?.data?.data || kpisRes?.data || kpisRes || {};
+        if (!ignore) {
+          // Exclude earnings-related keys to prevent overwriting data from getTotalEarnings
+          const earningsKeys = [
+            'totalEarnings', 'totalEarningsChange', 'totalEarningsTrend',
+            'weeklyEarnings', 'weeklyEarningsChange', 'weeklyEarningsTrend',
+            'completedPayments', 'completedPaymentsChange', 'completedPaymentsTrend',
+            'availableBalance', 'lastPaymentDate'
+          ];
+          const filteredKpis = Object.keys(kpis).reduce((acc, key) => {
+            if (!earningsKeys.includes(key)) {
+              acc[key] = kpis[key];
+            }
+            return acc;
+          }, {});
+          setDashboardKPIs(prev => ({ ...prev, ...filteredKpis }));
+        }
+    } catch (e) {
+      console.error("Failed to load KPIs", e);
+      // Don't clear KPIs on error to preserve earnings data set by loadEarnings
+    } finally {
         if (!ignore) setLoadingKPIs(false);
       }
     };
@@ -286,20 +298,113 @@ const kpisRes = await getDashboardKPIs();
         if (!ignore) setLoadingPayouts(false);
       }
     };
+    
+    const loadEarnings = async () => {
+      try {
+        const res = await getTotalEarnings();
+        const data = res?.data;
+        if (data?.earnings) {
+          setDashboardKPIs(prev => ({
+            ...prev,
+            totalEarnings: data.earnings.thisYear,
+            totalEarningsChange: `+${data.earnings.yearChange}% from last year`,
+            totalEarningsTrend: data.earnings.yearChange >= 0 ? "up" : "down",
+            weeklyEarnings: data.earnings.thisWeek,
+            weeklyEarningsChange: `+${data.earnings.weekChange}% vs last week`,
+            weeklyEarningsTrend: data.earnings.weekChange >= 0 ? "up" : "down",
+            completedPayments: data.payments.completed.thisWeek,
+            completedPaymentsChange: `+${data.payments.completed.change}% vs last week`,
+            completedPaymentsTrend: data.payments.completed.change >= 0 ? "up" : "down",
+            // today's earnings not in response, keeping existing
+          }));
+        }
+      } catch (e) {
+        console.error("Failed to load earnings KPIs", e);
+      }
+    };
 
     load();
     loadPayouts();
+    loadEarnings()
     loadKPIs();
     loadRevenueTrends();
 
-    const handlePaymentUpdate = (payload) => {
-      console.log("Payment update received in Payments component:", payload);
-      load();
-      loadPayouts();
-    };
+  const handlePaymentUpdate = async (payload) => {
+    console.log("Payment update received in Payments component:", payload);
+    load();
+    loadPayouts();
+
+    // Reload earnings KPIs for real-time updates
+    try {
+      const res = await getTotalEarnings();
+      const data = res?.data;
+      if (data?.earnings) {
+        setDashboardKPIs(prev => ({
+          ...prev,
+          totalEarnings: data.earnings.thisYear,
+          totalEarningsChange: `+${data.earnings.yearChange}% from last year`,
+          totalEarningsTrend: data.earnings.yearChange >= 0 ? "up" : "down",
+          weeklyEarnings: data.earnings.thisWeek,
+          weeklyEarningsChange: `+${data.earnings.weekChange}% vs last week`,
+          weeklyEarningsTrend: data.earnings.weekChange >= 0 ? "up" : "down",
+          completedPayments: data.payments.completed.thisWeek,
+          completedPaymentsChange: `+${data.payments.completed.change}% vs last week`,
+          completedPaymentsTrend: data.payments.completed.change >= 0 ? "up" : "down",
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to reload earnings KPIs on payment update", e);
+    }
+
+    // Also reload KPIs and revenue trends for real-time updates
+    // Exclude earnings-related keys to prevent overwriting data from getTotalEarnings
+    const earningsKeys = [
+      'totalEarnings', 'totalEarningsChange', 'totalEarningsTrend',
+      'weeklyEarnings', 'weeklyEarningsChange', 'weeklyEarningsTrend',
+      'completedPayments', 'completedPaymentsChange', 'completedPaymentsTrend',
+      'availableBalance', 'lastPaymentDate'
+    ];
+    try {
+      const kpisRes = await getDashboardKPIs();
+      const kpis = kpisRes?.data?.data || kpisRes?.data || kpisRes || {};
+      setDashboardKPIs(prev => {
+        const updated = { ...prev };
+        Object.keys(kpis).forEach(key => {
+          if (kpis[key] !== undefined && !earningsKeys.includes(key)) {
+            updated[key] = kpis[key];
+          }
+        });
+        return updated;
+      });
+    } catch (e) {
+      console.error("Failed to reload KPIs on payment update", e);
+    }
+
+    try {
+      const trendsRes = await getRevenueTrends();
+      const trends = Array.isArray(trendsRes?.data)
+        ? trendsRes.data
+        : trendsRes?.data?.data || [];
+      setRevenueTrends(trends);
+    } catch (e) {
+      console.error("Failed to reload revenue trends on payment update", e);
+    }
+  };
+
+  const handleVendorEarningsUpdate = (payload) => {
+    console.log("Vendor earnings update received:", payload);
+    load(); // Reload vendor earnings data
+  };
+
+  const handleEarningsUpdate = (payload) => {
+    console.log("Earnings update received:", payload);
+    load(); // Reload vendors earnings and KPIs for real-time updates
+  };
 
     subscribe("payment_update", handlePaymentUpdate);
     subscribe("payout_update", handlePaymentUpdate);
+    subscribe("vendor-earnings-updated", handleVendorEarningsUpdate);
+    subscribe("earnings-updated", handleEarningsUpdate);
 
     return () => {
       ignore = true;
@@ -621,40 +726,50 @@ const kpisRes = await getDashboardKPIs();
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(loadingEarnings ? [] : vendorsEarnings).map((vendor) => (
-                    <TableRow key={vendor.id}>
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                            <span className="text-sm font-medium">K</span>
-                          </div>
-                          <span className="font-medium">{vendor.name}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>{vendor.totalEarned}</TableCell>
-                      <TableCell>{vendor.commission}</TableCell>
-                      <TableCell>{vendor.amountDue}</TableCell>
-                      <TableCell>{vendor.lastPayout}</TableCell>
-                      <TableCell>
-                        <Badge variant={vendor.status === "Paid" ? "default" : "secondary"}>
-                          {vendor.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>View Details</DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleInitiatePayout(vendor.id, vendor.amountDue.replace('₦', '').replace(/,/g, ''))}>Initiate Payout</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
+                  {loadingEarnings ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-sm text-muted-foreground">Loading earnings...</TableCell>
                     </TableRow>
-                  ))}
+                  ) : vendorsEarnings.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-sm text-muted-foreground text-center py-8">No vendors with earnings found</TableCell>
+                    </TableRow>
+                  ) : (
+                    vendorsEarnings.map((vendor) => (
+                      <TableRow key={vendor.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                              <span className="text-sm font-medium">K</span>
+                            </div>
+                            <span className="font-medium">{vendor.name}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>{vendor.totalEarned}</TableCell>
+                        <TableCell>{vendor.commission}</TableCell>
+                        <TableCell>{vendor.amountDue}</TableCell>
+                        <TableCell>{vendor.lastPayout}</TableCell>
+                        <TableCell>
+                          <Badge variant={vendor.status === "Paid" ? "default" : "secondary"}>
+                            {vendor.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="icon">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>View Details</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleInitiatePayout(vendor.id, vendor.amountDue.replace('₦', '').replace(/,/g, ''))}>Initiate Payout</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </div>

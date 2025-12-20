@@ -48,6 +48,7 @@ const CreateMenu = () => {
     const [tags, setTags] = useState(initialTags);
     const [newTag, setNewTag] = useState("");
     const [createItem, setCreateItem] = useState(null);
+    const [uploadImageLoading, setUploadImageLoading] = useState(false);
     const [formData, setFormData] = useState({
         id: `menu-${Date.now()}`,
         name: "",
@@ -176,6 +177,7 @@ const CreateMenu = () => {
 
     const handleImageUpload = useCallback(
         async (files, setImage) => {
+            setUploadImageLoading(true)
             const file = files[0];
             if (file.size > 5242880) {
                 alert("File size exceeds 5MB limit.");
@@ -198,6 +200,8 @@ const CreateMenu = () => {
                 setImage((prev) => ({ ...prev, coverImage: imageUrl }))
             } catch (error) {
                 console.error('Upload failed for', fileName, error)
+            } finally {
+                setUploadImageLoading(false)
             }
         },
         [formData.coverImage, newItem.images]
@@ -403,11 +407,13 @@ const CreateMenu = () => {
                                 <div className="space-y-2">
                                     <Label>Cover Image (Optional)</Label>
                                     <label htmlFor='item-cover-image' className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">
-                                        <DownloadCloud className="w-6 h-6 mb-2" />
+                                        {uploadImageLoading ? <Loader2 className="w-6 h-6 mb-2 animate-spin" /> : <DownloadCloud className="w-6 h-6 mb-2" />}
                                         <p>Drag and drop an image here, or</p>
-                                        <Button asChild variant="outline" size="sm" className="mt-2">
-                                            <label htmlFor="item-cover-image" className="cursor-pointer">Browse Files</label>
-                                        </Button>
+                                        {uploadImageLoading ? "Uploading..." :
+                                            <Button asChild variant="outline" size="sm" className="mt-2">
+                                                <label htmlFor="item-cover-image" className="cursor-pointer">Browse Files</label>
+                                            </Button>
+                                        }
                                         <p className="text-xs mt-1">JPG, PNG, or GIF • Max 5MB</p>
                                         <input
                                             type='file'
@@ -416,6 +422,7 @@ const CreateMenu = () => {
                                             max={5242880}
                                             onChange={(e) => e.target.files && handleImageUpload(e.target.files, setFormData)}
                                             className='sr-only'
+                                            disabled={uploadImageLoading}
                                         />
                                     </label>
                                     {formData.coverImage && (
