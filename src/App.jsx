@@ -85,6 +85,7 @@ import AdminSettings from "./pages/admin/Settings";
 // Route Protection
 import ProtectedRoute from "./components/ProtectedRoutes";
 import UserProtectedRoute from "./components/UserProtectedRoute";
+import VendornHomePage from "./pages/vendor/landingPage/page";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
 import BookingDetails from "./pages/user/BookingDetails";
@@ -197,20 +198,29 @@ function App() {
           <Route path="/about" element={<AboutRhace />} />
           <Route path="/contact" element={<ContactRhace />} />
           <Route path="/faq" element={<HelpCenterRhace />} />
+          <Route path="/partner" element={<VendornHomePage />} />
 
           {/* Authentication Routes */}
           <Route path="/auth">
             {/* User */}
             <Route path="user">
               {authRoutes.user.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
 
             {/* Vendor */}
             <Route path="vendor">
               {authRoutes.vendor.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
 
@@ -240,21 +250,37 @@ function App() {
           <Route element={<UserProtectedRoute />}>
             <Route element={<HotelReservationLayout />}>
               {hotelReservationRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
             <Route element={<ClubReservationLayout />}>
               {clubReservationRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
             <Route element={<ReservationLayout />}>
               {restaurantReservationRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
             {userGeneralRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
+              <Route
+                key={route.path}
+                path={route.path}
+                element={route.element}
+              />
             ))}
           </Route>
 
@@ -265,6 +291,13 @@ function App() {
 
             {/* Vendor Dashboards */}
             <Route path="/dashboard">
+              {hotelVendorRoutes.map((route) => (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
             {dashboardRestaurantRoutes.map((route) => (
               <Route key={route.path} path={route.path} element={route.element} />
             ))}

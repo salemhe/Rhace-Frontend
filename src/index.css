@@ -4,7 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@font-face{
+@font-face {
   font-family: "Inter";
   src:local("Inter"),
   url('./public/fonts/Inter/Inter-VariableFont_opsz_wght.ttf') 
@@ -56,7 +56,7 @@
   --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.129 0.042 264.695);
-  --primary: #0A6C6D;
+  --primary: #0a6c6d;
   --primary-foreground: oklch(0.984 0.003 247.858);
   --secondary: oklch(0.968 0.007 247.896);
   --secondary-foreground: oklch(0.208 0.042 265.755);
@@ -126,10 +126,10 @@
   }
 }
 
-body {
+/* body {
   box-sizing: border-box;
-  font-family: 'Inter', Arial, Helvetica, sans-serif;
-}
+  font-family: "Inter", Arial, Helvetica, sans-serif;
+} */
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;
@@ -139,11 +139,8 @@ body {
   scrollbar-width: none;
 }
 
-html {
-   /* font-family: "Outfit", sans-serif; */
-}
-
-button, Link {
+button,
+Link {
   cursor: pointer;
 }
 

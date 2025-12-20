@@ -1,147 +1,262 @@
-import { useState, useEffect } from 'react';
-import { Search, ChevronDown, MoreVertical, Plus, Upload } from 'lucide-react';
-// import { supabase, Drink } from '../lib/supabase';
-import { AddDrinkModal } from './AddDrinkModal';
-import DashboardLayout from '@/components/layout/DashboardLayout';
-// import dummyDrinks from '@/services/rest.services';
-// import AddBottleSetModal from './AddBottleSet';
-import { ca } from 'date-fns/locale';
-import { clubService } from '@/services/club.service';
-import { useSelector } from 'react-redux';
-import { useNavigate } from 'react-router';
-import { set } from 'date-fns';
-import UniversalLoader from '@/components/user/ui/LogoLoader';
+import { StatCard } from "@/components/dashboard/stats/mainStats";
+import DashboardButton from "@/components/dashboard/ui/DashboardButton";
+import {
+  Calendar,
+  CardPay,
+  Cash2,
+  Export,
+  Eye,
+  EyeClose,
+  Filter2,
+  Group3,
+} from "@/components/dashboard/ui/svg";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import NoDataFallback from "@/components/NoDataFallback";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
+import { clubService } from "@/services/club.service";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  MoreVertical,
+  Plus,
+  Search,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { toast } from "sonner";
+import { AddDrinkModal } from "./AddDrinkModal";
+
+const normalizeStatus = (status = "") => {
+  const s = status?.toLowerCase() || "";
+
+  if (s === "active" || s === "available") return "Active";
+  if (s === "inactive" || s === "unavailable") return "Inactive";
+  if (s === "out of stock") return "Out of Stock";
+  if (s === "low stock") return "Low Stock";
+
+  return "Active";
+};
 
 export function DrinksTable() {
   const [drinks, setDrinks] = useState([]);
   const [bottleSets, setBottleSets] = useState([]);
-
-  const [filteredDrinks, setFilteredDrinks] = useState([]);
-  const [filteredSets, setFilteredSets] = useState([]);
-  const [selectedTab, setSelectedTab] = useState('drinks');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [dateFilter, setDateFilter] = useState('Today');
+  const [selectedTab, setSelectedTab] = useState("drinks");
+  const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('Payment Status');
-  const [selectedDrinks, setSelectedDrinks] = useState(new Set());
-  const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(10);
+  const [totalItems, setTotalItems] = useState(0);
+  const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
   const vendor = useSelector((state) => state.auth.vendor);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    loadDrinks();
-  }, []);
+  // Filter states
+  const [selectedDate, setSelectedDate] = useState("all");
+  const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedCategory, setSelectedCategory] = useState("all");
+  const [hideTab, setHideTab] = useState(false);
 
-  useEffect(() => {
-    filterDrinks();
-    filterSets();
-  }, [drinks, bottleSets, searchQuery]);
+  // Stats state
+  const [stats, setStats] = useState({
+    totalDrinks: { count: 0, change: 0 },
+    totalSets: { count: 0, change: 0 },
+    totalValue: { count: 0, change: 0 },
+    activeItems: { count: 0, change: 0 },
+  });
 
-  const loadDrinks = async () => {
-    //  const { data, error } = await supabase
-    //    .from('drinks')
-    //    .select('*')
-    //    .order('created_at', { ascending: false });
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
-    //  if (error) {
-    //    console.error('Error loading drinks:', error);
-    //  } else if (data) {
-    //    setDrinks(data);
-    //  }
-  };
-
-  const filterDrinks = () => {
-    let filtered = drinks;
-
-    if (searchQuery) {
-      filtered = filtered.filter(drink =>
-        drink.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        drink.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
     }
-
-    setFilteredDrinks(filtered);
   };
 
-  const filterSets = () => {
-    let filtered = bottleSets;
+  // Generate page numbers to display
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 3;
 
-    if (searchQuery) {
-      filtered = filtered.filter(set =>
-        set.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        set.category.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    setFilteredSets(filtered);
-  };
-
-  const toggleDrinkSelection = (id) => {
-    const newSelected = new Set(selectedDrinks);
-    if (newSelected.has(id)) {
-      newSelected.delete(id);
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) {
+        pages.push(i);
+      }
     } else {
-      newSelected.add(id);
+      pages.push(1);
+
+      if (currentPage > maxVisible) {
+        pages.push("ellipsis-start");
+      }
+
+      const start = Math.max(2, currentPage - 1);
+      const end = Math.min(totalPages - 1, currentPage + 1);
+
+      for (let i = start; i <= end; i++) {
+        pages.push(i);
+      }
+
+      if (currentPage < totalPages - maxVisible + 1) {
+        pages.push("ellipsis-end");
+      }
+
+      pages.push(totalPages);
     }
-    setSelectedDrinks(newSelected);
+
+    return pages;
   };
 
   useEffect(() => {
     const fetchDrinks = async () => {
       try {
+        setIsLoading(true);
         const data = await clubService.getDrinks(vendor._id);
-        setDrinks(data.drinks);
-        console.log('Fetched drinks:', data);
+        setDrinks(data.drinks || []);
       } catch (error) {
-        console.error('Error fetching drinks:', error);
-      } finally {
-        setIsLoading(false)
+        console.error("Error fetching drinks:", error);
+        toast.error("Failed to fetch drinks");
       }
-    }
+      setIsLoading(false);
+    };
+
     const fetchBottleSets = async () => {
       try {
-        setIsLoading(true)
         const data = await clubService.getBottleSet(vendor._id);
-        setBottleSets(data.bottleSets);
-        console.log('Fetched bottle sets:', data);
+        setBottleSets(data.bottleSets || []);
       } catch (error) {
-        console.error('Error fetching bottle sets:', error);
-      }
-      finally {
-        setIsLoading(false)
+        console.error("Error fetching bottle sets:", error);
+        toast.error("Failed to fetch bottle sets");
       }
     };
+
     fetchDrinks();
     fetchBottleSets();
-  }, [])
+  }, [vendor?._id]);
 
-  const toggleAllDrinks = () => {
-    if (selectedDrinks.size === filteredDrinks.length) {
-      setSelectedDrinks(new Set());
-    } else {
-      setSelectedDrinks(new Set(filteredDrinks.map(d => d.id)));
+  // Calculate stats
+  useEffect(() => {
+    const totalDrinks = drinks.length;
+    const totalSets = bottleSets.length;
+    const activeItems = [...drinks, ...bottleSets].filter(
+      (item) => normalizeStatus(item.status) === "Active"
+    ).length;
+    const totalValue = [...drinks, ...bottleSets].reduce(
+      (sum, item) => sum + (item.price || item.setPrice || 0),
+      0
+    );
+
+    setStats({
+      totalDrinks: { count: totalDrinks, change: 0 },
+      totalSets: { count: totalSets, change: 0 },
+      totalValue: { count: totalValue, change: 0 },
+      activeItems: { count: activeItems, change: 0 },
+    });
+  }, [drinks, bottleSets]);
+
+  // Filter items based on selected tab and filters
+  const filterItems = (items, isDrink = true) => {
+    return items.filter((item) => {
+      const matchesSearch =
+        !searchTerm ||
+        item.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (isDrink &&
+          item.category?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (!isDrink &&
+          item.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+      const matchesStatus =
+        selectedStatus === "all" ||
+        normalizeStatus(item.status) === selectedStatus;
+
+      const matchesCategory =
+        selectedCategory === "all" ||
+        (isDrink && item.category === selectedCategory) ||
+        (!isDrink && selectedCategory === "Bottle Sets");
+
+      return matchesSearch && matchesStatus && matchesCategory;
+    });
+  };
+
+  const filteredDrinks = filterItems(drinks, true);
+  const filteredSets = filterItems(bottleSets, false);
+
+  const currentData = selectedTab === "drinks" ? filteredDrinks : filteredSets;
+  const data = currentData;
+
+  // Update total items based on filtered data
+  useEffect(() => {
+    setTotalItems(data.length);
+    const maxPage = Math.max(1, Math.ceil(data.length / itemsPerPage));
+    setCurrentPage((prev) => Math.min(prev, maxPage));
+  }, [data.length, itemsPerPage]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedTab, searchTerm, selectedStatus, selectedCategory]);
+
+  // Compute paginated items for current page
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedItems = data.slice(startIndex, startIndex + itemsPerPage);
+
+  if (isLoading) {
+    return <UniversalLoader fullscreen />;
+  }
+
+  const getStatusColor = (status) => {
+    switch (normalizeStatus(status)) {
+      case "Active":
+        return "bg-green-100 text-green-800";
+      case "Inactive":
+        return "bg-gray-100 text-gray-800";
+      case "Out of Stock":
+        return "bg-red-100 text-red-800";
+      case "Low Stock":
+        return "bg-yellow-100 text-yellow-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
-  if (isLoading) {
-    return <UniversalLoader fullscreen />
-  }
+  const getCategoryOptions = () => {
+    const categories = new Set(["all"]);
+    drinks.forEach((drink) => {
+      if (drink.category) categories.add(drink.category);
+    });
+    return Array.from(categories).map((cat) => ({
+      value: cat,
+      label: cat === "all" ? "All Categories" : cat,
+    }));
+  };
 
   return (
-    <DashboardLayout>
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto p-6">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-semibold text-gray-900">All Drinks</h1>
-            <div className="flex items-center gap-3">
-              <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors">
-                <Upload size={18} />
-                <span>Export</span>
-              </button>
+    <DashboardLayout type="club" section="drinks">
+      <div className="min-h-screen bg-gray-50 p-6 mb-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="md:flex hidden justify-between items-center mb-6">
+            <h2 className="text-[#111827] font-semibold">Drinks Management</h2>
+            <div className="flex gap-6">
+              <DashboardButton
+                onClick={() => setHideTab(!hideTab)}
+                variant="secondary"
+                text={hideTab ? "Open tabs" : "Hide tabs"}
+                icon={hideTab ? <Eye /> : <EyeClose />}
+              />
+              <DashboardButton
+                variant="secondary"
+                text="Export"
+                icon={<Export />}
+              />
               <button
-                onClick={() => navigate('/dashboard/club/add-drinks')}
+                onClick={() => navigate("/dashboard/club/add-drinks")}
                 className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 transition-colors"
               >
                 <Plus size={18} />
@@ -157,239 +272,475 @@ export function DrinksTable() {
             </div>
           </div>
 
-          {/* Tabs and Filters */}
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setSelectedTab('drinks')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${selectedTab === 'drinks'
-                  ? 'text-gray-900 border-b-2 border-gray-900'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Drinks
-              </button>
-              <button
-                onClick={() => setSelectedTab('sets')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${selectedTab === 'sets'
-                  ? 'text-gray-900 border-b-2 border-gray-900'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Drinks Sets
-              </button>
-              <button
-                onClick={() => setSelectedTab('packages')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${selectedTab === 'packages'
-                  ? 'text-gray-900 border-b-2 border-gray-900'
-                  : 'text-gray-500 hover:text-gray-700'
-                  }`}
-              >
-                Party Packages
-              </button>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Search drinks"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 w-64"
+          {!hideTab && (
+            <div className="flex mb-8 rounded-lg bg-white border border-gray-200">
+              <div className="flex-1">
+                <StatCard
+                  title="Total Drinks"
+                  value={stats.totalDrinks.count}
+                  change={stats.totalDrinks.change}
+                  color="blue"
+                  IconColor="#60A5FA"
+                  icon={<Calendar />}
                 />
               </div>
-              <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50">
-                <span>{dateFilter}</span>
-                <ChevronDown size={16} />
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50">
-                <span>{statusFilter}</span>
-                <ChevronDown size={16} />
-              </button>
-              <button className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50">
-                <span>Advanced filter</span>
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
-              </button>
+              <div className="w-px bg-gray-200 my-4"></div>
+              <div className="flex-1">
+                <StatCard
+                  title="Bottle Sets"
+                  value={stats.totalSets.count}
+                  change={stats.totalSets.change}
+                  color="green"
+                  IconColor="#06CD02"
+                  icon={<CardPay />}
+                />
+              </div>
+              <div className="w-px bg-gray-200 my-4"></div>
+              <div className="flex-1">
+                <StatCard
+                  title="Active Items"
+                  value={stats.activeItems.count}
+                  change={stats.activeItems.change}
+                  color="purple"
+                  IconColor="#CD16C3"
+                  icon={<Group3 />}
+                />
+              </div>
+              <div className="w-px bg-gray-200 my-4"></div>
+              <div className="flex-1">
+                <StatCard
+                  title="Total Value"
+                  value={`₦${stats.totalValue.count.toLocaleString("en-US", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`}
+                  change={stats.totalValue.change}
+                  color="orange"
+                  IconColor="#E1B505"
+                  icon={<Cash2 fill="#E1B505" />}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
-          {/* Table */}
-          <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            {selectedTab === "drinks" && (
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="w-12 px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedDrinks.size === filteredDrinks.length && filteredDrinks.length > 0}
-                        onChange={toggleAllDrinks}
-                        className="rounded border-gray-300"
-                      />
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Drink name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Volume</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price (₦)</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Quantity</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                    <th className="w-12 px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredDrinks.map((drink) => (
-                    <tr key={drink._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedDrinks.has(drink._id)}
-                          onChange={() => toggleDrinkSelection(drink._id)}
-                          className="rounded border-gray-300"
-                        />
-                      </td>
-                      <td className="px-4 py-4">
-                        <img
-                          src={drink.images[0]}
-                          alt={drink.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                        />
-                      </td>
-                      <td className="px-4 py-4 text-sm font-medium text-gray-900">{drink.name}</td>
-                      <td className="px-4 py-4 text-sm text-gray-600">{drink.category}</td>
-                      <td className="px-4 py-4 text-sm text-gray-600">{drink.volume}</td>
-                      <td className="px-4 py-4 text-sm text-gray-900 font-medium">₦{drink.price.toLocaleString()}</td>
-                      <td className="px-4 py-4 text-sm text-gray-600">{drink.quantity}</td>
-                      <td className="px-4 py-4">
-                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${drink.status === 'Active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-700'
-                          }`}>
-                          {drink.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <button className="text-gray-400 hover:text-gray-600">
-                          <MoreVertical size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-            {selectedTab === "sets" && (
-              <table className="w-full">
-                <thead className="bg-gray-50 border-b border-gray-200">
-                  <tr>
-                    <th className="w-12 px-4 py-3">
-                      <input
-                        type="checkbox"
-                        checked={selectedDrinks.size === filteredDrinks.length && filteredDrinks.length > 0}
-                        onChange={toggleAllDrinks}
-                        className="rounded border-gray-300"
-                      />
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Image</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Drink name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price (₦)</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">AddOns</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Drinks</th>
-                    <th className="w-12 px-4 py-3"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {filteredSets.map((drink) => (
-                    <tr key={drink._id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-4">
-                        <input
-                          type="checkbox"
-                          checked={selectedDrinks.has(drink._id)}
-                          onChange={() => toggleDrinkSelection(drink._id)}
-                          className="rounded border-gray-300"
-                        />
-                      </td>
-                      <td className="px-4 py-4">
-                        <img
-                          src={drink.image}
-                          alt={drink.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                        />
-                      </td>
-                      <td className="px-4 py-4 text-sm font-medium text-gray-900">{drink.name}</td>
-                      <td className="px-4 py-4 text-sm text-gray-900 font-medium">₦{drink.setPrice.toLocaleString()}</td>
-                      <td className="px-4 py-6 text-sm gap-1 flex items-center text-gray-600">{drink.addOns.slice(0, 3).map((item) => (
-                        <div className='p-2 bg-gray-200 rounded-lg'>
-                          {item}
-                        </div>
-                      ))}
-                      {drink.addOns.length > 3 ? `+ ${drink.addOns.length - 3} more` : ''}
-                      </td>
-                      <td className="px-4 py-4 text-sm text-gray-900 font-medium">{drink.items.reduce((acc, item) => acc + item.quantity, 0)}</td>
-                      <td className="px-4 py-4">
-                        <button className="text-gray-400 hover:text-gray-600">
-                          <MoreVertical size={20} />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
-          </div>
-
-          {/* Pagination */}
-          <div className="flex items-center justify-between mt-6">
-            <p className="text-sm text-gray-600">Page 1 of 30</p>
-            <div className="flex items-center gap-2">
-              {[1, 2, 3].map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`w-8 h-8 rounded ${currentPage === page
-                    ? 'bg-gray-900 text-white'
-                    : 'bg-white border border-gray-300 text-gray-600 hover:bg-gray-50'
+          {/* Tabs and Filters */}
+          <div className="bg-white rounded-lg border border-gray-200">
+            <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between py-4 px-4 border-b border-gray-200">
+              <div className="flex flex-1 items-center">
+                {["drinks", "sets", "packages"].map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setSelectedTab(tab)}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${
+                      selectedTab === tab
+                        ? "text-gray-900 border-b-2 border-gray-900"
+                        : "text-gray-500 hover:text-gray-700"
                     }`}
-                >
-                  {page}
-                </button>
-              ))}
-              <span className="px-2 text-gray-500">...</span>
-              {[10, 11, 12].map((page) => (
+                  >
+                    {tab === "drinks"
+                      ? "Drinks"
+                      : tab === "sets"
+                      ? "Drinks Sets"
+                      : "Party Packages"}
+                  </button>
+                ))}
+              </div>
+              <div className="flex items-center justify-between gap-4">
+                <div className="relative items-center flex flex-1">
+                  <Search className="absolute left-2 text-[#606368] size-5" />
+                  <Input
+                    type="text"
+                    placeholder={
+                      selectedTab === "drinks" ? "Search drinks" : "Search sets"
+                    }
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-sm pl-10 bg-[#F9FAFB] border-[#DAE9E9]"
+                  />
+                </div>
+                <div className="md:flex gap-2 hidden">
+                  {/* Status Filter */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="ml-auto text-[#606368]"
+                      >
+                        {selectedStatus === "all" ? "Status" : selectedStatus}{" "}
+                        <ChevronDown />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <div className="p-2">
+                        <button
+                          onClick={() => setSelectedStatus("all")}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
+                            selectedStatus === "all"
+                              ? "bg-gray-100 font-medium"
+                              : ""
+                          }`}
+                        >
+                          All Status
+                        </button>
+                        <button
+                          onClick={() => setSelectedStatus("Active")}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
+                            selectedStatus === "Active"
+                              ? "bg-gray-100 font-medium"
+                              : ""
+                          }`}
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                            Active
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => setSelectedStatus("Inactive")}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
+                            selectedStatus === "Inactive"
+                              ? "bg-gray-100 font-medium"
+                              : ""
+                          }`}
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-gray-500"></span>
+                            Inactive
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => setSelectedStatus("Out of Stock")}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
+                            selectedStatus === "Out of Stock"
+                              ? "bg-gray-100 font-medium"
+                              : ""
+                          }`}
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                            Out of Stock
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => setSelectedStatus("Low Stock")}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
+                            selectedStatus === "Low Stock"
+                              ? "bg-gray-100 font-medium"
+                              : ""
+                          }`}
+                        >
+                          <span className="inline-flex items-center gap-2">
+                            <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                            Low Stock
+                          </span>
+                        </button>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Category Filter (only for drinks) */}
+                  {selectedTab === "drinks" && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="ml-auto text-[#606368]"
+                        >
+                          {selectedCategory === "all"
+                            ? "Category"
+                            : selectedCategory}{" "}
+                          <ChevronDown />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-48">
+                        <div className="p-2">
+                          {getCategoryOptions().map((cat) => (
+                            <button
+                              key={cat.value}
+                              onClick={() => setSelectedCategory(cat.value)}
+                              className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
+                                selectedCategory === cat.value
+                                  ? "bg-gray-100 font-medium"
+                                  : ""
+                              }`}
+                            >
+                              {cat.label}
+                            </button>
+                          ))}
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+
+                  {/* Advanced Filter Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="ml-auto text-[#606368]"
+                      >
+                        Advanced filter {Filter2}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-64">
+                      <div className="p-4 space-y-4">
+                        <div>
+                          <label className="text-sm font-medium text-gray-700 mb-2 block">
+                            Price Range
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="number"
+                              placeholder="Min"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            />
+                            <span className="text-gray-500">to</span>
+                            <input
+                              type="number"
+                              placeholder="Max"
+                              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t">
+                          <button
+                            onClick={() => {
+                              setSelectedStatus("all");
+                              setSelectedCategory("all");
+                              setSearchTerm("");
+                            }}
+                            className="w-full px-3 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-md font-medium"
+                          >
+                            Clear All Filters
+                          </button>
+                        </div>
+                      </div>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                <div className="md:hidden">
+                  <Button variant="outline" size="sm" className="ml-auto">
+                    {Filter2}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Table */}
+            {data.length > 0 ? (
+              <div className="overflow-x-auto ">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Image
+                      </th>
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      {selectedTab === "drinks" && (
+                        <>
+                          <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Category
+                          </th>
+                          <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Volume
+                          </th>
+                        </>
+                      )}
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Price (₦)
+                      </th>
+                      {selectedTab === "drinks" && (
+                        <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Quantity
+                        </th>
+                      )}
+                      {selectedTab === "sets" && (
+                        <>
+                          <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            AddOns
+                          </th>
+                          <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Drinks
+                          </th>
+                        </>
+                      )}
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Status
+                      </th>
+                      <th className="w-12 px-4 py-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedItems.map((item) => (
+                      <tr key={item._id} className="hover:bg-gray-50">
+                        <td className="px-4 py-4">
+                          <img
+                            src={
+                              selectedTab === "drinks"
+                                ? item.images?.[0]
+                                : item.image
+                            }
+                            alt={item.name}
+                            className="w-12 h-12 rounded-lg object-cover"
+                          />
+                        </td>
+                        <td className="px-4 py-4">
+                          <div className="flex items-center gap-3">
+                            <div>
+                              <div className="font-medium text-gray-900">
+                                {item.name}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                ID: #{item._id?.slice(0, 8) || "N/A"}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        {selectedTab === "drinks" && (
+                          <>
+                            <td className="px-4 py-4 text-sm text-gray-900">
+                              {item.category}
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-900">
+                              {item.volume}
+                            </td>
+                          </>
+                        )}
+                        <td className="px-4 py-4 text-sm text-gray-900 font-medium">
+                          ₦{(item.price || item.setPrice || 0).toLocaleString()}
+                        </td>
+                        {selectedTab === "drinks" && (
+                          <td className="px-4 py-4 text-sm text-gray-900">
+                            {item.quantity || 0}
+                          </td>
+                        )}
+                        {selectedTab === "sets" && (
+                          <>
+                            <td className="px-4 py-4 text-sm text-gray-900">
+                              <div className="flex flex-wrap gap-1">
+                                {item.addOns?.slice(0, 2).map((addOn, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="px-2 py-1 bg-gray-100 rounded text-xs"
+                                  >
+                                    {addOn}
+                                  </span>
+                                ))}
+                                {item.addOns?.length > 2 && (
+                                  <span className="text-xs text-gray-500">
+                                    +{item.addOns.length - 2} more
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4 text-sm text-gray-900">
+                              {item.items?.reduce(
+                                (acc, i) => acc + (i.quantity || 0),
+                                0
+                              ) || 0}
+                            </td>
+                          </>
+                        )}
+                        <td className="px-4 py-4">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                              item.status
+                            )}`}
+                          >
+                            {normalizeStatus(item.status)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4">
+                          <button className="text-gray-400 hover:text-gray-600">
+                            <MoreVertical size={16} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <NoDataFallback />
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Pagination */}
+      {totalItems > 0 && (
+        <div className="absolute hidden md:flex bottom-0 border-t border-[#E5E7EB] left-0 right-0 bg-white">
+          <div className="flex items-center w-full px-8 justify-between space-x-2 py-4">
+            <div className="text-muted-foreground text-sm">
+              Page {currentPage} of {totalPages} ({totalItems} total items)
+            </div>
+            <div className="flex items-center gap-2">
+              {getPageNumbers().map((page, idx) => (
                 <button
-                  key={page}
-                  className="w-8 h-8 rounded bg-white border border-gray-300 text-gray-600 hover:bg-gray-50"
+                  key={idx}
+                  onClick={() =>
+                    typeof page === "number" && handlePageChange(page)
+                  }
+                  disabled={
+                    page === "ellipsis-start" || page === "ellipsis-end"
+                  }
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === page
+                      ? "bg-teal-600 text-white"
+                      : "bg-white text-gray-700 border border-gray-200"
+                  } ${
+                    page === "ellipsis-start" || page === "ellipsis-end"
+                      ? "cursor-default"
+                      : "hover:bg-gray-100"
+                  }`}
                 >
-                  {page}
+                  {page === "ellipsis-start" || page === "ellipsis-end"
+                    ? "…"
+                    : page}
                 </button>
               ))}
+            </div>
+            <div className="gap-2 flex">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50"
+              >
+                <ChevronLeft />
+              </button>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-3 py-2 bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50"
+              >
+                <ChevronRight />
+              </button>
             </div>
           </div>
         </div>
+      )}
 
-        {showAddDrinkModal && (
-          <AddDrinkModal
-            onClose={() => setShowAddDrinkModal(false)}
-            onSuccess={() => {
-              loadDrinks();
-              setShowAddDrinkModal(false);
-            }}
-          />
-        )}
-
-        {/* {showAddBottleSetModal && (
-          <AddBottleSetModal
-            onClose={() => setShowAddBottleSetModal(false)}
-            onSuccess={() => {
-              setShowAddBottleSetModal(false);
-            }}
-          />
-        )} */}
-      </div>
+      {showAddDrinkModal && (
+        <AddDrinkModal
+          onClose={() => setShowAddDrinkModal(false)}
+          onSuccess={() => {
+            // Refresh drinks list
+            const fetchDrinks = async () => {
+              try {
+                const data = await clubService.getDrinks(vendor._id);
+                setDrinks(data.drinks || []);
+              } catch (error) {
+                console.error("Error fetching drinks:", error);
+              }
+            };
+            fetchDrinks();
+            setShowAddDrinkModal(false);
+          }}
+        />
+      )}
     </DashboardLayout>
   );
 }
