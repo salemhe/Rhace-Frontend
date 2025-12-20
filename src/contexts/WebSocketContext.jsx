@@ -41,10 +41,26 @@ export const WebSocketProvider = ({ url, children }) => {
       }
     });
 
+    socket.current.on("paymentUpdate", (payload) => {
+      const handler = listeners.current.get("payment_update");
+      if (handler) {
+        console.log("Payment update (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
     socket.current.on("payout_update", (payload) => {
       const handler = listeners.current.get("payout_update");
       if (handler) {
         console.log("Payout update received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("payoutUpdate", (payload) => {
+      const handler = listeners.current.get("payout_update");
+      if (handler) {
+        console.log("Payout update (camelCase) received:", payload);
         handler(payload);
       }
     });
@@ -57,6 +73,14 @@ export const WebSocketProvider = ({ url, children }) => {
       }
     });
 
+    socket.current.on("reservationUpdated", (payload) => {
+      const handler = listeners.current.get("reservation-updated");
+      if (handler) {
+        console.log("Reservation update (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
     socket.current.on("reservation-created", (payload) => {
       const handler = listeners.current.get("reservation-created");
       if (handler) {
@@ -65,10 +89,154 @@ export const WebSocketProvider = ({ url, children }) => {
       }
     });
 
+    socket.current.on("reservationCreated", (payload) => {
+      const handler = listeners.current.get("reservation-created");
+      if (handler) {
+        console.log("Reservation created (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
     socket.current.on("reservation-deleted", (payload) => {
       const handler = listeners.current.get("reservation-deleted");
       if (handler) {
         console.log("Reservation deleted received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("reservationDeleted", (payload) => {
+      const handler = listeners.current.get("reservation-deleted");
+      if (handler) {
+        console.log("Reservation deleted (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("reservation-counters-updated", (payload) => {
+      const handler = listeners.current.get("reservation-counters-updated");
+      if (handler) {
+        console.log("Reservation counters updated received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("reservationCountersUpdated", (payload) => {
+      const handler = listeners.current.get("reservation-counters-updated");
+      if (handler) {
+        console.log("Reservation counters updated (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("user-created", (payload) => {
+      const handler = listeners.current.get("user-created");
+      if (handler) {
+        console.log("User created received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("userCreated", (payload) => {
+      const handler = listeners.current.get("user-created");
+      if (handler) {
+        console.log("User created (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("user-deleted", (payload) => {
+      const handler = listeners.current.get("user-deleted");
+      if (handler) {
+        console.log("User deleted received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("userDeleted", (payload) => {
+      const handler = listeners.current.get("user-deleted");
+      if (handler) {
+        console.log("User deleted (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("user-updated", (payload) => {
+      const handler = listeners.current.get("user-updated");
+      if (handler) {
+        console.log("User updated received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("userUpdated", (payload) => {
+      const handler = listeners.current.get("user-updated");
+      if (handler) {
+        console.log("User updated (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("user-count-updated", (payload) => {
+      const handler = listeners.current.get("user-count-updated");
+      if (handler) {
+        console.log("User count updated received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("userCountUpdated", (payload) => {
+      const handler = listeners.current.get("user-count-updated");
+      if (handler) {
+        console.log("User count updated (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("vendor-created", (payload) => {
+      const handler = listeners.current.get("vendor-created");
+      if (handler) {
+        console.log("Vendor created received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("vendorCreated", (payload) => {
+      const handler = listeners.current.get("vendor-created");
+      if (handler) {
+        console.log("Vendor created (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("vendor-updated", (payload) => {
+      const handler = listeners.current.get("vendor-updated");
+      if (handler) {
+        console.log("Vendor updated received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("vendorUpdated", (payload) => {
+      const handler = listeners.current.get("vendor-updated");
+      if (handler) {
+        console.log("Vendor updated (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("vendor-deleted", (payload) => {
+      const handler = listeners.current.get("vendor-deleted");
+      if (handler) {
+        console.log("Vendor deleted received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("vendorDeleted", (payload) => {
+      const handler = listeners.current.get("vendor-deleted");
+      if (handler) {
+        console.log("Vendor deleted (camelCase) received:", payload);
         handler(payload);
       }
     });
