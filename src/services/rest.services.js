@@ -1,17 +1,30 @@
 import api from "@/lib/axios";
 
 export const restaurantService = {
-  async searchRestaurants(query) {
+  async searchRestaurants(searchParams) {
     try {
       const params = new URLSearchParams();
-      if (query) {
-        console.log("search", query)
-        params.append("search", query.query);
-        params.append("type", query.tab)
+
+      // Handle both string and object input
+      if (searchParams) {
+        if (typeof searchParams === "string") {
+          params.append("search", searchParams);
+          params.append("type", "restaurants");
+        } else if (typeof searchParams === "object") {
+          // Handle the object structure you're passing from SearchPage
+          const searchQuery = searchParams.search || searchParams.query || "";
+          const type = searchParams.type || searchParams.tab || "restaurants";
+
+          if (searchQuery) {
+            params.append("search", searchQuery);
+            params.append("type", type);
+          }
+        }
       }
 
+      console.log("API call params:", params.toString()); // Debug log
+
       const res = await api.get(`/search?${params.toString()}`);
-      // Axios automatically throws on non-2xx, so no need for .ok checks
 
       const data = res.data;
       // Normalize API response
@@ -27,7 +40,9 @@ export const restaurantService = {
 
   async getSuggestions({ lat, lng }) {
     try {
-      const response = await api.get(`/search/suggestions?latitude=${lat}&longitude=${lng}`);
+      const response = await api.get(
+        `/search/suggestions?latitude=${lat}&longitude=${lng}`
+      );
       return response; // ✅ ADD THIS - return the response
     } catch (err) {
       console.error(err);
