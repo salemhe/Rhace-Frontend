@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils';
-import { ChevronDown, Coffee, Flame, GripVertical, Minus, Music, Plus, Search, Sparkles, Star, Upload, Users, X } from 'lucide-react';
+import { ChevronDown, Coffee, Flame, GripVertical, Loader2, Minus, Music, Plus, Search, Sparkles, Star, Upload, Users, X } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import Header from '../hotel/add-rooms/components/Header';
 import { clubService } from '@/services/club.service';
@@ -17,6 +17,8 @@ const BottleServiceManager = () => {
    const [categoryFilter, setCategoryFilter] = useState('All Category');
    const [selectedDrinks, setSelectedDrinks] = useState([]);
    const [uploadedImages, setUploadedImages] = useState([]);
+   const [uploadLoading, setUploadLoading] = useState(false);
+   const [uploadImageLoading, setUploadImageLoading] = useState(false);
    const [bottleSetImage, setBottleSetImage] = useState(null);
    const vendor = useSelector((state) => state.auth.vendor);
    const [isLoading, setIsLoading] = useState(true);
@@ -66,7 +68,7 @@ const BottleServiceManager = () => {
 
    const handleFileUpload = useCallback(
       async (files) => {
-         console.log('Uploading files:', files);
+         setUploadLoading(true)
          const fileArray = Array.from(files).slice(0, 3 - uploadedImages.length);
 
          const uploadedUrls = []
@@ -88,6 +90,8 @@ const BottleServiceManager = () => {
                uploadedUrls.push(imageUrl)
             } catch (error) {
                console.error('Upload failed for', fileName, error)
+            } finally {
+               setUploadLoading(false)
             }
          }
          uploadedUrls.forEach((imageUrl, index) => {
@@ -97,19 +101,20 @@ const BottleServiceManager = () => {
       [uploadedImages]
    )
 
-   const handleImageUpload = (file) => {
+   const handleImageUpload = async (file) => {
+      setUploadImageLoading(true)
       const formData = new FormData();
       formData.append('file', file);
       formData.append('upload_preset', UPLOAD_PRESET);
-
-      axios.post(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, formData)
-         .then(response => {
-            const imageUrl = response.data.secure_url;
-            setBottleSetImage(imageUrl);
-         })
-         .catch(error => {
-            console.error('Upload failed for', file.name, error);
-         });
+      try {
+         const response = await axios.post(`https://api.cloudinary.com/v1_1/${CLOUD_NAME}/image/upload`, formData)
+         const imageUrl = response.data.secure_url;
+         setBottleSetImage(imageUrl);
+      } catch (error) {
+         console.error('Upload failed for', file.name, error);
+      } finally {
+         setUploadImageLoading(false)
+      }
    };
 
    const removeImage = (index) => {
@@ -445,12 +450,13 @@ const BottleServiceManager = () => {
                                  multiple
                                  onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
                                  className="hidden"
+                                 disabled={uploadLoading}
                               />
                               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center">
-                                 <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
+                                 {uploadLoading ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 animate-spin" /> : <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />}
                               </div>
                               <p className="text-xs sm:text-sm text-gray-600">
-                                 Drag and drop an image here, or <span className="text-teal-600 font-medium">browse</span>
+                                 {uploadLoading ? "Uploading..." : <>Drag and drop an image here, or <span className="text-teal-600 font-medium">browse</span> </>}
                               </p>
                               <p className="text-xs text-gray-400 mt-1">JPG, PNG OR GIF • Max 5MB</p>
                            </label>
@@ -467,28 +473,29 @@ const BottleServiceManager = () => {
                   </div>
                )}
             </div>
-               <div className='bg-white rounded-lg shadow-sm p-4 sm:p-6 mt-4'>
-                  <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 sm:p-8 text-center hover:border-teal-500 transition-colors cursor-pointer block">
-                     <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/gif"
-                        onChange={(e) => e.target.files && handleImageUpload(e.target.files[0])}
-                        className="hidden"
-                     />
-                     <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center">
-                        <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />
-                     </div>
-                     <p className="text-xs sm:text-sm text-gray-600">
-                        Drag and drop an image here, or <span className="text-teal-600 font-medium">browse</span>
-                     </p>
-                     <p className="text-xs text-gray-400 mt-1">JPG, PNG OR GIF • Max 5MB</p>
-                  </label>
-                  {bottleSetImage && (
-                     <div className="mt-4">
-                        <img src={bottleSetImage} alt="Bottle Set" className="w-full h-48 object-cover rounded-lg" />
-                     </div>
-                  )}
-               </div>
+            <div className={`bg-white rounded-lg shadow-sm p-4 sm:p-6 mt-4 ${selectedTab === 'existing' ? 'block' : 'hidden'}`}>
+               <label className="border-2 border-dashed border-gray-300 rounded-lg p-6 sm:p-8 text-center hover:border-teal-500 transition-colors cursor-pointer block">
+                  <input
+                     type="file"
+                     accept="image/jpeg,image/png,image/gif"
+                     onChange={(e) => e.target.files && handleImageUpload(e.target.files[0])}
+                     className="hidden"
+                     disabled={uploadImageLoading}
+                  />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gray-100 rounded-full mx-auto mb-3 flex items-center justify-center">
+                     {uploadImageLoading ? <Loader2 className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400 animate-spin" /> : <Upload className="w-5 h-5 sm:w-6 sm:h-6 text-gray-400" />}
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                     {uploadImageLoading ? "Uploading..." : <>Drag and drop an image here, or <span className="text-teal-600 font-medium">browse</span> </>}
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">JPG, PNG OR GIF • Max 5MB</p>
+               </label>
+               {bottleSetImage && (
+                  <div className="mt-4">
+                     <img src={bottleSetImage} alt="Bottle Set" className="w-full h-48 object-cover rounded-lg" />
+                  </div>
+               )}
+            </div>
          </div>
 
          {/* Preview Panel - Hidden on mobile, shown on desktop */}

@@ -1,21 +1,21 @@
-import { Edit, Eye, Trash2 } from 'lucide-react';
+import { Edit, Eye, Trash2 } from "lucide-react";
 import { FaAnglesRight } from "react-icons/fa6";
 
-const RoomCard = ({ room,  onViewDetails, }) => {
+const RoomCard = ({ room, onViewDetails }) => {
   const getStatusColor = (isAvailable, maintenanceStatus) => {
-    if (maintenanceStatus === 'maintenance') {
-      return 'bg-yellow-100 text-yellow-800';
+    if (maintenanceStatus === "maintenance") {
+      return "bg-yellow-100 text-yellow-800";
     }
     return isAvailable
-      ? 'bg-green-100 text-green-800'
-      : 'bg-red-100 text-red-800';
+      ? "bg-green-100 text-green-800"
+      : "bg-red-100 text-red-800";
   };
 
   const getStatusText = (isAvailable, maintenanceStatus) => {
-    if (maintenanceStatus === 'maintenance') {
-      return 'Maintenance';
+    if (maintenanceStatus === "maintenance") {
+      return "Maintenance";
     }
-    return isAvailable ? 'Available' : 'Occupied';
+    return isAvailable ? "Available" : "Occupied";
   };
 
   return (
@@ -43,22 +43,29 @@ const RoomCard = ({ room,  onViewDetails, }) => {
         <div className="flex justify-between items-start mb-2">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
-            <p className="text-sm text-gray-500">Total Capacity: {room.adultsCapacity + room.childrenCapacity} guests</p>
-            <p className="text-sm text-gray-500">Total Units: {room.totalUnits} </p>
+            <p className="text-sm text-gray-500">
+              Total Capacity: {room.adultsCapacity + room.childrenCapacity}{" "}
+              guests
+            </p>
+            <p className="text-sm text-gray-500">
+              Total Units: {room.totalUnits}{" "}
+            </p>
           </div>
         </div>
 
         <div className="flex justify-between items-center pt-2">
-         <div className="text-left">
-            <p className="text-xl font-bold text-[#111827]">#{room.pricePerNight.toLocaleString()}</p>
+          <div className="text-left">
+            <p className="text-xl font-bold text-[#111827]">
+              ₦{room.pricePerNight.toLocaleString()}
+            </p>
           </div>
           <button
             onClick={() => onViewDetails(room)}
             className="text-teal-600 items-center justify-center hover:text-teal-700 text-sm font-medium flex gap-2 "
           >
-           <FaAnglesRight /> <p>View Details</p> 
+            <FaAnglesRight /> <p>View Details</p>
           </button>
-          
+
           {/*  */}
         </div>
       </div>

@@ -30,6 +30,11 @@ class AuthService {
     return res.data;
   }
 
+  async vendorUpdate(formData) {
+    const res = await api.put("/vendors", formData);
+    return res.data;
+  }
+
   async vendorRegister({ businessName, email, password }) {
     const res = await api.post("/vendors/auth/register", {
       businessName,

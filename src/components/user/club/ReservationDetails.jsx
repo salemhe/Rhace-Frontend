@@ -34,8 +34,6 @@ export default function ReservationDetails({
     setComboItems,
     bottleItems,
     setBottleItems,
-    vipExtraItems,
-    setVipExtraItems,
     guestCount,
     setSpecialRequest,
     specialRequest,
@@ -43,6 +41,8 @@ export default function ReservationDetails({
     setPage,
     date,
     setDate,
+    table,
+    setTable,
     time,
     setTime,
     setVendor,
@@ -53,7 +53,7 @@ export default function ReservationDetails({
   const [loading, setLoading] = useState(true);
   const [comboLoading, setComboLoading] = useState(true);
   const [bottlesLoading, setBottlesLoading] = useState(true);
-  const [vipsLoading, setVIPSLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(true);
   const [itemsToShow, setItemsToShow] = useState(8);
   const [activeTab, setActiveTab] = useState("All Bottles");
   const navigate = useNavigate();
@@ -63,6 +63,7 @@ export default function ReservationDetails({
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [currentIndex2, setCurrentIndex2] = useState(0);
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % comboItems.length);
@@ -70,6 +71,14 @@ export default function ReservationDetails({
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev - 1 + comboItems.length) % comboItems.length);
+  };
+
+  const nextSlide2 = () => {
+    setCurrentIndex2((prev) => (prev + 1) % table.length);
+  };
+
+  const prevSlide2 = () => {
+    setCurrentIndex2((prev) => (prev - 1 + table.length) % table.length);
   };
 
   const slideWidth =
@@ -116,14 +125,17 @@ export default function ReservationDetails({
       setBottlesLoading(false);
     }
   };
-  const fetchVIPS = async () => {
+  const fetchTables = async () => {
     try {
-      setVIPSLoading(true);
-      // setVipExtraItems(VIP);
+      setTableLoading(true);
+      const res = await clubService.getTables(id);
+      setTable(res.tables.map((item) => {
+        return { ...item, selected: false }
+      }));
     } catch (error) {
       console.error("Error fetching vendor:", error);
     } finally {
-      setVIPSLoading(false);
+      setTableLoading(false);
     }
   };
   const LOAD_MORE_STEP = 4;
@@ -150,7 +162,7 @@ export default function ReservationDetails({
     fetchVendor();
     fetchCombos();
     fetchBottles();
-    fetchVIPS();
+    fetchTables();
     setDate(new Date(searchQuery.date));
     setTime(searchQuery.time);
     setGuestCount(searchQuery.guests);
@@ -179,26 +191,26 @@ export default function ReservationDetails({
     );
   };
 
-  const handleSelectionChange = (id) => {
-    setComboItems(
-      comboItems.map((item) => {
-        if (item._id === id) {
-          return { ...item, selected: !item.selected };
-        }
-        return item;
-      })
-    );
-  };
-
-  const handleSelectionVIPChange = (id) => {
-    setVipExtraItems(
-      vipExtraItems.map((item) => {
-        if (item._id === id) {
-          return { ...item, selected: !item.selected };
-        }
-        return item;
-      })
-    );
+  const handleSelectionChange = (id, value) => {
+    if (value === 1) {
+      // Table selection: only one can be selected at a time
+      setTable(
+        table.map((item) => ({
+          ...item,
+          selected: item._id === id ? !item.selected : false,
+        }))
+      );
+    } else {
+      // Combo selection: multiple can be selected
+      setComboItems(
+        comboItems.map((item) => {
+          if (item._id === id) {
+            return { ...item, selected: !item.selected };
+          }
+          return item;
+        })
+      );
+    }
   };
 
   return (
@@ -266,7 +278,7 @@ export default function ReservationDetails({
             <div className="flex p-4">
               <h3 className="text-lg font-semibold">Reservation Details</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
               <DatePicker value={date} onChange={setDate} />
               <TimePicker value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
               <GuestPicker value={guestCount} onChange={setGuestCount} />
@@ -283,6 +295,102 @@ export default function ReservationDetails({
             </p>
           </div>
 
+          <div className="space-y-6">
+            <div className="flex items-center justify-between w-full">
+              <h3 className="text-xs md:text-sm text-[#111827]">
+                Tables
+              </h3>
+              <div className="flex gap-6">
+                <button
+                  disabled={currentIndex2 === 0}
+                  onClick={prevSlide2}
+                  className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]"
+                >
+                  <ChevronLeft />
+                </button>
+                <button onClick={nextSlide2} disabled={currentIndex2 === table.length -1} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
+                  <ChevronRight />
+                </button>
+              </div>
+            </div>
+            <div className="flex overflow-hidden w-full" ref={containerRef} >
+            <motion.div
+              className="flex gap-6"
+              animate={{ x: -currentIndex2 * slideWidth }}
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+            >
+                {tableLoading ? (
+                  <div>TableLoader</div>
+                ) : table.length === 0 ? (
+                  <div>No available Tables</div>
+                ) : (
+                  table.map((item, index) => {
+                  return (
+                    <motion.div
+                      key={index}
+                      ref={index === 0 ? cardRef : null}
+                      animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                      transition={{ duration: 0.5, delay: index * 0.1 }}
+                      className={`${item.selected
+                        && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
+                        } p-1 h-[420px] w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] flex-shrink-0`}
+                    >
+                      <div className="p-2 w-full h-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col">
+                        <div className="relative w-full h-[150px] overflow-hidden rounded-2xl flex-shrink-0">
+                          {item.image ? (
+                            <img
+                            src={item.image}
+                            alt={item.name}
+                            className="object-cover size-full"
+                            />
+                          ) : (
+                            <div className="bg-gray-200 size-full flex items-center justify-center">
+                              No Image
+                            </div>
+                          )}
+                          {item.specials && (
+                            <div className="absolute bg-[#E5E7EB] rounded-full top-2 left-2 px-3 text-xs font-medium text-[#111827] py-1">
+                              {item.specials}
+                            </div>
+                          )}
+                        </div>
+                        <div className="px-3 space-y-3 flex-1 flex flex-col">
+                          <p className="text-[#111827] text-sm">{item.name}</p>
+                          <div className="space-y-2 flex-1">
+                            {item.addOns.slice(0, 4).map((offer, i) => (
+                              <div key={i} className="flex items-center gap-2 ">
+                                <Check className="text-[#0A6C6D] flex-shrink-0" />
+                                <span className="text-sm text-[#111827]">
+                                  {offer}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex items-center justify-between w-full flex-shrink-0">
+                            <p className="text-sm text-[#111827]">
+                              #{item.setPrice.toLocaleString()}
+                            </p>
+                            <div className="flex items-center gap-2">
+                              <div
+                                className={`w-5 h-5 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
+                                  ? "bg-teal-600 border-teal-600 text-white"
+                                  : "border-gray-300"
+                                  }`}
+                                onClick={() => handleSelectionChange(item._id, 1)}
+                              >
+                                {item.selected && <Check className="h-3 w-3" />}
+                              </div>
+                              <span className="text-xs text-[#111827]">Add</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                }))}
+              </motion.div>
+            </div>
+          </div>
           <div className="space-y-6">
             <div className="flex items-center justify-between w-full">
               <h3 className="text-xs md:text-sm text-[#111827]">
@@ -321,10 +429,10 @@ export default function ReservationDetails({
                       transition={{ duration: 0.5, delay: index * 0.1 }}
                       className={`${item.selected
                         && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
-                        } p-1 h-max w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]`}
+                        } p-1 h-[420px] w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] flex-shrink-0`}
                     >
-                      <div className="p-2 w-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB]">
-                        <div className="relative w-full h-[150px] overflow-hidden rounded-2xl">
+                      <div className="p-2 w-full h-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col">
+                        <div className="relative w-full h-[150px] overflow-hidden rounded-2xl flex-shrink-0">
                           {item.image ? (
                             <img
                             src={item.image}
@@ -342,19 +450,19 @@ export default function ReservationDetails({
                             </div>
                           )}
                         </div>
-                        <div className="px-3 space-y-3">
+                        <div className="px-3 space-y-3 flex-1 flex flex-col">
                           <p className="text-[#111827] text-sm">{item.name}</p>
-                          <div className="space-y-2">
+                          <div className="space-y-2 flex-1">
                             {item.addOns.slice(0, 4).map((offer, i) => (
                               <div key={i} className="flex items-center gap-2 ">
-                                <Check className="text-[#0A6C6D]" />
+                                <Check className="text-[#0A6C6D] flex-shrink-0" />
                                 <span className="text-sm text-[#111827]">
                                   {offer}
                                 </span>
                               </div>
                             ))}
                           </div>
-                          <div className="flex items-center justify-between w-full">
+                          <div className="flex items-center justify-between w-full flex-shrink-0">
                             <p className="text-sm text-[#111827]">
                               #{item.setPrice.toLocaleString()}
                             </p>
@@ -486,49 +594,6 @@ export default function ReservationDetails({
                 )}
               </>
             )}
-          </div>
-
-          <div className="space-y-6">
-            <h3 className="text-sm text-[#111827]">VIP Extras</h3>
-            <div className="flex flex-col md:flex-row gap-4 w-full md:gap-6">
-              {vipsLoading ? (
-                <div>VIPloader</div>
-              ) : vipExtraItems.length === 0 ? (
-                <div>No available VIPS Extras</div>
-              ) : (
-                vipExtraItems.map((item, i) => (
-                  <div
-                    key={i}
-                    onClick={() => handleSelectionVIPChange(item._id)}
-                    className="flex items-center flex-1 px-3 py-3.5 gap-2 justify-between bg-white rounded-2xl border"
-                  >
-                    <div className="flex gap-2 items-start">
-                      <div
-                        className={`w-6 h-6 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
-                          ? "bg-teal-600 border-teal-600 text-white"
-                          : "border-gray-300"
-                          }`}
-                        onClick={() => handleSelectionChange(item._id)}
-                      >
-                        {item.selected && <Check className="h-4 w-4" />}
-                      </div>
-                      <div className="flex items-center">
-                        <div className="">
-                          <p className="text-[#111827] text-sm">{item.title}</p>
-                          <p className="text-[#606368] text-sm">
-                            {item.description}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-
-                      ₦{item.price}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
           </div>
 
           <div className="relative">

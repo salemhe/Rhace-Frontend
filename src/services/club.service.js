@@ -46,6 +46,11 @@ class ClubService {
     const res = await api.get(`/drinks?clubId=${clubId}`);
     return res.data;
   }
+  
+  async getTables(clubId) {
+    const res = await api.get(`/tables?clubId=${clubId}`);
+    return res.data;
+  }
 }
 
 export const clubService = new ClubService();
