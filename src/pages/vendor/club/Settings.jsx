@@ -6,31 +6,36 @@ import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Building2, Clock, DollarSign, Globe, Phone, Tag } from "lucide-react";
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { BusinessLogo } from "../settings/part/BusinessInfo";
+import { authService } from "@/services/auth.service";
+import { setVendor } from "@/redux/slices/authSlice";
+import { toast } from "sonner";
 
 const ClubSettings = () => {
-   const [formData, setFormData] = useState({
-      businessName: 'Elite Club',
-      description: '',
-      phone: '+234 000 111 234',
-      website: '',
-      address: '',
-      priceRange: 5000,
-      offer: '',
-      openingTime: '20:00',
-      closingTime: '04:00',
-      slots: 100,
-      categories: ['Nightclub', 'Lounge'],
-      dressCode: ['Smart Casual', 'No Sneakers'],
-      ageLimit: '18',
-   });
+   const vendor = useSelector((state) => state.auth.vendor);
+   const [formData, setFormData] = useState(vendor);
+   const [isLoading, setIsLoading] = useState(false);
+   const dispatch = useDispatch();
 
    const updateField = (field, value) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
    };
 
-   const vendor = useSelector((state) => state.auth.vendor);
+   const handleSubmit = async () => {
+      setIsLoading(true);
+      try {
+         const user = await authService.vendorUpdate(formData)
+         dispatch(setVendor(user?.vendor));
+         toast.success("Succesfully updated settings!");
+      } catch (error) {
+         console.error("Error updating settings:", error);
+         toast.error("Failed to update settings. Please try again.");
+      } finally {
+         setIsLoading(false);
+      }
+   }
+
    const addTag = (field, value) => {
       setFormData((prev) => ({
          ...prev,
@@ -54,8 +59,8 @@ const ClubSettings = () => {
                   <h1 className="text-xl font-bold text-gray-900">Club Settings</h1>
                </div>
                <div className="md:w-[49%]">
-                        <BusinessLogo />
-                     </div>
+                  <BusinessLogo value={formData.logo} onChange={(value) => updateField('logo', value)} />
+               </div>
 
                {/* Business Information */}
                <Card className="p-6 space-y-4">
@@ -86,8 +91,8 @@ const ClubSettings = () => {
                   <Textarea
                      label="Club Description"
                      placeholder="Describe your club's atmosphere and entertainment..."
-                     value={formData.description}
-                     onChange={(e) => updateField('description', e.target.value)}
+                     value={formData.businessDescription}
+                     onChange={(e) => updateField('businessDescription', e.target.value)}
                   />
                   <Textarea
                      label="Address"
@@ -179,11 +184,11 @@ const ClubSettings = () => {
 
                {/* Action Buttons */}
                <div className="flex justify-end gap-3">
-                  <button className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
+                  <button onClick={() => setFormData(vendor)} className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
                      Reset
                   </button>
-                  <button className="px-6 py-2 bg-[#0A6C6D] text-white rounded-md hover:bg-[#085555] transition-colors">
-                     Save Changes
+                  <button disabled={isLoading} onClick={handleSubmit} className="px-6 py-2 bg-[#0A6C6D] text-white rounded-md hover:bg-[#085555] transition-colors">
+                     {isLoading ? "Saving..." : "Save Changes"}
                   </button>
                </div>
             </div>

@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { X, Upload, AlertCircle, DownloadCloud } from 'lucide-react';
+import { X, Upload, AlertCircle, DownloadCloud, Loader2 } from 'lucide-react';
 import { clubService } from '@/services/club.service';
 import axios from 'axios';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,7 @@ export function AddDrinkModal({ onClose, onSuccess }) {
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [saveAndAddAnother, setSaveAndAddAnother] = useState(false);
    const [error, setError] = useState(null);
+   const [uploadLoading, setUploadLoading] = useState(false);
    // const vendor = useSelector((state) => state.auth);
 
    const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
@@ -30,6 +31,7 @@ export function AddDrinkModal({ onClose, onSuccess }) {
 
    const handleImageUpload = useCallback(
       async (files, setImage) => {
+         setUploadLoading(true);
          const file = files[0];
          if (file.size > 5242880) {
             alert("File size exceeds 5MB limit.");
@@ -52,6 +54,8 @@ export function AddDrinkModal({ onClose, onSuccess }) {
             setImage((prev) => ({ ...prev, images: [imageUrl] }))
          } catch (error) {
             console.error('Upload failed for', fileName, error)
+         } finally {
+            setUploadLoading(false);
          }
       },
       []
@@ -219,31 +223,34 @@ export function AddDrinkModal({ onClose, onSuccess }) {
                   <label className="block text-sm font-medium text-gray-700 mb-2">Image Upload</label>
                   <p className="text-xs text-gray-500 mb-3">You can add up to 3 images</p>
                   {/* <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-teal-500 transition-colors"> */}
-                     <label htmlFor='item-cover-image' className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">
-                        <DownloadCloud className="w-6 h-6 mb-2" />
-                        <p>Drag and drop an image here, or</p>
+                  <label htmlFor='item-cover-image' className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">
+                     {uploadLoading ? <Loader2 className="w-6 h-6 mb-2 animate-spin" /> : <DownloadCloud className="w-6 h-6 mb-2" />}
+                     <p>Drag and drop an image here, or</p>
+                     {uploadLoading ? "Uploading..." :
                         <Button asChild variant="outline" size="sm" className="mt-2">
                            <label htmlFor="item-cover-image" className="cursor-pointer">Browse Files</label>
                         </Button>
-                        <p className="text-xs mt-1">JPG, PNG, or GIF • Max 5MB</p>
-                        <input
-                           type='file'
-                           id='item-cover-image'
-                           accept='image/*'
-                           max={5242880}
-                           onChange={(e) => e.target.files && handleImageUpload(e.target.files, setFormData)}
-                           className='sr-only'
+                     }
+                     <p className="text-xs mt-1">JPG, PNG, or GIF • Max 5MB</p>
+                     <input
+                        type='file'
+                        id='item-cover-image'
+                        accept='image/*'
+                        max={5242880}
+                        onChange={(e) => e.target.files && handleImageUpload(e.target.files, setFormData)}
+                        disabled={uploadLoading}
+                        className='sr-only'
+                     />
+                  </label>
+                  {formData.images.length > 0 && (
+                     <div className="w-32 h-32 rounded-md overflow-hidden">
+                        <img
+                           src={formData.images[0]}
+                           alt="Cover"
+                           className="object-cover w-full h-full"
                         />
-                     </label>
-                     {formData.images.length > 0 && (
-                        <div className="w-32 h-32 rounded-md overflow-hidden">
-                           <img
-                              src={formData.images[0]}
-                              alt="Cover"
-                              className="object-cover w-full h-full"
-                           />
-                        </div>
-                     )}
+                     </div>
+                  )}
                   {/* </div> */}
                </div>
 

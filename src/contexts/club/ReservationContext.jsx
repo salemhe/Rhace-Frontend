@@ -21,7 +21,7 @@ export function ReservationsProvider({
   const [page, setPage] = useState(0);
   const [date, setDate] = useState();
   const [time, setTime] = useState("");
-  // const [table, setTable] = useState("");
+  const [table, setTable] = useState([]);
   const [vendor, setVendor] = useState(undefined);
   const [isLoading, setIsLoading] = useState(false);
   const [proposedPayment, setProposedPayment] = useState(0)
@@ -34,6 +34,7 @@ export function ReservationsProvider({
   const combos = comboItems.filter((item) => item.selected);
   const bottles = bottleItems.filter((item) => item.selected);
   const vipExtras = vipExtraItems.filter((item) => item.selected);
+  const tableSelected = table.find(t => t.selected);
 
   const totalPrice = vendor ? bottles.reduce(
     (total, item) => total + (item.price || 0) * (item.quantity || 1),
@@ -41,6 +42,7 @@ export function ReservationsProvider({
   ) +
     combos.reduce((total, item) => total + (item.setPrice || 0), 0) +
     vipExtras.reduce((total, item) => total + (item.price || 0), 0) +
+    tableSelected?.price +
     (vendor.priceRange * parseInt(guestCount, 10)) : 0
 
   const handleSubmit = async () => {
@@ -76,7 +78,7 @@ export function ReservationsProvider({
         totalAmount: partPay ? totalPrice/2 : totalPrice,
         vendor: vendor?._id,
         businessName: vendor?.businessName,
-        // table,
+        table: tableSelected?._id,
         location: vendor?.address,
         image: vendor?.profileImages?.[0],
       };
@@ -119,8 +121,8 @@ export function ReservationsProvider({
         setDate,
         time,
         setTime,
-        // table,
-        // setTable,
+        table,
+        setTable,
         vendor,
         setVendor,
         handleSubmit,

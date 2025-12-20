@@ -46,6 +46,7 @@ const CreateMenu = () => {
     const [menus, setMenus] = useState([])
     const [createItem, setCreateItem] = useState(null);
     const [isLoading, setIsLoading] = useState(true)
+    const [uploadLoading, setUploadLoading] = useState(false);
 
     const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
     const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
@@ -111,6 +112,7 @@ const CreateMenu = () => {
 
     const handleImageUpload = useCallback(
         async (files, setImage) => {
+            setUploadLoading(true)
             const file = files[0];
             if (file.size > 5242880) {
                 alert("File size exceeds 5MB limit.");
@@ -133,6 +135,8 @@ const CreateMenu = () => {
                 setImage((prev) => ({ ...prev, coverImage: imageUrl }))
             } catch (error) {
                 console.error('Upload failed for', fileName, error)
+            } finally {
+                setUploadLoading(false)
             }
         },
         [newItem.images]
@@ -322,11 +326,13 @@ const CreateMenu = () => {
                                     <div className="space-y-2">
                                         <Label>Cover Image (Optional)</Label>
                                         <label htmlFor='item-cover-image' className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg p-6 text-center text-sm text-gray-500 cursor-pointer hover:bg-gray-50">
-                                            <DownloadCloud className="w-6 h-6 mb-2" />
+                                            {uploadLoading ? <Loader2 className="w-6 h-6 mb-2 animate-spin" /> : <DownloadCloud className="w-6 h-6 mb-2" />}
                                             <p>Drag and drop an image here, or</p>
-                                            <Button asChild variant="outline" size="sm" className="mt-2">
+                                            {uploadLoading ? "Uploading..." :
+                                                <Button asChild variant="outline" size="sm" className="mt-2">
                                                 <label htmlFor="item-cover-image" className="cursor-pointer">Browse Files</label>
-                                            </Button>
+                                                </Button>
+                                            }
                                             <p className="text-xs mt-1">JPG, PNG, or GIF • Max 5MB</p>
                                             <input
                                                 type='file'
@@ -335,6 +341,7 @@ const CreateMenu = () => {
                                                 max={5242880}
                                                 onChange={(e) => e.target.files && handleImageUpload(e.target.files, setNewItem)}
                                                 className='sr-only'
+                                                disabled={uploadLoading}
                                             />
                                         </label>
                                         {newItem.coverImage && (

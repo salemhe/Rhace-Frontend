@@ -18,8 +18,8 @@ const PaymentsHistory = () => {
 
     const totalSpent = useMemo(() => {
         return payments
-            .filter(p => p.status === 'Success')
-            .reduce((sum, p) => sum + p.amount, 0);
+            .filter(p => p.status === 'Paid')
+            .reduce((sum, p) => sum + p.amountPaid, 0);
     }, [payments]);
 
     const chartData = useMemo(() => {
@@ -28,31 +28,14 @@ const PaymentsHistory = () => {
             .reverse()
             .map(p => ({
                 date: new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                amount: p.amount
+                amountPaid: p.amountPaid
             }));
     }, [payments]);
 
     useEffect(() => {
         const fetchPayments = async () => {
             const payments = await paymentService.getPayments();
-            if (payments.length === 0) setPayments([
-                {
-                    email: "transaction.metadata.email",
-                    customer_name: "transaction.metadata.customerName",
-                    paid_at: "transaction.paid_at",
-                    vendor: {
-                        businessName: "transaction.metadata.vendorName",
-                        profileImage: ["https://via.placeholder.com/150"]
-                    },
-                    user: "userId",
-                    booking: "transaction.metadata.bookingId",
-                    paymentMethod: "transaction.channel",
-                    amount: 10000,
-                    reference: "transaction.reference",
-                    status: "Success",
-                }]);
-            console.log(payments);
-            // setPayments(payments);
+            setPayments(payments);
         }
         fetchPayments();
     }, [])
@@ -60,7 +43,7 @@ const PaymentsHistory = () => {
     return (
         <>
             <Header />
-            <div className='p-4 mt-24'>
+            <div className='p-4 mt-24 container mx-auto'>
 
                 <div className="flex-1 relative">
                     <div className="flex items-center justify-between mb-8">
@@ -78,7 +61,7 @@ const PaymentsHistory = () => {
                                 <div className="w-24 h-12">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={chartData}>
-                                            <Area type="monotone" dataKey="amount" stroke="#0A6E7D" fill="#0A6E7D33" strokeWidth={2} />
+                                            <Area type="monotone" dataKey="amountPaid" stroke="#0A6E7D" fill="#0A6E7D33" strokeWidth={2} />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -88,9 +71,9 @@ const PaymentsHistory = () => {
 
                     {/* Filters */}
                     <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar">
-                        {['All', 'Success', 'Pending', 'Failed'].map((status) => (
+                        {['All', 'Paid', 'Pending', 'Failed'].map((status, i) => (
                             <button
-                                key={status}
+                                key={i}
                                 onClick={() => setFilterStatus(status)}
                                 className={`px-6 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${filterStatus === status
                                     ? 'bg-[#0A6E7D] text-white shadow-md'
@@ -106,7 +89,7 @@ const PaymentsHistory = () => {
                     <div className="space-y-4">
                         {filteredPayments.map((payment) => (
                             <PaymentCard
-                                key={payment.id}
+                                key={payment._id}
                                 payment={payment}
                                 onViewDetails={setSelectedPayment}
                             />
@@ -122,7 +105,7 @@ const PaymentsHistory = () => {
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
                             <div className="bg-white w-full max-w-lg rounded-3xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
                                 <div className="relative h-40 flex-shrink-0">
-                                    <img src={selectedPayment.vendor.profileImage[0]} alt={selectedPayment.vendor.businessName} className="w-full h-full object-cover" />
+                                    <img src={selectedPayment.vendor.profileImages[0]} alt={selectedPayment.vendor.businessName} className="w-full h-full object-cover" />
                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
                                     <button
                                         onClick={() => setSelectedPayment(null)}
@@ -150,7 +133,7 @@ const PaymentsHistory = () => {
                                         <div>
                                             <div className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Total Payment</div>
                                             <div className="text-3xl font-extrabold text-[#0A6E7D]">
-                                                NGN{selectedPayment.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                NGN{selectedPayment.amountPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                             </div>
                                         </div>
                                         <div className={`px-4 py-1.5 rounded-full text-xs font-bold border uppercase tracking-widest ${selectedPayment.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
