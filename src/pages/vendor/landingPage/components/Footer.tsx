@@ -10,14 +10,23 @@ export function Footer() {
           whileInView={{ opacity: 0.06, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1.2 }}
-          className="text-[20vw] sm:text-[18vw] md:text-[16vw] font-bold text-white whitespace-nowrap"
+          className="
+    text-[20vw]
+    sm:text-[18vw]
+    md:text-[16vw]
+    font-bold
+    text-white
+    whitespace-nowrap
+    rotate-45
+    lg:rotate-0
+  "
           style={{ letterSpacing: "0.1em" }}
         >
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center w-[40rem] sm:w-full justify-center">
             <img
               src={logoWhite}
               alt="Rhace Logo"
-              className=" w-auto object-contain transition-all duration-300"
+              className="w-auto  object-contain"
             />
           </div>
         </motion.div>

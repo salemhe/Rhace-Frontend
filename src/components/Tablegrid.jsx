@@ -12,6 +12,7 @@ import { Button } from "./ui/button";
 import UniversalLoader from "./user/ui/LogoLoader";
 import { FaStar } from "react-icons/fa6";
 import { Bike, Heart, Star } from "lucide-react";
+import { capitalize, formatNaira } from "@/utils/helper";
 
 // Common carousel logic hook
 const useCarouselLogic = () => {
@@ -120,7 +121,11 @@ const useRestaurantData = (vendorType, type) => {
         if (type && type === "nearby") {
           const location = localStorage.getItem("userLocation");
           const loc = JSON.parse(location);
-          const res = await userService.getNearest({ longitude: loc.lng, latitude: loc.lat, type: vendorType});
+          const res = await userService.getNearest({
+            longitude: loc.lng,
+            latitude: loc.lat,
+            type: vendorType,
+          });
           setRestaurants(res.data);
         } else {
           const res = await userService.getVendor(vendorType);
@@ -170,33 +175,37 @@ const TableGrid = ({ title, type }) => {
   const { restaurants, isLoading } = useRestaurantData("restaurant", type);
   const navigate = useNavigate();
 
-  
-  if (isLoading) return (
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} class="rounded-2xl bg-white shadow-md overflow-hidden">
-          <div class="h-44 w-full bg-gray-200 animate-pulse"></div>
-          <div class="p-4 space-y-4">
-            <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-          <div class="flex gap-2">
-            <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-            <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
-            <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+  if (isLoading)
+    return (
+      <div class="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            class="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
+          >
+            <div class="h-30  sm:h-44 w-full bg-gray-200 animate-pulse"></div>
+            <div class="p-4 space-y-4">
+              <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+              <div class="flex gap-2">
+                <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+              <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
           </div>
-          <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-          <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
-        </div>
+        ))}
+        ;
       </div>
-  ))};
-    </div>
-  );
+    );
 
   if (!restaurants || restaurants.length === 0) return null;
 
   let limit = 4;
 
   return (
-    <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
+    <div className="mb-12 md:mb-20 lg:mb-[92px] px- sm:px-6 lg:px-8">
       <Button
         variant="outline"
         className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
@@ -206,7 +215,7 @@ const TableGrid = ({ title, type }) => {
       </Button>
 
       {/* Responsive grid container */}
-      <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0">
+      <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const restaurantId = restaurant._id || String(restaurant.id);
@@ -222,7 +231,7 @@ const TableGrid = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt-2 pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pb-2 sm:pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -234,8 +243,8 @@ const TableGrid = ({ title, type }) => {
               onMouseLeave={() => handleMouseLeave(restaurantId)}
             >
               {/* Image Section */}
-              <div className="relative h-40 sm:h-44 w-full px-2 cursor-pointer aspect-video">
-                <div className="relative h-full w-full overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
+              <div className="relative h-30 sm:h-44 w-full  cursor-pointer aspect-video">
+                <div className="relative h-full w-full overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gray-100">
                   {images.map((image, index) => (
                     <img
                       key={index}
@@ -260,7 +269,7 @@ const TableGrid = ({ title, type }) => {
                 </div>
 
                 {(restaurant.badge || restaurant.offer) && (
-                  <span className="absolute top-2 left-2 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                  <span className="absolute top-2 left-2 bg-gray-100/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
                     {restaurant.badge || restaurant.offer}
                   </span>
                 )}
@@ -289,23 +298,23 @@ const TableGrid = ({ title, type }) => {
               {/* Info Section */}
               <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
                 <div className="space-y-1.5">
-                  <div className="flex w-full justify-between">
-                    <h3 className="text-base sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
+                  <div className="flex flex-col-reverse sm:flex-row w-full justify-between">
+                    <h3 className="text-[10px] sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
                       {restaurant.businessName}
                     </h3>
                     <div className="flex items-center">
-                      <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
-                      <span className="text-sm font-semibold text-gray-900">
+                      <FaStar className="text-yellow-500 mr-1 sm:text-sm text-[8px]" />
+                      <span className="sm:text-sm text-[8px] font-semibold text-gray-900">
                         {restaurant.rating?.toFixed(1)}
                       </span>
-                      {/* <span className="text-xs sm:text-sm text-gray-500 ml-1">
+                      <span className="text-[8px] sm:text-sm text-gray-500 ml-1">
                         ({restaurant.reviews?.toLocaleString() || 0} reviews)
-                      </span> */}
+                      </span>
                     </div>
                   </div>
 
                   {cuisinesArray.length > 0 && (
-                    <div className="inline-flex flex-wrap gap-1.5  sm:gap-2 mt-2">
+                    <div className="inline-flex flex-wrap gap-1.5  sm:gap-2 sm:mt-2">
                       {(Array.isArray(restaurant.cuisines)
                         ? restaurant.cuisines
                         : restaurant.cuisines
@@ -321,7 +330,7 @@ const TableGrid = ({ title, type }) => {
                           return (
                             <div
                               key={index}
-                              className={`px-3 py-2 ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                              className={`sm:px-3 px-1.5 py-1 sm:py-2 ${classes} rounded-full bg-gray-200 text-[10px]  sm:text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                             >
                               {category}
                             </div>
@@ -343,7 +352,7 @@ const TableGrid = ({ title, type }) => {
                         )}
                     </div>
                   )}
-                  <div className="flex  mt-4 items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
+                  <div className="flex  mt-2 sm:mt-4 items-center gap-1 sm:text-sm text-[10px]  text-gray-500 ">
                     <FiMapPin />
                     <p className="line-clamp-1 ">
                       <span>{restaurant.address}</span>
@@ -351,12 +360,25 @@ const TableGrid = ({ title, type }) => {
                   </div>
                 </div>
 
-                <div className="mt-4 w-full flex justify-ed items-ed-safe">
+                <div className="mt-2 sm:mt-4 w-full flex ">
                   <Button
                     onClick={() => navigate(`/restaurants/${restaurant._id}`)}
-                    className="
-                      w-full text-sm font-semibold 
-                      rounded-full py-3 tracking-wide 
+                    className=" hidden sm:flex
+                      w-full text-xs sm:text-sm font-semibold 
+                      rounded-full py-1 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
+                  >
+                    Reserve Table
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => navigate(`/restaurants/${restaurant._id}`)}
+                    className=" flex sm:hidden
+                      w-full text-[10px] sm:text-sm font-medium
+                      rounded-full py-1.5 sm:py-3 tracking-wide 
                       text-white hover:cursor-pointer
                       bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                       
@@ -372,16 +394,19 @@ const TableGrid = ({ title, type }) => {
       </div>
 
       {/* Show more - responsive */}
-      {(restaurants.length > limit && (
+      {restaurants.length > limit && (
         <div className="mt-6 sm:mt-8 text-center">
-        <button onClick={() => {
-          limit += 4
-        }} className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
-          <span>Show more offers</span>
-          <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
-      </div>
-      ))}
+          <button
+            onClick={() => {
+              limit += 4;
+            }}
+            className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium"
+          >
+            <span>Show more offers</span>
+            <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -392,32 +417,37 @@ export const TableGridTwo = ({ title, type }) => {
   const { restaurants, isLoading } = useRestaurantData("hotel", type);
   const navigate = useNavigate();
 
-  if (isLoading) return (
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} class="rounded-2xl bg-white shadow-md overflow-hidden">
-          <div class="h-44 w-full bg-gray-200 animate-pulse"></div>
-          <div class="p-4 space-y-4">
-            <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-          <div class="flex gap-2">
-            <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-            <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
-            <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+  if (isLoading)
+    return (
+      <div class="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            class="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
+          >
+            <div class="h-30 sm:h-44 w-full bg-gray-200 animate-pulse"></div>
+            <div class="p-4 space-y-4">
+              <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+              <div class="flex gap-2">
+                <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+              <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
           </div>
-          <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-          <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
-        </div>
+        ))}
+        ;
       </div>
-  ))};
-    </div>
-  );
+    );
 
   if (!restaurants || restaurants.length === 0) return null;
 
   let limit = 4;
 
   return (
-    <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
+    <div className="mb-12 md:mb-20 lg:mb-[92px] px- sm:px-6 lg:px-8">
       <Button
         variant="outline"
         className="flex justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none"
@@ -427,7 +457,7 @@ export const TableGridTwo = ({ title, type }) => {
       </Button>
 
       {/* Responsive grid container */}
-      <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0">
+      <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const restaurantId = restaurant._id || String(restaurant.id);
@@ -442,7 +472,7 @@ export const TableGridTwo = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt-2 pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pb-2 sm:pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -454,7 +484,7 @@ export const TableGridTwo = ({ title, type }) => {
               onMouseLeave={() => handleMouseLeave(restaurantId)}
             >
               {/* Image Section */}
-              <div className="relative h-40 sm:h-44 w-full  cursor-pointer aspect-video">
+              <div className="relative h-30 sm:h-44 w-full  cursor-pointer aspect-video">
                 <div className="relative h-full w-full overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gray-100">
                   {images.map((image, index) => (
                     <img
@@ -480,8 +510,8 @@ export const TableGridTwo = ({ title, type }) => {
                 </div>
 
                 {(restaurant.badge || restaurant.offer) && (
-                  <span className="absolute top-2 left-2 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
-                    {restaurant.badge || restaurant.offer}
+                  <span className="absolute top-2 left-2 bg-gray-100/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                    {capitalize(restaurant.badge || restaurant.offer)}
                   </span>
                 )}
                 <button className="absolute top-2 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
@@ -508,18 +538,18 @@ export const TableGridTwo = ({ title, type }) => {
               {/* Info Section */}
               <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
                 <div className="space-y-1.5">
-                  <div className="flex w-full justify-between">
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 capitalize leading-tight line-clamp-1">
+                  <div className="flex-col-reverse flex sm:flex-row  w-full justify-between">
+                    <h3 className="text-[10px] sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
                       {restaurant.businessName}
                     </h3>
                     <div className="flex items-center">
-                      <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
-                      <span className="text-sm font-semibold text-gray-900">
+                      <FaStar className="text-yellow-500 mr-1 sm:text-sm text-[8px]" />
+                      <span className="sm:text-sm text-[8px] font-semibold text-gray-900">
                         {restaurant.rating?.toFixed(1)}
                       </span>
-                      {/* <span className="text-xs sm:text-sm text-gray-500 ml-1">
+                      <span className="text-[8px] flex sm:hidden sm:text-sm text-gray-500 ml-1">
                         ({restaurant.reviews?.toLocaleString() || 0} reviews)
-                      </span> */}
+                      </span>
                     </div>
                   </div>
 
@@ -540,7 +570,7 @@ export const TableGridTwo = ({ title, type }) => {
                           return (
                             <div
                               key={index}
-                              className={`px-3 py-2 ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                              className={`sm:px-3 px-1.5 py-1 sm:py-2 ${classes} rounded-full bg-gray-200 text-[10px]  sm:text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                             >
                               {category}
                             </div>
@@ -550,7 +580,7 @@ export const TableGridTwo = ({ title, type }) => {
                         (Array.isArray(restaurant.cuisines)
                           ? restaurant.cuisines.length
                           : restaurant.cuisines.split(",").length) > 3 && (
-                          <div className="px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
+                          <div className="px-1 sm:px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
                             +
                             {Math.max(
                               0,
@@ -563,7 +593,7 @@ export const TableGridTwo = ({ title, type }) => {
                     </div>
                   )}
 
-                  <div className="flex  mt-4 items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
+                  <div className="flex  mt-2 sm:mt-4 items-center gap-1 sm:text-sm text-[10px]  text-gray-500 ">
                     <FiMapPin />
                     <p className="line-clamp-1 ">
                       <span>{restaurant.address}</span>
@@ -571,26 +601,41 @@ export const TableGridTwo = ({ title, type }) => {
                   </div>
                 </div>
 
-                <div className="mt-4">
+                <div className="mt-2 sm:mt-4 w-full">
                   <div className="flex justify-between items-center mb-3">
                     <div className="flex text-black justify-start items-center gap-1">
-                      <div className="text-lg font-bold leading-none">
-                        ₦{restaurant.priceRange}
+                      <div className="text-[10px] sm:text-lg font-bold leading-none">
+                        {formatNaira(restaurant.priceRange)}
                       </div>
-                      <div className="text-xs font-normal leading-none">
+                      <div className="text-[8px] sm:text-[xs] font-normal leading-none">
                         /night
                       </div>
                     </div>
                   </div>
 
-                  <div className="mt-4 w-full flex ">
+                  <div className="mt-0 sm:mt-4  w-full flex ">
                     <Button
                       onClick={() => navigate(`/hotels/${restaurant._id}`)}
-                      className="
-    w-full text-sm font-semibold 
-    rounded-full py-3 tracking-wide 
-    text-white cursor-pointer
-    transition-all duration-200 shadow-sm"
+                      className=" hidden sm:flex
+                      w-full text-xs sm:text-sm font-semibold 
+                      rounded-full py-1 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
+                    >
+                      Book Now
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => navigate(`/hotels/${restaurant._id}`)}
+                      className=" flex sm:hidden
+                      w-full text-[10px] sm:text-sm font-medium
+                      rounded-full py-1.5 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
                     >
                       Book Now
                     </Button>
@@ -603,16 +648,19 @@ export const TableGridTwo = ({ title, type }) => {
       </div>
 
       {/* Show more - responsive */}
-      {(restaurants.length > limit && (
+      {restaurants.length > limit && (
         <div className="mt-6 sm:mt-8 text-center">
-        <button onClick={() => {
-          limit += 4
-        }} className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
-          <span>Show more offers</span>
-          <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
-      </div>
-      ))}
+          <button
+            onClick={() => {
+              limit += 4;
+            }}
+            className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium"
+          >
+            <span>Show more offers</span>
+            <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -623,25 +671,30 @@ export const TableGridThree = ({ title, type }) => {
   const { restaurants, isLoading } = useRestaurantData("club", type);
   const navigate = useNavigate();
 
-  if (isLoading) return (
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} class="rounded-2xl bg-white shadow-md overflow-hidden">
-          <div class="h-44 w-full bg-gray-200 animate-pulse"></div>
-          <div class="p-4 space-y-4">
-            <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-          <div class="flex gap-2">
-            <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-            <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
-            <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+  if (isLoading)
+    return (
+      <div class="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            class="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
+          >
+            <div class="h-30 sm:h-44 w-full bg-gray-200 animate-pulse"></div>
+            <div class="p-4 space-y-4">
+              <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+              <div class="flex gap-2">
+                <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+              <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+            </div>
           </div>
-          <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-          <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
-        </div>
+        ))}
+        ;
       </div>
-  ))};
-    </div>
-  );
+    );
 
   if (!restaurants || restaurants.length === 0) return null;
 
@@ -674,7 +727,7 @@ export const TableGridThree = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt- pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt- pb-2 sm:pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -686,7 +739,7 @@ export const TableGridThree = ({ title, type }) => {
               onMouseLeave={() => handleMouseLeave(restaurantId)}
             >
               {/* Image Section */}
-              <div className="relative h-40 sm:h-44 w-full  cursor-pointer aspect-video">
+              <div className="relative h-30 sm:h-44 w-full  cursor-pointer aspect-video">
                 <div className="relative h-full w-full overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gray-100">
                   {images.map((image, index) => (
                     <img
@@ -712,7 +765,7 @@ export const TableGridThree = ({ title, type }) => {
                 </div>
 
                 {restaurant.offer && (
-                  <span className="absolute top-2 left-4 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                  <span className="absolute top-2 left-4 bg-gray-100/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
                     {restaurant.offer}
                   </span>
                 )}
@@ -741,19 +794,18 @@ export const TableGridThree = ({ title, type }) => {
               {/* Info Section */}
               <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
                 <div className="space-y-1.5">
-                  <div className="flex w-full justify-between">
-                    <h3 className="text-base sm:text-lg font-semibold capitalize  text-gray-900 leading-tight line-clamp-1">
+                  <div className="flex flex-col-reverse sm:flex-row w-full justify-between">
+                    <h3 className="text-[10px] sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
                       {restaurant.businessName}
                     </h3>
-
                     <div className="flex items-center">
-                      <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
-                      <span className="text-sm font-semibold text-gray-900">
+                      <FaStar className="text-yellow-500 mr-1 sm:text-sm text-[8px]" />
+                      <span className="sm:text-sm text-[8px] font-semibold text-gray-900">
                         {restaurant.rating?.toFixed(1)}
                       </span>
-                      {/* <span className="text-xs sm:text-sm text-gray-500 ml-1">
+                      <span className="text-xs sm:text-sm text-gray-500 ml-1">
                         ({restaurant.reviews?.toLocaleString() || 0} reviews)
-                      </span> */}
+                      </span>
                     </div>
                   </div>
 
@@ -767,7 +819,7 @@ export const TableGridThree = ({ title, type }) => {
                         return (
                           <div
                             key={index}
-                            className={`px-3 py-2 ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                            className={`sm:px-3 px-1.5 py-1 sm:py-2  ${classes} rounded-full bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                           >
                             {category}
                           </div>
@@ -775,14 +827,14 @@ export const TableGridThree = ({ title, type }) => {
                       })}
 
                       {categories.length > 3 && (
-                        <div className="px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
+                        <div className="px-1 sm:px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
                           +{categories.length - 3}
                         </div>
                       )}
                     </div>
                   )}
 
-                  <div className="flex  mt-4 items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
+                  <div className="flex  mt-2 sm:mt-4 items-center gap-1 sm:text-sm text-[10px]  text-gray-500 ">
                     <FiMapPin />
                     <p className="line-clamp-1 ">
                       <span>{restaurant.address}</span>
@@ -790,24 +842,38 @@ export const TableGridThree = ({ title, type }) => {
                   </div>
 
                   <div className="flex text-black mt-4 justify-start items-center gap-1">
-                    <div className="font-bold leading-none">
+                    <div className="font-bold text-[10px] sm:text-lg leading-none">
                       Table from
                     </div>
-                    <div className="font-bold leading-none">
-                      ₦{restaurant.priceRange}
+                    <div className="font-bold text-[10px] sm:text-lg leading-none">
+                      {formatNaira(restaurant.priceRange)}
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-4 w-full cursor-pointer flex ">
+                <div className="mt-1 sm:mt-4 w-full cursor-pointer flex ">
                   <Button
                     onClick={() => navigate(`/clubs/${restaurant._id}`)}
-                    className="
-    w-full text-sm font-semibold 
-    rounded-full py-3 tracking-wide 
-    text-white cursor-pointer                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
-    transition-all duration-200 shadow-sm
-  "
+                    className=" hidden sm:flex
+                      w-full text-xs sm:text-sm font-semibold 
+                      rounded-full py-1 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
+                  >
+                    Book Now
+                  </Button>
+                  <Button
+                    size={"small"}
+                    onClick={() => navigate(`/clubs/${restaurant._id}`)}
+                    className=" flex sm:hidden
+                      w-full text-[10px] sm:text-sm font-medium
+                      rounded-full py-1.5 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
                   >
                     Book Now
                   </Button>
@@ -819,23 +885,24 @@ export const TableGridThree = ({ title, type }) => {
       </div>
 
       {/* Show more - responsive */}
-      {(restaurants.length > limit && (
+      {restaurants.length > limit && (
         <div className="mt-6 sm:mt-8 text-center">
-        <button onClick={() => {
-          limit += 4
-        }} className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
-          <span>Show more offers</span>
-          <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
-      </div>
-      ))}
+          <button
+            onClick={() => {
+              limit += 4;
+            }}
+            className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium"
+          >
+            <span>Show more offers</span>
+            <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
 
 export default TableGrid;
-
-
 
 export const TableGridFour = ({ title }) => {
   const [menus, setMenus] = useState([]);
@@ -857,24 +924,28 @@ export const TableGridFour = ({ title }) => {
     fetchRestaurant();
   }, []);
 
-  if (isLoading) return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="rounded-2xl bg-white shadow-md overflow-hidden">
-          <div className="h-48 w-full bg-gray-200 animate-pulse"></div>
-          <div className="p-4 space-y-4">
-            <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-            <div className="flex gap-2">
-              <div className="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-              <div className="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+  if (isLoading)
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="rounded-2xl bg-white shadow-md overflow-hidden"
+          >
+            <div className="h-48 w-full bg-gray-200 animate-pulse"></div>
+            <div className="p-4 space-y-4">
+              <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+              <div className="flex gap-2">
+                <div className="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
             </div>
-            <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
           </div>
-        </div>
-      ))}
-    </div>
-  );
+        ))}
+      </div>
+    );
 
   if (!menus || menus.length === 0) return null;
 
@@ -904,10 +975,10 @@ export const TableGridFour = ({ title }) => {
                 alt={menu.name}
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
-              
+
               {/* Badge */}
               <div className="absolute top-3 left-3 bg-orange-500/95 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg">
-                {menu.mealTimes?.[0] || 'Special'}
+                {menu.mealTimes?.[0] || "Special"}
               </div>
 
               {/* Heart Button */}
@@ -960,7 +1031,9 @@ export const TableGridFour = ({ title }) => {
                   <span className="text-2xl sm:text-3xl font-bold text-gray-900">
                     ₦{menu.price.toLocaleString()}
                   </span>
-                  <span className="text-xs text-gray-500">{menu.pricingModel}</span>
+                  <span className="text-xs text-gray-500">
+                    {menu.pricingModel}
+                  </span>
                 </div>
 
                 <Button
@@ -979,16 +1052,19 @@ export const TableGridFour = ({ title }) => {
       </div>
 
       {/* Show more */}
-      {(menus.length > limit && (
+      {menus.length > limit && (
         <div className="mt-6 sm:mt-8 text-center">
-        <button onClick={() => {
-          limit += 4
-        }} className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium">
-          <span>Show more offers</span>
-          <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
-        </button>
-      </div>
-      ))}
+          <button
+            onClick={() => {
+              limit += 4;
+            }}
+            className="text-teal-700 hover:underline flex items-center justify-center mx-auto transition-colors duration-200 text-sm sm:text-base font-medium"
+          >
+            <span>Show more offers</span>
+            <FiChevronsDown className="ml-1 sm:ml-2 w-4 h-4 sm:w-5 sm:h-5" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
