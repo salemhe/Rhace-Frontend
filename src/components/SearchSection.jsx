@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FiSearch } from "react-icons/fi";
 import { useNavigate } from "react-router";
 import { SearchAutocomplete } from "./AutoComplete";
@@ -143,7 +143,22 @@ export const SearchSectionTwo = ({ onSearch, searchData, activeTab }) => {
   const [guests, setGuests] = useState({ adults: 2, children: 0, infants: 0 });
   const [searchQuery, setSearchQuery] = useState("");
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const searchInputRef = useRef(null);
+  const formRef = useRef(null);
   const navigate = useNavigate();
+
+  // Check if mobile on mount and resize
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640); // sm breakpoint
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
 
   useEffect(() => {
     if (searchData) {
@@ -173,6 +188,37 @@ export const SearchSectionTwo = ({ onSearch, searchData, activeTab }) => {
     }
   }, [searchData]);
 
+  // Focus input when expanded on mobile
+  useEffect(() => {
+    if (isExpanded && isMobile && searchInputRef.current) {
+      setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+    }
+  }, [isExpanded, isMobile]);
+
+  // Close expanded view when clicking outside on mobile
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        isExpanded &&
+        isMobile &&
+        formRef.current &&
+        !formRef.current.contains(event.target)
+      ) {
+        setIsExpanded(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("touchstart", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("touchstart", handleClickOutside);
+    };
+  }, [isExpanded, isMobile]);
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     const totalGuests = guests.adults + guests.children + guests.infants;
@@ -194,7 +240,9 @@ export const SearchSectionTwo = ({ onSearch, searchData, activeTab }) => {
     }
 
     // Collapse on mobile after search
-    setIsExpanded(false);
+    if (isMobile) {
+      setIsExpanded(false);
+    }
   };
 
   const getPlaceholder = () => {
@@ -210,13 +258,30 @@ export const SearchSectionTwo = ({ onSearch, searchData, activeTab }) => {
     }
   };
 
+  const handleMobileInputFocus = () => {
+    if (isMobile && !isExpanded) {
+      setIsExpanded(true);
+    }
+  };
+
+  const handleMobileInputChange = (value) => {
+    setSearchQuery(value);
+    if (isMobile && !isExpanded) {
+      setIsExpanded(true);
+    }
+  };
+
   return (
-    <form onSubmit={handleSearchSubmit} className="mx-auto w-full max-w-3xl">
+    <form
+      ref={formRef}
+      onSubmit={handleSearchSubmit}
+      className="mx-auto w-full max-w-3xl"
+    >
       {/* Desktop Search Bar */}
-      <div className="hidden sm:block">
+      <div className="hidden sm:block relative">
         <div className="h-16 bg-white rounded-full justify-between shadow-lg flex items-center px-2 sm:px-4 gap-2 sm:gap-0">
           {/* Search Input */}
-          <div className="flex flex-col flex-1 justify-center h-full px-4 border-r border-gray-200 min-w-0 w-1/4">
+          <div className="flex flex-col flex-1 justify-center h-full px-4 border-r border-gray-200 min-w-0 w-1/4 relative">
             <label className="text-xs text-text-secondary text-left mb-1">
               {activeTab === "restaurants"
                 ? "Restaurant/Cuisine"
@@ -224,19 +289,22 @@ export const SearchSectionTwo = ({ onSearch, searchData, activeTab }) => {
                 ? "Hotels"
                 : "Clubs"}
             </label>
-            <SearchAutocomplete
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder={
-                activeTab === "restaurants"
-                  ? "Enter Restaurant or Cuisine"
-                  : activeTab === "hotels"
-                  ? "Enter Hotels"
-                  : activeTab === "clubs"
-                  ? "Enter Clubs"
-                  : ""
-              }
-            />
+            <div className="relative">
+              <SearchAutocomplete
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder={
+                  activeTab === "restaurants"
+                    ? "Enter Restaurant or Cuisine"
+                    : activeTab === "hotels"
+                    ? "Enter Hotels"
+                    : activeTab === "clubs"
+                    ? "Enter Clubs"
+                    : ""
+                }
+                isMobile={isMobile}
+              />
+            </div>
           </div>
 
           {/* Date */}
@@ -277,98 +345,146 @@ export const SearchSectionTwo = ({ onSearch, searchData, activeTab }) => {
       </div>
 
       {/* Mobile Search Bar */}
-      <div className="sm:hidden bg-white rounded-2xl shadow-lg overflow-hidden">
+      <div className="sm:hidden">
         {/* Collapsed View - Just Search Input */}
         {!isExpanded && (
           <div
             onClick={() => setIsExpanded(true)}
-            className="flex items-center px-4 py-4 cursor-pointer"
+            className="bg-white rounded-2xl shadow-lg overflow-hidden"
           >
-            <FiSearch className="w-5 h-5 text-gray-400 mr-3" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                if (!isExpanded) setIsExpanded(true);
-              }}
-              placeholder={getPlaceholder()}
-              className="flex-1 focus:outline-none text-text-primary placeholder:text-text-secondary text-sm"
-              onFocus={() => setIsExpanded(true)}
-            />
+            <div className="flex items-center px-4 py-4 cursor-pointer">
+              <FiSearch className="w-5 h-5 text-gray-400 mr-3 flex-shrink-0" />
+              <div className="flex-1 min-w-0">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => handleMobileInputChange(e.target.value)}
+                  placeholder={getPlaceholder()}
+                  className="w-full focus:outline-none text-text-primary placeholder:text-text-secondary text-sm bg-transparent"
+                  onFocus={handleMobileInputFocus}
+                  readOnly={!isExpanded}
+                  style={{
+                    WebkitUserSelect: "text",
+                    userSelect: "text",
+                    touchAction: "manipulation",
+                  }}
+                />
+              </div>
+            </div>
           </div>
         )}
 
         {/* Expanded View - Full Form */}
         {isExpanded && (
-          <div className="p-4">
-            {/* Search Input */}
-            <div className="flex flex-col mb-4 pb-4 border-b border-gray-200">
-              <label className="text-xs text-text-secondary text-left mb-2">
-                {activeTab === "restaurants"
-                  ? "Restaurant/Cuisine"
-                  : activeTab === "hotels"
-                  ? "Hotels"
-                  : "Clubs"}
-              </label>
-              <SearchAutocomplete
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder={
-                  activeTab === "restaurants"
-                    ? "Enter Restaurant or Cuisine"
-                    : activeTab === "hotels"
-                    ? "Enter Hotels"
-                    : activeTab === "clubs"
-                    ? "Enter Clubs"
-                    : ""
-                }
-              />
-            </div>
+          <div className="fixe  flex items-start justify-center ">
+            <div className="bg-white rounded-2xl w-full  shadow-xl animate-in slide-in-from-bottom-5 duration-200">
+              <div className="p-4">
+                {/* Close Button */}
+                <div className="flex justify-end mb-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsExpanded(false)}
+                    className="p-2 rounded-full hover:bg-gray-100"
+                  >
+                    <span className="sr-only">Close</span>
+                    <svg
+                      className="w-6 h-6 text-gray-500"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                </div>
 
-            {/* Date and Time Row */}
-            {/* <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-gray-200">
-              <div className="flex flex-col">
-                <label className="text-xs text-text-secondary text-left mb-2">
-                  Date
-                </label>
-                <DateDropdown
-                  selectedDate={date}
-                  onChange={(d) => setDate(d)}
-                />
+                {/* Search Input */}
+                <div className="flex flex-col mb-4 pb-4 border-b border-gray-200">
+                  <label className="text-xs text-text-secondary text-left mb-2">
+                    {activeTab === "restaurants"
+                      ? "Restaurant/Cuisine"
+                      : activeTab === "hotels"
+                      ? "Hotels"
+                      : "Clubs"}
+                  </label>
+                  <div className="relative">
+                    <SearchAutocomplete
+                      value={searchQuery}
+                      onChange={setSearchQuery}
+                      placeholder={
+                        activeTab === "restaurants"
+                          ? "Enter Restaurant or Cuisine"
+                          : activeTab === "hotels"
+                          ? "Enter Hotels"
+                          : activeTab === "clubs"
+                          ? "Enter Clubs"
+                          : ""
+                      }
+                      isMobile={isMobile}
+                      autoFocus={isExpanded}
+                    />
+                  </div>
+                </div>
+
+                {/* Date and Time Row - Uncomment if needed */}
+                {/* <div className="grid grid-cols-2 gap-4 mb-4 pb-4 border-b border-gray-200">
+                  <div className="flex flex-col">
+                    <label className="text-xs text-text-secondary text-left mb-2">
+                      Date
+                    </label>
+                    <DateDropdown
+                      selectedDate={date}
+                      onChange={(d) => setDate(d)}
+                      isMobile={isMobile}
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-xs text-text-secondary text-left mb-2">
+                      Time
+                    </label>
+                    <TimeDropdown 
+                      selectedTime={time} 
+                      onChange={setTime}
+                      isMobile={isMobile}
+                    />
+                  </div>
+                </div> */}
+
+                {/* Guests - Uncomment if needed */}
+                {/* <div className="flex flex-col mb-6">
+                  <label className="text-xs text-text-secondary text-left mb-2">
+                    Guests
+                  </label>
+                  <GuestDropdown 
+                    onChange={(counts) => setGuests(counts)}
+                    isMobile={isMobile}
+                  />
+                </div> */}
+
+                {/* Action Buttons */}
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsExpanded(false)}
+                    className="flex-1 py-3 border border-gray-300 rounded-xl text-gray-700 hover:bg-gray-50 transition font-medium"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-800 to-violet-500 hover:from-blue-900 hover:to-violet-600 text-white rounded-xl transition font-medium"
+                  >
+                    <FiSearch className="w-5 h-5" />
+                    <span>Search</span>
+                  </button>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <label className="text-xs text-text-secondary text-left mb-2">
-                  Time
-                </label>
-                <TimeDropdown selectedTime={time} onChange={setTime} />
-              </div>
-            </div> */}
-
-            {/* Guests */}
-            {/* <div className="flex flex-col mb-4">
-              <label className="text-xs text-text-secondary text-left mb-2">
-                Guests
-              </label>
-              <GuestDropdown onChange={(counts) => setGuests(counts)} />
-            </div> */}
-
-            {/* Action Buttons */}
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => setIsExpanded(false)}
-                className="flex-1 py-3 border border-gray-300 rounded-full text-gray-700 hover:bg-gray-50 transition"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-blue-800 to-violet-500 hover:from-blue-900 hover:to-violet-600 text-white rounded-full transition"
-              >
-                <FiSearch className="w-5 h-5" />
-                <span>Search</span>
-              </button>
             </div>
           </div>
         )}

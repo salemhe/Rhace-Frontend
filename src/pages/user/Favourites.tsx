@@ -1,10 +1,11 @@
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/user/Header";
+import { useFavorites } from "@/hooks/favorites";
 import { Heart } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa6";
-import { FiHeart, FiMapPin } from "react-icons/fi";
+import { FiHeart } from "react-icons/fi";
 
 // Enhanced dummy data with multiple images
 const restaurantsData = [
@@ -284,6 +285,28 @@ const Favorites: React.FC = () => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
     useCarouselLogic();
 
+  const { favorites, loading, fetchFavorites, toggleFavorite, isFavorite } =
+    useFavorites();
+  const [filteredFavorites, setFilteredFavorites] = useState([]);
+
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
+
+  // Filter favorites by type
+  useEffect(() => {
+    if (favorites.length > 0) {
+      const filtered = favorites.filter((fav) => {
+        if (activeTab === "restaurants") return fav.type === "restaurant";
+        if (activeTab === "clubs") return fav.type === "club";
+        if (activeTab === "hotels") return fav.type === "hotel";
+        return true;
+      });
+      setFilteredFavorites(filtered);
+    } else {
+      setFilteredFavorites([]);
+    }
+  }, [favorites, activeTab]);
   const getCurrentData = () => {
     switch (activeTab) {
       case "restaurants":
@@ -297,7 +320,7 @@ const Favorites: React.FC = () => {
     }
   };
 
-  const venues = getCurrentData();
+  const venues = filteredFavorites;
 
   const getCategories = (venue) => {
     if (activeTab === "restaurants" || activeTab === "hotels") {
@@ -329,6 +352,36 @@ const Favorites: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="mt-24 mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex  mt-28 flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
+              >
+                <div className="h-30 sm:h-44 w-full bg-gray-200 animate-pulse"></div>
+                <div className="p-4 space-y-4">
+                  <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="flex gap-2">
+                    <div className="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+            ;
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -348,7 +401,7 @@ const Favorites: React.FC = () => {
               >
                 Restaurants
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {restaurantsData.length}
+                  {venues.length}
                 </span>
               </button>
               <button
@@ -361,7 +414,7 @@ const Favorites: React.FC = () => {
               >
                 Clubs
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {clubsData.length}
+                  {venues.length}
                 </span>
               </button>
               <button
@@ -374,7 +427,7 @@ const Favorites: React.FC = () => {
               >
                 Hotels
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {hotelsData.length}
+                  {venues.length}
                 </span>
               </button>
             </nav>
@@ -452,7 +505,7 @@ const Favorites: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("Toggle favorite:", venueId);
+                        toggleFavorite(venue._id);
                       }}
                       className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
                     >

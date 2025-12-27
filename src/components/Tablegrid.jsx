@@ -1,179 +1,25 @@
-import { userService } from "@/services/user.service";
-import { useEffect, useState } from "react";
 import {
-  FiChevronRight,
-  FiChevronsDown,
-  FiHeart,
-  FiMapPin,
-  FiStar,
-} from "react-icons/fi";
+  getImagesForRestaurant,
+  hasMultipleImages,
+  useCarouselLogic,
+  useFavorites,
+  useRestaurantData,
+} from "@/hooks/favorites";
+import { userService } from "@/services/user.service";
+import { capitalize, formatNaira, formatOfferText } from "@/utils/helper";
+import { Heart } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FaHeart, FaRegHeart, FaStar } from "react-icons/fa6";
+import { FiChevronRight, FiChevronsDown } from "react-icons/fi";
 import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
-import UniversalLoader from "./user/ui/LogoLoader";
-import { FaHeart, FaStar } from "react-icons/fa6";
-import { Bike, Heart, Star } from "lucide-react";
-import { capitalize, formatNaira } from "@/utils/helper";
-
-// Common carousel logic hook
-const useCarouselLogic = () => {
-  const [currentIndices, setCurrentIndices] = useState({});
-  const [intervalIds, setIntervalIds] = useState({});
-
-  const startImageRotation = (restaurantId, images) => {
-    // Clear any existing interval for this restaurant
-    if (intervalIds[restaurantId]) {
-      clearInterval(intervalIds[restaurantId]);
-    }
-
-    // Start new interval to rotate images every 2 seconds
-    const intervalId = setInterval(() => {
-      setCurrentIndices((prev) => {
-        const currentIndex = prev[restaurantId] || 0;
-        const nextIndex = (currentIndex + 1) % images.length;
-        return { ...prev, [restaurantId]: nextIndex };
-      });
-    }, 1500); // Change image every 1.5 seconds
-
-    setIntervalIds((prev) => ({
-      ...prev,
-      [restaurantId]: intervalId,
-    }));
-  };
-
-  const stopImageRotation = (restaurantId) => {
-    if (intervalIds[restaurantId]) {
-      clearInterval(intervalIds[restaurantId]);
-      setIntervalIds((prev) => {
-        const newIntervals = { ...prev };
-        delete newIntervals[restaurantId];
-        return newIntervals;
-      });
-    }
-  };
-
-  const handleMouseEnter = (
-    restaurantId,
-    restaurant,
-    getImagesForRestaurant,
-    hasMultipleImages
-  ) => {
-    if (!restaurant || !hasMultipleImages(restaurant)) return;
-
-    const images = getImagesForRestaurant(restaurant);
-    if (images.length <= 1) return;
-
-    // Reset to first image when hover starts
-    setCurrentIndices((prev) => ({
-      ...prev,
-      [restaurantId]: 0,
-    }));
-
-    // Start rotating images
-    startImageRotation(restaurantId, images);
-  };
-
-  const handleMouseLeave = (restaurantId) => {
-    stopImageRotation(restaurantId);
-
-    // Reset to first image when hover ends
-    setCurrentIndices((prev) => ({
-      ...prev,
-      [restaurantId]: 0,
-    }));
-  };
-
-  // Manual navigation for dots
-  const handleDotClick = (restaurantId, index, e) => {
-    e.stopPropagation(); // Prevent card click event
-    stopImageRotation(restaurantId);
-    setCurrentIndices((prev) => ({
-      ...prev,
-      [restaurantId]: index,
-    }));
-  };
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(intervalIds).forEach((intervalId) =>
-        clearInterval(intervalId)
-      );
-    };
-  }, [intervalIds]);
-
-  return {
-    currentIndices,
-    handleMouseEnter,
-    handleMouseLeave,
-    handleDotClick,
-  };
-};
-
-// Common restaurant data fetching hook
-const useRestaurantData = (vendorType, type) => {
-  const [restaurants, setRestaurants] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchRestaurant = async () => {
-      try {
-        setIsLoading(true);
-        if (type && type === "nearby") {
-          const location = localStorage.getItem("userLocation");
-          const loc = JSON.parse(location);
-          const res = await userService.getNearest({
-            longitude: loc.lng,
-            latitude: loc.lat,
-            type: vendorType,
-          });
-          setRestaurants(res.data);
-        } else {
-          const res = await userService.getVendor(vendorType);
-          setRestaurants(res.data);
-        }
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchRestaurant();
-  }, [vendorType]);
-
-  return { restaurants, isLoading };
-};
-
-// Common image handling functions
-const getImagesForRestaurant = (restaurant) => {
-  if (restaurant?.profileImages && restaurant?.profileImages?.length > 1) {
-    return restaurant?.profileImages?.map((image) =>
-      typeof image === "string" ? image : image.url
-    );
-  }
-  return restaurant.image ? [restaurant.image] : ["/placeholder.jpg"];
-};
-
-const hasMultipleImages = (restaurant) => {
-  const images = getImagesForRestaurant(restaurant);
-  return images.length > 1;
-};
-
-// Common cuisine color palette
-const cuisineColorPalette = [
-  "bg-orange-100 outline-orange-200",
-  "bg-green-100 outline-green-200",
-  "bg-blue-100 outline-blue-200",
-  "bg-purple-100 outline-purple-200",
-  "bg-pink-100 outline-pink-200",
-  "bg-yellow-100 outline-yellow-200",
-  "bg-teal-100 outline-teal-200",
-];
 
 const TableGrid = ({ title, type }) => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("restaurant", type);
   const navigate = useNavigate();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   if (isLoading)
     return (
@@ -270,12 +116,23 @@ const TableGrid = ({ title, type }) => {
 
                 {(restaurant.badge || restaurant.offer) && (
                   <span className="absolute top-4 left-4 bg-gray-100/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-[8px] sm:text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
-                    {restaurant.badge || restaurant.offer}
+                    {capitalize(restaurant.badge) ||
+                      formatOfferText(restaurant.offer)}
                   </span>
                 )}
 
-                <button className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
-                  <FaHeart />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(restaurant._id, "restaurant");
+                  }}
+                  className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
+                >
+                  {isFavorite(restaurant._id) ? (
+                    <FaHeart className="fill-red-500 text-red-500" />
+                  ) : (
+                    <FaRegHeart className="fill-white/80" />
+                  )}
                 </button>
 
                 {multipleImages && (
@@ -323,10 +180,10 @@ const TableGrid = ({ title, type }) => {
                       )
                         .slice(0, 3)
                         .map((category, index) => {
-                          const classes =
-                            cuisineColorPalette[
-                              index % cuisineColorPalette.length
-                            ];
+                          // const classes =
+                          //   cuisineColorPalette[
+                          //     index % cuisineColorPalette.length
+                          //   ];
                           return (
                             <div
                               key={index}
@@ -416,6 +273,7 @@ export const TableGridTwo = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("hotel", type);
   const navigate = useNavigate();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   if (isLoading)
     return (
@@ -511,11 +369,22 @@ export const TableGridTwo = ({ title, type }) => {
 
                 {(restaurant.badge || restaurant.offer) && (
                   <span className="absolute top-4 left-4 bg-gray-100/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-[8px] sm:text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
-                    {capitalize(restaurant.badge || restaurant.offer)}
+                    {capitalize(restaurant.badge) ||
+                      formatOfferText(restaurant.offer)}
                   </span>
                 )}
-                <button className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
-                  <FaHeart />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(restaurant._id, "hotel");
+                  }}
+                  className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
+                >
+                  {isFavorite(restaurant._id) ? (
+                    <FaHeart className="fill-red-500 text-red-500" />
+                  ) : (
+                    <FaRegHeart className="fill-white/80" />
+                  )}
                 </button>
 
                 {multipleImages && (
@@ -563,16 +432,16 @@ export const TableGridTwo = ({ title, type }) => {
                       )
                         .slice(0, 3)
                         .map((category, index) => {
-                          const classes =
-                            cuisineColorPalette[
-                              index % cuisineColorPalette.length
-                            ];
+                          // const classes =
+                          //   cuisineColorPalette[
+                          //     index % cuisineColorPalette.length
+                          //   ];
                           return (
                             <div
                               key={index}
-                              className={`sm:px-3 px-1.5 py-1 sm:py-2 ${classes} rounded-full bg-gray-200 text-[10px]  sm:text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                              className={`sm:px3 px1.5 py1 sm:py-  rounded-full  text-xs  sm:text-sm text-zinc-600 font-medium leading-none whitespace-nowrap`}
                             >
-                              {category}
+                              {category},
                             </div>
                           );
                         })}
@@ -670,6 +539,7 @@ export const TableGridThree = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("club", type);
   const navigate = useNavigate();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   if (isLoading)
     return (
@@ -766,12 +636,22 @@ export const TableGridThree = ({ title, type }) => {
 
                 {restaurant.offer && (
                   <span className="absolute top-4 left-4 bg-gray-100/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
-                    {restaurant.offer}
+                    {formatOfferText(restaurant.offer)}
                   </span>
                 )}
 
-                <button className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
-                  <FaHeart />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(restaurant._id, "club");
+                  }}
+                  className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
+                >
+                  {isFavorite(restaurant._id) ? (
+                    <FaHeart className="fill-red-500 text-red-500" />
+                  ) : (
+                    <FaRegHeart className="fill-white/80" />
+                  )}
                 </button>
 
                 {multipleImages && (
@@ -812,10 +692,10 @@ export const TableGridThree = ({ title, type }) => {
                   {categories.length > 0 && (
                     <div className="inline-flex flex-wrap gap-1 ">
                       {categories.slice(0, 3).map((category, index) => {
-                        const classes =
-                          cuisineColorPalette[
-                            index % cuisineColorPalette.length
-                          ];
+                        // const classes =
+                        //   cuisineColorPalette[
+                        //     index % cuisineColorPalette.length
+                        //   ];
                         return (
                           <div
                             key={index}
@@ -1068,3 +948,6 @@ export const TableGridFour = ({ title }) => {
     </div>
   );
 };
+
+// /api/users/favorites?search= GET to fetch favorites with queries included
+// /api/users/favorites/ POST to add favorites payload: vendorId
