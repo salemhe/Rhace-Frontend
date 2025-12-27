@@ -1,4 +1,4 @@
-import logoWhite from "@/public/images/Rhace-09.png";
+import logoWhite from "../../../../public/images/Rhace-09.png";
 import { motion } from "framer-motion";
 
 export function Footer() {

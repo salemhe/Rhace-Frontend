@@ -5,154 +5,18 @@ import TableGrid, {
   TableGridTwo,
 } from "@/components/Tablegrid";
 import Header from "@/components/user/Header";
+import {
+  cuisineColorPalette,
+  getImagesForVenue,
+  hasMultipleImages,
+  useCarouselLogic,
+} from "@/hooks/favorites";
 import { restaurantService } from "@/services/rest.services";
 import { Loader2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaStar } from "react-icons/fa6";
 import { FiHeart, FiMapPin } from "react-icons/fi";
 
-const useCarouselLogic = () => {
-  const [currentIndices, setCurrentIndices] = useState({});
-  const [intervalIds, setIntervalIds] = useState({});
-
-  const startImageRotation = useCallback(
-    (venueId, images) => {
-      if (images.length <= 1) return;
-
-      // Clear any existing interval for this venue
-      if (intervalIds[venueId]) {
-        clearInterval(intervalIds[venueId]);
-      }
-
-      const intervalId = setInterval(() => {
-        setCurrentIndices((prev) => {
-          const currentIndex = prev[venueId] || 0;
-          const nextIndex = (currentIndex + 1) % images.length;
-          return { ...prev, [venueId]: nextIndex };
-        });
-      }, 1500);
-
-      setIntervalIds((prev) => ({
-        ...prev,
-        [venueId]: intervalId,
-      }));
-    },
-    [intervalIds]
-  );
-
-  const stopImageRotation = useCallback(
-    (venueId) => {
-      if (!venueId) {
-        console.warn("stopImageRotation called without venueId");
-        return;
-      }
-
-      if (intervalIds[venueId]) {
-        clearInterval(intervalIds[venueId]);
-        setIntervalIds((prev) => {
-          const newIntervals = { ...prev };
-          delete newIntervals[venueId];
-          return newIntervals;
-        });
-      }
-    },
-    [intervalIds]
-  );
-
-  const handleMouseEnter = useCallback(
-    (venueId, venue, getImagesForVenue, hasMultipleImages) => {
-      if (!venueId || !venue) {
-        console.warn("handleMouseEnter called without venueId or venue");
-        return;
-      }
-
-      if (!hasMultipleImages(venue)) return;
-
-      const images = getImagesForVenue(venue);
-      if (images.length <= 1) return;
-
-      setCurrentIndices((prev) => ({
-        ...prev,
-        [venueId]: 0,
-      }));
-
-      startImageRotation(venueId, images);
-    },
-    [startImageRotation]
-  );
-
-  const handleMouseLeave = useCallback(
-    (venueId) => {
-      if (!venueId) {
-        console.warn("handleMouseLeave called without venueId");
-        return;
-      }
-
-      stopImageRotation(venueId);
-      setCurrentIndices((prev) => ({
-        ...prev,
-        [venueId]: 0,
-      }));
-    },
-    [stopImageRotation]
-  );
-
-  const handleDotClick = useCallback(
-    (venueId, index, e) => {
-      e.stopPropagation();
-      stopImageRotation(venueId);
-      setCurrentIndices((prev) => ({
-        ...prev,
-        [venueId]: index,
-      }));
-    },
-    [stopImageRotation]
-  );
-
-  // Cleanup all intervals on unmount
-  useEffect(() => {
-    return () => {
-      Object.values(intervalIds).forEach((intervalId) => {
-        if (intervalId) {
-          clearInterval(intervalId);
-        }
-      });
-    };
-  }, [intervalIds]);
-
-  return {
-    currentIndices,
-    handleMouseEnter,
-    handleMouseLeave,
-    handleDotClick,
-  };
-};
-
-// Image handling functions
-const getImagesForVenue = (venue) => {
-  if (venue?.profileImages && venue?.profileImages?.length > 1) {
-    return venue.profileImages;
-  }
-  return venue.profileImages?.[0]
-    ? [venue.profileImages[0]]
-    : ["/restaurant.jpg"];
-};
-
-const hasMultipleImages = (venue) => {
-  const images = getImagesForVenue(venue);
-  return images.length > 1;
-};
-
-// Cuisine color palette
-const cuisineColorPalette = [
-  "bg-orange-100 outline-orange-200",
-  "bg-green-100 outline-green-200",
-  "bg-blue-100 outline-blue-200",
-  "bg-purple-100 outline-purple-200",
-  "bg-pink-100 outline-pink-200",
-  "bg-yellow-100 outline-yellow-200",
-  "bg-teal-100 outline-teal-200",
-];
 const LoadingFallback = () => (
   <div className="min-h-screen mt-[100px] bg-gray-50">
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -173,7 +37,7 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchData, setSearchData] = useState(null);
-  // const navigate = useNavigate();
+  const searchSectionRef = useRef(null);
 
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
     useCarouselLogic();
@@ -213,11 +77,10 @@ const SearchPage = () => {
         return "View details";
     }
   };
+
   // Function to handle search
-  // SearchPage.jsx - Update the handleSearch function
   const handleSearch = useCallback(
     async (searchData) => {
-      // Normalize the searchData input
       let query, tab;
 
       if (typeof searchData === "string") {
@@ -237,16 +100,14 @@ const SearchPage = () => {
       }
 
       setLoading(true);
-      console.log("Performing search with:", { query, tab }); // Debug log
+      console.log("Performing search with:", { query, tab });
 
       try {
-        // Call service with consistent structure
         const response = await restaurantService.searchRestaurants({
           search: query,
           type: tab,
         });
 
-        // Update state based on tab
         switch (tab) {
           case "restaurants":
             setRestaurants(response.data || []);
@@ -262,7 +123,6 @@ const SearchPage = () => {
         }
       } catch (err) {
         console.error("Search error:", err);
-        // Clear results on error
         switch (tab) {
           case "restaurants":
             setRestaurants([]);
@@ -282,6 +142,7 @@ const SearchPage = () => {
     },
     [activeTab]
   );
+
   // Load stored search data on mount
   useEffect(() => {
     setMounted(true);
@@ -307,19 +168,17 @@ const SearchPage = () => {
   // Handle new search from search bar
   const handleNewSearch = useCallback(
     (newSearchData) => {
-      // Extract query and tab
       const query = newSearchData.query || newSearchData.search || "";
       const tab = newSearchData.tab || activeTab;
 
       setSearchQuery(query);
       setActiveTab(normalizeTab(tab));
 
-      // Create updated search data
       const updatedSearchData = {
         query: query,
         tab: tab,
-        search: query, // Add both for compatibility
-        type: tab, // Add both for compatibility
+        search: query,
+        type: tab,
         date: newSearchData.date,
         time: newSearchData.time,
         guests: newSearchData.guests,
@@ -336,15 +195,13 @@ const SearchPage = () => {
     [activeTab, handleSearch]
   );
 
-  // Handle tab change - UPDATED to always save to localStorage
+  // Handle tab change
   const handleTabChange = (tab) => {
     setActiveTab(normalizeTab(tab));
 
-    // Always update localStorage with current tab, even without query
     const updatedSearchData = {
       ...searchData,
       tab: tab,
-      // Preserve existing query or set to empty
       query: searchQuery || "",
       timestamp: new Date().toISOString(),
     };
@@ -352,13 +209,12 @@ const SearchPage = () => {
     setSearchData(updatedSearchData);
     localStorage.setItem("searchData", JSON.stringify(updatedSearchData));
 
-    // If there's a search query, perform search for new tab
     if (searchQuery) {
       handleSearch(updatedSearchData);
     }
   };
 
-  // Update localStorage when tab changes (additional safety)
+  // Update localStorage when tab changes
   useEffect(() => {
     if (mounted && searchData) {
       const updatedSearchData = {
@@ -381,8 +237,8 @@ const SearchPage = () => {
     <div className="min-h-screen mt-[100px] bg-gray-50">
       <Header onClick={handleTabChange} activeTab={safeActiveTab} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Search Section */}
-        <div className="mb-8">
+        {/* Search Section - Added ref and wrapper for mobile fixes */}
+        <div className="mb-8 relative" ref={searchSectionRef}>
           <SearchSectionTwo
             onSearch={handleNewSearch}
             searchData={{ ...searchData, tab: safeActiveTab }}
@@ -441,11 +297,11 @@ const SearchPage = () => {
                 const currentIndex = currentIndices[venueId] || 0;
                 const multipleImages = hasMultipleImages(venue);
                 const categories = getCategories(venue);
-                console.log(venueId);
+
                 return (
                   <div
                     key={venueId}
-                    className="cursor-pointer pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+                    className="cursor-pointer pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px-rgba(0,0,0,0.08)] transition-all duration-300"
                     onMouseEnter={() =>
                       handleMouseEnter(
                         venueId,
@@ -611,17 +467,17 @@ const SearchPage = () => {
           )}
 
           {safeActiveTab === "restaurants" && (
-            <div className=" mt-36 sm:mt-[65px] mx-a px-  py-8">
+            <div className="mt-36 sm:mt-[65px] mx-a px- py-8">
               <TableGrid title="Popular Searches" />
             </div>
           )}
           {safeActiveTab === "hotels" && (
-            <div className=" mx-a px-  py-8">
+            <div className="mx-a px- py-8">
               <TableGridTwo title="Popular Searches" />
             </div>
           )}
           {safeActiveTab === "clubs" && (
-            <div className=" mt-36 sm:mt-[65px] mx-a px-  py-8">
+            <div className="mt-36 sm:mt-[65px] mx-a px- py-8">
               <TableGridThree title="Popular Clubs" />
             </div>
           )}
