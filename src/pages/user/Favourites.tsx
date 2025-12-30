@@ -1,10 +1,11 @@
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/user/Header";
+import { useFavorites } from "@/hooks/favorites";
 import { Heart } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa6";
-import { FiHeart, FiMapPin } from "react-icons/fi";
+import { FiHeart } from "react-icons/fi";
 
 // Enhanced dummy data with multiple images
 const restaurantsData = [
@@ -284,6 +285,28 @@ const Favorites: React.FC = () => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
     useCarouselLogic();
 
+  const { favorites, loading, fetchFavorites, toggleFavorite, isFavorite } =
+    useFavorites();
+  const [filteredFavorites, setFilteredFavorites] = useState([]);
+
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
+
+  // Filter favorites by type
+  useEffect(() => {
+    if (favorites.length > 0) {
+      const filtered = favorites.filter((fav) => {
+        if (activeTab === "restaurants") return fav.type === "restaurant";
+        if (activeTab === "clubs") return fav.type === "club";
+        if (activeTab === "hotels") return fav.type === "hotel";
+        return true;
+      });
+      setFilteredFavorites(filtered);
+    } else {
+      setFilteredFavorites([]);
+    }
+  }, [favorites, activeTab]);
   const getCurrentData = () => {
     switch (activeTab) {
       case "restaurants":
@@ -297,7 +320,7 @@ const Favorites: React.FC = () => {
     }
   };
 
-  const venues = getCurrentData();
+  const venues = filteredFavorites;
 
   const getCategories = (venue) => {
     if (activeTab === "restaurants" || activeTab === "hotels") {
@@ -329,6 +352,36 @@ const Favorites: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="mt-24 mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex  mt-28 flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
+              >
+                <div className="h-30 sm:h-44 w-full bg-gray-200 animate-pulse"></div>
+                <div className="p-4 space-y-4">
+                  <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="flex gap-2">
+                    <div className="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+            ;
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -348,7 +401,7 @@ const Favorites: React.FC = () => {
               >
                 Restaurants
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {restaurantsData.length}
+                  {venues.length}
                 </span>
               </button>
               <button
@@ -361,7 +414,7 @@ const Favorites: React.FC = () => {
               >
                 Clubs
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {clubsData.length}
+                  {venues.length}
                 </span>
               </button>
               <button
@@ -374,7 +427,7 @@ const Favorites: React.FC = () => {
               >
                 Hotels
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {hotelsData.length}
+                  {venues.length}
                 </span>
               </button>
             </nav>
@@ -395,7 +448,7 @@ const Favorites: React.FC = () => {
             </p>
           </div>
         ) : (
-          <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0">
+          <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0">
             {venues.map((venue) => {
               const images = getImagesForVenue(venue);
               const venueId = venue._id;
@@ -406,7 +459,7 @@ const Favorites: React.FC = () => {
               return (
                 <div
                   key={venueId}
-                  className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer  pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+                  className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer  pb-2 sm:pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
                   onMouseEnter={() =>
                     handleMouseEnter(
                       venueId,
@@ -418,8 +471,8 @@ const Favorites: React.FC = () => {
                   onMouseLeave={() => handleMouseLeave(venueId)}
                 >
                   {/* Image Section */}
-                  <div className="relative h-40 sm:h-44 w-full px- cursor-pointer aspect-video">
-                    <div className="relative h-full w-full overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gray-100">
+                  <div className="relative pt-2 px-2  h-30 sm:h-44 w-full px- cursor-pointer aspect-video">
+                    <div className="relative h-full w-full overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
                       {images.map((image, index) => (
                         <img
                           key={index}
@@ -444,7 +497,7 @@ const Favorites: React.FC = () => {
                     </div>
 
                     {(venue.badge || venue.offer) && (
-                      <span className="absolute top-2 left-4 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                      <span className="absolute top-4 left-4 bg-gray-100/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
                         {venue.badge || venue.offer}
                       </span>
                     )}
@@ -452,9 +505,9 @@ const Favorites: React.FC = () => {
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("Toggle favorite:", venueId);
+                        toggleFavorite(venue._id);
                       }}
-                      className="absolute top-2 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
+                      className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
                     >
                       <FiHeart className="fill-red-500 text-red-500" />
                     </button>
@@ -478,8 +531,8 @@ const Favorites: React.FC = () => {
 
                   {/* Info Section */}
                   <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
-                    <div className="space-y-1.5">
-                      <div className="flex w-full justify-between">
+                    <div className="">
+                      <div className="flex w-full flex-col-reverse justify-between">
                         <h3 className="text-base sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
                           {venue.businessName}
                         </h3>
@@ -488,9 +541,9 @@ const Favorites: React.FC = () => {
                           <span className="text-sm font-semibold text-gray-900">
                             {venue.rating?.toFixed(1)}
                           </span>
-                          {/* <span className="text-xs sm:text-sm text-gray-500 ml-1">
+                          <span className="text-xs sm:text-sm text-gray-500 ml-1">
                             ({venue.reviews?.toLocaleString() || 0} reviews)
-                          </span> */}
+                          </span>
                         </div>
                       </div>
 
@@ -504,23 +557,23 @@ const Favorites: React.FC = () => {
                             return (
                               <div
                                 key={index}
-                                className={`px-3 py-2 rounded-full ${classes} text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                                className={`px3 py2 rounded-full text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                               >
-                                {category}
+                                {category},
                               </div>
                             );
                           })}
 
-                          {categories.length > 2 && (
+                          {/* {categories.length > 2 && (
                             <div className="px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
                               +{categories.length - 2}
                             </div>
-                          )}
+                          )} */}
                         </div>
                       )}
 
-                      <div className="flex  mt-4 items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
-                        <FiMapPin />
+                      <div className="flex  mt- items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
+                        {/* <FiMapPin /> */}
                         <p className="line-clamp-1 ">
                           <span>{venue.address}</span>
                         </p>
@@ -546,18 +599,32 @@ const Favorites: React.FC = () => {
                         )}
                     </div>
 
-                    <div className="mt-4 w-full flex justify- items-en-safe">
+                    <div className="mt-2 sm:mt-4 w-full flex justify- items-en-safe">
                       <Button
                         variant={"primary"}
-                        size={10}
+                        size={"big"}
                         onClick={() => handleClick(venueId)}
-                        className="
-                          w-full text-sm font-semibold 
-                          rounded-full px-3 py-3 tracking-wide 
-                          text-white cursor-pointer
-                          bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
-                          transition-all duration-200 shadow-sm
-                        "
+                        className=" hidden sm:flex
+                      w-full text-xs sm:text-sm font-semibold 
+                      rounded-full py-1 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
+                      >
+                        {getButtonText()}
+                      </Button>
+                      <Button
+                        variant={"primary"}
+                        size={"small"}
+                        onClick={() => handleClick(venueId)}
+                        className=" flex sm:hidden
+                      w-full text-[10px] sm:text-sm font-medium
+                      rounded-full py-1.5 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
                       >
                         {getButtonText()}
                       </Button>

@@ -1,12 +1,16 @@
-import { userService } from "@/services/user.service";
-import { useEffect, useState } from "react";
 import {
-  FiChevronRight,
-  FiChevronsDown,
-  FiHeart,
-  FiMapPin,
-  FiStar,
-} from "react-icons/fi";
+  getImagesForRestaurant,
+  hasMultipleImages,
+  useCarouselLogic,
+  useFavorites,
+  useRestaurantData,
+} from "@/hooks/favorites";
+import { userService } from "@/services/user.service";
+import { capitalize, formatNaira, formatOfferText } from "@/utils/helper";
+import { Heart } from "lucide-react";
+import { useEffect, useState } from "react";
+import { FaHeart, FaRegHeart, FaStar } from "react-icons/fa6";
+import { FiChevronRight, FiChevronsDown } from "react-icons/fi";
 import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import UniversalLoader from "./user/ui/LogoLoader";
@@ -173,7 +177,7 @@ const TableGrid = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("restaurant", type);
   const navigate = useNavigate();
-
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   if (isLoading) return (
     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
@@ -200,7 +204,7 @@ const TableGrid = ({ title, type }) => {
   let limit = 4;
 
   return (
-    <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
+    <div className="mb-12 md:mb-20 lg:mb-[92px] px- sm:px-6 lg:px-8">
       <Button
         variant="outline"
         className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border-1 shadow-none"
@@ -210,7 +214,7 @@ const TableGrid = ({ title, type }) => {
       </Button>
 
       {/* Responsive grid container */}
-      <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0">
+      <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const restaurantId = restaurant._id || String(restaurant.id);
@@ -226,7 +230,7 @@ const TableGrid = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt-2 pb-4 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pb-2 sm:pb-4 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -238,7 +242,7 @@ const TableGrid = ({ title, type }) => {
               onMouseLeave={() => handleMouseLeave(restaurantId)}
             >
               {/* Image Section */}
-              <div className="relative h-40 sm:h-44 w-full px-2 cursor-pointer aspect-video">
+              <div className="relative px-2 pt-2 h-30 sm:h-44 w-full  cursor-pointer aspect-video">
                 <div className="relative h-full w-full overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
                   {images.map((image, index) => (
                     <img
@@ -268,8 +272,15 @@ const TableGrid = ({ title, type }) => {
                   </span>
                 )}
 
-                <button className="absolute top-2 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
+                <button onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(restaurant._id, "restaurant");
+                  }} className="absolute top-2 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
+                  {isFavorite(restaurant._id) ? (
+                    <HeartIcon className="text-red-500" />
+                  ) : (
                   <HeartIcon className="text-[#F9FAFB]" />
+                  )}
                 </button>
 
                 {multipleImages && (
@@ -318,12 +329,25 @@ const TableGrid = ({ title, type }) => {
                   </div>
                 </div>
 
-                <div className="mt-4 w-full flex justify-ed items-ed-safe">
+                <div className="mt-2 sm:mt-4 w-full flex ">
                   <Button
                     onClick={() => navigate(`/restaurants/${restaurant._id}`)}
-                    className="
-                      w-full text-sm font-semibold 
-                      rounded-full py-3 tracking-wide 
+                    className=" hidden sm:flex
+                      w-full text-xs sm:text-sm font-semibold 
+                      rounded-full py-1 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
+                  >
+                    Reserve Table
+                  </Button>
+                  <Button
+                    size="small"
+                    onClick={() => navigate(`/restaurants/${restaurant._id}`)}
+                    className=" flex sm:hidden
+                      w-full text-[10px] sm:text-sm font-medium
+                      rounded-full py-1.5 sm:py-3 tracking-wide 
                       text-white hover:cursor-pointer
                       bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                       
@@ -358,33 +382,39 @@ export const TableGridTwo = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("hotel", type);
   const navigate = useNavigate();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
-  if (isLoading) return (
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} class="rounded-2xl bg-white shadow-md overflow-hidden">
-          <div class="h-44 w-full bg-gray-200 animate-pulse"></div>
-          <div class="p-4 space-y-4">
-            <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-            <div class="flex gap-2">
-              <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-              <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
-              <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+  if (isLoading)
+    return (
+      <div class="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            class="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
+          >
+            <div class="h-30 sm:h-44 w-full bg-gray-200 animate-pulse"></div>
+            <div class="p-4 space-y-4">
+              <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+              <div class="flex gap-2">
+                <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+              <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
             </div>
-            <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-            <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
           </div>
-        </div>
-      ))};
-    </div>
-  );
+        ))}
+        ;
+      </div>
+    );
 
   if (!restaurants || restaurants.length === 0) return null;
 
   let limit = 4;
 
   return (
-    <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
+    <div className="mb-12 md:mb-20 lg:mb-[92px] px- sm:px-6 lg:px-8">
       <Button
         variant="outline"
         className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border-1 shadow-none"
@@ -394,7 +424,7 @@ export const TableGridTwo = ({ title, type }) => {
       </Button>
 
       {/* Responsive grid container */}
-      <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0">
+      <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0">
         {restaurants?.map((restaurant) => {
           const images = getImagesForRestaurant(restaurant);
           const restaurantId = restaurant._id || String(restaurant.id);
@@ -403,7 +433,7 @@ export const TableGridTwo = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto p-2 h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt-2 pb-4 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto p-2 h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt-2 pb-4 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -445,9 +475,18 @@ export const TableGridTwo = ({ title, type }) => {
                     {restaurant.specialCategory}
                   </span>
                 )}
-
-                <button className="absolute top-2 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
-                  <HeartIcon className="text-[#F9FAFB]" />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(restaurant._id, "hotel");
+                  }}
+                  className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
+                >
+                  {isFavorite(restaurant._id) ? (
+                    <HeartIcon className="text-red-500" />
+                  ) : (
+                    <HeartIcon className="text-[#F9FAFB]" />
+                  )}
                 </button>
 
                 {multipleImages && (
@@ -478,6 +517,7 @@ export const TableGridTwo = ({ title, type }) => {
                       <span className="text-xs sm:text-sm text-gray-500 ml-1">
                         ({restaurant.reviews?.toLocaleString() || 0} reviews)
                       </span>
+                      </span>
                     </div>
                   </div>
                   <h3 className="text-base sm:text-lg font-semibold text-gray-900 capitalize leading-tight line-clamp-1">
@@ -491,13 +531,13 @@ export const TableGridTwo = ({ title, type }) => {
                   </div>
                 </div>
 
-                <div className="mt-4">
+                <div className="w-full">
                   <div className="flex justify-between items-center mb-3">
                     <div className="flex text-black justify-start items-center gap-1">
                       <div className="text-lg font-medium leading-none">
                         ₦{restaurant.priceRange.toLocaleString()}
                       </div>
-                      <div className="text-xs font-normal leading-none">
+                      <div className="text-[8px] sm:text-[xs] font-normal leading-none">
                         /night
                       </div>
                     </div>
@@ -521,14 +561,29 @@ export const TableGridTwo = ({ title, type }) => {
                     )}
                   </div>
 
-                  <div className="mt-4 w-full flex ">
+                  <div className="mt-0 sm:mt-4  w-full flex ">
                     <Button
                       onClick={() => navigate(`/hotels/${restaurant._id}`)}
-                      className="
-    w-full text-sm font-semibold 
-    rounded-full py-3 tracking-wide 
-    text-white cursor-pointer
-    transition-all duration-200 shadow-sm"
+                      className=" hidden sm:flex
+                      w-full text-xs sm:text-sm font-semibold 
+                      rounded-full py-1 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
+                    >
+                      Book Now
+                    </Button>
+                    <Button
+                      size="small"
+                      onClick={() => navigate(`/hotels/${restaurant._id}`)}
+                      className=" flex sm:hidden
+                      w-full text-[10px] sm:text-sm font-medium
+                      rounded-full py-1.5 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
                     >
                       Book Now
                     </Button>
@@ -560,26 +615,32 @@ export const TableGridThree = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("club", type);
   const navigate = useNavigate();
+  const { toggleFavorite, isFavorite } = useFavorites();
 
-  if (isLoading) return (
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} class="rounded-2xl bg-white shadow-md overflow-hidden">
-          <div class="h-44 w-full bg-gray-200 animate-pulse"></div>
-          <div class="p-4 space-y-4">
-            <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-            <div class="flex gap-2">
-              <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-              <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
-              <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+  if (isLoading)
+    return (
+      <div class="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            class="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
+          >
+            <div class="h-30 sm:h-44 w-full bg-gray-200 animate-pulse"></div>
+            <div class="p-4 space-y-4">
+              <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+              <div class="flex gap-2">
+                <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+                <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+              <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
             </div>
-            <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-            <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
           </div>
-        </div>
-      ))};
-    </div>
-  );
+        ))}
+        ;
+      </div>
+    );
 
   if (!restaurants || restaurants.length === 0) return null;
 
@@ -612,7 +673,7 @@ export const TableGridThree = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[280px] sm:min-w-0 w-[280px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt- pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt- pb-2 sm:pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -624,8 +685,8 @@ export const TableGridThree = ({ title, type }) => {
               onMouseLeave={() => handleMouseLeave(restaurantId)}
             >
               {/* Image Section */}
-              <div className="relative h-40 sm:h-44 w-full  cursor-pointer aspect-video">
-                <div className="relative h-full w-full overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gray-100">
+              <div className="relative px-2 pt-2  h-30 sm:h-44 w-full  cursor-pointer aspect-video">
+                <div className="relative h-full w-full overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
                   {images.map((image, index) => (
                     <img
                       key={index}
@@ -654,8 +715,18 @@ export const TableGridThree = ({ title, type }) => {
                   </span>
                 )}
 
-                <button className="absolute top-2 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
-                  <HeartIcon className="text-[#F9FAFB]" />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleFavorite(restaurant._id, "club");
+                  }}
+                  className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
+                >
+                  {isFavorite(restaurant._id) ? (
+                    <HeartIcon className="text-red-500" />
+                  ) : (
+                    <HeartIcon className="text-[#F9FAFB]" />
+                  )}
                 </button>
 
                 {multipleImages && (
@@ -676,15 +747,15 @@ export const TableGridThree = ({ title, type }) => {
 
               {/* Info Section */}
               <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
-                <div className="space-y-1.5">
-                  <div className="flex w-full justify-between">
-                    <h3 className="text-base sm:text-lg font-semibold capitalize  text-gray-900 leading-tight line-clamp-1">
+                <div className="">
+                  <div className="flex flex-col-reverse  w-full justify-between">
+                    <h3 className="text-[10px] sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
                       {restaurant.businessName}
                     </h3>
                   </div>
 
                   {categories.length > 0 && (
-                    <div className="inline-flex flex-wrap gap-1.5 sm:gap-2 ">
+                    <div className="inline-flex flex-wrap gap-1 ">
                       {categories.slice(0, 3).map((category, index) => {
                         const classes =
                           cuisineColorPalette[
@@ -695,16 +766,16 @@ export const TableGridThree = ({ title, type }) => {
                             key={index}
                             className={`px-3 py-2 ${classes} rounded-lg border-1 bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                           >
-                            {category}
+                            {category},
                           </div>
                         );
                       })}
 
-                      {categories.length > 3 && (
-                        <div className="px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
+                      {/* {categories.length > 3 && (
+                        <div className="px-1 sm:px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
                           +{categories.length - 3}
                         </div>
-                      )}
+                      )} */}
                     </div>
                   )}
 
@@ -728,15 +799,29 @@ export const TableGridThree = ({ title, type }) => {
                   </div>
                 </div>
 
-                <div className="mt-4 w-full cursor-pointer flex ">
+                <div className="mt-1  w-full cursor-pointer flex ">
                   <Button
                     onClick={() => navigate(`/clubs/${restaurant._id}`)}
-                    className="
-    w-full text-sm font-semibold 
-    rounded-full py-3 tracking-wide 
-    text-white cursor-pointer                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
-    transition-all duration-200 shadow-sm
-  "
+                    className=" hidden sm:flex
+                      w-full text-xs sm:text-sm font-semibold 
+                      rounded-full py-1 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
+                  >
+                    Book Now
+                  </Button>
+                  <Button
+                    size={"small"}
+                    onClick={() => navigate(`/clubs/${restaurant._id}`)}
+                    className=" flex sm:hidden
+                      w-full text-[10px] sm:text-sm font-medium
+                      rounded-full py-1.5 sm:py-3 tracking-wide 
+                      text-white hover:cursor-pointer
+                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      
+                      transition-all duration-200 shadow-sm"
                   >
                     Book Now
                   </Button>
@@ -764,8 +849,6 @@ export const TableGridThree = ({ title, type }) => {
 
 export default TableGrid;
 
-
-
 export const TableGridFour = ({ title }) => {
   const [menus, setMenus] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -786,24 +869,28 @@ export const TableGridFour = ({ title }) => {
     fetchRestaurant();
   }, []);
 
-  if (isLoading) return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} className="rounded-2xl bg-white shadow-md overflow-hidden">
-          <div className="h-48 w-full bg-gray-200 animate-pulse"></div>
-          <div className="p-4 space-y-4">
-            <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-            <div className="flex gap-2">
-              <div className="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-              <div className="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+  if (isLoading)
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
+        {Array.from({ length: 4 }).map((_, index) => (
+          <div
+            key={index}
+            className="rounded-2xl bg-white shadow-md overflow-hidden"
+          >
+            <div className="h-48 w-full bg-gray-200 animate-pulse"></div>
+            <div className="p-4 space-y-4">
+              <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+              <div className="flex gap-2">
+                <div className="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                <div className="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+              </div>
+              <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
             </div>
-            <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-            <div className="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
           </div>
-        </div>
-      ))}
-    </div>
-  );
+        ))}
+      </div>
+    );
 
   if (!menus || menus.length === 0) return null;
 
@@ -835,7 +922,7 @@ export const TableGridFour = ({ title }) => {
 
               {/* Badge */}
               <div className="absolute top-3 left-3 bg-orange-500/95 backdrop-blur-sm px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg">
-                {menu.mealTimes?.[0] || 'Special'}
+                {menu.mealTimes?.[0] || "Special"}
               </div>
 
               <button className="absolute top-2 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md">
@@ -888,7 +975,9 @@ export const TableGridFour = ({ title }) => {
                   <span className="text-2xl sm:text-3xl font-bold text-gray-900">
                     ₦{menu.price.toLocaleString()}
                   </span>
-                  <span className="text-xs text-gray-500">{menu.pricingModel}</span>
+                  <span className="text-xs text-gray-500">
+                    {menu.pricingModel}
+                  </span>
                 </div>
 
                 <Button
@@ -920,3 +1009,6 @@ export const TableGridFour = ({ title }) => {
     </div>
   );
 };
+
+// /api/users/favorites?search= GET to fetch favorites with queries included
+// /api/users/favorites/ POST to add favorites payload: vendorId

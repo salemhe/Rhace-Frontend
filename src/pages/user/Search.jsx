@@ -1,9 +1,21 @@
+import Footer from "@/components/Footer";
 import { SearchSectionTwo } from "@/components/SearchSection";
+import TableGrid, {
+  TableGridThree,
+  TableGridTwo,
+} from "@/components/Tablegrid";
 import Header from "@/components/user/Header";
+import {
+  cuisineColorPalette,
+  getImagesForVenue,
+  hasMultipleImages,
+  useCarouselLogic,
+} from "@/hooks/favorites";
 import { restaurantService } from "@/services/rest.services";
-import { Heart, Loader2, Star } from "lucide-react";
-import { useCallback, useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router";
+import { Loader2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { FaStar } from "react-icons/fa6";
+import { FiHeart, FiMapPin } from "react-icons/fi";
 
 const LoadingFallback = () => (
   <div className="min-h-screen mt-[100px] bg-gray-50">
@@ -17,40 +29,121 @@ const LoadingFallback = () => (
 );
 
 const SearchPage = () => {
-  const [selectedCuisine, setSelectedCuisine] = useState("International");
-  const [priceRange, setPriceRange] = useState([10000, 70000]);
+  const [activeTab, setActiveTab] = useState("restaurants");
   const [searchQuery, setSearchQuery] = useState("");
   const [restaurants, setRestaurants] = useState([]);
+  const [hotels, setHotels] = useState([]);
+  const [clubs, setClubs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchData, setSearchData] = useState(null);
-  const navigate = useNavigate()
-  
-  // Use ref to track if initial search has been performed
+  const searchSectionRef = useRef(null);
+
+  const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
+    useCarouselLogic();
   const initialSearchDone = useRef(false);
+  const normalizeTab = (tab) => (typeof tab === "object" ? tab.value : tab);
 
-  // Function to handle search - memoized without searchData dependency
-  const handleSearch = useCallback(async (query) => {
-    if (!query) {
-      setRestaurants([]);
-      return;
+  // Function to get current results based on active tab
+  const getCurrentResults = () => {
+    switch (activeTab) {
+      case "restaurants":
+        return restaurants;
+      case "hotels":
+        return hotels;
+      case "clubs":
+        return clubs;
+      default:
+        return [];
     }
-    
-    setLoading(true);
+  };
 
-    try {
-      console.log("Performing search with query:", query);
-      const response = await restaurantService.searchRestaurants(query);
-      setRestaurants(response.data || []);
-    } catch (err) {
-      console.error("Search error:", err);
-      setRestaurants([]);
-    } finally {
-      setLoading(false);
+  const getCategories = (venue) => {
+    if (activeTab === "restaurants" || activeTab === "hotels") {
+      return venue.services || venue.cuisines || [];
     }
-  }, []); // No dependencies - function is stable
+    return venue.categories || [];
+  };
 
-  // Load stored search data on mount and perform initial search
+  const getButtonText = () => {
+    switch (activeTab) {
+      case "restaurants":
+        return "Reserve Table";
+      case "clubs":
+        return "Book now";
+      case "hotels":
+        return "Book now";
+      default:
+        return "View details";
+    }
+  };
+
+  // Function to handle search
+  const handleSearch = useCallback(
+    async (searchData) => {
+      let query, tab;
+
+      if (typeof searchData === "string") {
+        query = searchData;
+        tab = activeTab;
+      } else if (typeof searchData === "object") {
+        query = searchData.query || searchData.search || "";
+        tab = searchData.tab || searchData.type || activeTab;
+      } else {
+        query = "";
+        tab = activeTab;
+      }
+
+      if (!query) {
+        console.log("No query provided, skipping search");
+        return;
+      }
+
+      setLoading(true);
+      console.log("Performing search with:", { query, tab });
+
+      try {
+        const response = await restaurantService.searchRestaurants({
+          search: query,
+          type: tab,
+        });
+
+        switch (tab) {
+          case "restaurants":
+            setRestaurants(response.data || []);
+            break;
+          case "hotels":
+            setHotels(response.data || []);
+            break;
+          case "clubs":
+            setClubs(response.data || []);
+            break;
+          default:
+            break;
+        }
+      } catch (err) {
+        console.error("Search error:", err);
+        switch (tab) {
+          case "restaurants":
+            setRestaurants([]);
+            break;
+          case "hotels":
+            setHotels([]);
+            break;
+          case "clubs":
+            setClubs([]);
+            break;
+          default:
+            break;
+        }
+      } finally {
+        setLoading(false);
+      }
+    },
+    [activeTab]
+  );
+
+  // Load stored search data on mount
   useEffect(() => {
     setMounted(true);
 
@@ -59,10 +152,10 @@ const SearchPage = () => {
       try {
         const parsed = JSON.parse(stored);
         setSearchData(parsed);
-        setSearchQuery(parsed.query || "");
-        
-        // Perform initial search if query exists and not done yet
-        if (parsed.query && !initialSearchDone.current) {
+        setSearchQuery(parsed.query || parsed.search || "");
+        setActiveTab(normalizeTab(parsed.tab || parsed.type) || "restaurants");
+
+        if ((parsed.query || parsed.search) && !initialSearchDone.current) {
           initialSearchDone.current = true;
           handleSearch(parsed);
         }
@@ -73,24 +166,68 @@ const SearchPage = () => {
   }, [handleSearch]);
 
   // Handle new search from search bar
-  const handleNewSearch = useCallback((newSearchData) => {
-    const query = newSearchData.query || newSearchData;
-    
-    setSearchQuery(query);
-    
-    // Update search data
+  const handleNewSearch = useCallback(
+    (newSearchData) => {
+      const query = newSearchData.query || newSearchData.search || "";
+      const tab = newSearchData.tab || activeTab;
+
+      setSearchQuery(query);
+      setActiveTab(normalizeTab(tab));
+
+      const updatedSearchData = {
+        query: query,
+        tab: tab,
+        search: query,
+        type: tab,
+        date: newSearchData.date,
+        time: newSearchData.time,
+        guests: newSearchData.guests,
+        timestamp: new Date().toISOString(),
+      };
+
+      setSearchData(updatedSearchData);
+      localStorage.setItem("searchData", JSON.stringify(updatedSearchData));
+
+      if (query) {
+        handleSearch(updatedSearchData);
+      }
+    },
+    [activeTab, handleSearch]
+  );
+
+  // Handle tab change
+  const handleTabChange = (tab) => {
+    setActiveTab(normalizeTab(tab));
+
     const updatedSearchData = {
-      query: query,
-      tab: newSearchData.tab || "restaurants",
+      ...searchData,
+      tab: tab,
+      query: searchQuery || "",
       timestamp: new Date().toISOString(),
     };
-    
+
     setSearchData(updatedSearchData);
     localStorage.setItem("searchData", JSON.stringify(updatedSearchData));
-    
-    // Perform search
-    handleSearch(updatedSearchData);
-  }, [handleSearch]);
+
+    if (searchQuery) {
+      handleSearch(updatedSearchData);
+    }
+  };
+
+  // Update localStorage when tab changes
+  useEffect(() => {
+    if (mounted && searchData) {
+      const updatedSearchData = {
+        ...searchData,
+        tab: activeTab,
+      };
+      localStorage.setItem("searchData", JSON.stringify(updatedSearchData));
+    }
+  }, [activeTab, mounted, searchData]);
+
+  const currentResults = getCurrentResults();
+  const safeActiveTab =
+    typeof activeTab === "string" ? activeTab : activeTab?.value;
 
   if (!mounted) {
     return <LoadingFallback />;
@@ -98,226 +235,255 @@ const SearchPage = () => {
 
   return (
     <div className="min-h-screen mt-[100px] bg-gray-50">
-      <Header />
+      <Header onClick={handleTabChange} activeTab={safeActiveTab} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="sm:hidden mb-8 flex">
-          <SearchSectionTwo onSearch={handleNewSearch} searchData={searchData} />
+        {/* Search Section - Added ref and wrapper for mobile fixes */}
+        <div className="mb-8 relative" ref={searchSectionRef}>
+          <SearchSectionTwo
+            onSearch={handleNewSearch}
+            searchData={{ ...searchData, tab: safeActiveTab }}
+            activeTab={safeActiveTab}
+          />
         </div>
 
-        <div className="flex gap-8">
-          {/* Sidebar Filters */}
-          <div className="w-64 sm:flex hidden flex-shrink-0">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-              <h2 className="text-lg font-semibold mb-4">Filters</h2>
+        {/* Results */}
+        <div>
+          <h1 className="text-2xl px-4 sm:px-6 lg:px-8 font-bold mb-6">
+            {searchQuery
+              ? `${currentResults.length} ${(safeActiveTab || "").slice(
+                  0,
+                  -1
+                )}${
+                  currentResults.length !== 1 ? "s" : ""
+                } found for "${searchQuery}"`
+              : `Search for ${safeActiveTab}`}
+          </h1>
 
-              {/* Cuisine Type */}
-              <div className="mb-6">
-                <h3 className="text-sm font-medium mb-3">Cuisine Type</h3>
-                <div className="space-y-2">
-                  {["International", "Nigerian", "Italian", "Indian"].map(
-                    (cuisine) => (
-                      <label key={cuisine} className="flex items-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedCuisine === cuisine}
-                          onChange={() => setSelectedCuisine(cuisine)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                        />
-                        <span className="ml-2 text-sm text-gray-600">
-                          {cuisine}
-                        </span>
-                      </label>
-                    )
-                  )}
-                </div>
-                <button className="text-sm text-blue-600 mt-2">
-                  Show more
-                </button>
-              </div>
-
-              {/* Location */}
-              <div className="mb-6">
-                <h3 className="text-sm font-medium mb-3">Location</h3>
-                <select className="w-full border border-gray-300 rounded-md p-2 text-sm">
-                  <option>Lagos Island</option>
-                  <option>Ikeja</option>
-                  <option>Victoria Island</option>
-                </select>
-              </div>
-
-              {/* Price Range */}
-              <div className="mb-6">
-                <h3 className="text-sm font-medium mb-3">Price Range</h3>
-                <div className="flex items-center gap-2 mb-2">
-                  <input
-                    type="number"
-                    value={priceRange[0]}
-                    onChange={(e) =>
-                      setPriceRange([parseInt(e.target.value), priceRange[1]])
-                    }
-                    className="w-24 border border-gray-300 rounded-md p-1 text-sm"
-                  />
-                  <span>to</span>
-                  <input
-                    type="number"
-                    value={priceRange[1]}
-                    onChange={(e) =>
-                      setPriceRange([priceRange[0], parseInt(e.target.value)])
-                    }
-                    className="w-24 border border-gray-300 rounded-md p-1 text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Features */}
-              <div className="mb-6">
-                <h3 className="text-sm font-medium mb-3">Features</h3>
-                <div className="space-y-2">
-                  {[
-                    "Outdoor seating",
-                    "Indoor seating",
-                    "Vegan options",
-                    "Free WiFi",
-                  ].map((feature) => (
-                    <label key={feature} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                      />
-                      <span className="ml-2 text-sm text-gray-600">
-                        {feature}
-                      </span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Ratings */}
-              <div>
-                <h3 className="text-sm font-medium mb-3">Ratings</h3>
-                <div className="space-y-2">
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="rating"
-                      className="border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 text-sm text-gray-600">
-                      Any ratings
-                    </span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="rating"
-                      className="border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 flex items-center text-sm text-gray-600">
-                      3.0+ <Star className="w-4 h-4 text-yellow-400 ml-1" />
-                    </span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="rating"
-                      className="border-gray-300 text-blue-600 focus:ring-blue-500"
-                    />
-                    <span className="ml-2 flex items-center text-sm text-gray-600">
-                      4.0+ <Star className="w-4 h-4 text-yellow-400 ml-1" />
-                    </span>
-                  </label>
-                </div>
-              </div>
+          {loading && (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+              <span className="ml-2 text-gray-600">
+                Searching {safeActiveTab}...
+              </span>
             </div>
-          </div>
+          )}
 
-          {/* Results */}
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold mb-6">
-              {searchQuery
-                ? `${restaurants.length} ${searchData.tab.slice(0, -1)}${
-                    restaurants.length !== 1 ? "s" : ""
-                  } found for "${searchQuery}"`
-                : `Search for ${searchData.tab}`}
-            </h1>
+          {!loading && currentResults.length === 0 && searchQuery && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">
+                No {(safeActiveTab || "").slice(0, -1)}
+                {currentResults.length !== 1 ? "s" : ""} found for "
+                {searchQuery}"
+              </p>
+              <p className="text-sm text-gray-400 mt-2">
+                Try searching with different keywords
+              </p>
+            </div>
+          )}
 
-            {loading && (
-              <div className="flex justify-center items-center py-12">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
-                <span className="ml-2 text-gray-600">
-                  Searching {searchData.tab}...
-                </span>
-              </div>
-            )}
+          {!loading && !searchQuery && currentResults.length === 0 && (
+            <div className="text-center py-12">
+              <p className="text-gray-500">
+                Enter a search query to find {safeActiveTab}
+              </p>
+            </div>
+          )}
 
-            {!loading && restaurants.length === 0 && searchQuery && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">
-                  No {searchData.tab.slice(0, -1)}{
-                    restaurants.length !== 1 ? "s" : ""
-                  } found for "{searchQuery}"
-                </p>
-                <p className="text-sm text-gray-400 mt-2">
-                  Try searching with different keywords
-                </p>
-              </div>
-            )}
+          {!loading && currentResults.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6 px-4 sm:px-6 lg:px-8">
+              {currentResults.map((venue) => {
+                const images = getImagesForVenue(venue);
+                const venueId = venue._id;
+                const currentIndex = currentIndices[venueId] || 0;
+                const multipleImages = hasMultipleImages(venue);
+                const categories = getCategories(venue);
 
-            {!loading && !searchQuery && restaurants.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">
-                  Enter a search query to find {searchData.tab}
-                </p>
-              </div>
-            )}
-
-            {!loading && restaurants.length > 0 && (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {restaurants.map((restaurant) => (
+                return (
                   <div
-                    key={restaurant._id}
-                    onClick={() => navigate(`/${searchData.tab}/${restaurant._id}`)}
-                    className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                    key={venueId}
+                    className="cursor-pointer pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px-rgba(0,0,0,0.08)] transition-all duration-300"
+                    onMouseEnter={() =>
+                      handleMouseEnter(
+                        venueId,
+                        venue,
+                        getImagesForVenue,
+                        hasMultipleImages
+                      )
+                    }
+                    onMouseLeave={() => handleMouseLeave(venueId)}
                   >
-                    <div className="relative">
-                      <img
-                        src={restaurant.profileImages[0] || "/restaurant.jpg"}
-                        alt={restaurant.businessName}
-                        className="w-full h-48 object-cover"
-                      />
-                      <button className="absolute top-3 right-3 p-2 bg-white rounded-full shadow-sm hover:bg-gray-50">
-                        <Heart className="w-4 h-4 text-gray-400" />
-                      </button>
-                    </div>
-                    <div className="p-4">
-                      <div className="flex flex-col mb-2">
-                        <h3 className="font-semibold text-gray-900 mb-2">
-                          {restaurant.businessName}
-                        </h3>
-                        <div className="flex items-center mb-2">
-                          <Star className="w-4 h-4 text-yellow-400" />
-                          <span className="ml-1 text-sm font-medium">
-                            {restaurant.rating || "4.5"}
-                          </span>
-                          <span className="text-xs text-gray-500 ml-1">
-                            {restaurant.reviewCount || ""}
-                          </span>
-                        </div>
+                    {/* Image Section */}
+                    <div className="relative h-40 sm:h-44 w-full cursor-pointer aspect-video">
+                      <div className="relative h-full w-full overflow-hidden rounded-t-lg sm:rounded-t-xl bg-gray-100">
+                        {images.map((image, index) => (
+                          <img
+                            key={index}
+                            src={image}
+                            alt={`${venue.businessName} - Image ${index + 1}`}
+                            className={`absolute size-full object-cover transition-all duration-500 ease-in-out ${
+                              index === currentIndex
+                                ? "opacity-100 scale-100"
+                                : "opacity-0 scale-105"
+                            }`}
+                            style={{
+                              transform:
+                                index === currentIndex
+                                  ? "translateX(0) scale(1)"
+                                  : "translateX(100%) scale(1.05)",
+                            }}
+                          />
+                        ))}
+
+                        {/* Overlay */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                       </div>
-                      <p className="text-sm text-gray-600 mb-2">
-                        {restaurant.services?.join(", ") || "Restaurant"}
-                      </p>
-                      <p className="text-xs text-gray-500 mb-3">
-                        {restaurant.address || "Address not available"}
-                      </p>
+
+                      {/* Badge/Offer */}
+                      {(venue.badge || venue.offer) && (
+                        <span className="absolute top-2 left-4 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                          {venue.badge || venue.offer}
+                        </span>
+                      )}
+
+                      {/* Heart Icon */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          console.log("Toggle favorite:", venueId);
+                        }}
+                        className="absolute top-2 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
+                      >
+                        <FiHeart className="fill-transparent text-white hover:fill-red-500 hover:text-red-500" />
+                      </button>
+
+                      {/* Image Dots */}
+                      {multipleImages && (
+                        <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-1.5">
+                          {images.map((_, index) => (
+                            <button
+                              key={index}
+                              onClick={(e) => handleDotClick(venueId, index, e)}
+                              className={`block rounded-full transition-all duration-300 ease-out cursor-pointer focus:outline-none ${
+                                index === currentIndex
+                                  ? "bg-white scale-125 w-4 sm:w-6 h-1.5 sm:h-2 shadow-md"
+                                  : "bg-white/70 w-1.5 sm:w-2 h-1.5 sm:h-2 hover:bg-white/90"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info Section */}
+                    <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
+                      <div className="space-y-1.5">
+                        <div className="flex w-full justify-between">
+                          <h3 className="text-base sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
+                            {venue.businessName}
+                          </h3>
+                          <div className="flex items-center">
+                            <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
+                            <span className="text-sm font-semibold text-gray-900">
+                              {venue.rating?.toFixed(1) || "4.5"}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Categories/Services */}
+                        {categories.length > 0 && (
+                          <div className="inline-flex flex-wrap gap-1.5 sm:gap-2 mt-2">
+                            {categories.slice(0, 2).map((category, index) => {
+                              const classes =
+                                cuisineColorPalette[
+                                  index % cuisineColorPalette.length
+                                ];
+                              return (
+                                <div
+                                  key={index}
+                                  className={`px-3 py-2 rounded-full ${classes} text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                                >
+                                  {category}
+                                </div>
+                              );
+                            })}
+
+                            {categories.length > 2 && (
+                              <div className="px-2 py-1 rounded-sm bg-gray-100 outline-1 outline-gray-200 text-xs text-gray-500 font-medium leading-none">
+                                +{categories.length - 2}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Address */}
+                        <div className="flex mt-4 items-center gap-1 sm:text-sm text-xs text-gray-500">
+                          <FiMapPin />
+                          <p className="line-clamp-1">
+                            <span>
+                              {venue.address || "Address not available"}
+                            </span>
+                          </p>
+                        </div>
+
+                        {/* Price Range for Clubs/Hotels */}
+                        {(activeTab === "clubs" || activeTab === "hotels") &&
+                          venue.priceRange && (
+                            <div className="flex justify-start text-xl mt-4 text-black items-center gap-1">
+                              {activeTab === "clubs" && (
+                                <div className="text-zinc-00 text-sm font-bold leading-none">
+                                  Table from
+                                </div>
+                              )}
+                              <div className="text-sm font-bold leading-none">
+                                ₦{venue.priceRange}
+                              </div>
+                              {activeTab === "hotels" && (
+                                <div className="text-zinc-00 text-xs font-normal leading-none">
+                                  /night
+                                </div>
+                              )}
+                            </div>
+                          )}
+                      </div>
+
+                      {/* Action Button */}
+                      <div className="mt-4 w-full flex justify-center items-center">
+                        <button
+                          onClick={() =>
+                            console.log(
+                              `Navigate to: /${safeActiveTab}/${venueId}`
+                            )
+                          }
+                          className="w-full text-sm font-semibold rounded-full px-3 py-3 tracking-wide text-white cursor-pointer bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C] transition-all duration-200 shadow-sm"
+                        >
+                          {getButtonText()}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
+                );
+              })}
+            </div>
+          )}
+
+          {safeActiveTab === "restaurants" && (
+            <div className="mt-36 sm:mt-[65px] mx-a px- py-8">
+              <TableGrid title="Popular Searches" />
+            </div>
+          )}
+          {safeActiveTab === "hotels" && (
+            <div className="mx-a px- py-8">
+              <TableGridTwo title="Popular Searches" />
+            </div>
+          )}
+          {safeActiveTab === "clubs" && (
+            <div className="mt-36 sm:mt-[65px] mx-a px- py-8">
+              <TableGridThree title="Popular Clubs" />
+            </div>
+          )}
         </div>
       </div>
+      <Footer />
     </div>
   );
 };
