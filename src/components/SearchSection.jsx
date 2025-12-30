@@ -53,8 +53,8 @@ const SearchSection = ({ activeTab, onSearch }) => {
             {activeTab === "restaurants"
               ? "Restaurant/Cuisine"
               : activeTab === "hotels"
-              ? "Hotels"
-              : "Clubs"}
+                ? "Hotels"
+                : "Clubs"}
           </label>
           {/* <input
             type="text"
@@ -78,10 +78,10 @@ const SearchSection = ({ activeTab, onSearch }) => {
               activeTab === "restaurants"
                 ? "Enter Restaurant or Cuisine"
                 : activeTab === "hotels"
-                ? "Enter Hotels"
-                : activeTab === "clubs"
-                ? "Enter Clubs"
-                : ""
+                  ? "Enter Hotels"
+                  : activeTab === "clubs"
+                    ? "Enter Clubs"
+                    : ""
             }
           />
         </div>
@@ -101,7 +101,26 @@ const SearchSection = ({ activeTab, onSearch }) => {
             <label className="text-xs text-text-secondary text-left pl-2 mb-1">
               Time
             </label>
-            <TimeDropdown selectedTime={time} onChange={setTime} />
+            <TimeDropdown selectedTime={time} slots={activeTab === "restaurants"
+              ? ['09:00 AM', '09:30 AM',
+                '10:00 AM', '10:30 AM',
+                '11:00 AM', '11:30 AM',
+                '12:00 PM', '12:30 PM',
+                '01:00 PM', '01:30 PM',
+                '02:00 PM', '02:30 PM',
+                '03:00 PM', '03:30 PM',
+                '04:00 PM', '04:30 PM',
+                '05:00 PM', '05:30 PM',
+                '06:00 PM', '06:30 PM',
+                '07:00 PM', '07:30 PM',
+                '08:00 PM', '08:30 PM',]
+              : activeTab === "hotels"
+                ? ['09:00 AM', '09:30 AM', '10:00 AM', '11:30 AM',
+                  '01:00 PM', '02:00 PM', '04:00 PM', '04:30 PM',
+                  '05:00 PM', '06:00 PM', '06:30 PM', '07:30 PM',
+                  '08:00 PM', '09:00 PM',]
+                : activeTab === "clubs"
+                && ['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} onChange={setTime} />
           </div>
         </div>
 
@@ -119,11 +138,10 @@ const SearchSection = ({ activeTab, onSearch }) => {
           <div className="flex items-center justify-center ml-2 sm:ml-0 sm:justify-end w-full">
             <button
               type="submit"
-              className={`flex items-center gap-2 cursor-pointer text-white rounded-full px-6 py-3 transition w-full sm:w-auto justify-center ${
-                activeTab === "restaurants"
-                  ? "bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]"
-                  : "bg-gradient-to-b from-blue-800 to-violet-500 hover:from-blue-900 hover:to-violet-600"
-              }`}
+              className={`flex items-center gap-2 cursor-pointer text-white rounded-full px-6 py-3 transition w-full sm:w-auto justify-center ${activeTab === "restaurants"
+                ? "bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]"
+                : "bg-gradient-to-b from-blue-800 to-violet-500 hover:from-blue-900 hover:to-violet-600"
+                }`}
             >
               <FiSearch className="w-5 h-5" />
               <span className="text-sm sm:text-base">Search</span>
@@ -210,8 +228,8 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
               {tab === "restaurants"
                 ? "Restaurant/Cuisine"
                 : tab === "hotels"
-                ? "Hotels"
-                : "Clubs"}
+                  ? "Hotels"
+                  : "Clubs"}
             </label>
             {/* <input
               type="text"
@@ -227,10 +245,10 @@ export const SearchSectionTwo = ({ onSearch, searchData }) => {
                 tab === "restaurants"
                   ? "Enter Restaurant or Cuisine"
                   : tab === "hotels"
-                  ? "Enter Hotels"
-                  : tab === "clubs"
-                  ? "Enter Clubs"
-                  : ""
+                    ? "Enter Hotels"
+                    : tab === "clubs"
+                      ? "Enter Clubs"
+                      : ""
               }
             />
           </div>

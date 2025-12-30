@@ -8,6 +8,12 @@ import {  FiChevronDown } from 'react-icons/fi';
 export const TimeDropdown = ({
   selectedTime,
   onChange,
+  slots = [
+    '09:00 AM', '09:30 AM', '10:00 AM', '11:30 AM',
+    '01:00 PM', '02:00 PM', '04:00 PM', '04:30 PM',
+    '05:00 PM', '06:00 PM', '06:30 PM', '07:30 PM',
+    '08:00 PM', '09:00 PM',
+  ]
 }) => {
   const [show, setShow] = useState(false);
   const ref = useRef();
@@ -21,14 +27,6 @@ export const TimeDropdown = ({
     document.addEventListener('mousedown', onClickOutside);
     return () => document.removeEventListener('mousedown', onClickOutside);
   }, []);
-
-  // static list of slots
-  const slots = [
-    '09:00 AM', '09:30 AM', '10:00 AM', '11:30 AM',
-    '01:00 PM', '02:00 PM', '04:00 PM', '04:30 PM',
-    '05:00 PM', '06:00 PM', '06:30 PM', '07:30 PM',
-    '08:00 PM', '09:00 PM',
-  ];
 
   return (
     <div className="relative inline-block w-full" ref={ref}>

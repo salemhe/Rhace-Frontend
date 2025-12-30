@@ -126,10 +126,10 @@
   }
 }
 
-/* body {
+body {
   box-sizing: border-box;
   font-family: "Inter", Arial, Helvetica, sans-serif;
-} */
+}
 
 .hide-scrollbar::-webkit-scrollbar {
   display: none;

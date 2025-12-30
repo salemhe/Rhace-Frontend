@@ -91,6 +91,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import BookingDetails from "./pages/user/BookingDetails";
 import Payments from "./pages/admin/Payments";
 import PaymentsHistory from "./pages/user/Payments";
+import MenuPage from "./pages/user/restaurant/Menu";
 
 // Route Arrays
 const authRoutes = {
@@ -232,6 +233,7 @@ function App() {
             </Route>
           </Route>
 
+          <Route path="/menus/:id" element={<MenuPage />} />
           {/* Restaurants */}
           {restaurantRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />

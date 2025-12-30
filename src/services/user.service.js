@@ -10,6 +10,11 @@ class UserService {
     const res = await api.get(`/vendors/offers?id=${id ? id : ""}`);
     return res.data;
   }
+
+  async getTopRated({ type }) {
+    const res = await api.get(`/vendors/top-rated?type=${type || ""}`);
+    return res.data;
+  }
   
   async getNearest({ longitude, latitude, type }) {
     const res = await api.get(`/vendors/nearest?longitude=${longitude || ""}&latitude=${latitude || ""}&type=${type || ""}`);
