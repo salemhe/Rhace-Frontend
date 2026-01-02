@@ -293,15 +293,16 @@ const Favorites: React.FC = () => {
     fetchFavorites();
   }, []);
 
+  const hotel = favorites.filter((fav) => fav.vendorType === "hotel");
+  const restaurant = favorites.filter((fav) => fav.vendorType === "restaurant");
+  const club = favorites.filter((fav) => fav.vendorType === "club");
+  
   // Filter favorites by type
   useEffect(() => {
     if (favorites.length > 0) {
-      const filtered = favorites.filter((fav) => {
-        if (activeTab === "restaurants") return fav.type === "restaurant";
-        if (activeTab === "clubs") return fav.type === "club";
-        if (activeTab === "hotels") return fav.type === "hotel";
-        return true;
-      });
+      const filtered = (activeTab === "restaurants") ? restaurant :
+        (activeTab === "clubs") ? club :
+        (activeTab === "hotels") && hotel;
       setFilteredFavorites(filtered);
     } else {
       setFilteredFavorites([]);
@@ -401,7 +402,7 @@ const Favorites: React.FC = () => {
               >
                 Restaurants
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {venues.length}
+                  {restaurant.length}
                 </span>
               </button>
               <button
@@ -414,7 +415,7 @@ const Favorites: React.FC = () => {
               >
                 Clubs
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {venues.length}
+                  {club.length}
                 </span>
               </button>
               <button
@@ -427,7 +428,7 @@ const Favorites: React.FC = () => {
               >
                 Hotels
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {venues.length}
+                  {hotel.length}
                 </span>
               </button>
             </nav>
@@ -450,11 +451,11 @@ const Favorites: React.FC = () => {
         ) : (
           <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0">
             {venues.map((venue) => {
-              const images = getImagesForVenue(venue);
-              const venueId = venue._id;
+              const images = getImagesForVenue(venue.vendor);
+              const venueId = venue.vendor._id;
               const currentIndex = currentIndices[venueId] || 0;
-              const multipleImages = hasMultipleImages(venue);
-              const categories = getCategories(venue);
+              const multipleImages = hasMultipleImages(venue.vendor);
+              const categories = getCategories(venue.vendor);
 
               return (
                 <div
@@ -477,7 +478,7 @@ const Favorites: React.FC = () => {
                         <img
                           key={index}
                           src={image}
-                          alt={`${venue.businessName} - Image ${index + 1}`}
+                          alt={`${venue.vendor.businessName} - Image ${index + 1}`}
                           className={`absolute size-full object-cover transition-all duration-500 ease-in-out ${
                             index === currentIndex
                               ? "opacity-100 scale-100"
@@ -496,9 +497,9 @@ const Favorites: React.FC = () => {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                     </div>
 
-                    {(venue.badge || venue.offer) && (
+                    {(venue.vendor.badge || venue.vendor.offer) && (
                       <span className="absolute top-4 left-4 bg-gray-100/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
-                        {venue.badge || venue.offer}
+                        {venue.vendor.badge || venue.vendor.offer}
                       </span>
                     )}
 
@@ -539,10 +540,10 @@ const Favorites: React.FC = () => {
                         <div className="flex items-center">
                           <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
                           <span className="text-sm font-semibold text-gray-900">
-                            {venue.rating?.toFixed(1)}
+                            {venue.vendor.rating?.toFixed(1)}
                           </span>
                           <span className="text-xs sm:text-sm text-gray-500 ml-1">
-                            ({venue.reviews?.toLocaleString() || 0} reviews)
+                            ({venue.vendor.reviews?.toLocaleString() || 0} reviews)
                           </span>
                         </div>
                       </div>
@@ -575,12 +576,12 @@ const Favorites: React.FC = () => {
                       <div className="flex  mt- items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
                         {/* <FiMapPin /> */}
                         <p className="line-clamp-1 ">
-                          <span>{venue.address}</span>
+                          <span>{venue.vendor.address}</span>
                         </p>
                       </div>
 
                       {(activeTab === "clubs" || activeTab === "hotels") &&
-                        venue.priceRange && (
+                        venue.vendor.priceRange && (
                           <div className="flex justify-start text-xl mt-4 text-black items-center gap-1">
                             {activeTab === "clubs" && (
                               <div className="text-zinc-00 text-sm font-bold leading-none">
@@ -588,7 +589,7 @@ const Favorites: React.FC = () => {
                               </div>
                             )}
                             <div className=" text-sm font-bold leading-none">
-                              ₦{venue.priceRange}
+                              ₦{venue.vendor.priceRange}
                             </div>
                             {activeTab === "hotels" && (
                               <div className="text-zinc-00 text-xs font-normal leading-none">
