@@ -21,8 +21,8 @@ class PaymentService {
     return res.data;
   }
 
-  async initializePayment({ amount, email, vendorId, bookingId, customerName, type }) {
-    const res = await api.post("/payments/initialize", { amount, email, vendorId, bookingId, customerName, type })
+  async initializePayment({ amount, email, vendorId, bookingId, customerName, type, payLater }) {
+    const res = await api.post("/payments/initialize", { amount, email, vendorId, bookingId, customerName, type, payLater })
     return res.data;
   }
 

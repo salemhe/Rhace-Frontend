@@ -10,6 +10,7 @@ import { useReservations } from "@/contexts/restaurant/ReservationContext";
 import { toast } from "sonner";
 // import { MenusData } from "@/lib/api";
 import { menuService } from "@/services/menu.service";
+import UniversalLoader from "../ui/LogoLoader";
 export default function PreSelectMeal({ id }) {
   const {
     activeTab,
@@ -143,9 +144,7 @@ export default function PreSelectMeal({ id }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-gray-600">Loading menu items...</div>
-      </div>
+      <UniversalLoader fullscreen />
     );
   }
 

@@ -11,14 +11,14 @@ import {
 import { toast } from "sonner";
 import { paymentService } from "@/services/payment.service";
 
-export default function PaymentPage({ booking, setPopupOpen }) {
+export default function PaymentPage({ booking, setPopupOpen, payLater }) {
   const [isLoading, setIsLoading] = useState(false);
 
   
   const handlePayClick = async () => {
       try {
         setIsLoading(true);
-        const res = await paymentService.initializePayment({ amount: booking.totalAmount, email: booking.customerEmail, vendorId: booking.vendor, bookingId: booking._id, customerName: booking.customerName, type: booking.reservationType });
+        const res = await paymentService.initializePayment({ amount: booking.totalAmount, email: booking.customerEmail, vendorId: booking.vendor, bookingId: booking._id, customerName: booking.customerName, type: booking.reservationType, payLater });
 
         window.location.href = res.data.authorization_url;
       } catch (error) {

@@ -59,6 +59,7 @@ export function ReservationsProvider({
         specialRequest,
         totalAmount: 1000,
         vendor: vendor._id,
+        payLater: true,
         location: vendor.address,
         image: vendor.profileImages?.[0],
       };
@@ -134,7 +135,7 @@ export function ReservationsProvider({
           quantity: item.quantity || 1,
           specialRequest: item.specialRequest || "",
         })),
-        totalAmount: totalPrice + 1000,
+        totalAmount: totalPrice,
         vendor: vendor._id,
         location: vendor.address,
         image: vendor.profileImages?.[0],

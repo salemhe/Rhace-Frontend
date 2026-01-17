@@ -197,7 +197,7 @@ const CreateMenu = () => {
                                         <div className="space-y-2">
                                             <Label className="text-xs">Menu Category<span className='text-[#EF4444]'>*</span></Label>
                                             <RadioGroup value={newItem.category} onValueChange={(value) => setNewItem({ ...newItem, category: value })} className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                                                {["Starters", "Main Dish ", "Dessert", "Drink"].map((meal) => (
+                                                {["Starters", "Main Dish ", "Dessert", "Drink", "Appetizer"].map((meal) => (
                                                     <div key={meal} className="flex items-center space-x-2">
                                                         <RadioGroupItem value={meal} id={meal} />
                                                         <Label htmlFor={meal}>{meal}</Label>

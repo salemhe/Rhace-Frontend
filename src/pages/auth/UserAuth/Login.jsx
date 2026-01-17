@@ -233,7 +233,8 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get("redirect") || "/";
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault()
     try {
       if (!formValidation()) return;
 
@@ -289,118 +290,120 @@ const Login = () => {
 
       {/* Login Card */}
       <Card className="w-full max-w-md bg-white shadow-md rounded-2xl border border-gray-100 mt-16 sm:mt-24">
-        <CardHeader className="text-left pb-4">
-          <h1 className="text-2xl font-semibold text-gray-900">Welcome Back</h1>
-          <p className="text-sm text-gray-600 mt-1 mb-[-7px]">
-            We're glad to see you again. Please log in to your account.
-          </p>
-        </CardHeader>
+        <form onSubmit={handleLogin}>
+          <CardHeader className="text-left pb-4">
+            <h1 className="text-2xl font-semibold text-gray-900">Welcome Back</h1>
+            <p className="text-sm text-gray-600 mt-1 mb-[-7px]">
+              We're glad to see you again. Please log in to your account.
+            </p>
+          </CardHeader>
 
-        <CardContent className="space-y-4">
+          <CardContent className="space-y-4">
 
-          {/* Email */}
-          <div>
-            <Label htmlFor="email" className="text-sm font-medium text-gray-700">
-              Email
-            </Label>
-            <input
-              id="email"
-              type="email"
-              placeholder="Enter your email address"
-              value={formData.email}
-              onChange={(e) => handleInputChange("email", e.target.value)}
-              className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+            {/* Email */}
+            <div>
+              <Label htmlFor="email" className="text-sm font-medium text-gray-700">
+                Email
+              </Label>
+              <input
+                id="email"
+                type="email"
+                placeholder="Enter your email address"
+                value={formData.email}
+                onChange={(e) => handleInputChange("email", e.target.value)}
+                className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
                         text-black text-sm placeholder-[#a0a3a8]
                         focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
                         hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
-            />
-            {error.email && <p className="text-sm text-red-600 mt-1">{error.email}</p>}
-          </div>
+              />
+              {error.email && <p className="text-sm text-red-600 mt-1">{error.email}</p>}
+            </div>
 
-          {/* Password */}
-          <div>
-            <Label htmlFor="password" className="text-sm font-medium text-gray-700">
-              Password
-            </Label>
-            <div className="relative">
-              <input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                placeholder="********"
-                value={formData.password}
-                onChange={(e) => handleInputChange("password", e.target.value)}
-                className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
+            {/* Password */}
+            <div>
+              <Label htmlFor="password" className="text-sm font-medium text-gray-700">
+                Password
+              </Label>
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="********"
+                  value={formData.password}
+                  onChange={(e) => handleInputChange("password", e.target.value)}
+                  className="w-full h-10 sm:h-12 rounded-md border-gray-100 bg-gray-100 
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
                           hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+              {error.password && <p className="text-sm text-red-600 mt-1">{error.password}</p>}
             </div>
-            {error.password && <p className="text-sm text-red-600 mt-1">{error.password}</p>}
-          </div>
 
-          {/* Forgot Password */}
-          <div className="flex justify-end">
-            <a
-              href="/auth/user/forgot-password"
-              className="text-sm text-[#0A6C6D] hover:text-[#074f55] font-medium transition-all"
+            {/* Forgot Password */}
+            <div className="flex justify-end">
+              <a
+                href="/auth/user/forgot-password"
+                className="text-sm text-[#0A6C6D] hover:text-[#074f55] font-medium transition-all"
+              >
+                Forgot password?
+              </a>
+            </div>
+
+            {/* Submit */}
+            <Button
+              disabled={!formData.email || !formData.password || isLoading}
+              onClick={handleLogin}
+              className="w-full py-6 rounded-md bg-[#0A6C6D] text-white text-sm font-light transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D]"
             >
-              Forgot password?
-            </a>
-          </div>
+              {isLoading ? (
+                <span className="flex items-center gap-1">
+                  Loading <Loader2 className="animate-spin" />
+                </span>
+              ) : (
+                "Login"
+              )}
+            </Button>
 
-          {/* Submit */}
-          <Button
-            disabled={!formData.email || !formData.password || isLoading}
-            onClick={handleLogin}
-            className="w-full py-6 rounded-md bg-[#0A6C6D] text-white text-sm font-light transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D]"
-          >
-            {isLoading ? (
-              <span className="flex items-center gap-1">
-                Loading <Loader2 className="animate-spin" />
-              </span>
-            ) : (
-              "Login"
-            )}
-          </Button>
+            {/* OR Divider */}
+            <div className="flex items-center my-2">
+              <div className="flex-1 h-px bg-[#0A6C6D]"></div>
+              <span className="px-3 text-sm text-[#074f55]">OR</span>
+              <div className="flex-1 h-px bg-[#0A6C6D]"></div>
+            </div>
 
-          {/* OR Divider */}
-          <div className="flex items-center my-2">
-            <div className="flex-1 h-px bg-[#0A6C6D]"></div>
-            <span className="px-3 text-sm text-[#074f55]">OR</span>
-            <div className="flex-1 h-px bg-[#0A6C6D]"></div>
-          </div>
-
-          {/* Google Login Button */}
-          <button
-            onClick={handleGoogleLogin}
-            type="button"
-            className="w-full flex items-center justify-center gap-3 border border-gray-300 
+            {/* Google Login Button */}
+            <button
+              onClick={handleGoogleLogin}
+              type="button"
+              className="w-full flex items-center justify-center gap-3 border border-gray-300 
                        bg-white py-3 rounded-md hover:bg-gray-50 transition-all"
-          >
-            {/* Google Icon */}
-            <img src={GoogleIcon} alt="Google" className="h-5 w-5" />
-            {googleLoading ? <Loader2 className="animate-spin h-4 w-4 text-gray-600" /> :
-              <span className="text-sm text-gray-700 font-medium">Continue with Google</span>
-            }
-          </button> 
+            >
+              {/* Google Icon */}
+              <img src={GoogleIcon} alt="Google" className="h-5 w-5" />
+              {googleLoading ? <Loader2 className="animate-spin h-4 w-4 text-gray-600" /> :
+                <span className="text-sm text-gray-700 font-medium">Continue with Google</span>
+              }
+            </button>
 
 
-          <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
-            Don’t Have An Account?{" "}
-            <a href="/auth/user/signup" className="text-[#0a646d] hover:underline font-medium">
-              Sign Up
-            </a>
-          </p>
-        </CardContent>
+            <p className="text-sm text-center text-[#0A6C6D] hover:text-[#074f55] transition-all font-light">
+              Don’t Have An Account?{" "}
+              <a href="/auth/user/signup" className="text-[#0a646d] hover:underline font-medium">
+                Sign Up
+              </a>
+            </p>
+          </CardContent>
 
-        <CardFooter />
+          <CardFooter />
+        </form>
       </Card>
 
       {/* Footer */}

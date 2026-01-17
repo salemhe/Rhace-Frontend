@@ -42,8 +42,9 @@ export function ReservationsProvider({
   ) +
     combos.reduce((total, item) => total + (item.setPrice || 0), 0) +
     vipExtras.reduce((total, item) => total + (item.price || 0), 0) +
-    tableSelected?.price +
+    tableSelected ? tableSelected?.price: 0 +
     (vendor.priceRange * parseInt(guestCount, 10)) : 0
+
 
   const handleSubmit = async () => {
     try {

@@ -77,7 +77,7 @@ const HotelBookingForm = ({ id, selectedRoom }) => {
       {selectedRoom._id && (
         <div className="w-96 h-7 inline-flex justify-between items-center">
           <div className="flex justify-start items-center gap-1">
-            <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-relaxed">#{selectedRoom.pricePerNight.toLocaleString()}</div>
+            <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-relaxed">₦{selectedRoom.pricePerNight.toLocaleString()}</div>
             <div className="justify-start text-zinc-600 text-sm font-normal font-['Inter'] leading-tight">/night</div>
           </div>
           <div className="h-7 px-2 rounded-lg  outline-1 outline-offset-[-1px] outline-yellow-500 inline-flex flex-col justify-center items-center gap-2">
