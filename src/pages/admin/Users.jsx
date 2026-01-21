@@ -28,7 +28,7 @@ import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getUsers, getUserById, updateUserStatus, toggleUserVIP, exportUsers } from "@/services/admin.service";
+import { getUsers, getUserById, updateUserStatus, toggleUserVIP, exportUsers, getUserReservations, getUserStats, getReservations, getReservationById } from "@/services/admin.service";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const extractArray = (p) => {
@@ -39,6 +39,11 @@ const extractArray = (p) => {
   ];
   for (const c of candidates) if (Array.isArray(c)) return c;
   return [];
+};
+
+const getUserIdFromReservation = (reservation) => {
+  const userId = reservation.guest || reservation.userId || reservation.user?.id || reservation.user?._id;
+  return userId;
 };
 
 export default function UserManagement() {
@@ -55,7 +60,7 @@ export default function UserManagement() {
   });
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const { subscribe, unsubscribe, sendMessage } = useWebSocket();
+  const { subscribe, unsubscribe, sendMessage, connected } = useWebSocket();
   const [selectedUser, setSelectedUser] = useState(null);
   const [userDetails, setUserDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
@@ -63,6 +68,10 @@ export default function UserManagement() {
   const [resetPasswordOpen, setResetPasswordOpen] = useState(false);
   const [reservationsOpen, setReservationsOpen] = useState(false);
   const [userReservations, setUserReservations] = useState([]);
+  const [reservationDetailsOpen, setReservationDetailsOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
+  const [reservationDetails, setReservationDetails] = useState(null);
+  const [reservationDetailsLoading, setReservationDetailsLoading] = useState(false);
   const [totalUsers, setTotalUsers] = useState(0);
   const [stats, setStats] = useState({
     total: 0,
@@ -71,6 +80,24 @@ export default function UserManagement() {
     suspended: 0,
     vip: 0
   });
+
+  const loadStats = async () => {
+    try {
+      const statsRes = await getUserStats();
+      const statsData = statsRes?.data;
+
+      setStats({
+        total: statsData?.total || 0,
+        active: statsData?.active || 0,
+        inactive: statsData?.inactive || 0,
+        suspended: statsData?.suspended || 0,
+        vip: statsData?.vip || 0
+      });
+      setTotalUsers(statsData?.total || 0);
+    } catch (e) {
+      console.error("Failed to load stats", e);
+    }
+  };
 
   const handleViewProfile = async (user) => {
     const userId = user.id || user._id || user.userId;
@@ -86,7 +113,7 @@ export default function UserManagement() {
 
     try {
       const response = await getUserById(userId);
-      setUserDetails(response.data);
+      setUserDetails({ ...response.data, reservations: user.reservations || 0 });
     } catch (e) {
       console.error("Failed to get user details", e);
       setUserDetails(null);
@@ -136,16 +163,84 @@ export default function UserManagement() {
       alert("User ID not found");
       return;
     }
+
+    const newVipStatus = !user.isVip;
+
+    // Optimistically update the local state immediately
+    setUsers((prev) =>
+      prev.map((u) =>
+        u.id === userId || u._id === userId
+          ? { ...u, isVip: newVipStatus }
+          : u
+      )
+    );
+
+    // Update filtered users as well
+    setFilteredUsers((prev) =>
+      prev.map((u) =>
+        u.id === userId || u._id === userId
+          ? { ...u, isVip: newVipStatus }
+          : u
+      )
+    );
+
     try {
-      await toggleUserVIP(userId, { isVip: !user.isVip });
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId || u._id === userId ? { ...u, isVip: !user.isVip } : u))
-      );
-      sendMessage("user-updated", { id: userId, isVip: !user.isVip });
+      await toggleUserVIP(userId, { isVip: newVipStatus });
+
+      // Send WebSocket message for real-time updates to other clients
+      sendMessage("user-updated", { id: userId, isVip: newVipStatus });
+
+      // Reload stats to update VIP count
+      await loadStats();
+
       alert(`VIP status updated successfully for ${user.name || user.email || "user"}`);
     } catch (e) {
       console.error("Failed to toggle VIP status", e);
+
+      // Revert the optimistic update on failure
+      setUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId || u._id === userId
+            ? { ...u, isVip: !newVipStatus }
+            : u
+        )
+      );
+
+      // Revert filtered users as well
+      setFilteredUsers((prev) =>
+        prev.map((u) =>
+          u.id === userId || u._id === userId
+            ? { ...u, isVip: !newVipStatus }
+            : u
+        )
+      );
+
       alert("Failed to update VIP status");
+    }
+  };
+
+  const refreshUserReservationCounts = async () => {
+    try {
+      const updatedUsers = await Promise.all(
+        users.map(async (user) => {
+          try {
+            const userId = user.id || user._id;
+            const reservationsRes = await getUserReservations(userId);
+            const reservationsData = extractArray(reservationsRes?.data);
+            const reservationCount = reservationsData?.length || 0;
+            return {
+              ...user,
+              reservations: reservationCount
+            };
+          } catch (error) {
+            console.error(`Failed to refresh reservations for user ${user.id || user._id}:`, error);
+            return user; // Keep existing data on error
+          }
+        })
+      );
+      setUsers(updatedUsers);
+    } catch (error) {
+      console.error("Failed to refresh reservation counts:", error);
     }
   };
 
@@ -160,9 +255,53 @@ export default function UserManagement() {
       setSelectedUser(user);
       setUserReservations([]);
       setReservationsOpen(true);
+
+      // Fetch user reservations
+      const response = await getUserReservations(userId);
+      const payload = response?.data;
+      const reservations = extractArray(payload);
+      setUserReservations(Array.isArray(reservations) ? reservations : []);
     } catch (e) {
       console.error("Failed to load reservations", e);
       alert("Failed to load reservations");
+    }
+  };
+
+  const handleViewReservationDetails = async (reservation) => {
+    if (!reservation) return;
+    const reservationId = reservation.id || reservation._id;
+    if (!reservationId) {
+      alert("Reservation ID not found");
+      return;
+    }
+    try {
+      setSelectedReservation(reservation);
+      setReservationDetails(null);
+      setReservationDetailsOpen(true);
+      setReservationDetailsLoading(true);
+
+      // Fetch full reservation details
+      const response = await getReservationById(reservationId);
+      setReservationDetails(response.data);
+    } catch (e) {
+      console.error("Failed to load reservation details", e);
+      // Fallback: Use the reservation data from the list if API call fails
+      setReservationDetails({
+        ...reservation,
+        // Add any additional fields that might be missing
+        customer: reservation.customer || reservation.customerName || reservation.user?.name,
+        customerEmail: reservation.customerEmail || reservation.user?.email,
+        customerPhone: reservation.customerPhone || reservation.user?.phone,
+        vendor: reservation.vendor || { name: reservation.vendorName },
+        totalAmount: reservation.totalAmount || reservation.amount || reservation.payment?.amount,
+        paymentStatus: reservation.paymentStatus || reservation.payment?.status,
+        mealPreselected: reservation.mealPreselected || reservation.meal?.preselected,
+        specialRequests: reservation.specialRequests || reservation.notes,
+        createdAt: reservation.createdAt,
+        updatedAt: reservation.updatedAt
+      });
+    } finally {
+      setReservationDetailsLoading(false);
     }
   };
 
@@ -210,27 +349,45 @@ export default function UserManagement() {
     setLoading(true);
     try {
       // Fetch current page users
-      const res = await getUsers({ page: currentPage, limit: 20 });
-      const payload = res?.data;
+      const usersRes = await getUsers({ page: currentPage, limit: 20 });
+      const payload = usersRes?.data;
       const list = extractArray(payload);
-      setUsers(list);
+
+      // Normalize VIP field for all users and fetch reservation counts
+      const usersWithReservations = await Promise.all(
+        list.map(async (user) => {
+          try {
+            const userId = user.id || user._id;
+            const reservationsRes = await getUserReservations(userId); // Get reservations for this specific user
+            const reservationsData = extractArray(reservationsRes?.data);
+            const reservationCount = reservationsData?.length || 0;
+
+            // Normalize VIP field - API might return isVIP instead of isVip
+            const normalizedUser = {
+              ...user,
+              isVip: user.isVip || user.isVIP || false, // Ensure VIP status is properly set
+              reservations: reservationCount
+            };
+
+            return normalizedUser;
+          } catch (error) {
+            console.error(`Failed to fetch reservations for user ${user.id || user._id}:`, error);
+            return {
+              ...user,
+              isVip: user.isVip || user.isVIP || false,
+              reservations: 0
+            };
+          }
+        })
+      );
+
+
+
+      setUsers(usersWithReservations);
       setTotalPages(payload?.totalPages || 1);
       setTotalUsers(payload?.totalDocs || 0);
 
-      // Calculate stats
-      const total = payload?.totalDocs || 0;
-      const active = list.filter(user => (user.status || user.accountStatus || "").toString().toLowerCase() === "active").length;
-      const inactive = list.filter(user => (user.status || user.accountStatus || "").toString().toLowerCase() === "inactive").length;
-      const suspended = list.filter(user => (user.status || user.accountStatus || "").toString().toLowerCase() === "suspended").length;
-      const vip = list.filter(user => user.isVip).length;
-
-      setStats({
-        total,
-        active,
-        inactive,
-        suspended,
-        vip
-      });
+      await loadStats();
     } catch (e) {
       console.error("Failed to load users", e);
       setUsers([]);
@@ -254,6 +411,22 @@ export default function UserManagement() {
       setUsers((prev) =>
         prev.map((u) => (u.id === updatedUser.id || u._id === updatedUser.id ? updatedUser : u))
       );
+      loadStats();
+    };
+
+    const handleUserActivity = (activityData) => {
+      // Update lastActiveAt for the user
+      setUsers((prev) =>
+        prev.map((u) => {
+          if (u.id === activityData.userId || u._id === activityData.userId) {
+            return {
+              ...u,
+              lastActiveAt: activityData.lastActiveAt || new Date().toISOString()
+            };
+          }
+          return u;
+        })
+      );
     };
 
     const handleUserCreate = (newUser) => {
@@ -263,6 +436,7 @@ export default function UserManagement() {
         setTotalUsers((t) => (Number(t) || 0) + 1);
         return next;
       });
+      loadStats();
     };
 
     const handleUserDelete = (deletedUser) => {
@@ -271,16 +445,85 @@ export default function UserManagement() {
         setTotalUsers((t) => Math.max(0, (Number(t) || 0) - 1));
         return next;
       });
+      loadStats();
+    };
+
+    const handleReservationUpdate = (updatedReservation) => {
+      const userId = getUserIdFromReservation(updatedReservation);
+
+      if (userId) {
+        // For updates, we don't change the count, just ensure the reservation modal is updated
+        // The count should remain the same unless the reservation was cancelled/completed
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === userId || u._id === userId
+              ? { ...u, reservations: Math.max(0, (u.reservations || 0)) } // Ensure non-negative
+              : u
+          )
+        );
+      }
+
+      if (reservationsOpen && selectedUser && (userId === selectedUser.id || userId === selectedUser._id)) {
+        setUserReservations((prev) =>
+          prev.map((r) => (r.id === updatedReservation.id || r._id === updatedReservation.id ? updatedReservation : r))
+        );
+      }
+    };
+
+    const handleReservationCreate = (newReservation) => {
+      const userId = getUserIdFromReservation(newReservation);
+
+      if (userId) {
+        // Increment reservation count in users list
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === userId || u._id === userId
+              ? { ...u, reservations: (u.reservations || 0) + 1 }
+              : u
+          )
+        );
+      }
+
+      if (reservationsOpen && selectedUser && userId === selectedUser.id || userId === selectedUser._id) {
+        setUserReservations((prev) => [newReservation, ...prev]);
+      }
+    };
+
+    const handleReservationDelete = (deletedReservation) => {
+      const userId = getUserIdFromReservation(deletedReservation);
+
+      if (userId) {
+        // Decrement reservation count in users list
+        setUsers((prev) =>
+          prev.map((u) =>
+            u.id === userId || u._id === userId
+              ? { ...u, reservations: Math.max(0, (u.reservations || 0) - 1) }
+              : u
+          )
+        );
+      }
+
+      if (reservationsOpen && selectedUser && userId === selectedUser.id || userId === selectedUser._id) {
+        setUserReservations((prev) => prev.filter((r) => r.id !== deletedReservation.id && r._id !== deletedReservation.id));
+      }
     };
 
     subscribe("user-updated", handleUserUpdate);
     subscribe("user-created", handleUserCreate);
     subscribe("user-deleted", handleUserDelete);
+    subscribe("user-activity", handleUserActivity);
+    subscribe("reservation-updated", handleReservationUpdate);
+    subscribe("reservation-created", handleReservationCreate);
+    subscribe("reservation-deleted", handleReservationDelete);
 
     return () => {
       unsubscribe("user-updated");
       unsubscribe("user-created");
       unsubscribe("user-deleted");
+      unsubscribe("user-activity");
+      unsubscribe("reservation-updated");
+      unsubscribe("reservation-created");
+      unsubscribe("reservation-deleted");
     };
   }, [subscribe, unsubscribe]);
 
@@ -436,10 +679,19 @@ export default function UserManagement() {
               <CardTitle className="text-lg font-semibold">User Directory</CardTitle>
               <CardDescription>{filteredUsers.length} users found</CardDescription>
             </div>
-            <Badge variant="outline" className="bg-white">
-              <Activity className="h-3 w-3 mr-1" />
-              Real-time Updates
+            <Badge variant="outline" className={connected ? "bg-green-50 text-green-700 border-green-200" : "bg-red-50 text-red-700 border-red-200"}>
+              <Activity className={`h-3 w-3 mr-1 ${connected ? "text-green-600" : "text-red-600"}`} />
+              {connected ? "Real-time Connected" : "Real-time Disconnected"}
             </Badge>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshUserReservationCounts}
+              className="gap-2"
+            >
+              <Activity className="h-3 w-3" />
+              Refresh Counts
+            </Button>
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -521,13 +773,14 @@ export default function UserManagement() {
                     </td>
                     <td className="p-4">
                       <div className="text-center">
-                        <div className="text-lg font-semibold text-gray-900">{user.reservations ?? user.stats?.reservations ?? 0}</div>
+                        <div className="text-lg font-semibold text-gray-900">{user.reservationCount ?? user.reservations ?? user.stats?.reservations ?? 0}</div>
                         <div className="text-xs text-gray-500">reservations</div>
                       </div>
                     </td>
                     <td className="p-4">
                       <div className="text-sm text-gray-600">
-                        {user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleDateString() : "Never"}
+                        {user.lastActiveAt ? new Date(user.lastActiveAt).toLocaleDateString() :
+                         user.updatedAt ? new Date(user.updatedAt).toLocaleDateString() : "Never"}
                       </div>
                     </td>
                     <td className="p-4">
@@ -815,16 +1068,38 @@ export default function UserManagement() {
             <DialogDescription>Reservation history for {selectedUser?.name || selectedUser?.email}</DialogDescription>
           </DialogHeader>
           {userReservations.length > 0 ? (
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-96 overflow-y-auto">
               {userReservations.map((reservation, index) => (
-                <Card key={index}>
+                <Card
+                  key={reservation.id || reservation._id || index}
+                  className="cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => handleViewReservationDetails(reservation)}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-medium">Reservation #{index + 1}</p>
-                        <p className="text-sm text-gray-600">Placeholder reservation data</p>
+                      <div className="flex-1">
+                        <p className="font-medium">Reservation #{reservation.id || reservation._id || reservation.reference || index + 1}</p>
+                        <div className="text-sm text-gray-600 space-y-1">
+                          <p>Date: {reservation.date || reservation.checkInDate || reservation.createdAt}</p>
+                          <p>Time: {reservation.time || reservation.checkInTime}</p>
+                          <p>Guests: {reservation.guests}</p>
+                          <p>Status: {reservation.status || reservation.reservationStatus}</p>
+                        </div>
                       </div>
-                      <Badge variant="outline">Active</Badge>
+                      <Badge
+                        variant="outline"
+                        className={
+                          (reservation.status || reservation.reservationStatus) === "Upcoming"
+                            ? "bg-blue-50 text-blue-700 border-blue-200"
+                            : (reservation.status || reservation.reservationStatus) === "Completed"
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : (reservation.status || reservation.reservationStatus) === "Cancelled"
+                            ? "bg-red-50 text-red-700 border-red-200"
+                            : "bg-gray-50 text-gray-700 border-gray-200"
+                        }
+                      >
+                        {reservation.status || reservation.reservationStatus || "Unknown"}
+                      </Badge>
                     </div>
                   </CardContent>
                 </Card>
@@ -841,6 +1116,159 @@ export default function UserManagement() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setReservationsOpen(false)}>Close</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Reservation Details Modal */}
+      <Dialog open={reservationDetailsOpen} onOpenChange={setReservationDetailsOpen}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Reservation Details</DialogTitle>
+            <DialogDescription>Complete details for Reservation #{selectedReservation?.id || selectedReservation?._id || selectedReservation?.reference}</DialogDescription>
+          </DialogHeader>
+          {reservationDetailsLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="h-8 w-48" />
+              <div className="grid grid-cols-2 gap-4">
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-4 w-full" />
+              </div>
+            </div>
+          ) : reservationDetails ? (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Reservation ID</Label>
+                  <p className="text-gray-900 font-mono">{reservationDetails.id || reservationDetails._id || reservationDetails.reference}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Status</Label>
+                  <Badge
+                    variant="outline"
+                    className={
+                      (reservationDetails.status || reservationDetails.reservationStatus) === "Upcoming"
+                        ? "bg-blue-50 text-blue-700 border-blue-200"
+                        : (reservationDetails.status || reservationDetails.reservationStatus) === "Completed"
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : (reservationDetails.status || reservationDetails.reservationStatus) === "Cancelled"
+                        ? "bg-red-50 text-red-700 border-red-200"
+                        : "bg-gray-50 text-gray-700 border-gray-200"
+                    }
+                  >
+                    {reservationDetails.status || reservationDetails.reservationStatus || "Unknown"}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Date</Label>
+                  <p className="text-gray-900">{reservationDetails.date || reservationDetails.checkInDate || reservationDetails.createdAt}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Time</Label>
+                  <p className="text-gray-900">{reservationDetails.time || reservationDetails.checkInTime}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Guests</Label>
+                  <p className="text-gray-900">{reservationDetails.guests}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Payment Status</Label>
+                  <Badge
+                    variant="outline"
+                    className={
+                      (reservationDetails.paymentStatus || reservationDetails.payment?.status) === "paid"
+                        ? "bg-green-50 text-green-700 border-green-200"
+                        : (reservationDetails.paymentStatus || reservationDetails.payment?.status) === "pending"
+                        ? "bg-yellow-50 text-yellow-700 border-yellow-200"
+                        : "bg-red-50 text-red-700 border-red-200"
+                    }
+                  >
+                    {reservationDetails.paymentStatus || reservationDetails.payment?.status || "Unknown"}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Meal Preselected</Label>
+                  <Badge variant="secondary">
+                    {reservationDetails.meal === "Yes" || reservationDetails.mealPreselected || reservationDetails.meal?.preselected ? "✓ Yes" : "✗ No"}
+                  </Badge>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Total Amount</Label>
+                  <p className="text-gray-900 font-semibold">
+                    {reservationDetails.totalAmount || reservationDetails.amount || reservationDetails.payment?.amount
+                      ? `₦${Number(reservationDetails.totalAmount || reservationDetails.amount || reservationDetails.payment?.amount || 0).toLocaleString()}`
+                      : "N/A"}
+                  </p>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Customer Name</Label>
+                  <p className="text-gray-900">{reservationDetails.customer || reservationDetails.customerName || reservationDetails.user?.name || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Customer Email</Label>
+                  <p className="text-gray-900">{reservationDetails.customerEmail || reservationDetails.user?.email || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Customer Phone</Label>
+                  <p className="text-gray-900">{reservationDetails.customerPhone || reservationDetails.user?.phone || "N/A"}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Vendor</Label>
+                  <p className="text-gray-900">{reservationDetails.vendor?.name || reservationDetails.vendorName || "N/A"}</p>
+                </div>
+              </div>
+
+              {reservationDetails.specialRequests && (
+                <>
+                  <Separator />
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Special Requests</Label>
+                    <p className="text-gray-900 mt-1">{reservationDetails.specialRequests}</p>
+                  </div>
+                </>
+              )}
+
+              {reservationDetails.notes && (
+                <>
+                  <Separator />
+                  <div>
+                    <Label className="text-sm font-medium text-gray-500">Notes</Label>
+                    <p className="text-gray-900 mt-1">{reservationDetails.notes}</p>
+                  </div>
+                </>
+              )}
+
+              <Separator />
+
+              <div className="grid grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Created At</Label>
+                  <p className="text-gray-900">
+                    {reservationDetails.createdAt ? new Date(reservationDetails.createdAt).toLocaleString() : "N/A"}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-500">Last Updated</Label>
+                  <p className="text-gray-900">
+                    {reservationDetails.updatedAt ? new Date(reservationDetails.updatedAt).toLocaleString() : "N/A"}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <p className="text-center text-gray-500">No reservation details available.</p>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setReservationDetailsOpen(false)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
