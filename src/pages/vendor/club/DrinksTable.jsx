@@ -34,6 +34,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 import { AddDrinkModal } from "./AddDrinkModal";
+import { AddTablesModal } from "./AddTablesModal";
 
 const normalizeStatus = (status = "") => {
   const s = status?.toLowerCase() || "";
@@ -48,6 +49,7 @@ const normalizeStatus = (status = "") => {
 
 export function DrinksTable() {
   const [drinks, setDrinks] = useState([]);
+  const [tables, setTables] = useState([]);
   const [bottleSets, setBottleSets] = useState([]);
   const [selectedTab, setSelectedTab] = useState("drinks");
   const [searchTerm, setSearchTerm] = useState("");
@@ -56,11 +58,12 @@ export function DrinksTable() {
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
+  const [showTablesModal, setShowTablesModal] = useState(false);
   const vendor = useSelector((state) => state.auth.vendor);
   const navigate = useNavigate();
 
   // Filter states
-  const [selectedDate, setSelectedDate] = useState("all");
+  // const [selectedDate, setSelectedDate] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [hideTab, setHideTab] = useState(false);
@@ -127,6 +130,18 @@ export function DrinksTable() {
       setIsLoading(false);
     };
 
+    const fetchTables = async () => {
+      try {
+        setIsLoading(true);
+        const data = await clubService.getTables(vendor._id);
+        setTables(data.tables || []);
+      } catch (error) {
+        console.error("Error fetching tables:", error);
+        toast.error("Failed to fetch tables");
+      }
+      setIsLoading(false);
+    };
+
     const fetchBottleSets = async () => {
       try {
         const data = await clubService.getBottleSet(vendor._id);
@@ -138,28 +153,31 @@ export function DrinksTable() {
     };
 
     fetchDrinks();
+    fetchTables();
     fetchBottleSets();
   }, [vendor?._id]);
 
   // Calculate stats
   useEffect(() => {
     const totalDrinks = drinks.length;
+    const totalTables = tables.length;
     const totalSets = bottleSets.length;
-    const activeItems = [...drinks, ...bottleSets].filter(
+    const activeItems = [...drinks, ...bottleSets, ...tables].filter(
       (item) => normalizeStatus(item.status) === "Active"
     ).length;
-    const totalValue = [...drinks, ...bottleSets].reduce(
+    const totalValue = [...drinks, ...bottleSets, ...tables].reduce(
       (sum, item) => sum + (item.price || item.setPrice || 0),
       0
     );
 
     setStats({
       totalDrinks: { count: totalDrinks, change: 0 },
+      totalTables: { count: totalTables, change: 0 },
       totalSets: { count: totalSets, change: 0 },
       totalValue: { count: totalValue, change: 0 },
       activeItems: { count: activeItems, change: 0 },
     });
-  }, [drinks, bottleSets]);
+  }, [drinks, bottleSets, tables]);
 
   // Filter items based on selected tab and filters
   const filterItems = (items, isDrink = true) => {
@@ -186,9 +204,10 @@ export function DrinksTable() {
   };
 
   const filteredDrinks = filterItems(drinks, true);
+  const filteredTables = filterItems(tables, false);
   const filteredSets = filterItems(bottleSets, false);
 
-  const currentData = selectedTab === "drinks" ? filteredDrinks : filteredSets;
+  const currentData = selectedTab === "drinks" ? filteredDrinks : selectedTab === "sets" ? filteredSets : filteredTables;
   const data = currentData;
 
   // Update total items based on filtered data
@@ -269,6 +288,13 @@ export function DrinksTable() {
                 <Plus size={18} />
                 <span>Add New Drink</span>
               </button>
+              <button
+                onClick={() => setShowTablesModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800 transition-colors"
+              >
+                <Plus size={18} />
+                <span>Add New Table</span>
+              </button>
             </div>
           </div>
 
@@ -327,7 +353,7 @@ export function DrinksTable() {
           <div className="bg-white rounded-lg border border-gray-200">
             <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between py-4 px-4 border-b border-gray-200">
               <div className="flex flex-1 items-center">
-                {["drinks", "sets", "packages"].map((tab) => (
+                {["drinks", "sets", "tables"].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setSelectedTab(tab)}
@@ -341,7 +367,7 @@ export function DrinksTable() {
                       ? "Drinks"
                       : tab === "sets"
                       ? "Drinks Sets"
-                      : "Party Packages"}
+                      : "Tables"}
                   </button>
                 ))}
               </div>
@@ -351,7 +377,7 @@ export function DrinksTable() {
                   <Input
                     type="text"
                     placeholder={
-                      selectedTab === "drinks" ? "Search drinks" : "Search sets"
+                      selectedTab === "drinks" ? "Search drinks" : selectedTab === "tables" ? "Search tables" : "Search sets"
                     }
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -567,9 +593,11 @@ export function DrinksTable() {
                           </th>
                         </>
                       )}
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      {selectedTab === "sets" || selectedTab === "drinks" && (
+                        <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Status
                       </th>
+                      )}
                       <th className="w-12 px-4 py-3"></th>
                     </tr>
                   </thead>
@@ -644,6 +672,7 @@ export function DrinksTable() {
                             </td>
                           </>
                         )}
+                        {selectedTab === "sets" || selectedTab === "drinks" && (
                         <td className="px-4 py-4">
                           <span
                             className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
@@ -653,6 +682,7 @@ export function DrinksTable() {
                             {normalizeStatus(item.status)}
                           </span>
                         </td>
+                        )}
                         <td className="px-4 py-4">
                           <button className="text-gray-400 hover:text-gray-600">
                             <MoreVertical size={16} />
@@ -738,6 +768,25 @@ export function DrinksTable() {
             };
             fetchDrinks();
             setShowAddDrinkModal(false);
+          }}
+        />
+      )}
+
+      {showTablesModal && (
+        <AddTablesModal
+          onClose={() => setShowTablesModal(false)}
+          onSuccess={() => {
+            // Refresh drinks list
+            const fetchTables = async () => {
+              try {
+                const data = await clubService.getTables(vendor._id);
+                setTables(data.tables || []);
+              } catch (error) {
+                console.error("Error fetching tables:", error);
+              }
+            };
+            fetchTables();
+            setShowTablesModal(false);
           }}
         />
       )}

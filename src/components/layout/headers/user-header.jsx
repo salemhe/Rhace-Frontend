@@ -9,6 +9,7 @@ import { logout } from '@/redux/slices/authSlice';
 // logo imports — 
 import logoWhite from '@/public/images/Rhace-09.png';
 import logoBlack from '@/public/images/Rhace-11.png';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 
 const UserHeader = () => {
@@ -49,15 +50,12 @@ const UserHeader = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isMenuOpen]);
 
-  // Fetch user data (same logic from Header)
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         setLoading(true);
         if (user.isAuthenticated) {
           setProfile(user.user);
-        } else {
-          setProfile(null);
         }
       } catch (error) {
         console.log(error);
@@ -87,9 +85,9 @@ const UserHeader = () => {
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <img 
-              src={scrolled ? logoBlack : logoWhite} 
-              alt="Rhace Logo" 
+            <img
+              src={scrolled ? logoBlack : logoWhite}
+              alt="Rhace Logo"
               className="h-6 w-auto object-contain transition-all duration-300"
             />
           </div>
@@ -134,7 +132,21 @@ const UserHeader = () => {
                   //   alt="Profile"
                   //   className="w-6 h-6 rounded-full object-cover"
                   // />
-                  <User className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />
+                  <>
+                    {profile ? (
+
+                      <Avatar className="w-10 h-10 mr-3">
+                        <AvatarImage
+                          src={profile.profilePic}
+                          alt={`${profile.firstName} ${profile.lastName}`}
+                        />
+                        <AvatarFallback>
+                          {profile.firstName[0].toUpperCase()}
+                          {profile.lastName[0].toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                    ) : <User className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />}
+                  </>
                 )}
                 {isMenuOpen ? (
                   <ChevronUp className={`w-5 h-5 ${scrolled ? 'text-gray-700' : 'text-white'}`} />
@@ -179,12 +191,20 @@ function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, use
       {/* Profile Header */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center gap-3">
-          {/* <img
-            src={'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop'}
-            alt="Profile"
-            className="w-12 h-12 rounded-full object-cover"
-          /> */}
-          <User className="w-12 h-12 text-gray-400 bg-gray-200 rounded-full p-2" />
+          {user ? (
+
+            <Avatar className="w-10 h-10 mr-3">
+              <AvatarImage
+                src={user.profilePic}
+                alt={`${user.firstName} ${user.lastName}`}
+              />
+              <AvatarFallback>
+                {user.firstName[0].toUpperCase()}
+                {user.lastName[0].toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+          ) : <User className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />}
+
           <div>
             <h2 className="text-base font-semibold text-gray-900">
               Hi, {user ? `${user.firstName || ''} ${user.lastName || ''}`.trim() : 'Guest'}

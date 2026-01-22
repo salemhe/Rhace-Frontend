@@ -182,7 +182,7 @@ const VendorDashboard = () => {
     const newReservation = {
       id: newId,
       name: randomName,
-      reservationId: `#${12345 + newId}`,
+      reservationId: `₦${12345 + newId}`,
       date: 'June 5, 2025',
       time: '9:00 pm',
       guests: randomGuests,
@@ -534,7 +534,7 @@ const VendorDashboard = () => {
               </div>
               <div className="p-5">
                 <div className="mb-4">
-                  <p className="text-2xl font-bold text-gray-900">#{revenueData.total.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">₦{revenueData.total.toLocaleString()}</p>
                   <p className="text-sm text-green-600 flex items-center">
                     <span className="mr-1">↑</span>
                     {revenueData.change}% vs last {revenueFilter.toLowerCase().slice(0, -2)}

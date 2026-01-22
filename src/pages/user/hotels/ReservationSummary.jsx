@@ -218,7 +218,7 @@ export default function ReservationSummary() {
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Price per Night</p>
                       {!editRoom ? (
-                        <p className="text-sm font-medium text-gray-900">#{room.pricePerNight.toLocaleString()}</p>
+                        <p className="text-sm font-medium text-gray-900">₦{(room.pricePerNight  - room.pricePerNight * (room.discount / 100)).toLocaleString()}</p>
                       ) : (
                         <input
                           type="number"
@@ -318,7 +318,7 @@ export default function ReservationSummary() {
                         }}
                       >
                         <h3 className="text-lg font-semibold">
-                          Pay #{(room.pricePerNight * nights).toLocaleString()} now
+                          Pay ₦{((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights).toLocaleString()} now
                         </h3>
                         <div></div>
                       </div>
@@ -331,7 +331,7 @@ export default function ReservationSummary() {
                         <div className="space-y-1">
                           <h3 className="text-[#111827]">Pay part now, rest later</h3>
                           <p>
-                            Pay #{Math.round((room.pricePerNight * nights) / 2).toLocaleString()} now, and #{Math.round((room.pricePerNight * nights) / 2).toLocaleString()} on {checkInDate ? format(checkInDate, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
+                            Pay ₦{Math.round(((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights) / 2).toLocaleString()} now, and ₦{Math.round(((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights) / 2).toLocaleString()} on {checkInDate ? format(checkInDate, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
                           </p>
                         </div>
                         <div></div>
@@ -347,13 +347,13 @@ export default function ReservationSummary() {
                 <div className="mb-3 space-y-2 text-sm">
                   <p className="text-[#111827]">Price Details</p>
                   <div className="flex items-center justify-between">
-                    <p className="text-[#606368]">#{room.pricePerNight.toLocaleString()} / {nights} {nights === 1 ? 'night' : 'nights'}</p>
-                    <p className="text-[#111827]">#{(room.pricePerNight * nights).toLocaleString()}</p>
+                    <p className="text-[#606368]">₦{((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights).toLocaleString()} / {nights} {nights === 1 ? 'night' : 'nights'}</p>
+                    <p className="text-[#111827]">₦{((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights).toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
                   <p>Sub Total</p>
-                  <p>#{partPay ? ((room.pricePerNight * nights)/2).toLocaleString() : (room.pricePerNight * nights).toLocaleString()}</p>
+                  <p>₦{partPay ? (((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights)/2).toLocaleString() : ((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights).toLocaleString()}</p>
                 </div>
               </div>
             </div>

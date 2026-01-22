@@ -44,12 +44,6 @@ export function ReservationsProvider({
     const handleSubmit = async () => {
         try {
             setIsLoading(true);
-            console.log({
-                checkInDate,
-                checkOutDate,
-                guestCount,
-                roomId
-            });
 
             // Validate required fields
             if (!checkInDate || !checkOutDate || !guestCount || !roomId) {
@@ -82,7 +76,7 @@ export function ReservationsProvider({
                 specialRequest,
                 room: roomId,
                 partPaid: partPay,
-                totalAmount: partPay ? (room.pricePerNight * nights)/ 2 : room.pricePerNight * nights,
+                totalAmount: partPay ? ((room.pricePerNight  - room.pricePerNight * (room.discount / 100))  * nights)/ 2 : (room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights,
                 vendor: vendor._id,
                 location: vendor.address,
                 image: vendor.profileImages?.[0],

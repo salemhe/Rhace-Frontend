@@ -8,14 +8,22 @@ import { Button } from "@/components/ui/button";
 import DatePicker from "../ui/datepicker";
 import { TimePicker } from "../ui/timepicker";
 import { GuestPicker } from "../ui/guestpicker";
+import { useSelector } from "react-redux";
+import { userService } from "@/services/user.service";
 
-const BookingForm = ({ id }) => {
+const BookingForm = ({ id, menu = false, reservation }) => {
     const [date, setDate] = useState();
     const [time, setTime] = useState("");
     const [request, setRequest] = useState("");
     const [guests, setGuests] = useState("1");
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
+    const user = useSelector((state) => state.auth.user);
+
+    const parsedGuestCount = parseInt(guests, 10);
+    if (isNaN(parsedGuestCount) || parsedGuestCount < 1) {
+        throw new Error("Please enter a valid number of guests.");
+    }
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -28,11 +36,73 @@ const BookingForm = ({ id }) => {
         e.preventDefault();
         setIsLoading(true);
         try {
-            if (!date || !time) {
-                throw new Error("Date and Time are required");
+            if (menu) {
+                const vendor = reservation.vendor;
+                if (!user) {
+                    navigate(`/auth/user/login?redirect=/menus/${id}`);
+                }
+
+                if (!date || !guests || !time) {
+                    throw new Error("Please fill in all required fields.");
+                }
+
+                if (!vendor._id) {
+                    throw new Error("Vendor information is missing.");
+                }
+
+                const parsedGuestCount = parseInt(guests, 10);
+                if (isNaN(parsedGuestCount) || parsedGuestCount < 1) {
+                    throw new Error("Please enter a valid number of guests.");
+                }
+
+                const selectedMeals = reservation.selected.filter(item => item.quantity > 0);
+
+                // Calculate total price
+                const totalPrice = selectedMeals.reduce(
+                    (total, item) => total + ((item.price || 0) * (item.quantity || 1)),
+                    0
+                );
+
+                // Prepare reservation data
+                const reservationData = {
+                    // _id: "1",
+                    reservationType: "restaurant",
+                    customerName: `${user.firstName} ${user.lastName}`.trim(),
+                    customerEmail: user.email,
+                    customerId: user._id,
+                    date: date.toISOString(),
+                    time,
+                    guests: parsedGuestCount,
+                    request,
+                    mealPreselected: selectedMeals.length > 0,
+                    // additionalNote,
+                    menus: selectedMeals.map(item => ({
+                        menu: item._id,
+                        quantity: item.quantity || 1,
+                        specialRequest: item.specialRequest || "",
+                    })),
+                    totalAmount: totalPrice + 1000,
+                    vendor: vendor._id,
+                    location: vendor.address,
+                    image: vendor.profileImages?.[0],
+                };
+
+                const res = await userService.createReservation(reservationData);
+
+                const reservationResponse = res.data;
+
+
+                toast.success("Reservation submitted successfully!");
+
+                // Navigate to confirmation page
+                navigate(`/restaurants/completed/${reservationResponse._id}`);
+            } else {
+                if (!date || !time) {
+                    throw new Error("Date and Time are required");
+                }
+                await new Promise((resolve) => setTimeout(resolve, 3000));
+                navigate(`/restaurants/${id}/reservations?${params.toString()}`);
             }
-            await new Promise((resolve) => setTimeout(resolve, 3000));
-            navigate(`/restaurants/${id}/reservations?${params.toString()}`);
         } catch (err) {
             if (err) {
                 const errorMessage =
@@ -52,22 +122,22 @@ const BookingForm = ({ id }) => {
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
             <div className="flex flex-col md:flex-row w-full gap-4">
                 <DatePicker value={date} onChange={setDate} />
-                <TimePicker value={time} onChange={setTime} 
-                                slot={[
-                  '09:00 AM','09:30 AM',
-                  '10:00 AM','10:30 AM',
-                  '11:00 AM','11:30 AM',
-                  '12:00 PM','12:30 PM',
-                  '01:00 PM','01:30 PM',
-                  '02:00 PM','02:30 PM',
-                  '03:00 PM','03:30 PM',
-                  '04:00 PM','04:30 PM',
-                  '05:00 PM','05:30 PM',
-                  '06:00 PM','06:30 PM',
-                  '07:00 PM','07:30 PM',
-                  '08:00 PM','08:30 PM',
-                ]}
-              />
+                <TimePicker value={time} onChange={setTime}
+                    slot={[
+                        '09:00 AM', '09:30 AM',
+                        '10:00 AM', '10:30 AM',
+                        '11:00 AM', '11:30 AM',
+                        '12:00 PM', '12:30 PM',
+                        '01:00 PM', '01:30 PM',
+                        '02:00 PM', '02:30 PM',
+                        '03:00 PM', '03:30 PM',
+                        '04:00 PM', '04:30 PM',
+                        '05:00 PM', '05:30 PM',
+                        '06:00 PM', '06:30 PM',
+                        '07:00 PM', '07:30 PM',
+                        '08:00 PM', '08:30 PM',
+                    ]}
+                />
             </div>
             <GuestPicker value={guests} onChange={setGuests} />
             <div className="flex flex-col gap-y-3">

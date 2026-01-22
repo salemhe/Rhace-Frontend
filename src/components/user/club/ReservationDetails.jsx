@@ -55,6 +55,7 @@ export default function ReservationDetails({
   const [bottlesLoading, setBottlesLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(true);
   const [itemsToShow, setItemsToShow] = useState(8);
+  const [tablesToShow, setTablesToShow] = useState(6);
   const [activeTab, setActiveTab] = useState("All Bottles");
   const navigate = useNavigate();
   const ref = useRef(null);
@@ -63,7 +64,6 @@ export default function ReservationDetails({
   const isInView = useInView(ref, { once: true, margin: "-100px" });
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentIndex2, setCurrentIndex2] = useState(0);
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % comboItems.length);
@@ -71,14 +71,6 @@ export default function ReservationDetails({
 
   const prevSlide = () => {
     setCurrentIndex((prev) => (prev - 1 + comboItems.length) % comboItems.length);
-  };
-
-  const nextSlide2 = () => {
-    setCurrentIndex2((prev) => (prev + 1) % table.length);
-  };
-
-  const prevSlide2 = () => {
-    setCurrentIndex2((prev) => (prev - 1 + table.length) % table.length);
   };
 
   const slideWidth =
@@ -146,11 +138,22 @@ export default function ReservationDetails({
       : bottleItems?.filter((item) => item.category === activeTab);
 
   const displayedItems = filteredBottles?.slice(0, itemsToShow);
+  const displayTables = table.slice(0, tablesToShow);
 
   const hasMore = (filteredBottles ? filteredBottles.length : 0) > itemsToShow;
+  const tableHasMore = (table ? table.length : 0) > tablesToShow;
 
   const handleShowMore = () => {
     setItemsToShow((prev) =>
+      Math.min(
+        prev + LOAD_MORE_STEP,
+        filteredBottles ? filteredBottles.length : 0
+      )
+    );
+  };
+
+  const handleTableShowMore = () => {
+    setTablesToShow((prev) =>
       Math.min(
         prev + LOAD_MORE_STEP,
         filteredBottles ? filteredBottles.length : 0
@@ -300,94 +303,72 @@ export default function ReservationDetails({
               <h3 className="text-xs md:text-sm text-[#111827]">
                 Tables
               </h3>
-              <div className="flex gap-6">
-                <button
-                  disabled={currentIndex2 === 0}
-                  onClick={prevSlide2}
-                  className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]"
-                >
-                  <ChevronLeft />
-                </button>
-                <button onClick={nextSlide2} disabled={currentIndex2 === table.length -1} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
-                  <ChevronRight />
-                </button>
-              </div>
             </div>
             <div className="flex overflow-hidden w-full" ref={containerRef} >
-            <motion.div
-              className="flex gap-6"
-              animate={{ x: -currentIndex2 * slideWidth }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-            >
+              <motion.div
+                className="flex gap-6"
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+              >
                 {tableLoading ? (
                   <div>TableLoader</div>
-                ) : table.length === 0 ? (
+                ) : displayTables.length === 0 ? (
                   <div>No available Tables</div>
                 ) : (
-                  table.map((item, index) => {
-                  return (
-                    <motion.div
-                      key={index}
-                      ref={index === 0 ? cardRef : null}
-                      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className={`${item.selected
-                        && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
-                        } p-1 h-[420px] w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] flex-shrink-0`}
-                    >
-                      <div className="p-2 w-full h-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col">
-                        <div className="relative w-full h-[150px] overflow-hidden rounded-2xl flex-shrink-0">
-                          {item.image ? (
-                            <img
-                            src={item.image}
-                            alt={item.name}
-                            className="object-cover size-full"
-                            />
-                          ) : (
-                            <div className="bg-gray-200 size-full flex items-center justify-center">
-                              No Image
-                            </div>
-                          )}
-                          {item.specials && (
-                            <div className="absolute bg-[#E5E7EB] rounded-full top-2 left-2 px-3 text-xs font-medium text-[#111827] py-1">
-                              {item.specials}
-                            </div>
-                          )}
-                        </div>
-                        <div className="px-3 space-y-3 flex-1 flex flex-col">
-                          <p className="text-[#111827] text-sm">{item.name}</p>
-                          <div className="space-y-2 flex-1">
-                            {item.addOns.slice(0, 4).map((offer, i) => (
-                              <div key={i} className="flex items-center gap-2 ">
-                                <Check className="text-[#0A6C6D] flex-shrink-0" />
-                                <span className="text-sm text-[#111827]">
-                                  {offer}
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                          <div className="flex items-center justify-between w-full flex-shrink-0">
-                            <p className="text-sm text-[#111827]">
-                              #{item.setPrice.toLocaleString()}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`w-5 h-5 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
-                                  ? "bg-teal-600 border-teal-600 text-white"
-                                  : "border-gray-300"
-                                  }`}
-                                onClick={() => handleSelectionChange(item._id, 1)}
+                  <>
+                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4">
+                      {displayTables?.map((item) => (
+                        <div className="bg-white p-3 rounded-xl border w-[150px] flex flex-col justify-between hover:border-black">
+                          <div
+                            className={`w-6 h-6 rounded-md border hidden md:flex items-center justify-center cursor-pointer ${item.selected
+                              ? "bg-[#0A6C6D] border-[#0A6C6D] text-white"
+                              : "border-gray-300"
+                              }`}
+                            onClick={() => handleSelectionChange(item._id, 1)}
+                          >
+                            {item.selected && (
+                              <svg
+                                width="16"
+                                height="16"
+                                viewBox="0 0 16 16"
+                                fill="none"
+                                xmlns="http://www.w3.org/2000/svg"
                               >
-                                {item.selected && <Check className="h-3 w-3" />}
-                              </div>
-                              <span className="text-xs text-[#111827]">Add</span>
-                            </div>
+                                <path
+                                  d="M3.33301 9.33301C3.33301 9.33301 4.66634 9.66634 5.66634 11.6663C5.66634 11.6663 9.37221 5.55523 12.6663 4.33301"
+                                  stroke="white"
+                                  strokeWidth="1.5"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            )}
                           </div>
+                          <div>
+                            <h3 className="font-bold text-gray-800 text-sm">{item.name}</h3>
+                          </div>
+                          <p className="font-semibold text-gray-900 mt-4">
+                            ₦{item.price.toLocaleString()}
+                          </p>
                         </div>
+                      ))}
+                    </div>
+
+                    {tableHasMore && (
+                      <div className="mt-8">
+                        <button
+                          onClick={handleTableShowMore}
+                          className="text-[#0A6C6D] hover:underline text-sm cursor-pointer flex items-center gap-2"
+                        >
+                          Show more{" "}
+                          <ChevronDown
+                            className="h-4 w-4"
+                          />
+                        </button>
                       </div>
-                    </motion.div>
-                  );
-                }))}
+                    )}
+                  </>
+                )
+                }
               </motion.div>
             </div>
           </div>
@@ -404,86 +385,86 @@ export default function ReservationDetails({
                 >
                   <ChevronLeft />
                 </button>
-                <button onClick={nextSlide} disabled={currentIndex === comboItems.length -1} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
+                <button onClick={nextSlide} disabled={currentIndex === comboItems.length - 1} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
                   <ChevronRight />
                 </button>
               </div>
             </div>
             <div className="flex overflow-hidden w-full" ref={containerRef} >
-            <motion.div
-              className="flex gap-6"
-              animate={{ x: -currentIndex * slideWidth }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-            >
+              <motion.div
+                className="flex gap-6"
+                animate={{ x: -currentIndex * slideWidth }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+              >
                 {comboLoading ? (
                   <div>ComboLoader</div>
                 ) : comboItems.length === 0 ? (
                   <div>No available Combos</div>
                 ) : (
                   comboItems.map((item, index) => {
-                  return (
-                    <motion.div
-                      key={index}
-                      ref={index === 0 ? cardRef : null}
-                      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className={`${item.selected
-                        && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
-                        } p-1 h-[420px] w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] flex-shrink-0`}
-                    >
-                      <div className="p-2 w-full h-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col">
-                        <div className="relative w-full h-[150px] overflow-hidden rounded-2xl flex-shrink-0">
-                          {item.image ? (
-                            <img
-                            src={item.image}
-                            alt={item.name}
-                            className="object-cover size-full"
-                            />
-                          ) : (
-                            <div className="bg-gray-200 size-full flex items-center justify-center">
-                              No Image
-                            </div>
-                          )}
-                          {item.specials && (
-                            <div className="absolute bg-[#E5E7EB] rounded-full top-2 left-2 px-3 text-xs font-medium text-[#111827] py-1">
-                              {item.specials}
-                            </div>
-                          )}
-                        </div>
-                        <div className="px-3 space-y-3 flex-1 flex flex-col">
-                          <p className="text-[#111827] text-sm">{item.name}</p>
-                          <div className="space-y-2 flex-1">
-                            {item.addOns.slice(0, 4).map((offer, i) => (
-                              <div key={i} className="flex items-center gap-2 ">
-                                <Check className="text-[#0A6C6D] flex-shrink-0" />
-                                <span className="text-sm text-[#111827]">
-                                  {offer}
-                                </span>
+                    return (
+                      <motion.div
+                        key={index}
+                        ref={index === 0 ? cardRef : null}
+                        animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        className={`${item.selected
+                          && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
+                          } p-1 h-[420px] w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] flex-shrink-0`}
+                      >
+                        <div className="p-2 w-full h-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col">
+                          <div className="relative w-full h-[150px] overflow-hidden rounded-2xl flex-shrink-0">
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="object-cover size-full"
+                              />
+                            ) : (
+                              <div className="bg-gray-200 size-full flex items-center justify-center">
+                                No Image
                               </div>
-                            ))}
-                          </div>
-                          <div className="flex items-center justify-between w-full flex-shrink-0">
-                            <p className="text-sm text-[#111827]">
-                              #{item.setPrice.toLocaleString()}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`w-5 h-5 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
-                                  ? "bg-teal-600 border-teal-600 text-white"
-                                  : "border-gray-300"
-                                  }`}
-                                onClick={() => handleSelectionChange(item._id)}
-                              >
-                                {item.selected && <Check className="h-3 w-3" />}
+                            )}
+                            {item.specials && (
+                              <div className="absolute bg-[#E5E7EB] rounded-full top-2 left-2 px-3 text-xs font-medium text-[#111827] py-1">
+                                {item.specials}
                               </div>
-                              <span className="text-xs text-[#111827]">Add</span>
+                            )}
+                          </div>
+                          <div className="px-3 space-y-3 flex-1 flex flex-col">
+                            <p className="text-[#111827] text-sm">{item.name}</p>
+                            <div className="space-y-2 flex-1">
+                              {item.addOns.slice(0, 4).map((offer, i) => (
+                                <div key={i} className="flex items-center gap-2 ">
+                                  <Check className="text-[#0A6C6D] flex-shrink-0" />
+                                  <span className="text-sm text-[#111827]">
+                                    {offer}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex items-center justify-between w-full flex-shrink-0">
+                              <p className="text-sm text-[#111827]">
+                                ₦{item.setPrice.toLocaleString()}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-5 h-5 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
+                                    ? "bg-teal-600 border-teal-600 text-white"
+                                    : "border-gray-300"
+                                    }`}
+                                  onClick={() => handleSelectionChange(item._id)}
+                                >
+                                  {item.selected && <Check className="h-3 w-3" />}
+                                </div>
+                                <span className="text-xs text-[#111827]">Add</span>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  );
-                }))}
+                      </motion.div>
+                    );
+                  }))}
               </motion.div>
             </div>
           </div>
@@ -551,7 +532,7 @@ export default function ReservationDetails({
                           </p>
                         </div>
                         <div className="flex items-center text-xs md:text-sm justify-between">
-                          <p>#{item.price.toLocaleString()}</p>
+                          <p>₦{item.price.toLocaleString()}</p>
                           <div className="flex items-center">
                             <Button
                               variant="outline"

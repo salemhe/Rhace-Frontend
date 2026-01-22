@@ -11,7 +11,8 @@ export const useFavorites = () => {
     try {
       setLoading(true);
       setError(null);
-      const res = await userService.getFavorites();
+      const response = await userService.getFavorites();
+      const res = response.favorites || response.data || response;
       console.log("Favorites API response:", res);
 
       // Handle different response structures

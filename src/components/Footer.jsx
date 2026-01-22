@@ -92,7 +92,7 @@ export default function Footer() {
                       transition={{ duration: 0.2 }}
                     >
                       <a
-                        href={href === "home" ? `/` : href}
+                        href={href === "home" ? `/` : `/${href}`}
                         className="hover:text-teal-400 transition-colors"
                       >
                         {link}

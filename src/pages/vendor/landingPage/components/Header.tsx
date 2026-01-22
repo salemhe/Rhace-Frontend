@@ -32,7 +32,7 @@ export function Header() {
             {["Features", "How it Works", "FAQ"].map((item, index) => (
               <motion.a
                 key={item}
-                href={`#${item.toLowerCase().replace(/\s+/g, "-")}`}
+                href={`₦${item.toLowerCase().replace(/\s+/g, "-")}`}
                 className="text-gray-600 hover:text-teal-600 transition-colors"
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}

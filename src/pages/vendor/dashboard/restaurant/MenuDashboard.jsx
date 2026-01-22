@@ -124,7 +124,7 @@ const MenuDashboard = () => {
       accessorKey: "price",
       header: "Price",
       cell: ({ row }) => (
-        <span className='text-[#111827] font-medium text-sm'>#{row.getValue("price")}</span>
+        <span className='text-[#111827] font-medium text-sm'>₦{row.getValue("price")}</span>
       )
     },
     {
@@ -281,7 +281,7 @@ const MenuDashboard = () => {
       accessorKey: "price",
       header: "Price",
       cell: ({ row }) => (
-        <span className='text-[#111827] font-medium text-sm'>#{row.getValue("price")}</span>
+        <span className='text-[#111827] font-medium text-sm'>₦{row.getValue("price")}</span>
       )
     },
     {
@@ -664,7 +664,7 @@ const MenuDashboard = () => {
                           </div>
                         )}
                         <div className='flex w-full justify-between'>
-                          <span>#{item.price.toLocaleString()}</span>
+                          <span>₦{item.price.toLocaleString()}</span>
                           <button onClick={() => setShowPopup({
                             details: item,
                             display: true,

@@ -27,6 +27,7 @@ export default function ReservationSummary({ id }) {
     setDate,
     time,
     setTime,
+    table,
     vendor,
     totalPrice,
     handleSubmit,
@@ -138,7 +139,23 @@ export default function ReservationSummary({ id }) {
                           {item.addOns.join(" ")}
                         </p>
                         <p className="text-sm text-[#111827]">
-                          #{item.setPrice.toLocaleString()}
+                          ₦{item.setPrice.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                  {table.filter((item) => item.selected).map((item, i) => (
+                    <div
+                      key={i}
+                      className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
+                    >
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-[#111827]">{item.name}</p>
+                        <X className="text-[#606368]" />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <p className="text-sm text-[#111827]">
+                          ₦{item.price.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -157,7 +174,7 @@ export default function ReservationSummary({ id }) {
                           {item.volume}ml x {item.quantity}
                         </p>
                         <p className="text-sm text-[#111827]">
-                          #{item.price.toLocaleString()}
+                          ₦{item.price.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -203,7 +220,7 @@ export default function ReservationSummary({ id }) {
                         }}
                       >
                         <h3 className="text-lg font-semibold">
-                          Pay #{totalPrice.toLocaleString()} now
+                          Pay ₦{totalPrice.toLocaleString()} now
                         </h3>
                         <div></div>
                       </div>
@@ -216,7 +233,7 @@ export default function ReservationSummary({ id }) {
                         <div className="space-y-1">
                           <h3 className="text-[#111827]">Pay part now, rest later</h3>
                           <p>
-                            Pay #{Math.round(totalPrice / 2).toLocaleString()} now, and #{Math.round(totalPrice / 2).toLocaleString()} on {date ? format(date, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
+                            Pay ₦{Math.round(totalPrice / 2).toLocaleString()} now, and ₦{Math.round(totalPrice / 2).toLocaleString()} on {date ? format(date, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
                           </p>
                         </div>
                         <div></div>
@@ -234,7 +251,7 @@ export default function ReservationSummary({ id }) {
                   <div className="flex items-center justify-between">
                     <p className="text-[#606368]">Table fee</p>
                     <p className="text-[#111827]">
-                      #
+                      ₦
                       {(
                         vendor && vendor.priceRange * parseInt(guestCount, 10)
                       )?.toLocaleString()}
@@ -247,6 +264,17 @@ export default function ReservationSummary({ id }) {
                         #
                         {comboItems.filter((item) => item.selected)
                           .reduce((total, item) => total + (item.setPrice || 0), 0)
+                          ?.toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+                  {table.filter((item) => item.selected).length > 0 && (
+                    <div className="flex items-center justify-between">
+                      <p className="text-[#606368]">Table</p>
+                      <p className="text-[#111827]">
+                        #
+                        {table.filter((item) => item.selected)
+                          .reduce((total, item) => total + (item.price || 0), 0)
                           ?.toLocaleString()}
                       </p>
                     </div>
@@ -280,7 +308,7 @@ export default function ReservationSummary({ id }) {
                 </div>
                 <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
                   <p>Sub Total</p>
-                  <p>#{totalPrice.toLocaleString()}</p>
+                  <p>₦{partPay ? (totalPrice / 2).toLocaleString() : totalPrice.toLocaleString()}</p>
                 </div>
               </div>
             </div>
