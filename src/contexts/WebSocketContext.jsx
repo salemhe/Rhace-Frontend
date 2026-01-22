@@ -193,6 +193,22 @@ export const WebSocketProvider = ({ url, children }) => {
       }
     });
 
+    socket.current.on("user-activity", (payload) => {
+      const handler = listeners.current.get("user-activity");
+      if (handler) {
+        console.log("User activity received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("userActivity", (payload) => {
+      const handler = listeners.current.get("user-activity");
+      if (handler) {
+        console.log("User activity (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
     socket.current.on("vendor-created", (payload) => {
       const handler = listeners.current.get("vendor-created");
       if (handler) {

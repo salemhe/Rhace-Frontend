@@ -195,10 +195,13 @@ export default function Dashboard() {
     fetchTotalUsers();
     fetchRevenueTrends();
 
-    // Poll KPIs periodically as a fallback for realtime updates
+    // Poll dashboard data periodically as a fallback for realtime updates
     const polling = setInterval(() => {
       fetchKPIs();
       fetchTotalUsers();
+      fetchTodaysReservations();
+      fetchTopVendors();
+      fetchRevenueTrends();
     }, 30000);
 
     return () => clearInterval(polling);
@@ -280,17 +283,41 @@ export default function Dashboard() {
       fetchTopVendors();
     };
 
+    // Additional events for real-time updates
+    const handleReservationStatusChanged = (reservation: any) => {
+      // Update today's reservations and top vendors when reservation status changes
+      fetchTodaysReservations();
+      fetchTopVendors();
+      fetchKPIs();
+    };
+
+    const handlePayoutProcessed = (payout: any) => {
+      // Update revenue trends and KPIs when payouts are processed
+      fetchRevenueTrends();
+      fetchKPIs();
+      fetchTransactions();
+    };
+
+    const handleVendorEarningsUpdated = (data: any) => {
+      // Update top vendors when earnings change
+      fetchTopVendors();
+      fetchRevenueTrends();
+    };
+
     subscribe("user-created", handleUserCreated);
     subscribe("user-deleted", handleUserDeleted);
     subscribe("user-updated", handleUserUpdated);
     subscribe("user-count-updated", handleUserCountUpdated);
     subscribe("payout_update", handlePayoutUpdate);
+    subscribe("payout-processed", handlePayoutProcessed);
     subscribe("reservation-created", handleReservationCreated);
     subscribe("reservation-updated", handleReservationUpdated);
     subscribe("reservation-deleted", handleReservationDeleted);
+    subscribe("reservation-status-changed", handleReservationStatusChanged);
     subscribe("payment-created", handlePaymentCreated);
     subscribe("payment-updated", handlePaymentUpdated);
     subscribe("vendor-updated", handleVendorUpdated);
+    subscribe("vendor-earnings-updated", handleVendorEarningsUpdated);
 
     return () => {
     unsubscribe("user-created");
@@ -298,12 +325,15 @@ export default function Dashboard() {
     unsubscribe("user-updated");
     unsubscribe("user-count-updated");
     unsubscribe("payout_update");
+    unsubscribe("payout-processed");
       unsubscribe("reservation-created");
       unsubscribe("reservation-updated");
       unsubscribe("reservation-deleted");
+      unsubscribe("reservation-status-changed");
       unsubscribe("payment-created");
       unsubscribe("payment-updated");
       unsubscribe("vendor-updated");
+      unsubscribe("vendor-earnings-updated");
     };
   }, [subscribe, unsubscribe]);
 
