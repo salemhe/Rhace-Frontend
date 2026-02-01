@@ -12,7 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Home, Store, Calendar, CreditCard, Bell, Shield, ChevronLeft, ChevronRight, Save, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
 import { getSettings, updateSettings } from "@/services/admin.service";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("overview");

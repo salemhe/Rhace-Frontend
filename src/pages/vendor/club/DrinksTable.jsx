@@ -32,7 +32,7 @@ import {
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { AddDrinkModal } from "./AddDrinkModal";
 import { AddTablesModal } from "./AddTablesModal";
 
@@ -258,21 +258,16 @@ export function DrinksTable() {
 
   return (
     <DashboardLayout type="club" section="drinks">
-      <div className="min-h-screen bg-gray-50 p-6 mb-12">
+      <div className="min-h-screen bg-gray-50 p-2 md:p-6 mb-12">
         <div className="max-w-7xl mx-auto">
-          <div className="md:flex hidden justify-between items-center mb-6">
-            <h2 className="text-[#111827] font-semibold">Drinks Management</h2>
-            <div className="flex gap-6">
+          <div className="md:flex justify-between items-center mb-6">
+            <h2 className="text-[#111827] font-semibold mb-2">Drinks Management</h2>
+            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-2 md:gap-6">
               <DashboardButton
                 onClick={() => setHideTab(!hideTab)}
                 variant="secondary"
                 text={hideTab ? "Open tabs" : "Hide tabs"}
                 icon={hideTab ? <Eye /> : <EyeClose />}
-              />
-              <DashboardButton
-                variant="secondary"
-                text="Export"
-                icon={<Export />}
               />
               <button
                 onClick={() => navigate("/dashboard/club/add-drinks")}
@@ -299,7 +294,7 @@ export function DrinksTable() {
           </div>
 
           {!hideTab && (
-            <div className="flex mb-8 rounded-lg bg-white border border-gray-200">
+            <div className="grid sm:grid-cols-2 divide-neutral-600 divide lg:grid-cols-4 mb-8 rounded-lg bg-white border border-gray-200">
               <div className="flex-1">
                 <StatCard
                   title="Total Drinks"
@@ -308,9 +303,9 @@ export function DrinksTable() {
                   color="blue"
                   IconColor="#60A5FA"
                   icon={<Calendar />}
+                  side
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Bottle Sets"
@@ -321,7 +316,6 @@ export function DrinksTable() {
                   icon={<CardPay />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Active Items"
@@ -332,7 +326,6 @@ export function DrinksTable() {
                   icon={<Group3 />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Total Value"
@@ -357,17 +350,16 @@ export function DrinksTable() {
                   <button
                     key={tab}
                     onClick={() => setSelectedTab(tab)}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
-                      selectedTab === tab
-                        ? "text-gray-900 border-b-2 border-gray-900"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${selectedTab === tab
+                      ? "text-gray-900 border-b-2 border-gray-900"
+                      : "text-gray-500 hover:text-gray-700"
+                      }`}
                   >
                     {tab === "drinks"
                       ? "Drinks"
                       : tab === "sets"
-                      ? "Drinks Sets"
-                      : "Tables"}
+                        ? "Drinks Sets"
+                        : "Tables"}
                   </button>
                 ))}
               </div>
@@ -400,21 +392,19 @@ export function DrinksTable() {
                       <div className="p-2">
                         <button
                           onClick={() => setSelectedStatus("all")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "all"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "all"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           All Status
                         </button>
                         <button
                           onClick={() => setSelectedStatus("Active")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "Active"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "Active"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           <span className="inline-flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-green-500"></span>
@@ -423,11 +413,10 @@ export function DrinksTable() {
                         </button>
                         <button
                           onClick={() => setSelectedStatus("Inactive")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "Inactive"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "Inactive"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           <span className="inline-flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-gray-500"></span>
@@ -436,11 +425,10 @@ export function DrinksTable() {
                         </button>
                         <button
                           onClick={() => setSelectedStatus("Out of Stock")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "Out of Stock"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "Out of Stock"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           <span className="inline-flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-red-500"></span>
@@ -449,11 +437,10 @@ export function DrinksTable() {
                         </button>
                         <button
                           onClick={() => setSelectedStatus("Low Stock")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "Low Stock"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "Low Stock"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           <span className="inline-flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
@@ -484,11 +471,10 @@ export function DrinksTable() {
                             <button
                               key={cat.value}
                               onClick={() => setSelectedCategory(cat.value)}
-                              className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                                selectedCategory === cat.value
-                                  ? "bg-gray-100 font-medium"
-                                  : ""
-                              }`}
+                              className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedCategory === cat.value
+                                ? "bg-gray-100 font-medium"
+                                : ""
+                                }`}
                             >
                               {cat.label}
                             </button>
@@ -559,9 +545,11 @@ export function DrinksTable() {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Image
-                      </th>
+                      {selectedTab !== "tables" && (
+                        <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Image
+                        </th>
+                      )}
                       <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Name
                       </th>
@@ -583,20 +571,22 @@ export function DrinksTable() {
                           Quantity
                         </th>
                       )}
+                      {selectedTab !== "drinks" && (
+                        <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          AddOns
+                        </th>
+                      )}
                       {selectedTab === "sets" && (
                         <>
-                          <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            AddOns
-                          </th>
                           <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Drinks
                           </th>
                         </>
                       )}
-                      {selectedTab === "sets" || selectedTab === "drinks" && (
+                      {selectedTab !== "tables" && (
                         <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
+                          Status
+                        </th>
                       )}
                       <th className="w-12 px-4 py-3"></th>
                     </tr>
@@ -604,7 +594,7 @@ export function DrinksTable() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedItems.map((item) => (
                       <tr key={item._id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4">
+                        {selectedTab !== "tables" && (<td className="px-4 py-4">
                           <img
                             src={
                               selectedTab === "drinks"
@@ -614,7 +604,7 @@ export function DrinksTable() {
                             alt={item.name}
                             className="w-12 h-12 rounded-lg object-cover"
                           />
-                        </td>
+                        </td>)}
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <div>
@@ -645,25 +635,28 @@ export function DrinksTable() {
                             {item.quantity || 0}
                           </td>
                         )}
+                        {selectedTab !== "drinks" && (
+
+                          <td className="px-4 py-4 text-sm text-gray-900">
+                            <div className="flex flex-wrap gap-1 items-center">
+                              {item.addOns?.slice(0, 2).map((addOn, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-1 bg-gray-100 rounded text-xs"
+                                >
+                                  {addOn}
+                                </span>
+                              ))}
+                              {item.addOns?.length > 2 && (
+                                <span className="text-xs text-gray-500">
+                                  +{item.addOns.length - 2} more
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        )}
                         {selectedTab === "sets" && (
                           <>
-                            <td className="px-4 py-4 text-sm text-gray-900">
-                              <div className="flex flex-wrap gap-1">
-                                {item.addOns?.slice(0, 2).map((addOn, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="px-2 py-1 bg-gray-100 rounded text-xs"
-                                  >
-                                    {addOn}
-                                  </span>
-                                ))}
-                                {item.addOns?.length > 2 && (
-                                  <span className="text-xs text-gray-500">
-                                    +{item.addOns.length - 2} more
-                                  </span>
-                                )}
-                              </div>
-                            </td>
                             <td className="px-4 py-4 text-sm text-gray-900">
                               {item.items?.reduce(
                                 (acc, i) => acc + (i.quantity || 0),
@@ -673,15 +666,15 @@ export function DrinksTable() {
                           </>
                         )}
                         {selectedTab === "sets" || selectedTab === "drinks" && (
-                        <td className="px-4 py-4">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                              item.status
-                            )}`}
-                          >
-                            {normalizeStatus(item.status)}
-                          </span>
-                        </td>
+                          <td className="px-4 py-4">
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                item.status
+                              )}`}
+                            >
+                              {normalizeStatus(item.status)}
+                            </span>
+                          </td>
                         )}
                         <td className="px-4 py-4">
                           <button className="text-gray-400 hover:text-gray-600">
@@ -717,15 +710,13 @@ export function DrinksTable() {
                   disabled={
                     page === "ellipsis-start" || page === "ellipsis-end"
                   }
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === page
-                      ? "bg-teal-600 text-white"
-                      : "bg-white text-gray-700 border border-gray-200"
-                  } ${
-                    page === "ellipsis-start" || page === "ellipsis-end"
+                  className={`px-3 py-1 rounded-md ${currentPage === page
+                    ? "bg-teal-600 text-white"
+                    : "bg-white text-gray-700 border border-gray-200"
+                    } ${page === "ellipsis-start" || page === "ellipsis-end"
                       ? "cursor-default"
                       : "hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   {page === "ellipsis-start" || page === "ellipsis-end"
                     ? "…"

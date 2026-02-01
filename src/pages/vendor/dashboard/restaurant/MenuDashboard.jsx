@@ -41,7 +41,7 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { useNavigate } from 'react-router';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { menuService } from '@/services/menu.service';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import { Switch } from '@/components/ui/switch';
 import { useSelector } from 'react-redux';
 import UniversalLoader from '@/components/user/ui/LogoLoader';

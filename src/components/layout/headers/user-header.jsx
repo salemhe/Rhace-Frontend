@@ -80,7 +80,7 @@ const UserHeader = () => {
   };
 
   return (
-    <header className={`fixed top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-transparent text-white'}`}>
+    <header className={`absolute md:fixed top-0 z-50 w-full transition-all duration-300 ${scrolled ? 'bg-white shadow-md' : 'bg-transparent text-white'}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
           {/* Logo */}
@@ -119,10 +119,10 @@ const UserHeader = () => {
             </button>
 
             {/* Profile Dropdown */}
-            <div className="relative" ref={dropdownRef}>
+            <div className="relative text-gray-700" ref={dropdownRef}>
               <button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-full transition-colors duration-200 ${scrolled ? 'outline outline-gray-200 hover:bg-gray-50' : 'outline outline-white/30 hover:bg-white/10'}`}
+                className={`flex items-center space-x-3 px-2 py-2 rounded-full transition-colors duration-200 ${scrolled ? 'outline outline-gray-200 hover:bg-gray-50' : 'outline outline-white/30 hover:bg-white/10'}`}
               >
                 {loading ? (
                   <div className="w-6 h-6 bg-gray-300 rounded-full animate-pulse" />
@@ -135,7 +135,7 @@ const UserHeader = () => {
                   <>
                     {profile ? (
 
-                      <Avatar className="w-10 h-10 mr-3">
+                      <Avatar className="w-8 h-8">
                         <AvatarImage
                           src={profile.profilePic}
                           alt={`${profile.firstName} ${profile.lastName}`}
@@ -178,7 +178,7 @@ export default UserHeader;
 
 
 
-function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, user }) {
+export function UserProfileMenu({ onClose, navigate, isAuthenticated, handleLogout, user }) {
   const handleNavigation = (path) => {
     if (navigate) navigate(path);
     if (onClose) onClose();

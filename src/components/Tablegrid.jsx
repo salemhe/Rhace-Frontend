@@ -12,6 +12,7 @@ import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import { HeartIcon } from "@/public/icons/icons";
 import { useState, useEffect } from "react";
+import UniversalLoader from "./user/ui/LogoLoader";
 
 // Common cuisine color palette
 const cuisineColorPalette = [
@@ -29,26 +30,10 @@ const TableGrid = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("restaurant", type);
   const navigate = useNavigate();
-  const { toggleFavorite, isFavorite } = useFavorites();
+  const { toggleFavorite, isLoadingFav, isFavorite } = useFavorites();
 
   if (isLoading) return (
-    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
-      {Array.from({ length: 4 }).map((_, index) => (
-        <div key={index} class="rounded-2xl bg-white shadow-md overflow-hidden">
-          <div class="h-44 w-full bg-gray-200 animate-pulse"></div>
-          <div class="p-4 space-y-4">
-            <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-            <div class="flex gap-2">
-              <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-              <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
-              <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
-            </div>
-            <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-            <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
-          </div>
-        </div>
-      ))};
-    </div>
+    <UniversalLoader type="cards" />
   );
 
   if (!restaurants || restaurants.length === 0) return null;
@@ -59,7 +44,7 @@ const TableGrid = ({ title, type }) => {
     <div className="mb-12 md:mb-20 lg:mb-[92px] px- sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border-1 shadow-none"
+        className="flex cursor-pointer bg-transparent sm:bg-white justify-between items-center sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border shadow-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -82,7 +67,7 @@ const TableGrid = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pb-2 sm:pb-4 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pb-2 sm:pb-4 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -115,7 +100,7 @@ const TableGrid = ({ title, type }) => {
                   ))}
 
                   {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                   {(restaurant.specialCategory) && (
                     <span className="absolute top-2 left-2 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
                       {restaurant.specialCategory}
@@ -126,11 +111,11 @@ const TableGrid = ({ title, type }) => {
                     e.stopPropagation();
                     toggleFavorite(restaurant._id, "restaurant");
                   }} className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md">
-                    {isFavorite(restaurant._id) ? (
-                      <HeartIcon className="text-red-500" />
-                    ) : (
-                      <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
-                    )}
+                  {isFavorite(restaurant._id || isLoadingFav(restaurant._id)) ? (
+                    <HeartIcon className="text-red-500" />
+                  ) : (
+                    <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
+                  )}
                   </button>
                 </div>
 
@@ -188,7 +173,7 @@ const TableGrid = ({ title, type }) => {
                       w-full text-xs sm:text-sm font-semibold 
                       rounded-full py-1 sm:py-3 tracking-wide 
                       text-white hover:cursor-pointer
-                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      bg-linear-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                       
                       transition-all duration-200 shadow-sm"
                   >
@@ -201,7 +186,7 @@ const TableGrid = ({ title, type }) => {
                       w-full text-[10px] sm:text-sm font-medium
                       rounded-full py-1.5 sm:py-3 tracking-wide 
                       text-white hover:cursor-pointer
-                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      bg-linear-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                       
                       transition-all duration-200 shadow-sm"
                   >
@@ -234,31 +219,11 @@ export const TableGridTwo = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("hotel", type);
   const navigate = useNavigate();
-  const { toggleFavorite, isFavorite } = useFavorites();
+  const { toggleFavorite, isLoadingFav, isFavorite } = useFavorites();
 
   if (isLoading)
     return (
-      <div class="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div
-            key={index}
-            class="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
-          >
-            <div class="h-30 sm:h-44 w-full bg-gray-200 animate-pulse"></div>
-            <div class="p-4 space-y-4">
-              <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-              <div class="flex gap-2">
-                <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-                <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
-                <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
-              </div>
-              <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-              <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-        ))}
-        ;
-      </div>
+      <UniversalLoader type="cards" />
     );
 
   if (!restaurants || restaurants.length === 0) return null;
@@ -269,7 +234,7 @@ export const TableGridTwo = ({ title, type }) => {
     <div className="mb-12 md:mb-20 lg:mb-[92px] px- sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border-1 shadow-none"
+        className="flex cursor-pointer bg-transparent sm:bg-white justify-between items-center sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border shadow-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -285,7 +250,7 @@ export const TableGridTwo = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto p-2 h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt-2 pb-2 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto p-2 h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pt-2 pb-2 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -318,7 +283,7 @@ export const TableGridTwo = ({ title, type }) => {
                   ))}
 
                   {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                 </div>
 
 
@@ -334,7 +299,7 @@ export const TableGridTwo = ({ title, type }) => {
                   }}
                   className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md"
                 >
-                  {isFavorite(restaurant._id) ? (
+                  {isFavorite(restaurant._id || isLoadingFav(restaurant._id)) ? (
                     <HeartIcon className="text-red-500" />
                   ) : (
                     <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
@@ -419,7 +384,7 @@ export const TableGridTwo = ({ title, type }) => {
                       w-full text-xs sm:text-sm font-semibold 
                       rounded-full py-1 sm:py-3 tracking-wide 
                       text-white hover:cursor-pointer
-                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      bg-linear-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                       
                       transition-all duration-200 shadow-sm"
                     >
@@ -432,7 +397,7 @@ export const TableGridTwo = ({ title, type }) => {
                       w-full text-[10px] sm:text-sm font-medium
                       rounded-full py-1.5 sm:py-3 tracking-wide 
                       text-white hover:cursor-pointer
-                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      bg-linear-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                       
                       transition-all duration-200 shadow-sm"
                     >
@@ -466,31 +431,11 @@ export const TableGridThree = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("club", type);
   const navigate = useNavigate();
-  const { toggleFavorite, isFavorite } = useFavorites();
+  const { toggleFavorite, isLoadingFav, isFavorite } = useFavorites();
 
   if (isLoading)
     return (
-      <div class="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div
-            key={index}
-            class="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
-          >
-            <div class="h-30 sm:h-44 w-full bg-gray-200 animate-pulse"></div>
-            <div class="p-4 space-y-4">
-              <div class="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-              <div class="flex gap-2">
-                <div class="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-                <div class="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
-                <div class="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
-              </div>
-              <div class="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-              <div class="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-        ))}
-        ;
-      </div>
+      <UniversalLoader type="cards" />
     );
 
   if (!restaurants || restaurants.length === 0) return null;
@@ -501,7 +446,7 @@ export const TableGridThree = ({ title, type }) => {
     <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border-1 shadow-none"
+        className="flex cursor-pointer bg-transparent sm:bg-white justify-between items-center sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border shadow-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -524,7 +469,7 @@ export const TableGridThree = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex-shrink-0 sm:flex-shrink cursor-pointer pt- pb-2 sm:pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pt- pb-2 sm:pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -557,7 +502,7 @@ export const TableGridThree = ({ title, type }) => {
                   ))}
 
                   {/* Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                 </div>
 
                 {(restaurant.specialCategory) && (
@@ -573,7 +518,7 @@ export const TableGridThree = ({ title, type }) => {
                   }}
                   className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md"
                 >
-                  {isFavorite(restaurant._id) ? (
+                  {isFavorite(restaurant._id || isLoadingFav(restaurant._id)) ? (
                     <HeartIcon className="text-red-500" />
                   ) : (
                     <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
@@ -597,16 +542,16 @@ export const TableGridThree = ({ title, type }) => {
               </div>
 
               {/* Info Section */}
-              <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
-                <div className="">
-                  <div className="flex flex-col-reverse  w-full justify-between">
-                    <h3 className="text-[10px] sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
+              <div className="pt-3 flex-1 space-y-2 flex flex-col justify-between">
+                <div className="space-y-2">
+                  <div className="flex flex-col-reverse px-2 sm:px-3  w-full justify-between">
+                    <h3 className="text-sm sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
                       {restaurant.businessName}
                     </h3>
                   </div>
 
                   {categories.length > 0 && (
-                    <div className="inline-flex flex-wrap gap-1 ">
+                    <div className="flex gap-1 overflow-x-auto hide-scrollbar px-2 sm:px-3 ">
                       {categories.slice(0, 3).map((category, index) => {
                         const classes =
                           cuisineColorPalette[
@@ -615,7 +560,7 @@ export const TableGridThree = ({ title, type }) => {
                         return (
                           <div
                             key={index}
-                            className={`px-3 py-2 ${classes} rounded-lg border-1 bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
+                            className={`px-3 py-2 ${classes} rounded-lg border bg-gray-200 text-xs text-zinc-600 font-medium leading-none whitespace-nowrap`}
                           >
                             {category}
                           </div>
@@ -624,7 +569,7 @@ export const TableGridThree = ({ title, type }) => {
                     </div>
                   )}
 
-                  <div className="flex items-center mt-1.5">
+                  <div className="flex px-2 sm:px-3 items-center mt-1.5">
                     <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
                     <span className="text-sm font-semibold text-gray-900">
                       {restaurant.rating?.toFixed(1)}
@@ -634,24 +579,24 @@ export const TableGridThree = ({ title, type }) => {
                     </span>
                   </div>
 
-                  <div className="flex text-gray-500 mt-1.5 justify-start items-center gap-1">
+                  <div className="flex px-2 sm:px-3 text-gray-500 mt-1.5 justify-start items-center gap-1">
                     <div className="font-medium leading-none">
                       Table from
                     </div>
                     <div className="font-semibold text-black leading-none">
-                      ₦{restaurant.priceRange}
+                      ₦{restaurant.priceRange.toLocaleString()}
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-1.5  w-full cursor-pointer flex ">
+                <div className="px-2 sm:px-3  w-full cursor-pointer flex ">
                   <Button
                     onClick={() => navigate(`/clubs/${restaurant._id}`)}
                     className=" hidden sm:flex
                       w-full text-xs sm:text-sm font-semibold 
                       rounded-full py-1 sm:py-3 tracking-wide 
                       text-white hover:cursor-pointer
-                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      bg-linear-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                       
                       transition-all duration-200 shadow-sm"
                   >
@@ -664,7 +609,7 @@ export const TableGridThree = ({ title, type }) => {
                       w-full text-[10px] sm:text-sm font-medium
                       rounded-full py-1.5 sm:py-3 tracking-wide 
                       text-white hover:cursor-pointer
-                      bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+                      bg-linear-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
                       
                       transition-all duration-200 shadow-sm"
                   >
@@ -716,25 +661,7 @@ export const TableGridFour = ({ title }) => {
 
   if (isLoading)
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 m-6">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <div
-            key={index}
-            className="rounded-2xl bg-white shadow-md overflow-hidden"
-          >
-            <div className="h-48 w-full bg-gray-200 animate-pulse"></div>
-            <div className="p-4 space-y-4">
-              <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
-              <div className="flex gap-2">
-                <div className="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
-                <div className="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
-              </div>
-              <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
-            </div>
-          </div>
-        ))}
-      </div>
+      <UniversalLoader type="cards" />
     );
 
   if (!menus || menus.length === 0) return null;
@@ -745,7 +672,7 @@ export const TableGridFour = ({ title }) => {
     <div className="mb-12 md:mb-20 lg:mb-[92px] px-4 sm:px-6 lg:px-8">
       <Button
         variant="outline"
-        className="flex cursor-pointer justify-between items-center mb-4 sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border-1 shadow-none"
+        className="flex cursor-pointer bg-transparent sm:bg-white justify-between items-center sm:mb-6 w-auto text-gray-900 text-sm sm:text-base font-medium leading-none border-0 md:border shadow-none"
       >
         <h2 className="">{title}</h2>
         <FiChevronRight className="ml-1 sm:ml-2" />
@@ -755,7 +682,7 @@ export const TableGridFour = ({ title }) => {
         {menus.slice(0, limit)?.map((menu) => (
           <div
             key={menu._id}
-            className="group cursor-pointer bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_12px_32px_rgba(0,0,0,0.12)] transition-all duration-300 overflow-hidden h-full flex flex-col"
+            className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pt- pb-2 sm:pb-4 flex flex-col bg-white overflow-hidden border rounded-3xl transition-all duration-300 group"
           >
             {/* Image Container */}
             <div className="relative h-40 sm:h-48 w-full overflow-hidden bg-gray-100">
@@ -777,7 +704,7 @@ export const TableGridFour = ({ title }) => {
 
             {/* Content Section */}
             <div
-              onClick={() => navigate(`/menus/${menu._id}`)} className="p-3 sm:p-4 flex-1 flex flex-col justify-between">
+              onClick={() => navigate(`/menus/${menu._id}`)} className="px-3 pt-3 sm:px-4 sm:pt-4 flex-1 flex flex-col justify-between">
               <div className="space-y-2">
                 {/* Dish Name */}
                 <h3 className="text-base sm:text-lg font-bold text-gray-900 line-clamp-2 leading-tight">
@@ -830,7 +757,7 @@ export const TableGridFour = ({ title }) => {
                     e.stopPropagation();
                     navigate(`/menus/${menu._id}`);
                   }}
-                  className="w-full py-2.5 sm:py-3 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-full transition-all duration-300 text-sm sm:text-base shadow-md hover:shadow-lg active:scale-95"
+                  className="w-full py-2.5 sm:py-3 bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white font-bold rounded-full transition-all duration-300 text-sm sm:text-base shadow-md hover:shadow-lg active:scale-95"
                 >
                   Order Now
                 </Button>

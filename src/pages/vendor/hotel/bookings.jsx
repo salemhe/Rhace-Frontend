@@ -49,7 +49,7 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 const normalizePaymentStatus = (status = "") => {
   const s = status.toLowerCase();

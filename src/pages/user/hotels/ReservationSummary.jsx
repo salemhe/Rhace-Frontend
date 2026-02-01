@@ -122,10 +122,10 @@ export default function ReservationSummary() {
   }
 
   return (
-    <div className="min-h-screen mb-[65px] mt-[20px] md:mt-0 bg-gray-50">
+    <div className="min-h-screen mb-[65px] md:mt-0 bg-gray-50">
       <ReservationHeader title="Reservation Details" index={1} />
       <div className="md:hidden flex items-center gap-3 px-4 py-3 ">
-        <button onClick={() => setPage(0)}>
+        <button onClick={() => navigate(`/hotels/${id}`)}>
           <svg
             width="20"
             height="20"
@@ -304,37 +304,43 @@ export default function ReservationSummary() {
           </div>
           <div className="md:col-span-3 space-y-6">
             <div className="rounded-2xl bg-white border">
-              <div className=" divide-y">
+              <div className="divide-y">
                 <div className="flex p-4">
                   <h3 className="text-lg font-semibold">Reservation Details</h3>
                 </div>
                 <div className="p-4">
-                  <div className="rounded-2xl bg-white border">
+                  <div className="cursor-pointer">
                     <div className=" divide-y">
                       <div
-                        className={`flex p-4 rounded-t-2xl justify-between items-center ${!partPay ? "border-4 border-teal-700" : ""}`}
+                        className={`flex p-4 rounded-t-2xl gap-2 bg-[#F9FAFB] border justify-between items-center ${!partPay && "border-teal-700"}`}
                         onClick={() => {
                           setPartPay(false)
                         }}
                       >
-                        <h3 className="text-lg font-semibold">
+                        <h3 className="text-sm font-semibold">
                           Pay ₦{((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights).toLocaleString()} now
                         </h3>
-                        <div></div>
+                        <svg width="20" height="20" className="shrink-0" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="0.5" y="0.5" width="19" height="19" rx="9.5" stroke="#0A6C6D" />
+                          {!partPay && <circle cx="10" cy="10" r="6" fill="#0A6C6D" />}
+                        </svg>
                       </div>
                       <div
-                        className={`flex p-4 rounded-b-2xl justify-between items-center ${partPay ? "border-4 border-teal-700" : ""}`}
+                        className={`flex p-4 gap-2 rounded-b-2xl bg-[#F9FAFB] border justify-between items-center ${partPay && "border-teal-700"}`}
                         onClick={() => {
                           setPartPay(true)
                         }}
                       >
                         <div className="space-y-1">
-                          <h3 className="text-[#111827]">Pay part now, rest later</h3>
-                          <p>
+                          <h3 className="text-sm font-semibold">Pay part now, rest later</h3>
+                          <p className="text-xs">
                             Pay ₦{Math.round(((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights) / 2).toLocaleString()} now, and ₦{Math.round(((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights) / 2).toLocaleString()} on {checkInDate ? format(checkInDate, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
                           </p>
                         </div>
-                        <div></div>
+                        <svg width="20" height="20" className="shrink-0" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="0.5" y="0.5" width="19" height="19" rx="9.5" stroke="#0A6C6D" />
+                          {partPay && <circle cx="10" cy="10" r="6" fill="#0A6C6D" />}
+                        </svg>
                       </div>
                     </div>
                   </div>
@@ -344,7 +350,7 @@ export default function ReservationSummary() {
             <div className="rounded-2xl bg-white border p-4">
               <h3 className="text-lg font-semibold">Your Total</h3>
               <div className=" divide-y">
-                <div className="mb-3 space-y-2 text-sm">
+                <div className="pb-3 space-y-2 text-sm">
                   <p className="text-[#111827]">Price Details</p>
                   <div className="flex items-center justify-between">
                     <p className="text-[#606368]">₦{((room.pricePerNight  - room.pricePerNight * (room.discount / 100)) * nights).toLocaleString()} / {nights} {nights === 1 ? 'night' : 'nights'}</p>
@@ -372,7 +378,7 @@ export default function ReservationSummary() {
             Back to Hotel Details Page
           </Button>
           <Button
-            className="bg-teal-600 hover:bg-teal-700 px-8 w-full max-w-xs rounded-xl cursor-pointer"
+            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 w-full max-w-xs rounded-xl cursor-pointer"
             onClick={handleContinue}
             disabled={!checkInDate || !guestCount}
           >

@@ -22,7 +22,7 @@ export default function Footer() {
         "
           style={{ letterSpacing: "0.1em" }}
         >
-          <div className="flex items-center w-[40rem] sm:w-full justify-center">
+          <div className="flex items-center w-160 sm:w-full justify-center">
             <img
               src={logoWhite}
               alt="Rhace Logo"

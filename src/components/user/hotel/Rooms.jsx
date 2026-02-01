@@ -4,7 +4,7 @@ import { ChevronLeft, ChevronRight, Wifi, Users, Bed, Coffee, Car, Building } fr
 // import { RoomsData } from '@/lib/api';
 import { hotelService } from '@/services/hotel.service';
 import UniversalLoader from '../ui/LogoLoader';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 const Rooms = ({ id, setSelectedRoom, setShow }) => {
   const tabs = [

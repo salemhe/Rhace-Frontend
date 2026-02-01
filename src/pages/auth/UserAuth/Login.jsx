@@ -8,7 +8,7 @@
 // import { authService } from "@/services/auth.service"
 // import { useDispatch } from "react-redux"
 // import { useNavigate, useSearchParams } from "react-router"
-// import { toast } from "sonner"
+// import { toast } from "react-toastify"
 // import { setUser } from "@/redux/slices/authSlice"
 
 // const getCurrentYear = () => new Date().getFullYear();
@@ -187,7 +187,7 @@ import GoogleIcon from "@/public/auth/google.svg";
 import { authService } from "@/services/auth.service"
 import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 import { setUser } from "@/redux/slices/authSlice"
 import logo from "../../../public/images/Rhace-11.png"
 import { useGoogleLogin } from "@react-oauth/google"
@@ -219,7 +219,7 @@ const Login = () => {
         const user = await authService.googleLogin(code);
         dispatch(setUser(user?.user));
         toast.success("Welcome back!");
-        navigate(redirectTo);
+        navigate(redirectTo, { replace: true });
       } catch (error) {
         console.error("Google login failed:", error);
         toast.error("Google login failed. Please try again.");
@@ -243,7 +243,7 @@ const Login = () => {
       const user = await authService.login(formData.email, formData.password);
       dispatch(setUser(user?.user));
       toast.success("Welcome back!");
-      navigate(redirectTo);
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       toast.error(err.response?.data.message);
       if (err.response?.data?.message === "Please verify your email with the OTP sent to your inbox.") {

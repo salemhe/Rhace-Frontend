@@ -32,12 +32,12 @@ export const TimeDropdown = ({
     <div className="relative inline-block w-full" ref={ref}>
       {/* trigger */}
       <div
-        className="flex items-center justify-between py-2  rounded-lg cursor-pointer"
+        className="flex items-center justify-between pt-1  rounded-lg cursor-pointer"
         onClick={() => setShow((s) => !s)}
       >
         <div className="flex items-center space-x-2">
           {/* <FiClock className="text-gray-500" /> */}
-          <span className="text-sm text-gray-700 pl-2 ">
+          <span className="text-sm text-gray-700 ">
             {selectedTime ?? 'Select time'}
           </span>
         </div>

@@ -21,7 +21,7 @@ const DashboardLayout = ({ children, type, section, settings }) => {
         <Header onMenuClick={() => setSidebarOpen(true)} />
         
         {/* Main content */}
-        <main className="flex-1 overflow-auto p-2 md:p-4">
+        <main className="flex-1 overflow-auto">
           {children}
         </main>
       </div>

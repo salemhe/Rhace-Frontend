@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { BusinessLogo } from "../settings/part/BusinessInfo";
 import { authService } from "@/services/auth.service";
 import { setVendor } from "@/redux/slices/authSlice";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 const ClubSettings = () => {
    const vendor = useSelector((state) => state.auth.vendor);

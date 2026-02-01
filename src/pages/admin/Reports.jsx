@@ -11,7 +11,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import {
   generateReservationsReport,
   generateVendorEarningsReport,
