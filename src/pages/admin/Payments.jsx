@@ -54,6 +54,7 @@ import {
 import {
   LineChart,
   Line,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -123,6 +124,9 @@ export default function Payments() {
     accountNumber: "",
     accountName: "",
   });
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedVendor, setSelectedVendor] = useState(null);
+  const [selectedPeriod, setSelectedPeriod] = useState("weekly");
   const { subscribe, unsubscribe } = useWebSocket();
 
   const load = async () => {
@@ -133,23 +137,40 @@ export default function Payments() {
       // FIX: Access the 'earnings' property from the response data
       const earnings = earningsRes?.data?.earnings || [];
 
-      const vendorsWithEarnings = earnings.map((vendor) => ({
-        id: vendor.vendorId || vendor._id,
-        name: vendor.vendorName || vendor.businessName || vendor.name,
-        totalEarned: vendor.totalEarnings
-          ? `₦${vendor.totalEarnings.toLocaleString()}`
-          : "₦0",
-        commission: vendor.totalPayments
-          ? `₦${vendor.totalPayments.toLocaleString()}`
-          : "₦0",
-        amountDue: vendor.totalEarnings
-          ? `₦${vendor.totalEarnings.toLocaleString()}`
-          : "₦0",
-        lastPayout: vendor.lastPaymentDate
-          ? new Date(vendor.lastPaymentDate).toLocaleDateString()
-          : "-",
-        status: vendor.status || "Pending",
-      }));
+      const vendorsWithEarnings = earnings.map((vendor) => {
+        const totalEarnings = vendor.totalEarnings || 0;
+        const totalPayments = vendor.totalPayments || 0;
+        const amountDue = totalEarnings - totalPayments;
+        const hasRecentPayout = vendor.lastPaymentDate && new Date(vendor.lastPaymentDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Last 30 days
+
+        // Determine status based on payment logic
+        let status = "Pending";
+        if (amountDue <= 0) {
+          status = "Paid";
+        } else if (hasRecentPayout) {
+          status = "Partially Paid";
+        } else if (vendor.status) {
+          status = vendor.status; // Use API status if available
+        }
+
+        return {
+          id: vendor.vendorId || vendor._id,
+          name: vendor.vendorName || vendor.businessName || vendor.name,
+          totalEarned: totalEarnings
+            ? `₦${totalEarnings.toLocaleString()}`
+            : "₦0",
+          commission: totalPayments
+            ? `₦${totalPayments.toLocaleString()}`
+            : "₦0",
+          amountDue: amountDue > 0
+            ? `₦${amountDue.toLocaleString()}`
+            : "₦0",
+          lastPayout: vendor.lastPaymentDate
+            ? new Date(vendor.lastPaymentDate).toLocaleDateString()
+            : "-",
+          status: status,
+        };
+      });
 
       setVendorsEarnings(vendorsWithEarnings);
     } catch (e) {
@@ -162,7 +183,22 @@ export default function Payments() {
 
   const handleInitiatePayout = async (vendorId, amount) => {
     try {
-      await initiatePayout({ vendorId, amount: parseFloat(amount) });
+      // Validate bank details before proceeding
+      if (!bankDetails.accountNumber || bankDetails.accountNumber.includes('•')) {
+        alert("Please update your bank account details with a valid account number before initiating a payout.");
+        return;
+      }
+
+      // Include bank details if available
+      const payoutData = {
+        vendorId,
+        amount: parseFloat(amount),
+        bankName: bankDetails.bankName,
+        accountNumber: bankDetails.accountNumber,
+        accountName: bankDetails.accountName
+      };
+
+      await initiatePayout(payoutData);
       // Refresh data after successful payout initiation
       load();
       alert("Payout initiated successfully");
@@ -233,6 +269,44 @@ export default function Payments() {
     setAddDialogOpen(false);
   };
 
+  const handleViewDetails = (vendor) => {
+    setSelectedVendor(vendor);
+    setDetailsModalOpen(true);
+  };
+
+  const handlePeriodChange = async (value) => {
+    setSelectedPeriod(value);
+    // Reload revenue trends with the new period
+    await loadRevenueTrends(value);
+  };
+
+  const loadRevenueTrends = async (period = selectedPeriod) => {
+    try {
+      const trendsRes = await getRevenueTrends({ period });
+      let trends = [];
+
+      // Handle different response formats
+      if (Array.isArray(trendsRes?.data)) {
+        trends = trendsRes.data;
+      } else if (trendsRes?.data?.data && Array.isArray(trendsRes.data.data)) {
+        trends = trendsRes.data.data;
+      } else if (trendsRes?.data && Array.isArray(trendsRes.data)) {
+        trends = trendsRes.data;
+      }
+
+      // Ensure data has the correct format for the chart
+      const formattedTrends = trends.map((item, index) => ({
+        date: item.date || item.createdAt || item._id || `Day ${index + 1}`,
+        value: item.value || item.amount || item.total || item.earnings || 0
+      }));
+
+      setRevenueTrends(formattedTrends);
+    } catch (e) {
+      console.error("Failed to load revenue trends", e);
+      setRevenueTrends([]);
+    }
+  };
+
   useEffect(() => {
     const savedBankDetails = localStorage.getItem("bankDetails");
     if (savedBankDetails) {
@@ -271,11 +345,25 @@ export default function Payments() {
 
     const loadRevenueTrends = async () => {
       try {
-        const trendsRes = await getRevenueTrends();
-        const trends = Array.isArray(trendsRes?.data)
-          ? trendsRes.data
-          : trendsRes?.data?.data || [];
-        if (!ignore) setRevenueTrends(trends);
+        const trendsRes = await getRevenueTrends({ period: selectedPeriod });
+        let trends = [];
+
+        // Handle different response formats
+        if (Array.isArray(trendsRes?.data)) {
+          trends = trendsRes.data;
+        } else if (trendsRes?.data?.data && Array.isArray(trendsRes.data.data)) {
+          trends = trendsRes.data.data;
+        } else if (trendsRes?.data && Array.isArray(trendsRes.data)) {
+          trends = trendsRes.data;
+        }
+
+        // Ensure data has the correct format for the chart
+        const formattedTrends = trends.map((item, index) => ({
+          date: item.date || item.createdAt || item._id || `Day ${index + 1}`,
+          value: item.value || item.amount || item.total || item.earnings || 0
+        }));
+
+        if (!ignore) setRevenueTrends(formattedTrends);
       } catch (e) {
         console.error("Failed to load revenue trends", e);
         if (!ignore) setRevenueTrends([]);
@@ -381,7 +469,7 @@ export default function Payments() {
     }
 
     try {
-      const trendsRes = await getRevenueTrends();
+      const trendsRes = await getRevenueTrends({ period: selectedPeriod });
       const trends = Array.isArray(trendsRes?.data)
         ? trendsRes.data
         : trendsRes?.data?.data || [];
@@ -639,38 +727,120 @@ export default function Payments() {
               </Dialog>
             </Card>
 
-            <Card className="p-6 lg:col-span-2">
+            <Card className="p-6 lg:col-span-2 shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
-                  <h3 className="font-semibold">Earnings Trends</h3>
+                  <h3 className="font-bold text-lg text-gray-900">Earnings Trends</h3>
                   <div className="flex items-center gap-4 mt-2">
-                    <span className="text-2xl font-bold">{revenueTrends.length > 0 ? revenueTrends.length : 0}</span>
-                    <span className="text-sm text-success flex items-center">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
+                      <span className="text-2xl font-bold text-gray-900">
+                        {revenueTrends.length > 0 ? revenueTrends.length : 0}
+                      </span>
+                    </div>
+                    <span className="text-sm text-green-600 flex items-center font-medium">
                       <ArrowUpRight className="h-4 w-4 mr-1" />
                       {dashboardKPIs.revenueChange || "0% vs last week"}
                     </span>
                   </div>
+                  <p className="text-sm text-gray-600 mt-1">Revenue growth over time</p>
                 </div>
-                <Select defaultValue="weekly">
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="yearly">Yearly</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 text-sm">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span className="text-gray-600">Earnings</span>
+                  </div>
+                  <Select value={selectedPeriod} onValueChange={handlePeriodChange}>
+                    <SelectTrigger className="w-32 border-gray-200">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="yearly">Yearly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-              <ResponsiveContainer width="100%" height={250}>
-                <LineChart data={revenueTrends.length > 0 ? revenueTrends : earningsData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                  <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="value" stroke="hsl(var(--primary))" strokeWidth={2} fill="hsl(var(--primary))" fillOpacity={0.1} />
-                </LineChart>
-              </ResponsiveContainer>
+              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+                <ResponsiveContainer width="100%" height={280}>
+                  <LineChart
+                    data={revenueTrends.length > 0 ? revenueTrends : earningsData}
+                    margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                  >
+                    <defs>
+                      <linearGradient id="earningsGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.05}/>
+                      </linearGradient>
+                      <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="#3b82f6"/>
+                        <stop offset="100%" stopColor="#8b5cf6"/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid
+                      strokeDasharray="2 4"
+                      stroke="#f1f5f9"
+                      strokeWidth={1}
+                      vertical={false}
+                    />
+                    <XAxis
+                      dataKey="date"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#64748b' }}
+                      dy={10}
+                    />
+                    <YAxis
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 12, fill: '#64748b' }}
+                      tickFormatter={(value) => `₦${(value / 1000).toFixed(0)}k`}
+                      dx={-10}
+                    />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #e2e8f0',
+                        borderRadius: '8px',
+                        boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1)',
+                        fontSize: '14px'
+                      }}
+                      labelStyle={{ color: '#374151', fontWeight: '600' }}
+                      formatter={(value) => [`₦${value.toLocaleString()}`, 'Earnings']}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="value"
+                      stroke="none"
+                      fill="url(#earningsGradient)"
+                      strokeWidth={0}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="value"
+                      stroke="url(#lineGradient)"
+                      strokeWidth={3}
+                      dot={{ fill: '#3b82f6', strokeWidth: 2, r: 4, stroke: '#ffffff' }}
+                      activeDot={{
+                        r: 6,
+                        fill: '#3b82f6',
+                        stroke: '#ffffff',
+                        strokeWidth: 2,
+                        boxShadow: '0 0 10px rgba(59, 130, 246, 0.5)'
+                      }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+              <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
+                <span>Track your revenue performance</span>
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span>Live data</span>
+                </div>
+              </div>
             </Card>
           </div>
 
@@ -762,7 +932,7 @@ export default function Payments() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>View Details</DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleViewDetails(vendor)}>View Details</DropdownMenuItem>
                               <DropdownMenuItem onClick={() => handleInitiatePayout(vendor.id, vendor.amountDue.replace('₦', '').replace(/,/g, ''))}>Initiate Payout</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
@@ -950,6 +1120,69 @@ export default function Payments() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Vendor Details Modal */}
+      <Dialog open={detailsModalOpen} onOpenChange={setDetailsModalOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Vendor Earnings Details</DialogTitle>
+          </DialogHeader>
+          {selectedVendor && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm font-medium">Vendor Name</Label>
+                  <p className="text-sm mt-1">{selectedVendor.name}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Vendor ID</Label>
+                  <p className="text-sm mt-1">{selectedVendor.id}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Total Earned</Label>
+                  <p className="text-sm mt-1 font-semibold text-green-600">{selectedVendor.totalEarned}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Commission Earned</Label>
+                  <p className="text-sm mt-1 font-semibold text-blue-600">{selectedVendor.commission}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Amount Due</Label>
+                  <p className="text-sm mt-1 font-semibold text-orange-600">{selectedVendor.amountDue}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Last Payout Date</Label>
+                  <p className="text-sm mt-1">{selectedVendor.lastPayout}</p>
+                </div>
+                <div>
+                  <Label className="text-sm font-medium">Status</Label>
+                  <Badge variant={selectedVendor.status === "Paid" ? "default" : "secondary"} className="mt-1">
+                    {selectedVendor.status}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h4 className="font-medium mb-2">Payment Summary</h4>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div className="p-3 bg-green-50 rounded-lg">
+                    <p className="text-xs text-muted-foreground">Total Earnings</p>
+                    <p className="text-lg font-bold text-green-600">{selectedVendor.totalEarned}</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-xs text-muted-foreground">Commission</p>
+                    <p className="text-lg font-bold text-blue-600">{selectedVendor.commission}</p>
+                  </div>
+                  <div className="p-3 bg-orange-50 rounded-lg">
+                    <p className="text-xs text-muted-foreground">Pending Payment</p>
+                    <p className="text-lg font-bold text-orange-600">{selectedVendor.amountDue}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

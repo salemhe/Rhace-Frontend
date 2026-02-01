@@ -27,7 +27,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { getVendors, getVendorById, updateVendorStatus, deleteVendor, exportVendors, getUsers, getVendorStats } from "@/services/admin.service";
+import { getVendors, getVendorById, updateVendorStatus, deleteVendor, exportVendors, getUsers, getVendorStats, getTopVendors, getReservations } from "@/services/admin.service";
 import { toast } from "react-toastify";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
@@ -58,6 +58,7 @@ export default function Vendors() {
   const [vendorDetails, setVendorDetails] = useState(null);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsError, setDetailsError] = useState(null);
   const [editingVendor, setEditingVendor] = useState(null);
   const [editOpen, setEditOpen] = useState(false);
   const [totalVendors, setTotalVendors] = useState(0);
@@ -70,48 +71,93 @@ export default function Vendors() {
   });
   const { subscribe, unsubscribe, sendMessage } = useWebSocket();
 
+  const calculateStatsFromVendors = (vendorList) => {
+    const stats = {
+      total: vendorList.length,
+      active: 0,
+      inactive: 0,
+      pending: 0,
+      suspended: 0
+    };
+
+    vendorList.forEach(vendor => {
+      const status = vendor.status || 'Active';
+      if (status === 'Active') stats.active++;
+      else if (status === 'Inactive') stats.inactive++;
+      else if (status === 'Pending') stats.pending++;
+      else if (status === 'Suspended') stats.suspended++;
+    });
+
+    return stats;
+  };
+
   const loadStats = async () => {
     try {
       const statsRes = await getVendorStats();
       const statsData = statsRes?.data;
 
-      setStats({
-        total: statsData?.total || 0,
-        active: statsData?.active || 0,
-        inactive: statsData?.inactive || 0,
-        pending: statsData?.pending || 0,
-        suspended: statsData?.suspended || 0
-      });
-      setTotalVendors(statsData?.total || 0);
+      // Only use API data if it contains meaningful values (not all zeros)
+      if (statsData && typeof statsData === 'object' &&
+          (statsData.total > 0 || statsData.active > 0 || statsData.inactive > 0 || statsData.pending > 0 || statsData.suspended > 0)) {
+        setStats({
+          total: statsData.total || 0,
+          active: statsData.active || 0,
+          inactive: statsData.inactive || 0,
+          pending: statsData.pending || 0,
+          suspended: statsData.suspended || 0
+        });
+        setTotalVendors(statsData.total || 0);
+      } else {
+        // API returned empty/invalid data, keep current calculated stats
+        console.warn("API stats empty or invalid, keeping current stats");
+      }
     } catch (e) {
-      console.error("Failed to load stats", e);
+      console.error("Failed to load stats from API, keeping current stats", e);
+      // Don't override with calculated stats here, let the useEffect handle it
     }
   };
 
   const loadVendors = async () => {
     setLoading(true);
     try {
-      // Fetch current page vendors
-      const res = await getVendors({ page: currentPage, limit: 20 });
-      const payload = res?.data;
+      // Fetch current page vendors and all reservations in parallel
+      const [vendorsRes, reservationsRes] = await Promise.all([
+        getVendors({ page: currentPage, limit: 20 }),
+        getReservations({ limit: 1000 }).catch(() => ({ data: [] })) // Fetch all reservations with high limit
+      ]);
+
+      const payload = vendorsRes?.data;
       const list = extractArray(payload);
-      setVendors(list);
+      const reservationsData = extractArray(reservationsRes?.data);
+
+      // Create a map of vendor reservation counts from all reservations
+      const vendorReservationsMap = {};
+      reservationsData.forEach(reservation => {
+        const vendorId = reservation.vendorId || reservation.vendor?.id || reservation.vendor?._id;
+        if (vendorId) {
+          vendorReservationsMap[vendorId] = (vendorReservationsMap[vendorId] || 0) + 1;
+        }
+      });
+
+
+
+      // Process vendors to set status based on last seen (active by default, inactive after 1 month)
+      const oneMonthAgo = new Date();
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+      const processedVendors = list.map(vendor => {
+        const lastSeen = vendor.lastSeen || vendor.lastActivity || vendor.updatedAt;
+        const lastSeenDate = lastSeen ? new Date(lastSeen) : null;
+        vendor.status = lastSeenDate ? (lastSeenDate > oneMonthAgo ? 'Active' : 'Inactive') : 'Active';
+        // Use reservation count from all reservations data
+        vendor.reservations = vendorReservationsMap[vendor.id || vendor._id] || 0;
+        return vendor;
+      });
+
+      setVendors(processedVendors);
       setTotalPages(payload?.totalPages || 1);
       // Set totalVendors from the API response total, fallback to list length
-      setTotalVendors(payload?.total || list.length);
+      setTotalVendors(payload?.total || processedVendors.length);
 
-      // Calculate basic stats from the vendor list as fallback
-      const calculatedStats = {
-        total: list.length,
-        active: list.filter(v => v.status === 'Active').length,
-        inactive: list.filter(v => v.status === 'Inactive').length,
-        pending: list.filter(v => v.status === 'Pending').length,
-        suspended: list.filter(v => v.status === 'Suspended').length,
-      };
-      setStats(calculatedStats);
-
-      // Load stats separately for other stats like active/inactive, which will override if API succeeds
-      await loadStats();
     } catch (e) {
       console.error("Failed to load vendors", e);
       setVendors([]);
@@ -127,8 +173,7 @@ export default function Vendors() {
       setVendors((prev) =>
         prev.map((v) => (v.id === updatedVendor.id || v._id === updatedVendor.id ? updatedVendor : v))
       );
-      // Recalculate stats for real-time updates
-      loadStats();
+      // Stats will be recalculated automatically by useEffect
     };
 
     const handleVendorCreate = (newVendor) => {
@@ -137,8 +182,7 @@ export default function Vendors() {
         setTotalVendors((t) => (Number(t) || 0) + 1);
         return next;
       });
-      // Recalculate stats for real-time updates
-      loadStats();
+      // Stats will be recalculated automatically by useEffect
     };
 
     const handleVendorDelete = (deletedVendor) => {
@@ -147,18 +191,53 @@ export default function Vendors() {
         setTotalVendors((t) => Math.max(0, (Number(t) || 0) - 1));
         return next;
       });
-      // Recalculate stats for real-time updates
-      loadStats();
+      // Stats will be recalculated automatically by useEffect
+    };
+
+    const handleReservationCreated = (reservation) => {
+      if (reservation.vendorId) {
+        setVendors((prev) =>
+          prev.map((v) =>
+            (v.id === reservation.vendorId || v._id === reservation.vendorId)
+              ? { ...v, reservations: (v.reservations || 0) + 1 }
+              : v
+          )
+        );
+      }
+    };
+
+    const handleReservationUpdated = (reservation) => {
+      // For proper handling of vendor changes in reservation updates,
+      // we reload reservation counts to ensure accuracy
+      loadVendors();
+    };
+
+    const handleReservationDeleted = (reservation) => {
+      if (reservation.vendorId) {
+        setVendors((prev) =>
+          prev.map((v) =>
+            (v.id === reservation.vendorId || v._id === reservation.vendorId)
+              ? { ...v, reservations: Math.max(0, (v.reservations || 0) - 1) }
+              : v
+          )
+        );
+      }
     };
 
     subscribe("vendor-updated", handleVendorUpdate);
     subscribe("vendor-created", handleVendorCreate);
     subscribe("vendor-deleted", handleVendorDelete);
+    subscribe("reservation-created", handleReservationCreated);
+    subscribe("reservation-updated", handleReservationUpdated);
+    subscribe("reservation-deleted", handleReservationDeleted);
 
     return () => {
       unsubscribe("vendor-updated");
       unsubscribe("vendor-created");
       unsubscribe("vendor-deleted");
+      unsubscribe("reservation-created");
+      unsubscribe("reservation-updated");
+      unsubscribe("reservation-deleted");
     };
   }, []);
 
@@ -193,6 +272,15 @@ export default function Vendors() {
     applyFilters();
   }, [vendors, searchQuery, activeTab, dateRange, filters]);
 
+  // Recalculate stats whenever vendors change
+  useEffect(() => {
+    if (vendors.length > 0) {
+      const calculatedStats = calculateStatsFromVendors(vendors);
+      setStats(calculatedStats);
+      setTotalVendors(calculatedStats.total);
+    }
+  }, [vendors]);
+
 
 
   const handleExport = async () => {
@@ -213,15 +301,31 @@ export default function Vendors() {
 
   const handleViewDetails = async (vendor) => {
     setSelectedVendor(vendor);
+    setVendorDetails(null);
+    setDetailsError(null);
     setDetailsLoading(true);
     setDetailsOpen(true);
     try {
-      const response = await getVendorById(vendor.id || vendor._id);
-      setVendorDetails(response.data);
+      const vendorId = vendor.id || vendor._id;
+      if (!vendorId) {
+        throw new Error('Vendor ID is missing');
+      }
+      const response = await getVendorById(vendorId);
+      const data = response.data.data || response.data;
+
+      // Check if we got a valid vendor object
+      if (typeof data === 'string' || !data || (typeof data === 'object' && !data.businessName && !data.name && !data.email)) {
+        throw new Error('Invalid vendor data received from server. The API may be returning a welcome message instead of vendor data.');
+      }
+
+      // Include the reservation count from the vendor list data
+      setVendorDetails({ ...data, reservations: vendor.reservations || 0 });
     } catch (e) {
       console.error("Failed to load vendor details", e);
-      toast.error("Failed to load vendor details");
-      setVendorDetails(null);
+      const errorMessage = e.message || "Failed to load vendor details";
+      setDetailsError(errorMessage);
+      toast.error(errorMessage);
+      // Keep dialog open to show error
     } finally {
       setDetailsLoading(false);
     }
@@ -246,7 +350,28 @@ export default function Vendors() {
 
   const handleUpdateVendor = async (vendor) => {
     try {
-      await updateVendorStatus(vendor.id || vendor._id, { status: vendor.status });
+      // Only send fields that are allowed to be updated
+      const allowedUpdates = {
+        businessName: vendor.businessName,
+        businessDescription: vendor.businessDescription,
+        email: vendor.email,
+        phone: vendor.phone,
+        address: vendor.address,
+        website: vendor.website,
+        priceRange: vendor.priceRange,
+        vendorTypeCategory: vendor.vendorTypeCategory,
+        profileImages: vendor.profileImages,
+        percentageCharge: vendor.percentageCharge,
+        status: vendor.status,
+        isVisible: vendor.isVisible
+      };
+
+      // Remove undefined values
+      Object.keys(allowedUpdates).forEach(key =>
+        allowedUpdates[key] === undefined && delete allowedUpdates[key]
+      );
+
+      await updateVendor(vendor.id || vendor._id, allowedUpdates);
       toast.success("Vendor updated successfully");
       setEditOpen(false);
       setEditingVendor(null);
@@ -406,7 +531,7 @@ export default function Vendors() {
                   <td className="p-3 text-sm text-muted-foreground" colSpan={8}>No vendors found.</td>
                 </tr>
               ) : filteredVendors.map((vendor, i) => (
-                <tr key={i} className="border-b hover:bg-accent/50 transition-colors">
+                <tr key={vendor.id || vendor._id} className="border-b hover:bg-accent/50 transition-colors">
                   <td className="p-3">
                     <Checkbox />
                   </td>
@@ -428,7 +553,10 @@ export default function Vendors() {
                     <p className="text-sm">{vendor.branches || 1}</p>
                   </td>
                   <td className="p-3">
-                    <p className="text-sm">{vendor.reservations || 0}</p>
+                    <div className="flex items-center gap-2">
+                      <Star className="w-4 h-4 text-yellow-500" />
+                      <p className="text-sm">{vendor.reservations || 0}</p>
+                    </div>
                   </td>
                   <td className="p-3">
                     <Badge variant={vendor.status === "Active" ? "default" : "outline"} className={vendor.status === "Active" ? "bg-green-100 text-green-800" : ""}>
@@ -476,7 +604,7 @@ export default function Vendors() {
               <div className="text-sm text-muted-foreground">No vendors found.</div>
             </div>
           ) : filteredVendors.map((vendor, i) => (
-            <Card key={i} className="p-4 hover:shadow-md transition-shadow">
+            <Card key={vendor.id || vendor._id} className="p-4 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3 flex-1">
                   <Checkbox />
@@ -518,7 +646,9 @@ export default function Vendors() {
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Branches: {vendor.branches || 1}</p>
-                  <p className="text-xs text-muted-foreground">Reservations: {vendor.reservations || 0}</p>
+                  <p className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Star className="w-4 h-4 text-yellow-500" /> Reservations: {vendor.reservations || 0}
+                  </p>
                 </div>
               </div>
             </Card>
@@ -556,7 +686,7 @@ export default function Vendors() {
             <div className="flex items-center justify-center py-8">
               <div className="text-sm text-muted-foreground">Loading vendor details...</div>
             </div>
-          ) : vendorDetails ? (
+          ) : vendorDetails && typeof vendorDetails !== 'string' ? (
             <div className="space-y-6">
               {/* Header */}
               <div className="flex items-center gap-4">
@@ -634,7 +764,7 @@ export default function Vendors() {
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-muted-foreground" />
+                      <Star className="w-4 h-4 text-yellow-500" />
                       <span className="text-sm">
                         {vendorDetails.reservations || 0} Reservations
                       </span>
@@ -792,60 +922,168 @@ export default function Vendors() {
       </Dialog>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Vendor</DialogTitle>
           </DialogHeader>
           {editingVendor && (
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="businessName">Business Name</Label>
+                  <Input
+                    id="businessName"
+                    value={editingVendor.businessName || editingVendor.name || ""}
+                    onChange={(e) => setEditingVendor({ ...editingVendor, businessName: e.target.value })}
+                    placeholder="Enter business name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={editingVendor.email || ""}
+                    onChange={(e) => setEditingVendor({ ...editingVendor, email: e.target.value })}
+                    placeholder="Enter email address"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone</Label>
+                  <Input
+                    id="phone"
+                    value={editingVendor.phone || ""}
+                    onChange={(e) => setEditingVendor({ ...editingVendor, phone: e.target.value })}
+                    placeholder="Enter phone number"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="website">Website</Label>
+                  <Input
+                    id="website"
+                    value={editingVendor.website || ""}
+                    onChange={(e) => setEditingVendor({ ...editingVendor, website: e.target.value })}
+                    placeholder="Enter website URL"
+                  />
+                </div>
+              </div>
+
+              {/* Address */}
               <div className="space-y-2">
-                <Label htmlFor="businessName">Business Name</Label>
+                <Label htmlFor="address">Address</Label>
                 <Input
-                  id="businessName"
-                  value={editingVendor.businessName || editingVendor.name || ""}
-                  onChange={(e) => setEditingVendor({ ...editingVendor, businessName: e.target.value })}
+                  id="address"
+                  value={editingVendor.address || ""}
+                  onChange={(e) => setEditingVendor({ ...editingVendor, address: e.target.value })}
+                  placeholder="Enter business address"
                 />
               </div>
+
+              {/* Business Description */}
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={editingVendor.email || ""}
-                  onChange={(e) => setEditingVendor({ ...editingVendor, email: e.target.value })}
+                <Label htmlFor="businessDescription">Business Description</Label>
+                <textarea
+                  id="businessDescription"
+                  className="w-full p-3 border rounded-md resize-none"
+                  rows={3}
+                  value={editingVendor.businessDescription || ""}
+                  onChange={(e) => setEditingVendor({ ...editingVendor, businessDescription: e.target.value })}
+                  placeholder="Enter business description"
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  value={editingVendor.phone || ""}
-                  onChange={(e) => setEditingVendor({ ...editingVendor, phone: e.target.value })}
+
+              {/* Category and Status */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="vendorTypeCategory">Category</Label>
+                  <Select
+                    value={editingVendor.vendorTypeCategory || editingVendor.category || ""}
+                    onValueChange={(value) => setEditingVendor({ ...editingVendor, vendorTypeCategory: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Restaurant">Restaurant</SelectItem>
+                      <SelectItem value="Hotel">Hotel</SelectItem>
+                      <SelectItem value="Club">Club</SelectItem>
+                      <SelectItem value="Service">Service</SelectItem>
+                      <SelectItem value="Retail">Retail</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={editingVendor.status || "Inactive"}
+                    onValueChange={(value) => setEditingVendor({ ...editingVendor, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Active">Active</SelectItem>
+                      <SelectItem value="Inactive">Inactive</SelectItem>
+                      <SelectItem value="Pending">Pending</SelectItem>
+                      <SelectItem value="Suspended">Suspended</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Pricing and Visibility */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="priceRange">Price Range</Label>
+                  <Select
+                    value={editingVendor.priceRange || ""}
+                    onValueChange={(value) => setEditingVendor({ ...editingVendor, priceRange: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select price range" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                      <SelectItem value="Premium">Premium</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="percentageCharge">Commission (%)</Label>
+                  <Input
+                    id="percentageCharge"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={editingVendor.percentageCharge || ""}
+                    onChange={(e) => setEditingVendor({ ...editingVendor, percentageCharge: parseFloat(e.target.value) || 0 })}
+                    placeholder="Enter commission percentage"
+                  />
+                </div>
+              </div>
+
+              {/* Visibility Toggle */}
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="isVisible"
+                  checked={editingVendor.isVisible !== false}
+                  onChange={(e) => setEditingVendor({ ...editingVendor, isVisible: e.target.checked })}
+                  className="rounded"
                 />
+                <Label htmlFor="isVisible">Visible to customers</Label>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={editingVendor.status || "Inactive"}
-                  onValueChange={(value) => setEditingVendor({ ...editingVendor, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                    <SelectItem value="Pending">Pending</SelectItem>
-                    <SelectItem value="Suspended">Suspended</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex justify-end gap-2">
+
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-2 pt-4">
                 <Button variant="outline" onClick={() => setEditOpen(false)}>
                   Cancel
                 </Button>
-                <Button onClick={() => handleUpdateVendor(editingVendor)}>
-                  Save Changes
+                <Button onClick={() => handleUpdateVendor(editingVendor)} disabled={loading}>
+                  {loading ? 'Saving...' : 'Save Changes'}
                 </Button>
               </div>
             </div>

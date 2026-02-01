@@ -12,6 +12,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Home, Store, Calendar, CreditCard, Bell, Shield, ChevronLeft, ChevronRight, Save, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
 import { getSettings, updateSettings } from "@/services/admin.service";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 import { toast } from "react-toastify";
 
 export default function Settings() {
@@ -20,10 +21,24 @@ export default function Settings() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const { subscribe, unsubscribe } = useWebSocket();
 
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    const handleSettingsUpdate = (payload) => {
+      console.log("Settings update received:", payload);
+      fetchSettings(); // Refresh settings data in real-time
+    };
+
+    subscribe("settings_updated", handleSettingsUpdate);
+
+    return () => {
+      unsubscribe("settings_updated");
+    };
+  }, [subscribe, unsubscribe]);
 
   const fetchSettings = async () => {
     try {
@@ -32,8 +47,13 @@ export default function Settings() {
       setSettings(response.data || {});
       setError(null);
     } catch (err) {
-      setError("Failed to load settings");
-      toast.error("Failed to load settings");
+      if (err.response?.status === 403) {
+        setError("Access denied. Please ensure you are logged in as an admin.");
+        toast.error("Access denied. Admin privileges required.");
+      } else {
+        setError("Failed to load settings");
+        toast.error("Failed to load settings");
+      }
     } finally {
       setLoading(false);
     }

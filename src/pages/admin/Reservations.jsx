@@ -28,7 +28,18 @@ import { useWebSocket } from "@/contexts/WebSocketContext";
 
 export default function Reservations() {
   const [activeTab, setActiveTab] = useState("All");
-  const tabs = ["All", "Upcoming", "Completed", "Cancelled", "No shows"];
+  const tabs = ["All", "Upcoming", "Completed", "Cancelled", "No-show"];
+
+  const getStatusFilter = (tab) => {
+    switch (tab) {
+      case "All": return "";
+      case "Upcoming": return "upcoming";
+      case "Completed": return "completed";
+      case "Cancelled": return "cancelled";
+      case "No-show": return "no-show";
+      default: return "";
+    }
+  };
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
   const [counters, setCounters] = useState({ todays: 0, prepaid: 0, expectedGuests: 0, pendingPayments: 0 });
@@ -53,6 +64,8 @@ export default function Reservations() {
   const [dateFilter, setDateFilter] = useState("Today");
   const [paymentFilter, setPaymentFilter] = useState("All");
   const { subscribe, unsubscribe, sendMessage } = useWebSocket();
+
+  const getReservationId = (res) => res.id || res._id || res.reference;
 
   const fetchReservations = useCallback(async (extra = {}) => {
     setLoading(true);
@@ -85,7 +98,7 @@ export default function Reservations() {
 
     const handleReservationUpdate = (updatedReservation) => {
       setReservations((prev) =>
-        prev.map((r) => (r.id === updatedReservation.id ? updatedReservation : r))
+        prev.map((r) => (getReservationId(r) === getReservationId(updatedReservation) ? updatedReservation : r))
       );
     };
 
@@ -94,7 +107,7 @@ export default function Reservations() {
     };
 
     const handleReservationDelete = (deletedReservation) => {
-      setReservations((prev) => prev.filter((r) => r.id !== deletedReservation.id));
+      setReservations((prev) => prev.filter((r) => getReservationId(r) !== getReservationId(deletedReservation)));
     };
 
     const handleCountersUpdate = (updatedCounters) => {
