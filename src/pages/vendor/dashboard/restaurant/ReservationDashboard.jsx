@@ -40,7 +40,7 @@ import {
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from '@/components/ui/pagination';
 import { useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import { userService } from '@/services/user.service';
 // import { formatCustomDate } from '@/utils/formatDate';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';

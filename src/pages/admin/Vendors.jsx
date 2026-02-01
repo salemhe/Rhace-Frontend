@@ -28,7 +28,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { getVendors, getVendorById, updateVendorStatus, deleteVendor, exportVendors, getUsers, getVendorStats, getTopVendors, getReservations } from "@/services/admin.service";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const extractArray = (p) => {

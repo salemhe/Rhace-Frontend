@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Label } from "@/components/ui/label";
@@ -153,7 +153,7 @@ const BookingForm = ({ id, menu = false, reservation }) => {
             <Button
                 type="submit"
                 disabled={!date || !time || isLoading}
-                className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
+                className="w-full h-10 rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
             >
                 {isLoading ? (
                     <>

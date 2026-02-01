@@ -1,3 +1,4 @@
+import { Filter2 } from "@/components/dashboard/ui/svg";
 import Footer from "@/components/Footer";
 import { SearchSectionTwo } from "@/components/SearchSection";
 import TableGrid, {
@@ -11,8 +12,10 @@ import {
   hasMultipleImages,
   useCarouselLogic,
 } from "@/hooks/favorites";
+import { SvgIcon, SvgIcon2, SvgIcon3 } from "@/public/icons/icons";
 import { restaurantService } from "@/services/rest.services";
-import { Loader2 } from "lucide-react";
+import { set } from "date-fns";
+import { Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaStar } from "react-icons/fa6";
 import { FiHeart, FiMapPin } from "react-icons/fi";
@@ -37,6 +40,7 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchData, setSearchData] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
   const searchSectionRef = useRef(null);
 
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
@@ -57,6 +61,24 @@ const SearchPage = () => {
         return [];
     }
   };
+
+  const tabs = [
+    {
+      name: "Restaurants",
+      value: "restaurants",
+      icon: SvgIcon,
+    },
+    {
+      name: "Hotels",
+      value: "hotels",
+      icon: SvgIcon2,
+    },
+    {
+      name: "Clubs",
+      value: "clubs",
+      icon: SvgIcon3,
+    },
+  ];
 
   const getCategories = (venue) => {
     if (activeTab === "restaurants" || activeTab === "hotels") {
@@ -234,10 +256,30 @@ const SearchPage = () => {
   }
 
   return (
-    <div className="min-h-screen mt-[100px] bg-gray-50">
+    <div className="min-h-screen mt-[90px] bg-gray-50">
       <Header onClick={handleTabChange} activeTab={safeActiveTab} />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Search Section - Added ref and wrapper for mobile fixes */}
+        <div className="flex flex-wrap justify-center items-center gap-2 sm:hidden mb-4 ">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.value}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-[36px] gap-1.5 sm:gap-2.5 cursor-pointer text-[12px] sm:text-sm flex items-center font-medium transition-colors duration-200 ${activeTab === tab.value
+                  ? "bg-[#0A6C6D] text-gray-50"
+                  : "bg-transparent text-gray-900 hover:bg-white/40"
+                  }`}
+                onClick={() => handleTabChange(tab.value)}
+              >
+                <figure className="w-4 h-4 sm:w-5 sm:h-5 flex items-center">
+                  <Icon isActive={activeTab !== tab.value} />
+                </figure>
+                <span>{tab.name}</span>
+              </button>
+            );
+          })}
+        </div>
         <div className="mb-8 relative" ref={searchSectionRef}>
           <SearchSectionTwo
             onSearch={handleNewSearch}
@@ -247,17 +289,38 @@ const SearchPage = () => {
         </div>
 
         {/* Results */}
-        <div>
+        <div className="space-y-4">
           <h1 className="text-2xl px-4 sm:px-6 lg:px-8 font-bold mb-6">
             {searchQuery
               ? `${currentResults.length} ${(safeActiveTab || "").slice(
-                  0,
-                  -1
-                )}${
-                  currentResults.length !== 1 ? "s" : ""
-                } found for "${searchQuery}"`
+                0,
+                -1
+              )}${currentResults.length !== 1 ? "s" : ""
+              } found for "${searchQuery}"`
               : `Search for ${safeActiveTab}`}
           </h1>
+
+          <div className="md:hidden">
+            <div className="flex items-center justify-end">
+              <button onClick={() => setIsOpen(true)} className="border rounded-lg py-2 px-4 items-center gap-2 flex bg-white ">
+                <Filter2 /> Filter
+              </button>
+            </div>
+            {isOpen && (
+
+              <div className={`fixed inset-0 bg-white z-100`}>
+                <div className="flex items-center justify-end">
+                  <button className="rounded-full p-2 border m-4" onClick={() => setIsOpen(false)}>
+                    <X />
+                  </button>
+                </div>
+                <h2 className="text-lg font-semibold px-4">Filter Options</h2>
+                <div className="px-4">
+                  <Filter />
+                </div>
+              </div>
+            )}
+          </div>
 
           {loading && (
             <div className="flex justify-center items-center py-12">
@@ -320,11 +383,10 @@ const SearchPage = () => {
                             key={index}
                             src={image}
                             alt={`${venue.businessName} - Image ${index + 1}`}
-                            className={`absolute size-full object-cover transition-all duration-500 ease-in-out ${
-                              index === currentIndex
-                                ? "opacity-100 scale-100"
-                                : "opacity-0 scale-105"
-                            }`}
+                            className={`absolute size-full object-cover transition-all duration-500 ease-in-out ${index === currentIndex
+                              ? "opacity-100 scale-100"
+                              : "opacity-0 scale-105"
+                              }`}
                             style={{
                               transform:
                                 index === currentIndex
@@ -363,11 +425,10 @@ const SearchPage = () => {
                             <button
                               key={index}
                               onClick={(e) => handleDotClick(venueId, index, e)}
-                              className={`block rounded-full transition-all duration-300 ease-out cursor-pointer focus:outline-none ${
-                                index === currentIndex
-                                  ? "bg-white scale-125 w-4 sm:w-6 h-1.5 sm:h-2 shadow-md"
-                                  : "bg-white/70 w-1.5 sm:w-2 h-1.5 sm:h-2 hover:bg-white/90"
-                              }`}
+                              className={`block rounded-full transition-all duration-300 ease-out cursor-pointer focus:outline-none ${index === currentIndex
+                                ? "bg-white scale-125 w-4 sm:w-6 h-1.5 sm:h-2 shadow-md"
+                                : "bg-white/70 w-1.5 sm:w-2 h-1.5 sm:h-2 hover:bg-white/90"
+                                }`}
                             />
                           ))}
                         </div>
@@ -395,7 +456,7 @@ const SearchPage = () => {
                             {categories.slice(0, 2).map((category, index) => {
                               const classes =
                                 cuisineColorPalette[
-                                  index % cuisineColorPalette.length
+                                index % cuisineColorPalette.length
                                 ];
                               return (
                                 <div
@@ -487,5 +548,27 @@ const SearchPage = () => {
     </div>
   );
 };
+
+const Filter = () => {
+  return (
+    <div className="w-full space-y-6">
+      <div className="space-y-4">
+        <h4 className="font-semibold text-sm text-gray-700">
+          Price
+        </h4>
+        <ul className="space-y-2">
+          {["$", "$$", "$$$", "$$$$"].map((priceLevel) => (
+            <li key={priceLevel}>
+              <label htmlFor={priceLevel} className="flex items-center cursor-pointer">
+                <input name="price" id={priceLevel} type="radio" />
+                <span className="ml-2 text-gray-600">{priceLevel}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  )
+}
 
 export default SearchPage;

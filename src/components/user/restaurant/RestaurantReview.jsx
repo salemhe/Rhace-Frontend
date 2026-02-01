@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { userService } from "@/services/user.service";
 import StarRating from "@/components/ui/starrating";
 import { useSelector } from "react-redux";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -100,9 +100,9 @@ const RestaurantReviews = ({ restaurantId }) => {
                         const initials = userName.charAt(0).toUpperCase();
 
                         return (
-                            <div key={i} className="rounded-lg flex gap-3 items-start bg-white">
+                            <div key={i} className="rounded-lg flex gap-3 items-start">
                                 {/* Avatar */}
-                                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-[#E7F0F0] flex items-center justify-center text-[#0A6C6D] font-semibold text-sm">
+                                <div className="shrink-0 w-10 h-10 rounded-full bg-[#E7F0F0] flex items-center justify-center text-[#0A6C6D] font-semibold text-sm">
                                     {initials}
                                 </div>
 

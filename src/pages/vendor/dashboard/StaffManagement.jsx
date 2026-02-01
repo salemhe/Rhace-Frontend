@@ -4,7 +4,7 @@ import UniversalLoader from '@/components/user/ui/LogoLoader';
 import { staffService } from '@/services/staff.service';
 import { ChevronRight, Eye, EyeOff, FileDown, Filter, MoreVertical, Search, Upload, Users, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 const StaffManagementSystem = () => {
    const [showModal, setShowModal] = useState(false);

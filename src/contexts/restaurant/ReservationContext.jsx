@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
-import { userService } from "@/services/user.service";
+// import { userService } from "@/services/user.service";
 import { useSelector } from 'react-redux';
 
 const ReservationContext = createContext(
@@ -29,6 +29,10 @@ export function ReservationsProvider({
 
   const occasions = ["Birthday", "Casual", "Business", "Anniversary", "Other"];
 
+  const generateId = () => {
+    return Date.now().toString(36).substring(0, 8).toUpperCase();
+  };
+
   const handleSkip = async () => {
     try {
       setIsSkipLoading(true);
@@ -46,7 +50,7 @@ export function ReservationsProvider({
       }
 
       const reservationData = {
-        // _id: "1",
+        resId: generateId(),
         reservationType: "restaurant",
         customerName: `${user.firstName} ${user.lastName}`.trim(),
         customerEmail: user.email,
@@ -54,6 +58,7 @@ export function ReservationsProvider({
         date: date.toISOString(),
         time,
         guests: parsedGuestCount,
+        menus: [],
         seatingPreference,
         specialOccasion: selectedOccasion || "other",
         specialRequest,
@@ -64,15 +69,19 @@ export function ReservationsProvider({
         image: vendor.profileImages?.[0],
       };
 
-      const res = await userService.createReservation(reservationData);
+      const existingPreferences = JSON.parse(localStorage.getItem('preferences') || '[]');
+      localStorage.setItem('preferences', JSON.stringify([...existingPreferences, reservationData]));
 
-      const reservationResponse = res.data;
+
+      // const res = await userService.createReservation(reservationData);
+
+      // const reservationResponse = res.data;
 
 
-      toast.success("Reservation submitted successfully!");
+      // toast.success("Reservation submitted successfully!");
 
       // Navigate to confirmation page
-      navigate(`/restaurants/completed/${reservationResponse._id}`);
+      navigate(`/restaurants/pre-payment/${reservationData.resId}`);
     } catch (error) {
       console.error(error)
       let errorMessage = "Failed to submit reservation. Please try again.";
@@ -117,7 +126,7 @@ export function ReservationsProvider({
 
       // Prepare reservation data
       const reservationData = {
-        // _id: "1",
+        resId: generateId(),
         reservationType: "restaurant",
         customerName: `${user.firstName} ${user.lastName}`.trim(),
         customerEmail: user.email,
@@ -130,26 +139,30 @@ export function ReservationsProvider({
         specialRequest,
         mealPreselected: selectedMeals.length > 0,
         // additionalNote,
-        menus: selectedMeals.map(item => ({
-          menu: item._id,
-          quantity: item.quantity || 1,
-          specialRequest: item.specialRequest || "",
-        })),
+        // menus: selectedMeals.map(item => ({
+        //   menu: item._id,
+        //   quantity: item.quantity || 1,
+        //   specialRequest: item.specialRequest || "",
+        // })),
+        menus: selectedMeals,
         totalAmount: totalPrice,
         vendor: vendor._id,
         location: vendor.address,
         image: vendor.profileImages?.[0],
       };
 
-      const res = await userService.createReservation(reservationData);
+      // const res = await userService.createReservation(reservationData);
 
-      const reservationResponse = res.data;
+      // const reservationResponse = res.data;
+
+      const existingPreferences = JSON.parse(localStorage.getItem('preferences') || '[]');
+      localStorage.setItem('preferences', JSON.stringify([...existingPreferences, reservationData]));
 
 
-      toast.success("Reservation submitted successfully!");
+      // toast.success("Reservation submitted successfully!");
 
       // Navigate to confirmation page
-      navigate(`/restaurants/completed/${reservationResponse._id}`);
+      navigate(`/restaurants/pre-payment/${reservationData.resId}`);
 
     } catch (error) {
       console.error("Error submitting reservation:", error);

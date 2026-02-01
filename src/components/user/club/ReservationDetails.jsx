@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useReservations } from "@/contexts/club/ReservationContext";
 import ReservationHeader from "./ReservationHeader";
 import { TimePicker } from "../ui/timepicker";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useEffect, useRef, useState } from "react";
 import DatePicker from "../ui/datepicker";
 import { GuestPicker } from "../ui/guestpicker";
@@ -62,8 +62,21 @@ export default function ReservationDetails({
   const containerRef = useRef(null);
   const cardRef = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-
+  const [maxTranslate, setMaxTranslate] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const containerWidth = containerRef.current.offsetWidth;
+    const contentWidth = containerRef.current.scrollWidth;
+
+    setMaxTranslate(contentWidth - containerWidth);
+  }, [comboItems]);
+
+
+
+
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % comboItems.length);
@@ -78,6 +91,10 @@ export default function ReservationDetails({
       ? cardRef.current.offsetWidth + 24
       : 0;
 
+  const translateX = Math.min(
+    currentIndex * slideWidth,
+    maxTranslate
+  );
   const fetchVendor = async () => {
     try {
       setLoading(true);
@@ -217,7 +234,7 @@ export default function ReservationDetails({
   };
 
   return (
-    <div className="min-h-screen mb-[65px] mt-[20px] md:mt-0 bg-gray-50">
+    <div className="min-h-screen mb-[65px] md:mt-0 bg-gray-50">
       <ReservationHeader title="Reservation Details" index={1} />
       <div className="md:hidden flex items-center gap-3 px-4 py-3 ">
         <button onClick={() => navigate(`/clubs/${id}`)}>
@@ -304,69 +321,68 @@ export default function ReservationDetails({
                 Tables
               </h3>
             </div>
-            <div className="flex overflow-hidden w-full" ref={containerRef} >
+            <div className="flex overflow-x-auto hide-scrollbar px-6 mask-x-from-95% mask-x-to-100% w-full" ref={containerRef} >
               <motion.div
                 className="flex gap-6"
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               >
                 {tableLoading ? (
-                  <div>TableLoader</div>
+                  <div className="flex w-full justify-center items-center">
+
+                  <UniversalLoader />
+                  </div>
                 ) : displayTables.length === 0 ? (
                   <div>No available Tables</div>
                 ) : (
-                  <>
-                    <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 mt-4">
+                    <div className="flex w-full gap-4 sm:gap-6">
                       {displayTables?.map((item) => (
-                        <div className="bg-white p-3 rounded-xl border w-[150px] flex flex-col justify-between hover:border-black">
-                          <div
-                            className={`w-6 h-6 rounded-md border hidden md:flex items-center justify-center cursor-pointer ${item.selected
-                              ? "bg-[#0A6C6D] border-[#0A6C6D] text-white"
-                              : "border-gray-300"
-                              }`}
-                            onClick={() => handleSelectionChange(item._id, 1)}
-                          >
-                            {item.selected && (
-                              <svg
-                                width="16"
-                                height="16"
-                                viewBox="0 0 16 16"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path
-                                  d="M3.33301 9.33301C3.33301 9.33301 4.66634 9.66634 5.66634 11.6663C5.66634 11.6663 9.37221 5.55523 12.6663 4.33301"
-                                  stroke="white"
-                                  strokeWidth="1.5"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                            )}
-                          </div>
+                        <div className="bg-white p-3 space-y-4 rounded-xl border w-[150px] flex flex-col justify-between duration-200 transition-all">
                           <div>
                             <h3 className="font-bold text-gray-800 text-sm">{item.name}</h3>
                           </div>
-                          <p className="font-semibold text-gray-900 mt-4">
-                            ₦{item.price.toLocaleString()}
-                          </p>
+                          <div className="space-y-2 flex-1">
+                            {item.addOns && item.addOns.slice(0, 4).map((offer, i) => (
+                              <div key={i} className="flex items-center gap-2 ">
+                                <Check className="text-[#0A6C6D] shrink-0 size-4" />
+                                <span className="text-sm text-[#111827]">
+                                  {offer}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <p className="font-semibold text-gray-900">
+                              ₦{item.price.toLocaleString()}
+                            </p>
+                            <div
+                              className={`w-6 h-6 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
+                                ? "bg-[#0A6C6D] border-[#0A6C6D] text-white"
+                                : "border-gray-300"
+                                }`}
+                              onClick={() => handleSelectionChange(item._id, 1)}
+                            >
+                              {item.selected && (
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 16 16"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M3.33301 9.33301C3.33301 9.33301 4.66634 9.66634 5.66634 11.6663C5.66634 11.6663 9.37221 5.55523 12.6663 4.33301"
+                                    stroke="white"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       ))}
                     </div>
-
-                    {tableHasMore && (
-                      <div className="mt-8">
-                        <button
-                          onClick={handleTableShowMore}
-                          className="text-[#0A6C6D] hover:underline text-sm cursor-pointer flex items-center gap-2"
-                        >
-                          Show more{" "}
-                          <ChevronDown
-                            className="h-4 w-4"
-                          />
-                        </button>
-                      </div>
-                    )}
-                  </>
                 )
                 }
               </motion.div>
@@ -385,7 +401,7 @@ export default function ReservationDetails({
                 >
                   <ChevronLeft />
                 </button>
-                <button onClick={nextSlide} disabled={currentIndex === comboItems.length - 1} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
+                <button onClick={nextSlide} disabled={currentIndex * slideWidth >= maxTranslate} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
                   <ChevronRight />
                 </button>
               </div>
@@ -393,11 +409,11 @@ export default function ReservationDetails({
             <div className="flex overflow-hidden w-full" ref={containerRef} >
               <motion.div
                 className="flex gap-6"
-                animate={{ x: -currentIndex * slideWidth }}
+                animate={{ x: -translateX }}
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               >
                 {comboLoading ? (
-                  <div>ComboLoader</div>
+                  <UniversalLoader />
                 ) : comboItems.length === 0 ? (
                   <div>No available Combos</div>
                 ) : (
@@ -410,7 +426,7 @@ export default function ReservationDetails({
                         transition={{ duration: 0.5, delay: index * 0.1 }}
                         className={`${item.selected
                           && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
-                          } p-1 h-[420px] w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] flex-shrink-0`}
+                          } p-1 h-[400px] w-[254px] sm:w-[calc(28%-12px)] lg:w-[calc(23.333%-16px)] flex-shrink-0`}
                       >
                         <div className="p-2 w-full h-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col">
                           <div className="relative w-full h-[150px] overflow-hidden rounded-2xl flex-shrink-0">
@@ -436,7 +452,7 @@ export default function ReservationDetails({
                             <div className="space-y-2 flex-1">
                               {item.addOns.slice(0, 4).map((offer, i) => (
                                 <div key={i} className="flex items-center gap-2 ">
-                                  <Check className="text-[#0A6C6D] flex-shrink-0" />
+                                  <Check size={16} className="text-[#0A6C6D] flex-shrink-0" />
                                   <span className="text-sm text-[#111827]">
                                     {offer}
                                   </span>
@@ -496,7 +512,7 @@ export default function ReservationDetails({
               </div>
             </div>
             {bottlesLoading ? (
-              <div>bottleLoader</div>
+              <UniversalLoader />
             ) : bottleItems.length === 0 ? (
               <div>No available Bottles</div>
             ) : (

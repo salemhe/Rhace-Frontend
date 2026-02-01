@@ -105,11 +105,11 @@ class UserService {
     return res.data;
   }
 
-  async fetchReservations({ vendorId, userId, bookingId }) {
+  async fetchReservations({ vendorId, userId, bookingId, resId }) {
     const res = await api.get(
       `/bookings?vendorId=${vendorId ? vendorId : ""}&userId=${
         userId ? userId : ""
-      }&bookingId=${bookingId ? bookingId : ""}`
+      }&bookingId=${bookingId ? bookingId : ""}&resId=${resId ? resId : ""}`
     );
     return res.data;
   }

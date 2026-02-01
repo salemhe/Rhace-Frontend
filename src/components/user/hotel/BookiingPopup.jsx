@@ -5,7 +5,7 @@ import { GuestPicker } from "../ui/guestpicker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 
 const HotelBookingPopup = ({ id, activeTab, show, setShow, selectedRoom, setActiveTab }) => {
@@ -67,7 +67,7 @@ const navigate = useNavigate();
                 id="special-request"
                 value={request}
                 onChange={(e) => setRequest(e.target.value)}
-                placeholder="e.g Birthday Celebration"
+                placeholder="e.g Night Party"
                 className="resize-none h-[100px] font-normal bg-white border border-[#E5E7EB] rounded-xl"
               />
             </div>

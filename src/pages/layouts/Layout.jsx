@@ -4,11 +4,9 @@ import { Outlet } from "react-router";
 
 const Layout = () => {
     return (
-        <div>
-            <ReduxProvider>
-                <Outlet />
-            </ReduxProvider>
-        </div>
+        <ReduxProvider>
+            <Outlet />
+        </ReduxProvider>
     );
 };
 

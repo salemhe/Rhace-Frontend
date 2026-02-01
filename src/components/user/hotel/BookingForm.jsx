@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { GuestPicker } from "../ui/guestpicker";
@@ -108,7 +108,7 @@ const HotelBookingForm = ({ id, selectedRoom }) => {
             id="special-request"
             value={request}
             onChange={(e) => setRequest(e.target.value)}
-            placeholder="e.g Birthday Celebration"
+            placeholder="e.g Night Party"
             className="resize-none h-[100px] font-normal bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl"
           />
         </div>

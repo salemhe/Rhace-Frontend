@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { Label } from "@/components/ui/label";
@@ -60,7 +60,7 @@ const BookingForm = ({ id }) => {
                     id="special-request"
                     value={request}
                     onChange={(e) => setRequest(e.target.value)}
-                    placeholder="e.g Birthday Celebration"
+                    placeholder="e.g Honeymoon Setup"
                     className="resize-none h-[100px] font-normal bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl"
                 />
             </div>

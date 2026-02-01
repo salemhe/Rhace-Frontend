@@ -46,7 +46,7 @@ export default function ReservationSummary({ id }) {
   }
 
   return (
-    <div className="min-h-screen mb-[65px] mt-[20px] md:mt-0 bg-gray-50">
+    <div className="min-h-screen mb-[65px] md:mt-0 bg-gray-50">
       <ReservationHeader title="Reservation Details" index={2} />
       <div className="md:hidden flex items-center gap-3 px-4 py-3 ">
         <button onClick={() => setPage(0)}>
@@ -211,32 +211,38 @@ export default function ReservationSummary({ id }) {
                   <h3 className="text-lg font-semibold">Reservation Details</h3>
                 </div>
                 <div className="p-4">
-                  <div className="rounded-2xl bg-white border">
-                                        <div className=" divide-y">
+                  <div className="cursor-pointer">
+                    <div className="divide-y">
                       <div
-                        className={`flex p-4 rounded-t-2xl justify-between items-center ${!partPay ? "border-4 border-teal-700" : ""}`}
+                        className={`flex p-4 rounded-t-2xl bg-[#F9FAFB] border gap-2 justify-between items-center ${!partPay ? "border-teal-700" : ""}`}
                         onClick={() => {
                           setPartPay(false)
                         }}
                       >
-                        <h3 className="text-lg font-semibold">
+                        <h3 className="text-sm font-semibold">
                           Pay ₦{totalPrice.toLocaleString()} now
                         </h3>
-                        <div></div>
+                        <svg width="20" height="20" viewBox="0 0 20 20" className="shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="0.5" y="0.5" width="19" height="19" rx="9.5" stroke="#0A6C6D" />
+                          {!partPay && <circle cx="10" cy="10" r="6" fill="#0A6C6D" />}
+                        </svg>
                       </div>
                       <div
-                        className={`flex p-4 rounded-b-2xl justify-between items-center ${partPay ? "border-4 border-teal-700" : ""}`}
+                        className={`flex p-4 rounded-b-2xl bg-[#F9FAFB] border gap-2 justify-between items-center ${partPay ? "border-teal-700" : ""}`}
                         onClick={() => {
                           setPartPay(true)
                         }}
                       >
                         <div className="space-y-1">
-                          <h3 className="text-[#111827]">Pay part now, rest later</h3>
-                          <p>
+                          <h3 className="text-sm font-semibold">Pay part now, rest later</h3>
+                          <p className="text-xs">
                             Pay ₦{Math.round(totalPrice / 2).toLocaleString()} now, and ₦{Math.round(totalPrice / 2).toLocaleString()} on {date ? format(date, "do MMM, yyyy") : "the day of your arrival"}. No extra fees
                           </p>
                         </div>
-                        <div></div>
+                        <svg width="20" height="20" viewBox="0 0 20 20" className="shrink-0" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <rect x="0.5" y="0.5" width="19" height="19" rx="9.5" stroke="#0A6C6D" />
+                          {partPay && <circle cx="10" cy="10" r="6" fill="#0A6C6D" />}
+                        </svg>
                       </div>
                     </div>
                   </div>
@@ -245,8 +251,8 @@ export default function ReservationSummary({ id }) {
             </div>
             <div className="rounded-2xl bg-white border p-4">
               <h3 className="text-lg font-semibold">Price Summary</h3>
-              <div className=" divide-y">
-                <div className="mb-3 space-y-2 text-sm">
+              <div className="divide-y">
+                <div className="pb-3 space-y-2 text-sm">
                   <p className="text-[#111827]">Price Details</p>
                   <div className="flex items-center justify-between">
                     <p className="text-[#606368]">Table fee</p>
@@ -327,7 +333,7 @@ export default function ReservationSummary({ id }) {
             Back to Club Page
           </Button>
           <Button
-            className="bg-teal-600 hover:bg-teal-700 px-8 w-full max-w-xs rounded-xl cursor-pointer"
+            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 w-full max-w-xs rounded-xl cursor-pointer"
             onClick={handleContinue}
             disabled={!date || !guestCount || !time || isLoading}
           >

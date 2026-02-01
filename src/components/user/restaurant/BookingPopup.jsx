@@ -6,7 +6,7 @@ import { GuestPicker } from "../ui/guestpicker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import { useSelector } from "react-redux";
 import { userService } from "@/services/user.service";
@@ -168,7 +168,7 @@ return (
             <Button
               type="submit"
               disabled={!date || !time || isLoading}
-              className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
+              className="w-full rounded-xl h-10 bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
             >
               {isLoading ? (
                 <>
@@ -184,7 +184,7 @@ return (
     )}
     <div className="flex fixed bottom-0 left-0 w-full bg-white p-4 border-t border-[#E5E7EB]">
       <Button
-        className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
+        className="w-full rounded-xl bg-[#0A6C6D] h-10 hover:bg-[0A6C6D]/50"
         onClick={handlePopup}
       >
         Reserve Table

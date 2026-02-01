@@ -1,8 +1,10 @@
 import { userService } from "@/services/user.service";
 import { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 
 export const useFavorites = () => {
   const [favorites, setFavorites] = useState([]);
+  const [isLoading, setIsLoading] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -74,6 +76,7 @@ export const useFavorites = () => {
 
     try {
       setError(null);
+      setIsLoading(vendorId);
 
       const isCurrentlyFavorite =
         Array.isArray(favorites) &&
@@ -123,6 +126,7 @@ export const useFavorites = () => {
       }
     } catch (error) {
       console.error("Error toggling favorite:", error);
+      toast.error("Error toggling favorite");
       const errorMessage =
         error.response?.data?.message ||
         error.message ||
@@ -131,6 +135,8 @@ export const useFavorites = () => {
 
       // Revert optimistic update on error by refetching
       fetchFavorites();
+    } finally {
+      setIsLoading("");
     }
   };
 
@@ -149,6 +155,11 @@ export const useFavorites = () => {
     });
   };
 
+  const isLoadingFav = (vendorId) => {
+    if (!vendorId) return false;
+    return isLoading === vendorId;
+  }
+
   useEffect(() => {
     fetchFavorites();
   }, []);
@@ -160,6 +171,7 @@ export const useFavorites = () => {
     fetchFavorites,
     toggleFavorite,
     isFavorite,
+    isLoadingFav,
     refetch: fetchFavorites,
   };
 };

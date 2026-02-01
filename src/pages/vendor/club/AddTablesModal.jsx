@@ -1,12 +1,14 @@
 import { useState } from 'react';
-import { X, AlertCircle } from 'lucide-react';
+import { X, AlertCircle, Plus, Trash } from 'lucide-react';
 import { clubService } from '@/services/club.service';
 
 export function AddTablesModal({ onClose, onSuccess }) {
    const [formData, setFormData] = useState({
       name: '',
       price: '',
+      addOns: [],
    });
+   const [addOns, setAddOns] = useState("");
    const [isSubmitting, setIsSubmitting] = useState(false);
    const [saveAndAddAnother, setSaveAndAddAnother] = useState(false);
    const [error, setError] = useState(null);
@@ -17,10 +19,17 @@ export function AddTablesModal({ onClose, onSuccess }) {
       setError(null);
 
       try {
+         console.log('Submitting form data:', formData);
          const payload = {
             name: formData.name,
             price: parseFloat(formData.price) || 0,
+            addOns: formData.addOns,
          };
+         if (payload.addOns.length < 4) {
+            setError('Please add at least 4 addons.');
+            setIsSubmitting(false);
+            return;
+         }
 
          const response = await clubService.createTable(payload);
 
@@ -31,6 +40,7 @@ export function AddTablesModal({ onClose, onSuccess }) {
             setFormData({
                name: '',
                price: '',
+               addOns: [],
             });
             setError(null);
          } else {
@@ -109,6 +119,38 @@ export function AddTablesModal({ onClose, onSuccess }) {
                         className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
                      />
                   </div>
+               </div>
+               <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Addons (Atleast 4)</label>
+                  <div className="relative">
+                     <input
+                        placeholder="e.g Extra ice, Extra mixer"
+                        value={addOns}
+                        onChange={(e) => setAddOns(e.target.value)}
+                        className="w-full pr-10 pl-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500"
+                     />
+                     <button type='button' onClick={() => {
+                        if (addOns) {
+                           setFormData({ ...formData, addOns: [...formData.addOns, addOns] })
+                           console.log(formData.addOns)
+                           setAddOns("")
+                        }
+                     }} className='absolute right-1 top-1/2 transform bg-[#0A6E7D] -translate-y-1/2 text-white p-1.5 rounded-full hover:bg-[#0A6E7D]/90 transition-colors'>
+                        <Plus size={20} />
+                     </button>
+                  </div>
+                  {formData.addOns.length > 0 && (
+                     <ul className="mt-2 max-h-24 overflow-y-auto border border-gray-200 rounded-lg p-2 hide-scrollbar">
+                        {formData.addOns.map((addon, index) => (
+                           <li key={index} className="text-sm text-gray-700 py-1 border-b last:border-b-0 flex justify-between items-center">
+                              {addon} <button type='button' onClick={() => {
+                                 formData.addOns.splice(index, 1);
+                                 setFormData({ ...formData, addOns: [...formData.addOns] });
+                              }} ><Trash size={16} className='text-red-400' /></button>
+                           </li>
+                        ))}
+                     </ul>
+                  )}
                </div>
 
                <div className="flex gap-3 pt-4 border-t border-gray-200">

@@ -41,7 +41,7 @@ import {
 import DashboardButton from '@/components/dashboard/ui/DashboardButton';
 import FinancialDashboard from '@/components/dashboard/FinancialDashboard';
 import { paymentService } from '@/services/payment.service';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useSelector } from 'react-redux';
 import { useWebSocket } from '@/contexts/WebSocketContext';
@@ -134,9 +134,9 @@ const PaymentDashboard = () => {
         return (
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarFallback>{user.customer_name.split(" ").map((i) => (i.slice(0, 1).toUpperCase()))}</AvatarFallback>
+              <AvatarFallback>{user.customerName.split(" ").map((i) => (i.slice(0, 1).toUpperCase()))}</AvatarFallback>
             </Avatar>
-            <span className='text-[#111827] font-medium text-sm'>{user.customer_name}</span>
+            <span className='text-[#111827] font-medium text-sm'>{user.customerName}</span>
           </div>
         )
       },
@@ -308,7 +308,7 @@ const PaymentDashboard = () => {
 
   return (
     <DashboardLayout type={vendor.vendorType} section="Payments $ Earnings">
-      <div className='md:p-6 md:mb-12 space-y-6'>
+      <div className='md:p-6 md:mb-12 space-y-6 p-2'>
         <div className='md:flex hidden justify-between items-center'>
           <h2 className='text-[#111827] font-semibold'>Payments & Earnings</h2>
           <div className='flex gap-6'>
@@ -317,38 +317,39 @@ const PaymentDashboard = () => {
           </div>
         </div>
         {!hideTab && !loading.stats &&
-          <div className='hidden md:grid grid-cols-4 border w-full rounded-2xl'>
-            <div className='flex h-full items-center'>
-              <StatCard title="Total Earnings" value={`₦${stats.earnings.thisYear.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`} change={stats.earnings.yearChange} icon={<Calendar />} color="blue" />
-              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+          <div className='grid md:grid-cols-2 md:py-4 divide-y md:divide-x md:divide-y-0 border w-full rounded-2xl'>
+            <div className='grid grid-cols-2 divide-x py-4 md:py-0'>
+              <div className='flex h-full items-center'>
+                <StatCard title="Total Earnings" className="py-0" value={`₦${stats.earnings.thisYear.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}`} change={stats.earnings.yearChange} icon={<Calendar />} color="blue" />
+              </div>
+              <div className='flex h-full items-center'>
+                <StatCard title="Earnings this Week" className="py-0" value={`₦${stats.earnings.thisWeek.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}`} change={stats.earnings.weekChange} icon={<CardPay />} color="green" />
+              </div>
             </div>
-            <div className='flex h-full items-center'>
-              <StatCard title="Earnings this Week" value={`₦${stats.earnings.thisWeek.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`} change={stats.earnings.weekChange} icon={<CardPay />} color="green" />
-              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
-            </div>
-            <div className='flex h-full items-center'>
-              <StatCard title="Completed Payments" value={`₦${stats.payments.completed.thisWeek.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`} change={stats.payments.completed.change} icon={<Cash2 className="text-[#CD16C3]" />} color="purple" />
-              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
-            </div>
-            <div className='flex w-full'>
-              <StatCard title="Pending Payments" value={`₦${stats.payments.pending.thisWeek.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`} change={stats.payments.pending.change} icon={<Cash2 className="text-[#E1B505]" />} color="orange" />
+            <div className='grid grid-cols-2 divide-x py-4 md:py-0'>
+              <div className='flex h-full items-center'>
+                <StatCard title="Completed Payments" className="py-0" value={`₦${stats.payments.completed.thisWeek.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}`} change={stats.payments.completed.change} icon={<Cash2 className="text-[#CD16C3]" />} color="purple" />
+              </div>
+              <div className='flex w-full'>
+                <StatCard title="Pending Payments" className="py-0" value={`₦${stats.payments.pending.thisWeek.toLocaleString('en-US', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2
+                })}`} change={stats.payments.pending.change} icon={<Cash2 className="text-[#E1B505]" />} color="orange" />
+              </div>
             </div>
           </div>
         }
         <FinancialDashboard info={info} trend={trend} />
-        <div>
+        <div className='hidden md:block'>
           <div className="w-full border rounded-2xl">
             <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between p-4">
               <h2 className='flex flex-1 items-center'>

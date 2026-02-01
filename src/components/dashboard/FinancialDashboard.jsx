@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
     ChartContainer,
@@ -9,6 +9,7 @@ import moment from "moment";
 import { tr } from 'date-fns/locale';
 
 const FinancialDashboard = ({ info, trend }) => {
+    const [time, setTime] = useState('weekly');
     const availableBalance = info.balance;
     const currencySymbol = '₦';
     const lastPaymentDate = 'May 31st, 2025';
@@ -68,7 +69,7 @@ const FinancialDashboard = ({ info, trend }) => {
                     <h3 className="text-lg font-semibold text-gray-800">Earnings Trends</h3>
                     <div className="flex items-center space-x-3">
                         <span className="text-sm text-blue-500 cursor-pointer hover:text-blue-600">View All</span>
-                        <select className="p-1 text-sm border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                        <select value={time} onChange={(e) => setTime(e.target.value)} className="p-1 text-sm border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500">
                             <option>Weekly</option>
                             <option>Monthly</option>
                             <option>Quarterly</option>
