@@ -30,7 +30,7 @@ const HotelBookingPopup = ({
       date: date ? date.toISOString() : "",
       date2: date2 ? date2.toISOString() : "",
       guests,
-      specialRequest: request,
+      // specialRequest: request,
       roomId: selectedRoom._id,
     });
     navigate(`/hotels/${id}/reservations?${params.toString()}`);
@@ -118,7 +118,7 @@ const HotelBookingPopup = ({
               value={guests}
               onChange={setGuests}
             />
-            <div className="flex flex-col gap-y-3">
+            {/* <div className="flex flex-col gap-y-3">
               <Label htmlFor="special-request">Special Request</Label>
               <Textarea
                 id="special-request"
@@ -127,7 +127,7 @@ const HotelBookingPopup = ({
                 placeholder="e.g Night Party"
                 className="resize-none h-[100px] font-normal bg-white border border-[#E5E7EB] rounded-xl"
               />
-            </div>
+            </div> */}
             <div className="flex md:hidden fixed bottom-0 left-0 w-full bg-white p-4 border-t border-[#E5E7EB]">
               <Button
                 type="submit"
