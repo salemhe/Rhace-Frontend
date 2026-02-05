@@ -3,17 +3,11 @@ import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const Header = ({ onMenuClick }) => {
-  // const vendor = useSelector((state) => state.auth.vendor);
 
   const vendor = useSelector((state) => state.auth);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    // Update profile from redux auth state synchronously to avoid using an
-    // async effect directly (avoids some lint warnings) and to keep the
-    // component resilient when `vendor` is null/undefined.
-    setLoading(true);
     try {
       if (vendor && vendor.isAuthenticated) {
         setProfile(vendor.vendor ?? null);
@@ -21,15 +15,12 @@ const Header = ({ onMenuClick }) => {
         setProfile(null);
       }
     } catch (error) {
-      // keep console.error for easier debugging
       console.error(error);
       setProfile(null);
-    } finally {
-      setLoading(false);
     }
   }, [vendor]);
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 h-16 flex items-center px-6 relative">
+    <header className="bg-white shadow-sm border-b border-gray-200 h-16 hidden md:flex items-center px-6 relative">
       {/* Mobile menu button */}
       <button
         onClick={onMenuClick}

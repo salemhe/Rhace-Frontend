@@ -11,8 +11,8 @@ class PaymentService {
     return res.data;
   }
 
-  async getTrends() {
-    const res = await api.get("/payments/earnings-trend")
+  async getTrends({ range }) {
+    const res = await api.get(`/payments/earnings-trend?range=${range}`)
     return res.data;
   }
 
