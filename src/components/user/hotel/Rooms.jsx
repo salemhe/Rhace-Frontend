@@ -68,7 +68,7 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
     fetchRooms();
   }, []);
 
-  if (isLoading) return <UniversalLoader />;
+  if (isLoading) return <UniversalLoader type="cards" />;
 
   return (
     <div className="min-h-screen py-">
