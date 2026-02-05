@@ -19,7 +19,6 @@ const HotelBookingPopup = ({
 }) => {
   const [date, setDate] = useState();
   const [date2, setDate2] = useState();
-  const [request, setRequest] = useState("");
   const [guests, setGuests] = useState("1");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
