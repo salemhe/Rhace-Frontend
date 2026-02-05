@@ -121,7 +121,7 @@ export const SearchAutocomplete = ({
     0
   );
   return (
-    <div className="relative w-full" ref={dropdownRef}>
+    <div className="relative w-full z-30" ref={dropdownRef}>
       <input
         ref={inputRef}
         type="text"
