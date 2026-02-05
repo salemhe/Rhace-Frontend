@@ -16,10 +16,10 @@ import StarRating from "@/components/ui/starrating";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 const HotelsPage = () => {
-  const [activeTab, setActiveTab] = useState("property_details");
+  const [activeTab, setActiveTab] = useState("details");
 
   const { id } = useParams();
-  const [hotel, setHotel] = useState({})
+  const [hotel, setHotel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [show, setShow] = useState(false);
   const [selectedRoom, setSelectedRoom] = useState({
@@ -38,19 +38,19 @@ const HotelsPage = () => {
   useEffect(() => {
     const fetchHotel = async () => {
       try {
-        const res = await userService.getVendor("hotel", id)
-        console.log(res)
-        setHotel(res.data[0])
+        const res = await userService.getVendor("hotel", id);
+        console.log(res);
+        setHotel(res.data[0]);
       } catch (error) {
-        console.error(error)
+        console.error(error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
     fetchHotel();
-  }, [])
+  }, []);
 
-    if (isLoading) return <UniversalLoader fullscreen />
+  if (isLoading) return <UniversalLoader fullscreen />;
   return (
     <>
       <div className="hidden md:block">
@@ -72,13 +72,17 @@ const HotelsPage = () => {
                   />
                   {activeTab === "rooms" && (
                     <div className="hidden md:block">
-                      <HotelBookingForm selectedRoom={selectedRoom} id={id} restaurant={hotel} />
+                      <HotelBookingForm
+                        selectedRoom={selectedRoom}
+                        id={id}
+                        restaurant={hotel}
+                      />
                     </div>
                   )}
                 </div>
                 <div className="space-y-2">
                   <div className="flex flex-col md:flex-row md:justify-between md:items-cente w-full gap-4">
-                    <div className="flex gap-2 items-center pt-2 md:pt-0 px-4 md:px-0">
+                    <div className="flex justify-between gap-2 items-center pt-2 md:pt-0 px-4 md:px-0">
                       <h1 className="text-2xl text-[#111827] font-semibold">
                         {hotel.businessName}{" "}
                       </h1>{" "}
@@ -90,9 +94,17 @@ const HotelsPage = () => {
                     <HotelSaveCopy id={id} />
                   </div>
                   <div className="md:flex hidden gap-1 items-center text-xs">
-                    <StarRating size={16} rating={Number(hotel.rating)} readOnly />
-                    <span className="font-semibold text-lg">{hotel.rating}</span>
-                    <span className="text-gray-600">({hotel.reviews.toLocaleString()} reviews)</span>
+                    <StarRating
+                      size={16}
+                      rating={Number(hotel.rating)}
+                      readOnly
+                    />
+                    <span className="font-semibold text-lg">
+                      {hotel.rating}
+                    </span>
+                    <span className="text-gray-600">
+                      ({hotel.reviews.toLocaleString()} reviews)
+                    </span>
                   </div>
                 </div>
               </div>
@@ -115,8 +127,11 @@ const HotelsPage = () => {
           {activeTab !== "rooms" && (
             <div className="space-y-8 px-4 md:px-0">
               <div className="hidden md:block">
-
-                <HotelBookingForm selectedRoom={selectedRoom} id={id} restaurant={hotel} />
+                <HotelBookingForm
+                  selectedRoom={selectedRoom}
+                  id={id}
+                  restaurant={hotel}
+                />
               </div>
 
               <div className="rounded-2xl bg-[#E7F0F0] border border-[#E5E7EB] p-1">
@@ -137,10 +152,7 @@ const HotelsPage = () => {
                   </h3>
                   <div className="flex items-center gap-2">
                     <Phone className="w-5 h-5 text-black mt-1" />
-                    <a
-                      href={`tel:${hotel.phone}`}
-                      className="hover:underline"
-                    >
+                    <a href={`tel:${hotel.phone}`} className="hover:underline">
                       {hotel.phone}
                     </a>
                   </div>
@@ -167,7 +179,14 @@ const HotelsPage = () => {
             </div>
           )}
         </div>
-        <HotelBookingPopup activeTab={activeTab} setActiveTab={setActiveTab} show={show} setShow={setShow} selectedRoom={selectedRoom} id={id} />
+        <HotelBookingPopup
+          activeTab={activeTab}
+          setActiveTab={setActiveTab}
+          show={show}
+          setShow={setShow}
+          selectedRoom={selectedRoom}
+          id={id}
+        />
       </main>
       <div className="hidden md:block">
         <Footer />
@@ -175,6 +194,5 @@ const HotelsPage = () => {
     </>
   );
 };
-
 
 export default HotelsPage;

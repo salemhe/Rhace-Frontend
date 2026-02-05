@@ -23,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { trimLongString } from "@/utils/helper";
 
 const RoomTable = ({
   rooms,
@@ -91,7 +92,7 @@ const RoomTable = ({
           <span
             className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
               room.isAvailable,
-              room.maintenanceStatus
+              room.maintenanceStatus,
             )}`}
           >
             {getStatusText(room.isAvailable, room.maintenanceStatus)}
@@ -111,7 +112,7 @@ const RoomTable = ({
                 key={index}
                 className="px-2 py-1 bg-[#f4f4f4] border border-[#E5E7EB] text-[#606368] text-xs rounded-[8px]"
               >
-                {amenity}
+                {trimLongString(amenity, 8)}
               </span>
             ))}
             {amenities.length > 2 && (
@@ -222,7 +223,7 @@ const RoomTable = ({
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     );
@@ -242,7 +243,7 @@ const RoomTable = ({
                       <TableCell key={cell.id} className="whitespace-nowrap">
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}
@@ -277,7 +278,7 @@ const RoomTable = ({
                 <span
                   className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
                     room.isAvailable,
-                    room.maintenanceStatus
+                    room.maintenanceStatus,
                   )}`}
                 >
                   {getStatusText(room.isAvailable, room.maintenanceStatus)}
