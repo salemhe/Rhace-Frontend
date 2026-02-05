@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import {
     ChartContainer,
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart"
-import moment from "moment";
-import { tr } from 'date-fns/locale';
+import { paymentService } from '@/services/payment.service';
+import { toast } from 'react-toastify';
 
-const FinancialDashboard = ({ info, trend }) => {
+const FinancialDashboard = ({ info }) => {
     const [time, setTime] = useState('weekly');
+    const [trend, setTrends] = useState({ "trends": [], "totalEarnings": 0, "percentChange": 0 });
+    const [loading, setLoading] = useState(false)
     const availableBalance = info.balance;
     const currencySymbol = '₦';
     const lastPaymentDate = 'May 31st, 2025';
@@ -19,10 +21,30 @@ const FinancialDashboard = ({ info, trend }) => {
     const earningsChange = `${trend.percentChange}%`;
     const branches = ['Restaurant 1 - HQ'];
 
+    const fetchTrends = async () => {
+        try {
+            setLoading(true);
+            const res = await paymentService.getTrends({ range: time });
+            setTrends(res);
+        } catch (error) {
+            console.error(error);
+            toast.error(error.response?.message || "Failed to fetch payment trends");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchTrends()
+    }, [time])
+
     const chartData = trend.trends.map(item => ({
-        date: moment(item._id).format("MMM D"), // 'Jan 1'
-        earnings: item.totalEarnings
+        date: item.label, // ← just use the label
+        earnings: item.value
     }));
+
+    console.log(trend.trends)
+
     const chartConfig = {
         desktop: {
             label: "Desktop",
@@ -31,14 +53,14 @@ const FinancialDashboard = ({ info, trend }) => {
     }
 
     return (
-        <div className="flex flex-col lg:flex-row gap-5 mx-auto" >
+        <div className="flex flex-col lg:flex-row gap-4 md:gap-5 px-2 mx-auto" >
 
             {/* 1. Account Summary Panel (Left) */}
             < div className="flex-1 p-5 bg-white rounded-2xl border" >
                 <div className="flex justify-between items-start mb-5">
                     <div>
                         <h3 className="text-sm text-gray-500 font-medium mb-1">Available Balance</h3>
-                        <div className="text-4xl font-extrabold text-gray-800">{currencySymbol}{availableBalance}</div>
+                        <div className="text-4xl font-extrabold text-gray-800">{currencySymbol}{availableBalance.toLocaleString()}</div>
                         <p className="text-xs text-gray-400 mt-1">Last payment processed on {lastPaymentDate}</p>
                     </div>
                 </div>
@@ -70,77 +92,85 @@ const FinancialDashboard = ({ info, trend }) => {
                     <div className="flex items-center space-x-3">
                         <span className="text-sm text-blue-500 cursor-pointer hover:text-blue-600">View All</span>
                         <select value={time} onChange={(e) => setTime(e.target.value)} className="p-1 text-sm border border-gray-200 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            <option>Weekly</option>
-                            <option>Monthly</option>
-                            <option>Quarterly</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="quarterly">Quarterly</option>
                         </select>
                     </div>
                 </div>
+                {!loading ? (
+                    <>
 
-                <div className="mb-4 flex gap-3">
-                    <div>
+                        <div className="mb-4 flex gap-3">
+                            <div>
 
-                        <span className="text-3xl font-extrabold text-gray-800 mr-2">{currencySymbol}{earningsValue}</span>
-                        <span className="text-sm text-emerald-600 font-semibold">
-                            ↑{earningsChange} vs last week
-                        </span>
+                                <span className="text-3xl font-extrabold text-gray-800 mr-2">{currencySymbol}{earningsValue}</span>
+                                <span className="text-sm text-emerald-600 font-semibold">
+                                    ↑{earningsChange} vs last week
+                                </span>
+                            </div>
+                            <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
+                                {branches.map((branch, index) => (
+                                    <span key={index} className="flex items-center">
+                                        <span
+                                            className={`text-lg mr-1 size-2 rounded-full ${index === 0 ? 'bg-emerald-500' : 'bg-gray-400'}`}
+                                        />
+                                        {branch}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+
+                        <ChartContainer config={chartConfig}>
+                            <AreaChart
+                                accessibilityLayer
+                                data={chartData}
+                                margin={{
+                                    left: 12,
+                                    right: 12,
+                                }}
+                            >
+                                <CartesianGrid vertical={false} />
+                                <XAxis
+                                    dataKey="date"
+                                    tickLine={false}
+                                    axisLine={false}
+                                    tickMargin={8}
+                                    tickFormatter={(value) => value.slice(0, 5)}
+                                />
+                                <ChartTooltip
+                                    cursor={false}
+                                    formatter={(value) => `₦${value.toLocaleString()}`}
+                                />
+                                <defs>
+                                    <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
+                                        <stop
+                                            offset="5%"
+                                            stopColor="#60A5FA"
+                                            stopOpacity={0.8}
+                                        />
+                                        <stop
+                                            offset="95%"
+                                            stopColor="4C98F1"
+                                            stopOpacity={0.1}
+                                        />
+                                    </linearGradient>
+                                </defs>
+                                <Area
+                                    dataKey="earnings"
+                                    type="natural"
+                                    fill="url(#fillDesktop)"
+                                    fillOpacity={0.4}
+                                    stroke="#60A5FA"
+                                />
+                            </AreaChart>
+                        </ChartContainer>
+                    </>
+                ) : (
+                    <div className='aspect-video text-gray-400 text-sm flex items-center justify-center'>
+                        Loading data...
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-600">
-                        {branches.map((branch, index) => (
-                            <span key={index} className="flex items-center">
-                                <span
-                                    className={`text-lg mr-1 size-2 rounded-full ${index === 0 ? 'bg-emerald-500' : 'bg-gray-400'}`}
-                                />
-                                {branch}
-                            </span>
-                        ))}
-                    </div>
-                </div>
-
-                <ChartContainer config={chartConfig}>
-                    <AreaChart
-                        accessibilityLayer
-                        data={chartData}
-                        margin={{
-                            left: 12,
-                            right: 12,
-                        }}
-                    >
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                            dataKey="date"
-                            tickLine={false}
-                            axisLine={false}
-                            tickMargin={8}
-                            tickFormatter={(value) => value.slice(0, 5)}
-                        />
-                        <ChartTooltip
-                            cursor={false}
-                            formatter={(value) => `₦${value.toLocaleString()}`}
-                        />
-                        <defs>
-                            <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                                <stop
-                                    offset="5%"
-                                    stopColor="#60A5FA"
-                                    stopOpacity={0.8}
-                                />
-                                <stop
-                                    offset="95%"
-                                    stopColor="4C98F1"
-                                    stopOpacity={0.1}
-                                />
-                            </linearGradient>
-                        </defs>
-                        <Area
-                            dataKey="earnings"
-                            type="natural"
-                            fill="url(#fillDesktop)"
-                            fillOpacity={0.4}
-                            stroke="#60A5FA"
-                        />
-                    </AreaChart>
-                </ChartContainer>
+                )}
             </div>
         </div >
     );

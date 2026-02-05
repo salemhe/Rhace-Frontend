@@ -41,7 +41,7 @@ export function StatCard({
         )}
       >
         <span className="flex items-center">
-          {isPositive ? <ArrowUp /> : <ArrowDown />} {Math.abs(change)}%{" "}
+          {isPositive ? <ArrowUp /> : <ArrowDown />} {Math.abs(change).toFixed(2)}%{" "}
         </span>
         <span className="text-gray-400 font-normal">{comparison}</span>
       </p>
