@@ -1,10 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const HotelOverview = ({ desc }) => {
@@ -21,19 +18,17 @@ const HotelOverview = ({ desc }) => {
   return (
     <div className="space-y-6 text-sm md:text-base">
       <div>
-        <h2 className="font-semibold">Description</h2>
+        <h2 className="font-semibold">About Hotel</h2>
         <div
           ref={contentRef}
           className={cn(
             "transition-all overflow-hidden",
-            showMore ? "max-h-[5000px]" : "max-h-[90px]"
+            showMore ? "max-h-[5000px]" : "max-h-[90px]",
           )}
         >
           <p className="text-gray-700 text-sm leading-relaxed">
             {desc.split("  ").map((part, idx) => (
-              <span key={idx}>
-                {part}
-              </span>
+              <span key={idx}>{part}</span>
             ))}
           </p>
         </div>
