@@ -85,7 +85,8 @@ export default function Dashboard() {
   const fetchTopVendors = async () => {
     try {
       const tv = await getTopVendors();
-      setTopVendors(Array.isArray(tv?.data) ? tv.data : []);
+      const vendors = tv?.data?.data || tv?.data || [];
+      setTopVendors(Array.isArray(vendors) ? vendors : []);
     } catch (err) {
       console.error("Failed to load top vendors", err);
     }
@@ -253,18 +254,21 @@ export default function Dashboard() {
       }
       fetchKPIs(); // Update totalBookings
       fetchTransactions(); // Update recent transactions
+      fetchTopVendors(); // Update top vendors when new reservations are created
     };
 
     const handleReservationUpdated = (reservation: any) => {
       fetchTodaysReservations();
       fetchKPIs();
       fetchTransactions();
+      fetchTopVendors(); // Update top vendors when reservations are updated
     };
 
     const handleReservationDeleted = (reservation: any) => {
       fetchTodaysReservations();
       fetchKPIs(); // Update totalBookings
       fetchTransactions();
+      fetchTopVendors(); // Update top vendors when reservations are deleted
     };
 
     const handlePaymentCreated = (payment: any) => {
@@ -475,85 +479,143 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      <Card className="">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg">Today's Reservations</CardTitle>
-            <Button variant="link" size="sm" className="text-primary p-0 h-auto" onClick={() => navigate('/dashboard/admin/vendors')}>
-              View All <ExternalLink className="w-3 h-3 ml-1" />
-            </Button>
+      <Card className="bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-blue-950/50 dark:to-indigo-900/50 border-0 shadow-xl">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+              <Users className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">Today's Reservations</CardTitle>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-green-600 dark:text-green-400 font-medium">Live Updates</span>
+              </div>
+            </div>
+          </div>
+          <Button variant="link" size="sm" className="text-primary p-0 h-auto hover:text-primary/80 transition-colors" onClick={() => navigate('/dashboard/admin/reservations')}>
+            View All <ExternalLink className="w-3 h-3 ml-1" />
+          </Button>
         </CardHeader>
-        <CardContent className="">
-          <div className="space-y-3">
-            {todaysReservations.map((res, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
-                <div className="flex items-center gap-3">
-                  <Avatar className="w-10 h-10">
-                    <AvatarImage className="" src="" alt={res.name} />
-                    <AvatarFallback className="bg-primary/10 text-primary">EJ</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium">{res.name}</p>
-                    <p className="text-xs text-muted-foreground">ID: {res.id}</p>
+        <CardContent className="px-6 pb-6">
+          <div className="space-y-4">
+            {todaysReservations.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-sm text-gray-500 dark:text-gray-400">No reservations for today</p>
+              </div>
+            ) : (
+              todaysReservations.slice(0, 5).map((res, i) => (
+                <div key={i} className="group bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <Avatar className="w-12 h-12 ring-2 ring-blue-100 dark:ring-blue-900">
+                          <AvatarImage src="" alt={res.name} className="" />
+                          <AvatarFallback className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold">
+                            {res.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">{res.name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">ID: {res.id}</p>
+                      </div>
+                    </div>
+                    <div className="text-right hidden sm:block">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{res.date}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">{res.time}</p>
+                    </div>
+                    <div className="hidden md:block">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">{res.venue}</p>
+                    </div>
+                    <Badge
+                      variant={res.status === "Active" || res.status === "Confirmed" ? "default" : "secondary"}
+                      className={`px-3 py-1 ${
+                        res.status === "Active" || res.status === "Confirmed"
+                          ? "bg-gradient-to-r from-green-500 to-emerald-600 text-white shadow-sm"
+                          : "bg-gradient-to-r from-yellow-500 to-orange-600 text-white shadow-sm"
+                      }`}
+                    >
+                      {res.status}
+                    </Badge>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm">{res.date}</p>
-                  <p className="text-xs text-muted-foreground">Time: {res.time}</p>
-                </div>
-                <p className="text-sm hidden md:block">{res.venue}</p>
-                <Badge
-                  variant={res.status === "Active" ? "default" : "secondary"}
-                  className={
-                    res.status === "Active"
-                      ? "bg-success text-success-foreground"
-                      : "bg-warning text-warning-foreground"
-                  }
-                >
-                  {res.status}
-                </Badge>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>
 
-      <Card className="">
-        <CardHeader className="flex flex-row items-center justify-between pb-2">
-          <CardTitle className="text-lg">Top Performing Vendors</CardTitle>
+      <Card className="bg-gradient-to-br from-emerald-50 to-teal-100 dark:from-emerald-950/50 dark:to-teal-900/50 border-0 shadow-xl">
+        <CardHeader className="flex flex-row items-center justify-between pb-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <CardTitle className="text-xl font-bold text-gray-900 dark:text-white">Top Performing Vendors</CardTitle>
+              <div className="flex items-center gap-2 mt-1">
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Real-time Performance</span>
+              </div>
+            </div>
+          </div>
           <div className="flex gap-2">
-            <span className="text-xs px-2 py-1 border rounded bg-background">Monthly</span>
-            <Button variant="link" size="sm" className="text-primary p-0 h-auto">
+            <span className="text-xs px-3 py-1 border rounded bg-white/80 dark:bg-gray-800/80 text-gray-700 dark:text-gray-300 shadow-sm">Monthly</span>
+            <Button variant="link" size="sm" className="text-primary p-0 h-auto hover:text-primary/80 transition-colors" onClick={() => navigate('/dashboard/admin/vendors')}>
               View All <ExternalLink className="w-3 h-3 ml-1" />
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="">
-          <div className="space-y-3">
-            {topVendors.map((vendor, i) => (
-              <div key={i} className="flex items-center justify-between py-2 border-b last:border-0">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary/10 text-primary rounded-full flex items-center justify-center">
-                    <span className="font-semibold">K</span>
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">{vendor.name || vendor.businessName || vendor.vendorName || "Vendor"}</p>
-                    <p className="text-xs text-muted-foreground">{vendor.type || vendor.category || ""}</p>
+        <CardContent className="px-6 pb-6">
+          <div className="space-y-4">
+            {topVendors.length === 0 ? (
+              <div className="text-center py-8">
+                <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                <p className="text-sm text-gray-500 dark:text-gray-400">No vendor performance data available</p>
+              </div>
+            ) : (
+              topVendors.slice(0, 5).map((vendor, i) => (
+                <div key={i} className="group bg-white dark:bg-gray-800 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200 border border-gray-100 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <div className="w-12 h-12 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-full flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                          {(vendor.businessName || vendor.name || "V")[0].toUpperCase()}
+                        </div>
+                        <div className="absolute -top-1 -left-1 w-5 h-5 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center text-xs font-bold text-white shadow-sm">
+                          {i + 1}
+                        </div>
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">{vendor.businessName || vendor.name || "Vendor"}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{vendor.vendorType || vendor.type || "Business"}</p>
+                      </div>
+                    </div>
+                    <div className="text-right hidden sm:block">
+                      <p className="text-sm font-medium text-gray-900 dark:text-white">
+                        {vendor.totalReservations || vendor.bookings || "0"} Bookings
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Total Bookings</p>
+                    </div>
+                    <div className="hidden md:block">
+                      <p className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                        ₦{Number(vendor.totalRevenue || vendor.revenue || 0).toLocaleString()}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">Revenue</p>
+                    </div>
+                    <Badge
+                      variant="default"
+                      className="px-3 py-1 bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm"
+                    >
+                      Active
+                    </Badge>
                   </div>
                 </div>
-                <p className="text-sm hidden md:block">{vendor.bookings || (vendor.totalBookings != null ? `${vendor.totalBookings} Bookings` : "")}</p>
-                <p className="text-sm font-semibold">{vendor.revenue || (vendor.totalRevenue != null ? `₦${Number(vendor.totalRevenue).toLocaleString()}` : "")}</p>
-                <Badge
-                  variant={vendor.status === "Active" ? "default" : "secondary"}
-                  className={
-                    vendor.status === "Active"
-                      ? "bg-success text-success-foreground"
-                      : "bg-warning text-warning-foreground"
-                  }
-                >
-                  {vendor.status}
-                </Badge>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

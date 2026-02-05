@@ -348,46 +348,28 @@ export default function UserManagement() {
   const loadUsers = async () => {
     setLoading(true);
     try {
-      // Fetch current page users
+      // Fetch current page users only (no reservation counts initially)
       const usersRes = await getUsers({ page: currentPage, limit: 20 });
       const payload = usersRes?.data;
       const list = extractArray(payload);
 
-      // Normalize VIP field for all users and fetch reservation counts
-      const usersWithReservations = await Promise.all(
-        list.map(async (user) => {
-          try {
-            const userId = user.id || user._id;
-            const reservationsRes = await getUserReservations(userId); // Get reservations for this specific user
-            const reservationsData = extractArray(reservationsRes?.data);
-            const reservationCount = reservationsData?.length || 0;
+      // Normalize VIP field for all users (reservation counts will be lazy-loaded)
+      const normalizedUsers = list.map(user => ({
+        ...user,
+        isVip: user.isVip || user.isVIP || false, // Ensure VIP status is properly set
+        reservations: user.reservations || 0 // Use cached value or default to 0
+      }));
 
-            // Normalize VIP field - API might return isVIP instead of isVip
-            const normalizedUser = {
-              ...user,
-              isVip: user.isVip || user.isVIP || false, // Ensure VIP status is properly set
-              reservations: reservationCount
-            };
-
-            return normalizedUser;
-          } catch (error) {
-            console.error(`Failed to fetch reservations for user ${user.id || user._id}:`, error);
-            return {
-              ...user,
-              isVip: user.isVip || user.isVIP || false,
-              reservations: 0
-            };
-          }
-        })
-      );
-
-
-
-      setUsers(usersWithReservations);
+      setUsers(normalizedUsers);
       setTotalPages(payload?.totalPages || 1);
       setTotalUsers(payload?.totalDocs || 0);
 
-      await loadStats();
+      // Load stats in parallel
+      loadStats();
+
+      // Lazy load reservation counts in background (non-blocking)
+      loadReservationCounts(normalizedUsers);
+
     } catch (e) {
       console.error("Failed to load users", e);
       setUsers([]);
@@ -401,6 +383,40 @@ export default function UserManagement() {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Lazy load reservation counts for better performance
+  const loadReservationCounts = async (usersList) => {
+    if (!usersList || usersList.length === 0) return;
+
+    try {
+      // Fetch all reservations in one call and distribute counts
+      const reservationsRes = await getReservations({ limit: 1000 });
+      const allReservations = extractArray(reservationsRes?.data) || [];
+
+      // Create a map of user reservation counts
+      const reservationCounts = {};
+      allReservations.forEach(reservation => {
+        const userId = getUserIdFromReservation(reservation);
+        if (userId) {
+          reservationCounts[userId] = (reservationCounts[userId] || 0) + 1;
+        }
+      });
+
+      // Update users with their reservation counts
+      setUsers(prevUsers =>
+        prevUsers.map(user => {
+          const userId = user.id || user._id;
+          return {
+            ...user,
+            reservations: reservationCounts[userId] || 0
+          };
+        })
+      );
+    } catch (error) {
+      console.error("Failed to load reservation counts:", error);
+      // Don't show error to user, just keep default counts
     }
   };
 
@@ -484,7 +500,7 @@ export default function UserManagement() {
         );
       }
 
-      if (reservationsOpen && selectedUser && userId === selectedUser.id || userId === selectedUser._id) {
+      if (reservationsOpen && selectedUser && (userId === selectedUser.id || userId === selectedUser._id)) {
         setUserReservations((prev) => [newReservation, ...prev]);
       }
     };

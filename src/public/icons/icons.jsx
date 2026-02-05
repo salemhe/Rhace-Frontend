@@ -277,5 +277,18 @@ const SvgIcon = () => (
   </svg>
 );
 
-export { Amenities, BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, Plate, SettingsIcon, PrepaidIcon, GuestsIcon, PendingPaymentIcon, PeopleIcon, FoodIcon, UsersIcon, SvgIcon };
+const RhaceIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="32"
+    height="32"
+    fill="none"
+    viewBox="0 0 32 32"
+  >
+    <circle cx="16" cy="16" r="15" fill="#fff" stroke="#000" strokeWidth="1"/>
+    <text x="16" y="21" textAnchor="middle" fill="#000" fontSize="16" fontFamily="Arial" fontWeight="bold">R</text>
+  </svg>
+);
+
+export { Amenities, BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, Plate, SettingsIcon, PrepaidIcon, GuestsIcon, PendingPaymentIcon, PeopleIcon, FoodIcon, UsersIcon, SvgIcon, RhaceIcon };
 

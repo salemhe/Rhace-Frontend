@@ -257,6 +257,22 @@ export const WebSocketProvider = ({ url, children }) => {
       }
     });
 
+    socket.current.on("vendor-earnings-updated", (payload) => {
+      const handler = listeners.current.get("vendor-earnings-updated");
+      if (handler) {
+        console.log("Vendor earnings updated received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("vendorEarningsUpdated", (payload) => {
+      const handler = listeners.current.get("vendor-earnings-updated");
+      if (handler) {
+        console.log("Vendor earnings updated (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
     return () => {
       socket.current.disconnect();
     };

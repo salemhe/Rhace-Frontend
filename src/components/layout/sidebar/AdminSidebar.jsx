@@ -1,18 +1,27 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+import { logout } from '../../../redux/slices/authSlice';
 import { AdminList } from './SideMenuList';
 import { X } from 'lucide-react';
+import { RhaceIcon } from '@/public/icons/icons';
 
 const AdminSidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const isActiveRoute = (itemPath) => {
     return location.pathname === itemPath;
   };
 
   const handleItemClick = (item) => {
-    navigate(item.path);
+    if (item.label === "Logout") {
+      dispatch(logout());
+      navigate("/auth/admin/login");
+    } else {
+      navigate(item.path);
+    }
     if (onClose && window.innerWidth < 1024) {
       onClose();
     }
@@ -63,6 +72,8 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                 key={item.label}
                 onClick={() => handleItemClick(item)}
                 className={`w-[90%] flex items-center pl-7 py-2 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
+                  item.label === "Logout" ? "mt-32" : ""
+                } ${
                   item.active
                     ? 'bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]'
                     : 'text-teal-100 hover:bg-teal-700 hover:text-white'
@@ -84,9 +95,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       >
         <div className="flex items-center justify-between h-16 px-4 bg-teal-900">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
-              <div className="w-6 h-6 bg-teal-800 rounded-full"></div>
-            </div>
+            <RhaceIcon className="w-8 h-8 mr-3" />
             <span className="text-xl font-bold">Rhace Admin</span>
           </div>
           <button
@@ -103,6 +112,8 @@ const AdminSidebar = ({ isOpen, onClose }) => {
               key={item.label}
               onClick={() => handleItemClick(item)}
               className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
+                item.label === "Logout" ? "mt-16" : ""
+              } ${
                 item.active
                   ? 'bg-teal-700 text-white'
                   : 'text-teal-100 hover:bg-teal-700 hover:text-white'
