@@ -118,7 +118,7 @@ export const SearchAutocomplete = ({
   // ✅ Calculate total count
   const totalCount = Object.values(groupedSuggestions).reduce(
     (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0),
-    0
+    0,
   );
   return (
     <div className="relative w-full z-30" ref={dropdownRef}>
@@ -133,7 +133,7 @@ export const SearchAutocomplete = ({
       />
 
       {isOpen && (
-        <div className="absolute top-full left-0 md:w-88 w-full right-0 mt-3 bg-white rounded-2xl shadow-xl z-full max-h-[420px] overflow-y-auto border border-gray-100">
+        <div className="absolute top-full left-0 md:w-88 w-full right-0 mt-3 bg-white rounded-2xl shadow-xl z-50 max-h-[420px] overflow-y-auto border border-gray-100">
           {isLoading ? (
             <div className="p-6 text-center">
               <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-blue-600 border-r-transparent"></div>
@@ -215,7 +215,7 @@ export const SearchAutocomplete = ({
                       </div>
                     </div>
                   );
-                }
+                },
               )}
             </div>
           )}
