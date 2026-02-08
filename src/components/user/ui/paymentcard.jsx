@@ -54,7 +54,10 @@ const PaymentCard = ({ payment, onViewDetails }) => {
         <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
           <div className="text-right flex gap-4">
             <div className="text-[#0A6E7D] font-bold text-base sm:text-lg">
-              NGN {payment.amountPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              NGN {payment.amountPaid.toLocaleString('en-NG', { 
+                style: 'currency', 
+                currency: 'NGN' 
+              })}
             </div>
             <div className={`inline-flex items-center px-2.5 py-0.5 mt-1 rounded-full text-[9px] sm:text-[10px] font-bold border ${getStatusStyle(payment.status)} uppercase tracking-wider`}>
               {payment.status}

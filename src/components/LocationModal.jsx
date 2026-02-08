@@ -2,19 +2,17 @@ import { useUserLocation } from '@/contexts/LocationContext.jsx';
 import React, { useState, useEffect } from 'react';
 
 const LocationModal = () => {
-  const { location, requestLocation } = useUserLocation();
+  const { location, requestLocation, isLoading } = useUserLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [dontAskAgain, setDontAskAgain] = useState(false);
 
-  useEffect(() => {
-    const suppressPrompt = localStorage.getItem('suppressLocationPrompt');
-    
-    // Show modal if we don't have location AND user hasn't suppressed it
-    if (!location.lat && !suppressPrompt) {
-      const timer = setTimeout(() => setIsOpen(true), 1500); // 1.5s delay
-      return () => clearTimeout(timer);
-    }
-  }, [location]);
+useEffect(() => {
+  const suppressPrompt = localStorage.getItem('suppressLocationPrompt');
+  if (!isLoading && !location.lat && !suppressPrompt) {
+    const timer = setTimeout(() => setIsOpen(true), 1500); 
+    return () => clearTimeout(timer);
+  }
+}, [location, isLoading]);
 
   const handleAllow = () => {
     requestLocation();

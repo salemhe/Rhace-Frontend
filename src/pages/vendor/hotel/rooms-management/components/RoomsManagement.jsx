@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import DeleteConfirmationModal from "./DeleteRoom";
 import ImageGalleryModal from "./ImageGalleryModal";
 import RoomCard from "./RoomCard";

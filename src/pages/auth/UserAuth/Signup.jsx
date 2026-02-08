@@ -5,7 +5,7 @@
 // import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 // import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react"
 // import HeroImage from '../../../components/auth/HeroImage'
-// import { toast } from "sonner"
+// import { toast } from "react-toastify"
 // import { useNavigate } from "react-router"
 // import { authService } from "@/services/auth.service"
 
@@ -290,7 +290,7 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
 import GoogleIcon from "@/public/auth/google.svg";
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 import { useNavigate } from "react-router"
 import { authService } from "@/services/auth.service"
 import logo from "../../../public/images/Rhace-11.png"

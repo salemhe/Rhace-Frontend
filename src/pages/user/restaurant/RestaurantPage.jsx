@@ -68,7 +68,7 @@ const RestaurantsPage = () => {
             <div className="hidden md:block">
                 <Header />
             </div>
-            <main className="mx-auto md:mt-[85px] mb-[160px] md:mb-[16px] md:py-8 max-w-7xl md:px-6 lg:px-8">
+            <main className="mx-auto md:mt-[85px] pb-20 md:mb-4 md:py-8 max-w-7xl md:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row gap-8 w-full">
                     <div className="w-full space-y-4 md:space-y-8">
                         <div className="col-span-2">
@@ -96,7 +96,7 @@ const RestaurantsPage = () => {
                                     </div>
                                     <div className="md:flex hidden gap-1 items-center text-xs">
                                         <StarRating size={16} rating={Number(restaurant.rating)} readOnly />
-                                        <span className="font-semibold text-lg">{restaurant.rating}</span>
+                                        <span className="font-semibold">{restaurant.rating.toFixed(1)}</span>
                                         <span className="text-gray-600">({restaurant.reviews.toLocaleString()} reviews)</span>
                                     </div>
                                 </div>

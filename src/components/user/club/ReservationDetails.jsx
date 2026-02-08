@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useReservations } from "@/contexts/club/ReservationContext";
 import ReservationHeader from "./ReservationHeader";
 import { TimePicker } from "../ui/timepicker";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useEffect, useRef, useState } from "react";
 import DatePicker from "../ui/datepicker";
 import { GuestPicker } from "../ui/guestpicker";
@@ -55,15 +55,28 @@ export default function ReservationDetails({
   const [bottlesLoading, setBottlesLoading] = useState(true);
   const [tableLoading, setTableLoading] = useState(true);
   const [itemsToShow, setItemsToShow] = useState(8);
+  const [tablesToShow, setTablesToShow] = useState(6);
   const [activeTab, setActiveTab] = useState("All Bottles");
   const navigate = useNavigate();
   const ref = useRef(null);
   const containerRef = useRef(null);
   const cardRef = useRef(null);
   const isInView = useInView(ref, { once: true, margin: "-100px" });
-
+  const [maxTranslate, setMaxTranslate] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [currentIndex2, setCurrentIndex2] = useState(0);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+
+    const containerWidth = containerRef.current.offsetWidth;
+    const contentWidth = containerRef.current.scrollWidth;
+
+    setMaxTranslate(contentWidth - containerWidth);
+  }, [comboItems]);
+
+
+
+
 
   const nextSlide = () => {
     setCurrentIndex((prev) => (prev + 1) % comboItems.length);
@@ -73,19 +86,15 @@ export default function ReservationDetails({
     setCurrentIndex((prev) => (prev - 1 + comboItems.length) % comboItems.length);
   };
 
-  const nextSlide2 = () => {
-    setCurrentIndex2((prev) => (prev + 1) % table.length);
-  };
-
-  const prevSlide2 = () => {
-    setCurrentIndex2((prev) => (prev - 1 + table.length) % table.length);
-  };
-
   const slideWidth =
     cardRef.current?.offsetWidth && containerRef.current
       ? cardRef.current.offsetWidth + 24
       : 0;
 
+  const translateX = Math.min(
+    currentIndex * slideWidth,
+    maxTranslate
+  );
   const fetchVendor = async () => {
     try {
       setLoading(true);
@@ -146,11 +155,22 @@ export default function ReservationDetails({
       : bottleItems?.filter((item) => item.category === activeTab);
 
   const displayedItems = filteredBottles?.slice(0, itemsToShow);
+  const displayTables = table.slice(0, tablesToShow);
 
   const hasMore = (filteredBottles ? filteredBottles.length : 0) > itemsToShow;
+  const tableHasMore = (table ? table.length : 0) > tablesToShow;
 
   const handleShowMore = () => {
     setItemsToShow((prev) =>
+      Math.min(
+        prev + LOAD_MORE_STEP,
+        filteredBottles ? filteredBottles.length : 0
+      )
+    );
+  };
+
+  const handleTableShowMore = () => {
+    setTablesToShow((prev) =>
       Math.min(
         prev + LOAD_MORE_STEP,
         filteredBottles ? filteredBottles.length : 0
@@ -214,7 +234,7 @@ export default function ReservationDetails({
   };
 
   return (
-    <div className="min-h-screen mb-[65px] mt-[20px] md:mt-0 bg-gray-50">
+    <div className="min-h-screen mb-[65px] md:mt-0 bg-gray-50">
       <ReservationHeader title="Reservation Details" index={1} />
       <div className="md:hidden flex items-center gap-3 px-4 py-3 ">
         <button onClick={() => navigate(`/clubs/${id}`)}>
@@ -300,94 +320,71 @@ export default function ReservationDetails({
               <h3 className="text-xs md:text-sm text-[#111827]">
                 Tables
               </h3>
-              <div className="flex gap-6">
-                <button
-                  disabled={currentIndex2 === 0}
-                  onClick={prevSlide2}
-                  className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]"
-                >
-                  <ChevronLeft />
-                </button>
-                <button onClick={nextSlide2} disabled={currentIndex2 === table.length -1} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
-                  <ChevronRight />
-                </button>
-              </div>
             </div>
-            <div className="flex overflow-hidden w-full" ref={containerRef} >
-            <motion.div
-              className="flex gap-6"
-              animate={{ x: -currentIndex2 * slideWidth }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-            >
+            <div className="flex overflow-x-auto hide-scrollbar px-6 mask-x-from-95% mask-x-to-100% w-full" ref={containerRef} >
+              <motion.div
+                className="flex gap-6"
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+              >
                 {tableLoading ? (
-                  <div>TableLoader</div>
-                ) : table.length === 0 ? (
+                  <div className="flex w-full justify-center items-center">
+
+                  <UniversalLoader />
+                  </div>
+                ) : displayTables.length === 0 ? (
                   <div>No available Tables</div>
                 ) : (
-                  table.map((item, index) => {
-                  return (
-                    <motion.div
-                      key={index}
-                      ref={index === 0 ? cardRef : null}
-                      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className={`${item.selected
-                        && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
-                        } p-1 h-[420px] w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] flex-shrink-0`}
-                    >
-                      <div className="p-2 w-full h-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col">
-                        <div className="relative w-full h-[150px] overflow-hidden rounded-2xl flex-shrink-0">
-                          {item.image ? (
-                            <img
-                            src={item.image}
-                            alt={item.name}
-                            className="object-cover size-full"
-                            />
-                          ) : (
-                            <div className="bg-gray-200 size-full flex items-center justify-center">
-                              No Image
-                            </div>
-                          )}
-                          {item.specials && (
-                            <div className="absolute bg-[#E5E7EB] rounded-full top-2 left-2 px-3 text-xs font-medium text-[#111827] py-1">
-                              {item.specials}
-                            </div>
-                          )}
-                        </div>
-                        <div className="px-3 space-y-3 flex-1 flex flex-col">
-                          <p className="text-[#111827] text-sm">{item.name}</p>
+                    <div className="flex w-full gap-4 sm:gap-6">
+                      {displayTables?.map((item) => (
+                        <div className="bg-white p-3 space-y-4 rounded-xl border w-[150px] flex flex-col justify-between duration-200 transition-all">
+                          <div>
+                            <h3 className="font-bold text-gray-800 text-sm">{item.name}</h3>
+                          </div>
                           <div className="space-y-2 flex-1">
-                            {item.addOns.slice(0, 4).map((offer, i) => (
+                            {item.addOns && item.addOns.slice(0, 4).map((offer, i) => (
                               <div key={i} className="flex items-center gap-2 ">
-                                <Check className="text-[#0A6C6D] flex-shrink-0" />
+                                <Check className="text-[#0A6C6D] shrink-0 size-4" />
                                 <span className="text-sm text-[#111827]">
                                   {offer}
                                 </span>
                               </div>
                             ))}
                           </div>
-                          <div className="flex items-center justify-between w-full flex-shrink-0">
-                            <p className="text-sm text-[#111827]">
-                              #{item.setPrice.toLocaleString()}
+                          <div className="flex justify-between items-center">
+                            <p className="font-semibold text-gray-900">
+                              ₦{item.price.toLocaleString()}
                             </p>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`w-5 h-5 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
-                                  ? "bg-teal-600 border-teal-600 text-white"
-                                  : "border-gray-300"
-                                  }`}
-                                onClick={() => handleSelectionChange(item._id, 1)}
-                              >
-                                {item.selected && <Check className="h-3 w-3" />}
-                              </div>
-                              <span className="text-xs text-[#111827]">Add</span>
+                            <div
+                              className={`w-6 h-6 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
+                                ? "bg-[#0A6C6D] border-[#0A6C6D] text-white"
+                                : "border-gray-300"
+                                }`}
+                              onClick={() => handleSelectionChange(item._id, 1)}
+                            >
+                              {item.selected && (
+                                <svg
+                                  width="16"
+                                  height="16"
+                                  viewBox="0 0 16 16"
+                                  fill="none"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path
+                                    d="M3.33301 9.33301C3.33301 9.33301 4.66634 9.66634 5.66634 11.6663C5.66634 11.6663 9.37221 5.55523 12.6663 4.33301"
+                                    stroke="white"
+                                    strokeWidth="1.5"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                  />
+                                </svg>
+                              )}
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  );
-                }))}
+                      ))}
+                    </div>
+                )
+                }
               </motion.div>
             </div>
           </div>
@@ -404,86 +401,86 @@ export default function ReservationDetails({
                 >
                   <ChevronLeft />
                 </button>
-                <button onClick={nextSlide} disabled={currentIndex === comboItems.length -1} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
+                <button onClick={nextSlide} disabled={currentIndex * slideWidth >= maxTranslate} className="text-white rounded-full disabled:text-[#606368] bg-[#0A6C6D] disabled:bg-[#E5E7EB] flex items-center justify-center size-[32px]">
                   <ChevronRight />
                 </button>
               </div>
             </div>
             <div className="flex overflow-hidden w-full" ref={containerRef} >
-            <motion.div
-              className="flex gap-6"
-              animate={{ x: -currentIndex * slideWidth }}
-              transition={{ duration: 0.6, ease: "easeInOut" }}
-            >
+              <motion.div
+                className="flex gap-6"
+                animate={{ x: -translateX }}
+                transition={{ duration: 0.6, ease: "easeInOut" }}
+              >
                 {comboLoading ? (
-                  <div>ComboLoader</div>
+                  <UniversalLoader />
                 ) : comboItems.length === 0 ? (
                   <div>No available Combos</div>
                 ) : (
                   comboItems.map((item, index) => {
-                  return (
-                    <motion.div
-                      key={index}
-                      ref={index === 0 ? cardRef : null}
-                      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-                      transition={{ duration: 0.5, delay: index * 0.1 }}
-                      className={`${item.selected
-                        && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
-                        } p-1 h-[420px] w-[254px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] flex-shrink-0`}
-                    >
-                      <div className="p-2 w-full h-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col">
-                        <div className="relative w-full h-[150px] overflow-hidden rounded-2xl flex-shrink-0">
-                          {item.image ? (
-                            <img
-                            src={item.image}
-                            alt={item.name}
-                            className="object-cover size-full"
-                            />
-                          ) : (
-                            <div className="bg-gray-200 size-full flex items-center justify-center">
-                              No Image
-                            </div>
-                          )}
-                          {item.specials && (
-                            <div className="absolute bg-[#E5E7EB] rounded-full top-2 left-2 px-3 text-xs font-medium text-[#111827] py-1">
-                              {item.specials}
-                            </div>
-                          )}
-                        </div>
-                        <div className="px-3 space-y-3 flex-1 flex flex-col">
-                          <p className="text-[#111827] text-sm">{item.name}</p>
-                          <div className="space-y-2 flex-1">
-                            {item.addOns.slice(0, 4).map((offer, i) => (
-                              <div key={i} className="flex items-center gap-2 ">
-                                <Check className="text-[#0A6C6D] flex-shrink-0" />
-                                <span className="text-sm text-[#111827]">
-                                  {offer}
-                                </span>
+                    return (
+                      <motion.div
+                        key={index}
+                        ref={index === 0 ? cardRef : null}
+                        animate={isInView ? { opacity: 1, scale: 1 } : {}}
+                        transition={{ duration: 0.5, delay: index * 0.1 }}
+                        className={`${item.selected
+                          && "bg-[#E7F0F0] border rounded-2xl border-[#B3D1D2]"
+                          } p-1 h-[400px] w-[254px] sm:w-[calc(28%-12px)] lg:w-[calc(23.333%-16px)] flex-shrink-0`}
+                      >
+                        <div className="p-2 w-full h-full space-y-3 rounded-2xl bg-white border border-[#E5E7EB] flex flex-col">
+                          <div className="relative w-full h-[150px] overflow-hidden rounded-2xl flex-shrink-0">
+                            {item.image ? (
+                              <img
+                                src={item.image}
+                                alt={item.name}
+                                className="object-cover size-full"
+                              />
+                            ) : (
+                              <div className="bg-gray-200 size-full flex items-center justify-center">
+                                No Image
                               </div>
-                            ))}
-                          </div>
-                          <div className="flex items-center justify-between w-full flex-shrink-0">
-                            <p className="text-sm text-[#111827]">
-                              #{item.setPrice.toLocaleString()}
-                            </p>
-                            <div className="flex items-center gap-2">
-                              <div
-                                className={`w-5 h-5 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
-                                  ? "bg-teal-600 border-teal-600 text-white"
-                                  : "border-gray-300"
-                                  }`}
-                                onClick={() => handleSelectionChange(item._id)}
-                              >
-                                {item.selected && <Check className="h-3 w-3" />}
+                            )}
+                            {item.specials && (
+                              <div className="absolute bg-[#E5E7EB] rounded-full top-2 left-2 px-3 text-xs font-medium text-[#111827] py-1">
+                                {item.specials}
                               </div>
-                              <span className="text-xs text-[#111827]">Add</span>
+                            )}
+                          </div>
+                          <div className="px-3 space-y-3 flex-1 flex flex-col">
+                            <p className="text-[#111827] text-sm">{item.name}</p>
+                            <div className="space-y-2 flex-1">
+                              {item.addOns.slice(0, 4).map((offer, i) => (
+                                <div key={i} className="flex items-center gap-2 ">
+                                  <Check size={16} className="text-[#0A6C6D] flex-shrink-0" />
+                                  <span className="text-sm text-[#111827]">
+                                    {offer}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                            <div className="flex items-center justify-between w-full flex-shrink-0">
+                              <p className="text-sm text-[#111827]">
+                                ₦{item.setPrice.toLocaleString()}
+                              </p>
+                              <div className="flex items-center gap-2">
+                                <div
+                                  className={`w-5 h-5 rounded-md border flex items-center justify-center cursor-pointer ${item.selected
+                                    ? "bg-teal-600 border-teal-600 text-white"
+                                    : "border-gray-300"
+                                    }`}
+                                  onClick={() => handleSelectionChange(item._id)}
+                                >
+                                  {item.selected && <Check className="h-3 w-3" />}
+                                </div>
+                                <span className="text-xs text-[#111827]">Add</span>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    </motion.div>
-                  );
-                }))}
+                      </motion.div>
+                    );
+                  }))}
               </motion.div>
             </div>
           </div>
@@ -515,7 +512,7 @@ export default function ReservationDetails({
               </div>
             </div>
             {bottlesLoading ? (
-              <div>bottleLoader</div>
+              <UniversalLoader />
             ) : bottleItems.length === 0 ? (
               <div>No available Bottles</div>
             ) : (
@@ -551,7 +548,7 @@ export default function ReservationDetails({
                           </p>
                         </div>
                         <div className="flex items-center text-xs md:text-sm justify-between">
-                          <p>#{item.price.toLocaleString()}</p>
+                          <p>₦{item.price.toLocaleString()}</p>
                           <div className="flex items-center">
                             <Button
                               variant="outline"

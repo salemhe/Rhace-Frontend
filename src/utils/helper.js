@@ -53,3 +53,13 @@ export const formatOfferText = (offer) => {
   // If no numbers found or already formatted, return as is
   return offer;
 };
+
+export const trimLongString = (str, num) => {
+  if (str && num) {
+    const val =
+      String(str)?.length > Number(num)
+        ? `${String(str).slice(0, Number(num))}...`
+        : str;
+    return val;
+  }
+};

@@ -47,7 +47,7 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import {
   Table,
@@ -502,13 +502,13 @@ const ClubReservationTable = () => {
 
   return (
     <DashboardLayout type="club" section="Reservations">
-      <div className="min-h-screen bg-gray0 p-6 mb-12">
+      <div className="min-h-screen bg-gray0 p-2 md:p-6 mb-12">
         <div className="max-w-7xl mx-auto">
-          <div className="md:flex hidden justify-between items-center mb-6">
-            <h2 className="text-[#111827] font-semibold">
+          <div className="md:flex justify-between items-center mb-6">
+            <h2 className="text-[#111827] mb-2 font-semibold">
               Club Reservation Management
             </h2>
-            <div className="flex gap-6">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-6">
               <DashboardButton
                 onClick={() => setHideTab(!hideTab)}
                 variant="secondary"
@@ -529,7 +529,7 @@ const ClubReservationTable = () => {
             </div>
           </div>
           {!hideTab && (
-            <div className="flex mb-8 rounded-lg bg-white border border-gray-200">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 mb-8 rounded-lg bg-white border border-gray-200">
               <div className="flex-1">
                 <StatCard
                   title="Total Reservations"
@@ -540,7 +540,6 @@ const ClubReservationTable = () => {
                   icon={<Calendar />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Prepaid Reservations"
@@ -551,7 +550,6 @@ const ClubReservationTable = () => {
                   icon={<CardPay />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Expected Guests Today"
@@ -562,7 +560,6 @@ const ClubReservationTable = () => {
                   icon={<Group3 />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Pending Payments"

@@ -49,8 +49,6 @@ api.interceptors.response.use(
           window.location.href = '/auth/admin/login';
         } else if (currentPath.startsWith('/dashboard/')) {
           window.location.href = '/auth/vendor/login';
-        } else {
-          window.location.href = '/auth/user/login';
         }
       }
     }

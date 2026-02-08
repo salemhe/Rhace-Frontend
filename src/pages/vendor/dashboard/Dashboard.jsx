@@ -4,16 +4,16 @@ import UniversalLoader from '@/components/user/ui/LogoLoader';
 import { reservationService } from '@/services/reservation.service';
 import { formatDate, formatTime } from '@/utils/formatDate';
 import { capitalize } from '@/utils/helper';
-import { ChevronRight, Clock, ExternalLink, User, X } from 'lucide-react';
+import { ChevronRight, Clock, ExternalLink, ListX, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 const VendorDashboard = () => {
-  const [showAlert, setShowAlert] = useState(true);
+  // const [showAlert, setShowAlert] = useState(true);
   const [timeFilter, setTimeFilter] = useState('Weekly');
   const [revenueFilter, setRevenueFilter] = useState('Weekly');
   const [sourceFilter, setSourceFilter] = useState('Weekly');
-  const [currentTime, setCurrentTime] = useState(new Date());
+  // const [currentTime, setCurrentTime] = useState(new Date());
   const [reservationStats, setReservationStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const vendor = useSelector((state) => state.auth.vendor);
@@ -69,13 +69,13 @@ const VendorDashboard = () => {
   ]);
 
   // Reservations data
-  const [reservations, setReservations] = useState([
-    { id: 1, name: 'Emily Johnson', reservationId: '#12345', date: 'June 5, 2025', time: '7:30 pm', guests: 4, status: 'Upcoming', statusColor: 'bg-teal-50 text-teal-700', minutesUntil: 45 },
-    { id: 2, name: 'Michael Chen', reservationId: '#12346', date: 'June 5, 2025', time: '8:00 pm', guests: 2, status: 'Upcoming', statusColor: 'bg-teal-50 text-teal-700', minutesUntil: 75 },
-    { id: 3, name: 'Sarah Williams', reservationId: '#12347', date: 'June 5, 2025', time: '7:15 pm', guests: 6, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 28 },
-    { id: 4, name: 'David Brown', reservationId: '#12348', date: 'June 5, 2025', time: '7:20 pm', guests: 3, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 18 },
-    { id: 5, name: 'Jessica Martinez', reservationId: '#12349', date: 'June 5, 2025', time: '7:10 pm', guests: 5, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 8 }
-  ]);
+  // const [reservations, setReservations] = useState([
+  //   { id: 1, name: 'Emily Johnson', reservationId: '#12345', date: 'June 5, 2025', time: '7:30 pm', guests: 4, status: 'Upcoming', statusColor: 'bg-teal-50 text-teal-700', minutesUntil: 45 },
+  //   { id: 2, name: 'Michael Chen', reservationId: '#12346', date: 'June 5, 2025', time: '8:00 pm', guests: 2, status: 'Upcoming', statusColor: 'bg-teal-50 text-teal-700', minutesUntil: 75 },
+  //   { id: 3, name: 'Sarah Williams', reservationId: '#12347', date: 'June 5, 2025', time: '7:15 pm', guests: 6, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 28 },
+  //   { id: 4, name: 'David Brown', reservationId: '#12348', date: 'June 5, 2025', time: '7:20 pm', guests: 3, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 18 },
+  //   { id: 5, name: 'Jessica Martinez', reservationId: '#12349', date: 'June 5, 2025', time: '7:10 pm', guests: 5, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 8 }
+  // ]);
 
   // Chart data based on filter
   const getChartData = () => {
@@ -134,15 +134,15 @@ const VendorDashboard = () => {
   const revenueData = getRevenueData();
 
   // Customer frequency based on filter
-  const getCustomerData = () => {
-    if (timeFilter === 'Weekly') {
-      return { total: 100, new: 45, returning: 55 };
-    } else {
-      return { total: 430, new: 180, returning: 250 };
-    }
-  };
+  // const getCustomerData = () => {
+  //   if (timeFilter === 'Weekly') {
+  //     return { total: 100, new: 45, returning: 55 };
+  //   } else {
+  //     return { total: 430, new: 180, returning: 250 };
+  //   }
+  // };
 
-  const customerData = getCustomerData();
+  // const customerData = getCustomerData();
 
   // Reservation source based on filter
   const getSourceData = () => {
@@ -170,36 +170,36 @@ const VendorDashboard = () => {
   const sourceData = getSourceData();
 
   // Calculate upcoming reservations count
-  const upcomingCount = reservations.filter(r => r.minutesUntil <= 30).length;
+  // const upcomingCount = reservations.filter(r => r.minutesUntil <= 30).length;
 
-  // Simulate new reservation
-  const addNewReservation = () => {
-    const names = ['John Doe', 'Jane Smith', 'Robert Taylor', 'Lisa Anderson', 'Tom Wilson'];
-    const randomName = names[Math.floor(Math.random() * names.length)];
-    const randomGuests = Math.floor(Math.random() * 6) + 2;
-    const newId = Math.max(...reservations.map(r => r.id)) + 1;
+  // // Simulate new reservation
+  // const addNewReservation = () => {
+  //   const names = ['John Doe', 'Jane Smith', 'Robert Taylor', 'Lisa Anderson', 'Tom Wilson'];
+  //   const randomName = names[Math.floor(Math.random() * names.length)];
+  //   const randomGuests = Math.floor(Math.random() * 6) + 2;
+  //   const newId = Math.max(...reservations.map(r => r.id)) + 1;
 
-    const newReservation = {
-      id: newId,
-      name: randomName,
-      reservationId: `#${12345 + newId}`,
-      date: 'June 5, 2025',
-      time: '9:00 pm',
-      guests: randomGuests,
-      status: 'Upcoming',
-      statusColor: 'bg-teal-50 text-teal-700',
-      minutesUntil: 120
-    };
+  //   const newReservation = {
+  //     id: newId,
+  //     name: randomName,
+  //     reservationId: `₦${12345 + newId}`,
+  //     date: 'June 5, 2025',
+  //     time: '9:00 pm',
+  //     guests: randomGuests,
+  //     status: 'Upcoming',
+  //     statusColor: 'bg-teal-50 text-teal-700',
+  //     minutesUntil: 120
+  //   };
 
-    setReservations([newReservation, ...reservations.slice(0, 4)]);
+  //   setReservations([newReservation, ...reservations.slice(0, 4)]);
 
-    // Update stats
-    setStats(prevStats => prevStats.map((stat, idx) => {
-      if (idx === 0) return { ...stat, value: stat.value + 1 };
-      if (idx === 2) return { ...stat, value: stat.value + randomGuests };
-      return stat;
-    }));
-  };
+  //   // Update stats
+  //   setStats(prevStats => prevStats.map((stat, idx) => {
+  //     if (idx === 0) return { ...stat, value: stat.value + 1 };
+  //     if (idx === 2) return { ...stat, value: stat.value + randomGuests };
+  //     return stat;
+  //   }));
+  // };
 
   // Generate donut chart path
   const generateDonutPath = (percentage, offset = 0) => {
@@ -237,11 +237,11 @@ const VendorDashboard = () => {
 
   return (
     <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
-      <div className="min-h-screen bg-gray-50 p-6">
+      <div className="min-h-screen mb-14 bg-gray-50 p-6">
 
         <div className="max-w-7xl mx-auto space-y-6">
           {/* Alert Banner */}
-          {showAlert && upcomingCount > 0 && (
+          {/* {showAlert && upcomingCount > 0 && (
             <div className="bg-yellow-50 border-l-3 border-yellow-200 rounded-lg p-4 flex items-center justify-between">
               <div className="flex items-center">
                 <Clock className="w-5 h-5 text-yellow-600 mr-3" />
@@ -253,7 +253,7 @@ const VendorDashboard = () => {
                 <X className="w-5 h-5" />
               </button>
             </div>
-          )}
+          )} */}
 
           {/* Header */}
           <div className="flex items-center justify-between">
@@ -320,7 +320,7 @@ const VendorDashboard = () => {
                 </a>
               </div>
               <div className="p-5 space-y-3">
-                {reservationStats.todaysReservations.slice(0, 5).map((reservation) => (
+                {reservationStats.todaysReservations.length > 0 ? reservationStats.todaysReservations.slice(0, 5).map((reservation) => (
                   <div key={reservation._id} className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-lg transition-colors">
                     <div className="flex items-center flex-1">
                       <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
@@ -346,12 +346,19 @@ const VendorDashboard = () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className='w-full h-[336px] flex items-center justify-center'>
+                    <div className='flex items-center flex-col'>
+                      <ListX className='size-6' />
+                      <p>No Reservations for today</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Reservations Trends */}
-            <div className="bg-white rounded-lg border border-gray-200">
+            <div className="bg-white rounded-lg border hidden md:block border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Reservations Trends</h3>
                 <div className="flex items-center gap-3">
@@ -534,7 +541,7 @@ const VendorDashboard = () => {
               </div>
               <div className="p-5">
                 <div className="mb-4">
-                  <p className="text-2xl font-bold text-gray-900">#{revenueData.total.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-gray-900">₦{revenueData.total.toLocaleString()}</p>
                   <p className="text-sm text-green-600 flex items-center">
                     <span className="mr-1">↑</span>
                     {revenueData.change}% vs last {revenueFilter.toLowerCase().slice(0, -2)}

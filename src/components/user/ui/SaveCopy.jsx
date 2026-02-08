@@ -1,6 +1,6 @@
 import React from "react";
 import { Heart, Share2Icon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
 
 const SaveCopy = ({ id }) => {

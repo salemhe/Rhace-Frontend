@@ -12,11 +12,12 @@ const defaultAmenities = [
   'Wi-Fi',
   'TV',
   'AC',
-  'Balcony',
+  'Free Breakfast',
+  'Free Parking',
+  'City View',
   'Mini Fridge',
   'Workspace',
   'Breakfast',
-  'Safe'
 ];
 
 // Move RoomTypeForm OUTSIDE of AddRoomType component
@@ -49,6 +50,22 @@ const RoomTypeForm = React.memo(({
           onChange={(e) => handleInputChange(room.id, 'name', e.target.value)}
           className="w-full"
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor={`category-${room.id}`} className="text-sm font-medium text-gray-700">
+          Room Category
+        </Label>
+        <Select value={(room.category ?? 1).toString()} onValueChange={(value) => handleInputChange(room.id, 'category', value)}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {["Standard", "Deluxe", "Executive", "Suite", "Presidential Suite"].map(text => (
+              <SelectItem key={text} value={text.toString()}>{text}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Room Description */}
@@ -84,6 +101,22 @@ const RoomTypeForm = React.memo(({
             className="w-full pl-8"
           />
         </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor={`discount-${room.id}`} className="text-sm font-medium text-gray-700">
+          Discount
+        </Label>
+        <Select value={(room.discount ?? 1).toString()} onValueChange={(value) => handleInputChange(room.id, 'discount', Number(value))}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45].map(num => (
+              <SelectItem key={num} value={num.toString()}>{num}%</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Adults Capacity */}

@@ -2,7 +2,7 @@ import { Check, X } from "lucide-react";
 import { useNavigate, useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 export default function BookingDetails() {

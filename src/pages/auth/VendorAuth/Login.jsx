@@ -8,7 +8,7 @@ import HeroImage from '../../../components/auth/HeroImage'
 import { authService } from "@/services/auth.service"
 import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 import { setVendor, setAdmin } from "@/redux/slices/authSlice"
 import logo from "../../../public/images/Rhace-11.png"
 

@@ -1,4 +1,6 @@
+import { Filter2 } from "@/components/dashboard/ui/svg";
 import Footer from "@/components/Footer";
+import UserHeader from "@/components/layout/headers/user-header";
 import { SearchSectionTwo } from "@/components/SearchSection";
 import TableGrid, {
   TableGridThree,
@@ -11,8 +13,10 @@ import {
   hasMultipleImages,
   useCarouselLogic,
 } from "@/hooks/favorites";
+import { SvgIcon, SvgIcon2, SvgIcon3 } from "@/public/icons/icons";
 import { restaurantService } from "@/services/rest.services";
-import { Loader2 } from "lucide-react";
+import { set } from "date-fns";
+import { Loader2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FaStar } from "react-icons/fa6";
 import { FiHeart, FiMapPin } from "react-icons/fi";
@@ -37,6 +41,7 @@ const SearchPage = () => {
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [searchData, setSearchData] = useState(null);
+  const [isOpen, setIsOpen] = useState(false);
   const searchSectionRef = useRef(null);
 
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
@@ -57,6 +62,24 @@ const SearchPage = () => {
         return [];
     }
   };
+
+  const tabs = [
+    {
+      name: "Restaurants",
+      value: "restaurants",
+      icon: SvgIcon,
+    },
+    {
+      name: "Hotels",
+      value: "hotels",
+      icon: SvgIcon2,
+    },
+    {
+      name: "Clubs",
+      value: "clubs",
+      icon: SvgIcon3,
+    },
+  ];
 
   const getCategories = (venue) => {
     if (activeTab === "restaurants" || activeTab === "hotels") {
@@ -140,7 +163,7 @@ const SearchPage = () => {
         setLoading(false);
       }
     },
-    [activeTab]
+    [activeTab],
   );
 
   // Load stored search data on mount
@@ -192,7 +215,7 @@ const SearchPage = () => {
         handleSearch(updatedSearchData);
       }
     },
-    [activeTab, handleSearch]
+    [activeTab, handleSearch],
   );
 
   // Handle tab change
@@ -234,10 +257,64 @@ const SearchPage = () => {
   }
 
   return (
-    <div className="min-h-screen mt-[100px] bg-gray-50">
-      <Header onClick={handleTabChange} activeTab={safeActiveTab} />
+    <div className="min-h-screen mt-[90px] bg-gray-50">
+      <UserHeader />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Desktop Tabs */}
+        <div className="hidden sm:block mb-8">
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-8">
+              {tabs.map((tab) => {
+                const count =
+                  tab.value === "restaurants"
+                    ? restaurants.length
+                    : tab.value === "hotels"
+                      ? hotels.length
+                      : clubs.length;
+
+                return (
+                  <button
+                    key={tab.value}
+                    onClick={() => handleTabChange(tab.value)}
+                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                      activeTab === tab.value
+                        ? "border-teal-500 text-teal-600"
+                        : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+                    }`}
+                  >
+                    {tab.name}
+                    <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
+                      {count}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
+        </div>
+
         {/* Search Section - Added ref and wrapper for mobile fixes */}
+        <div className="flex flex-wrap justify-center items-center gap-2 sm:hidden mb-4 ">
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.value}
+                className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-[36px] gap-1.5 sm:gap-2.5 cursor-pointer text-[12px] sm:text-sm flex items-center font-medium transition-colors duration-200 ${
+                  activeTab === tab.value
+                    ? "bg-[#0A6C6D] text-gray-50"
+                    : "bg-transparent text-gray-900 hover:bg-white/40"
+                }`}
+                onClick={() => handleTabChange(tab.value)}
+              >
+                <figure className="w-4 h-4 sm:w-5 sm:h-5 flex items-center">
+                  <Icon isActive={activeTab !== tab.value} />
+                </figure>
+                <span>{tab.name}</span>
+              </button>
+            );
+          })}
+        </div>
         <div className="mb-8 relative" ref={searchSectionRef}>
           <SearchSectionTwo
             onSearch={handleNewSearch}
@@ -247,17 +324,44 @@ const SearchPage = () => {
         </div>
 
         {/* Results */}
-        <div>
+        <div className="space-y-4">
           <h1 className="text-2xl px-4 sm:px-6 lg:px-8 font-bold mb-6">
             {searchQuery
               ? `${currentResults.length} ${(safeActiveTab || "").slice(
                   0,
-                  -1
+                  -1,
                 )}${
                   currentResults.length !== 1 ? "s" : ""
                 } found for "${searchQuery}"`
               : `Search for ${safeActiveTab}`}
           </h1>
+
+          <div className="md:hidden">
+            <div className="flex items-center justify-end">
+              <button
+                onClick={() => setIsOpen(true)}
+                className="border rounded-lg py-2 px-4 items-center gap-2 flex bg-white "
+              >
+                <Filter2 /> Filter
+              </button>
+            </div>
+            {isOpen && (
+              <div className={`fixed inset-0 bg-white z-100`}>
+                <div className="flex items-center justify-end">
+                  <button
+                    className="rounded-full p-2 border m-4"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <X />
+                  </button>
+                </div>
+                <h2 className="text-lg font-semibold px-4">Filter Options</h2>
+                <div className="px-4">
+                  <Filter />
+                </div>
+              </div>
+            )}
+          </div>
 
           {loading && (
             <div className="flex justify-center items-center py-12">
@@ -307,7 +411,7 @@ const SearchPage = () => {
                         venueId,
                         venue,
                         getImagesForVenue,
-                        hasMultipleImages
+                        hasMultipleImages,
                       )
                     }
                     onMouseLeave={() => handleMouseLeave(venueId)}
@@ -451,7 +555,7 @@ const SearchPage = () => {
                         <button
                           onClick={() =>
                             console.log(
-                              `Navigate to: /${safeActiveTab}/${venueId}`
+                              `Navigate to: /${safeActiveTab}/${venueId}`,
                             )
                           }
                           className="w-full text-sm font-semibold rounded-full px-3 py-3 tracking-wide text-white cursor-pointer bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C] transition-all duration-200 shadow-sm"
@@ -484,6 +588,29 @@ const SearchPage = () => {
         </div>
       </div>
       <Footer />
+    </div>
+  );
+};
+
+const Filter = () => {
+  return (
+    <div className="w-full space-y-6">
+      <div className="space-y-4">
+        <h4 className="font-semibold text-sm text-gray-700">Price</h4>
+        <ul className="space-y-2">
+          {["$", "$$", "$$$", "$$$$"].map((priceLevel) => (
+            <li key={priceLevel}>
+              <label
+                htmlFor={priceLevel}
+                className="flex items-center cursor-pointer"
+              >
+                <input name="price" id={priceLevel} type="radio" />
+                <span className="ml-2 text-gray-600">{priceLevel}</span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };

@@ -14,7 +14,7 @@ export const GuestDropdown = ({ onChange }) => {
 
   const [counts, setCounts] = useState({
     adults: 1,
-    children: 1,
+    children: 0,
     infants: 0,
   });
 
@@ -52,7 +52,7 @@ export const GuestDropdown = ({ onChange }) => {
     <div className="relative inline-block w-full" ref={ref}>
       {/* trigger */}
       <div
-        className="w-full flex items-center justify-between  py-2 bg-white  rounded-lg cursor-pointer"
+        className="w-full flex items-center justify-between  pt-1 bg-white  rounded-lg cursor-pointer"
         onClick={() => setShow(s => !s)}
       >
         <span className="text-sm text-gray-700">

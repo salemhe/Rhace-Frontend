@@ -5,7 +5,7 @@ import { Loader2 } from "lucide-react"
 import HeroImage from '../../../components/auth/HeroImage'
 import { authService } from "@/services/auth.service"
 import { useNavigate, useSearchParams } from "react-router"
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 import { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot } from "@/components/ui/input-otp"
 import logo from "../../../public/images/Rhace-11.png"
 

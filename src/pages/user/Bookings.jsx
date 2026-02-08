@@ -8,7 +8,7 @@ import { userService } from '@/services/user.service';
 import { MoreVertical, Search, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 // Dummy data
 // const dummyBookings = [

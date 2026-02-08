@@ -32,7 +32,7 @@ import {
   Plus,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 import axios from "axios"
 import api from "@/lib/axios"
 import { useNavigate } from "react-router"

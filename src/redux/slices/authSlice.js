@@ -5,6 +5,7 @@ const initialState = {
   vendor: null,
   admin: null,
   isAuthenticated: false,
+  tokenExpiry: null,
 };
 
 const authSlice = createSlice({
@@ -13,29 +14,32 @@ const authSlice = createSlice({
   reducers: {
     setUser: (state, action) => {
       state.user = action.payload;
-      state.vendor = null; // clear vendor if user logs in
+      state.vendor = null;
       state.isAuthenticated = true;
+      state.tokenExpiry = action.payload.expiresAt;
     },
     setVendor: (state, action) => {
       state.vendor = action.payload;
-      state.user = null; // clear user if vendor logs in
-      state.admin = null; // clear admin if vendor logs in
+      state.user = null;
+      state.admin = null;
       state.isAuthenticated = true;
+      state.tokenExpiry = action.payload.expiresAt;
     },
     setAdmin: (state, action) => {
       state.admin = action.payload;
-      state.user = null; // clear user if admin logs in
-      state.vendor = null; // clear vendor if admin logs in
+      state.user = null;
+      state.vendor = null;
       state.isAuthenticated = true;
+      state.tokenExpiry = action.payload.expiresAt;
     },
     logout: (state) => {
-      localStorage.removeItem("token")
-      localStorage.removeItem("persist:root")
-      console.log("Logging out!")
+      localStorage.removeItem("token");
+      localStorage.removeItem("persist:root");
       state.user = null;
       state.vendor = null;
       state.admin = null;
       state.isAuthenticated = false;
+      state.tokenExpiry = null;
     },
   },
 });

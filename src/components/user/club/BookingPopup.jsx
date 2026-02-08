@@ -6,7 +6,7 @@ import { GuestPicker } from "../ui/guestpicker";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, X } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 
 const BookingPopup = ({ id }) => {
@@ -62,7 +62,7 @@ const navigate = useNavigate();
           <form onSubmit={handleSubmit} className="space-y-6 mt-6">
             <div className="flex flex-col md:flex-row w-full gap-4">
               <DatePicker className="bg-white" value={date} onChange={setDate} />
-              <TimePicker value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
+              <TimePicker className="bg-white" value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
             </div>
             <GuestPicker className="bg-white" value={guests} onChange={setGuests} />
             <div className="flex flex-col gap-y-3">
@@ -71,7 +71,7 @@ const navigate = useNavigate();
                 id="special-request"
                 value={request}
                 onChange={(e) => setRequest(e.target.value)}
-                placeholder="e.g Birthday Celebration"
+                placeholder="e.g Honeymoon Setup"
                 className="resize-none h-[100px] font-normal bg-white border border-[#E5E7EB] rounded-xl"
               />
             </div>

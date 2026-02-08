@@ -99,7 +99,7 @@ console.log(room._id)
                   <div>
                     <h3 className="text-3xl font-bold text-gray-900">{room.roomNumber}</h3>
                     <p className="text-gray-600 mt-1">
-                      {room.name.charAt(0).toUpperCase() + room.name.slice(1)} Room - {room.name.charAt(0).toUpperCase() + room.name.slice(1)}
+                      {room.category} {room.name.charAt(0).toUpperCase() + room.name.slice(1)} Room - {room.name.charAt(0).toUpperCase() + room.name.slice(1)}
                     </p>
                   </div>
                   {/* <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(room.isAvailable, room.maintenanceStatus)}`}>
@@ -112,7 +112,16 @@ console.log(room._id)
                 <div className="bg-teal-50 rounded-lg p-4 border border-teal-200">
                   <div className="flex justify-between items-center">
                     <span className="text-teal-900 font-medium">Price per Night</span>
-                    <span className="text-3xl font-bold text-teal-600">#{room.pricePerNight.toLocaleString()}</span>
+                    <span className="text-3xl font-bold text-teal-600">₦{room.pricePerNight.toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mb-6">
+                <div className="bg-teal-50 rounded-lg p-4 border border-teal-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-teal-900 font-medium">Discount</span>
+                    <span className="text-3xl font-bold text-teal-600">{room.discount}%</span>
                   </div>
                 </div>
               </div>

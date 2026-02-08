@@ -5,7 +5,7 @@ import Header from '../hotel/add-rooms/components/Header';
 import { clubService } from '@/services/club.service';
 import { useSelector } from 'react-redux';
 import axios from 'axios';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import Header2 from '@/components/layout/headers/vendor_header2';
 import UniversalLoader from '@/components/user/ui/LogoLoader';
 

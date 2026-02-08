@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Send, User, Mail, MessageSquare, FileText } from "lucide-react";
 
 export function ContactForm() {

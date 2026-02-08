@@ -88,7 +88,7 @@ import {
      <div className="relative inline-block text-left w-full" ref={ref}>
        {/* trigger */}
        <div
-         className="flex items-center  py-2  rounded cursor-pointer"
+         className="flex items-center  pt-1  rounded cursor-pointer"
          onClick={() => setShow(!show)}
        >
          {/* <FiCalendar className="mr-2 text-gray-500" /> */}

@@ -118,10 +118,10 @@ export const SearchAutocomplete = ({
   // ✅ Calculate total count
   const totalCount = Object.values(groupedSuggestions).reduce(
     (sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0),
-    0
+    0,
   );
   return (
-    <div className="relative w-full" ref={dropdownRef}>
+    <div className="relative w-full z-30" ref={dropdownRef}>
       <input
         ref={inputRef}
         type="text"
@@ -129,11 +129,11 @@ export const SearchAutocomplete = ({
         onChange={handleInputChange}
         onFocus={handleInputFocus}
         placeholder={placeholder}
-        className="w-full focus:outline-none text-text-primary placeholder:text-text-secondary text-sm sm:text-base mt-1"
+        className="w-full focus:outline-none text-text-primary placeholder:text-text-secondary text-sm sm:text-base"
       />
 
       {isOpen && (
-        <div className="absolute top-full w-[22rem] left-0 right-0 mt-3 bg-white rounded-2xl shadow-xl z-[100] max-h-[420px] overflow-y-auto border border-gray-100">
+        <div className="absolute top-full left-0 md:w-88 w-full right-0 mt-3 bg-white rounded-2xl shadow-xl z-50 max-h-[420px] overflow-y-auto border border-gray-100">
           {isLoading ? (
             <div className="p-6 text-center">
               <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-solid border-blue-600 border-r-transparent"></div>
@@ -197,7 +197,7 @@ export const SearchAutocomplete = ({
                                 )}
                               </div>
                               <svg
-                                className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-2"
+                                className="w-4 h-4 text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -215,7 +215,7 @@ export const SearchAutocomplete = ({
                       </div>
                     </div>
                   );
-                }
+                },
               )}
             </div>
           )}

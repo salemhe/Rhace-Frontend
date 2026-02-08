@@ -7,9 +7,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReservationHeader from "./ReservationHeader";
 import { useReservations } from "@/contexts/restaurant/ReservationContext";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 // import { MenusData } from "@/lib/api";
 import { menuService } from "@/services/menu.service";
+import UniversalLoader from "../ui/LogoLoader";
 export default function PreSelectMeal({ id }) {
   const {
     activeTab,
@@ -143,22 +144,20 @@ export default function PreSelectMeal({ id }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg text-gray-600">Loading menu items...</div>
-      </div>
+      <UniversalLoader fullscreen />
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white sm:bg-transparent">
       {/* Header */}
       <ReservationHeader title="Pre-Select your Meal" index={2} />
-      <div className="bg-gray-100  w-full">
+      <div className="bg-[#E7F0F0] border-[#B3D1D2] sticky top-0 z-50 w-full">
         <div className="max-w-4xl mx-auto rounded-md mb-6 p-4">
           <div className="text-xs md:text-sm text-gray-600 mb-1">
             Reservation Completed
           </div>
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs md:text-sm">
+          <div className="flex flex-wrap items-center gap-y-1 text-xs md:text-sm">
             <span className="font-medium">
               {vendor?.businessName || "Restaurant Name"}
             </span>
@@ -206,8 +205,8 @@ export default function PreSelectMeal({ id }) {
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 mb-15 py-2">
-        <div className="bg-[#FFFBEB] border border-[#E0B300] rounded-2xl p-4 mb-6">
+      <div className="max-w-4xl mx-auto md:px-4 mb-15 py-2">
+        <div className="bg-[#FFFBEB] border border-[#E0B300] mx-4 md:mx-0 rounded-2xl p-4 mb-6">
           <div className="flex gap-3">
             <div className="text-[#E0B300]">
               <svg
@@ -216,7 +215,7 @@ export default function PreSelectMeal({ id }) {
                 viewBox="0 0 40 40"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="size-[28px] md:size-[40px]"
+                className="size-7 md:size-10"
               >
                 <g clipPath="url(#clip0_227_468)">
                   <path
@@ -244,7 +243,7 @@ export default function PreSelectMeal({ id }) {
         <Tabs
           value={activeTab}
           onValueChange={setActiveTab}
-          className="mb-6 overflow-auto"
+          className="mb-6 overflow-auto px-4 md:px-0 py-2"
         >
           <TabsList className="w-full justify-start bg-transparent p-0 h-auto">
             {tabs.map((tab, i) => (
@@ -253,7 +252,7 @@ export default function PreSelectMeal({ id }) {
                 value={tab.value}
                 className={`px-4 py-2 text-xs md:text-sm rounded-full shadow-none! cursor-pointer ${activeTab === tab.value
                   ? "bg-[#0A6C6D]! text-white!"
-                  : "text-[#6B7280] bg-gray-100"
+                  : "text-[#6B7280] bg-[#F9FAFB]"
                   }`}
               >
                 {tab.name}
@@ -262,7 +261,7 @@ export default function PreSelectMeal({ id }) {
           </TabsList>
         </Tabs>
 
-        <div className="space-y-4 mb-6">
+        <div className="space-y-4 mb-6 px-4 md:px-0">
           {menuFiltered.length > 0
             ? menuFiltered.slice(0, visibleCount).map((item) => (
               <Card
@@ -445,7 +444,7 @@ export default function PreSelectMeal({ id }) {
           </div>
         )}
 
-        <Card className="bg-[#E9EBF3] rounded-2xl border-[#E5E7EB] mb-6">
+        <Card className="bg-[#E9EBF3] hidden md:block rounded-2xl border-[#E5E7EB] mb-6">
           <CardContent className="p-6">
             <h3 className="font-medium mb-4">
               Your Selection ({selectedItems.length} items)
@@ -487,14 +486,14 @@ export default function PreSelectMeal({ id }) {
             <Button
               onClick={handleSkip}
               variant="ghost"
-              className="text-teal-600"
+              className="text-teal-600 h-10"
             >
               Skip for now
             </Button>
             <Button
               onClick={handleSubmit}
               disabled={!selectedItems.length || isLoading}
-              className="bg-[#0A6C6D] rounded-xl px-8 w-full max-w-xs hidden md:inline-flex"
+              className="bg-[#0A6C6D] rounded-xl h-10 px-8 w-full max-w-xs hidden md:inline-flex"
             >
               {isLoading ? (
                 <span className="flex gap-2">
@@ -507,7 +506,7 @@ export default function PreSelectMeal({ id }) {
           </div>
           <div className="md:hidden w-full flex justify-between items-center gap-2">
             {selectedItems.length > 0 ? (
-              <Button onClick={handleSubmit} className="flex items-center justify-between rounded-xl bg-[#0A6C6D] px-8 w-full">
+              <Button onClick={handleSubmit} className="flex items-center h-10 justify-between rounded-xl bg-[#0A6C6D] h-10 px-8 w-full">
                 <span>Checkout ({selectedItems.length} items)</span>
                 <span>₦{calculateSubtotal().toLocaleString()}</span>
               </Button>
@@ -516,7 +515,7 @@ export default function PreSelectMeal({ id }) {
                 <Button
                   onClick={handleSkip}
                   variant="ghost"
-                  className="text-teal-600"
+                  className="text-teal-600 h-10"
                 >
                   {isSkipLoading ? (
                     <span className="flex gap-2">
@@ -529,7 +528,7 @@ export default function PreSelectMeal({ id }) {
                 <Button
                   onClick={handleSubmit}
                   disabled={!selectedItems.length || isLoading}
-                  className="bg-[#0A6C6D] rounded-xl px-8 w-full max-w-[170px] md:hidden"
+                  className="bg-[#0A6C6D] rounded-xl h-10 px-8 w-full max-w-[170px] md:hidden"
                 >
                   {isLoading ? (
                     <span className="flex gap-2">
