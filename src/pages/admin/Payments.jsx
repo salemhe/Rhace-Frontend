@@ -94,6 +94,7 @@ export default function Payments() {
   const [historyFilter, setHistoryFilter] = useState("All");
   const [vendorsEarnings, setVendorsEarnings] = useState([]);
   const [payoutHistory, setPayoutHistory] = useState([]);
+  const [filteredPayoutHistory, setFilteredPayoutHistory] = useState([]);
   const [loadingEarnings, setLoadingEarnings] = useState(false);
   const [loadingPayouts, setLoadingPayouts] = useState(false);
   const [dashboardKPIs, setDashboardKPIs] = useState({});
@@ -121,7 +122,166 @@ export default function Payments() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState("weekly");
+  const [vendors, setVendors] = useState([]);
   const { subscribe, unsubscribe } = useWebSocket();
+
+
+
+  // Function to load payout history
+  const loadPayouts = async (vendorsList = null) => {
+    try {
+      setLoadingPayouts(true);
+
+      // Always try to load fresh vendors from API first
+      let currentVendors = [];
+      try {
+        const res = await getVendors();
+
+        let loadedVendors = [];
+        // Try different extraction methods
+        if (Array.isArray(res.data)) {
+          loadedVendors = res.data;
+        } else if (res.data && Array.isArray(res.data.data)) {
+          loadedVendors = res.data.data;
+        } else if (res.data && Array.isArray(res.data.vendors)) {
+          loadedVendors = res.data.vendors;
+        } else {
+          loadedVendors = extractArray(res.data);
+        }
+
+        if (loadedVendors.length > 0) {
+          currentVendors = loadedVendors;
+          setVendors(currentVendors);
+        }
+      } catch (e) {
+        console.error("Failed to load vendors for payout enrichment", e);
+        // Fall back to provided vendors or existing state
+        currentVendors = vendorsList || vendors;
+      }
+
+      // If still no vendors, try to use vendors from earnings data as last resort
+      if (currentVendors.length === 0 && vendorsEarnings.length > 0) {
+        currentVendors = vendorsEarnings.map(v => ({
+          id: v.id,
+          _id: v.id,
+          name: v.name,
+          businessName: v.name
+        }));
+      }
+
+      // Add timestamp to force fresh data and avoid caching
+      const res = await getPayouts({ page: 1, limit: 20, _t: Date.now() });
+      const payload = res?.data;
+      const list = Array.isArray(payload)
+        ? payload
+        : payload?.data || payload?.items || payload?.results || [];
+
+      // Enrich payout data with vendor names and payment methods
+      const enrichedPayouts = (Array.isArray(list) ? list : []).map((payout) => {
+        // Find vendor name from vendors list
+        const vendorId = payout.vendorId || payout.vendor;
+        const vendor = currentVendors.find(v => v.id === vendorId || v._id === vendorId || v.vendorId === vendorId);
+        let vendorName = "Unknown Vendor";
+
+        if (vendor) {
+          vendorName = vendor.businessName || vendor.name || "Unknown Vendor";
+        }
+
+        // If lookup failed and payout.vendor is a valid name (not ObjectId), use it
+        if (vendorName === "Unknown Vendor" && payout.vendor && typeof payout.vendor === 'string' && !/^[a-f0-9]{24}$/i.test(payout.vendor)) {
+          vendorName = payout.vendor;
+        }
+
+        // Determine payment method (assuming it's bank transfer for payouts)
+        const paymentMethod = payout.method || payout.paymentMethod || "Bank Transfer";
+
+        return {
+          ...payout,
+          vendor: vendorName,
+          method: paymentMethod,
+          // Ensure ID is available
+          id: payout.id || payout._id || payout.payoutId || `payout-${Date.now()}-${Math.random()}`
+        };
+      });
+
+      setPayoutHistory(enrichedPayouts);
+    } catch (e) {
+      
+      setPayoutHistory([]);
+    } finally {
+      setLoadingPayouts(false);
+    }
+  };
+
+  // Handler functions
+  const handlePaymentUpdate = async (payload) => {
+    
+    load();
+    loadPayouts();
+
+    try {
+      const res = await getTotalEarnings();
+      const data = res?.data;
+      if (data?.earnings) {
+        setDashboardKPIs(prev => ({
+          ...prev,
+          totalEarnings: data.earnings.thisYear,
+          totalEarningsChange: `+${data.earnings.yearChange}% from last year`,
+          totalEarningsTrend: data.earnings.yearChange >= 0 ? "up" : "down",
+          weeklyEarnings: data.earnings.thisWeek,
+          weeklyEarningsChange: `+${data.earnings.weekChange}% vs last week`,
+          weeklyEarningsTrend: data.earnings.weekChange >= 0 ? "up" : "down",
+          completedPayments: data.payments.completed.thisWeek,
+          completedPaymentsChange: `+${data.payments.completed.change}% vs last week`,
+          completedPaymentsTrend: data.payments.completed.change >= 0 ? "up" : "down",
+        }));
+      }
+    } catch (e) {
+      
+    }
+
+    const earningsKeys = [
+      'totalEarnings', 'totalEarningsChange', 'totalEarningsTrend',
+      'weeklyEarnings', 'weeklyEarningsChange', 'weeklyEarningsTrend',
+      'completedPayments', 'completedPaymentsChange', 'completedPaymentsTrend',
+      'availableBalance', 'lastPaymentDate'
+    ];
+    try {
+      const kpisRes = await getDashboardKPIs();
+      const kpis = kpisRes?.data?.data || kpisRes?.data || kpisRes || {};
+      setDashboardKPIs(prev => {
+        const updated = { ...prev };
+        Object.keys(kpis).forEach(key => {
+          if (kpis[key] !== undefined && !earningsKeys.includes(key)) {
+            updated[key] = kpis[key];
+          }
+        });
+        return updated;
+      });
+    } catch (e) {
+      
+    }
+
+    try {
+      const trendsRes = await getRevenueTrends({ period: selectedPeriod });
+      const trends = Array.isArray(trendsRes?.data)
+        ? trendsRes.data
+        : trendsRes?.data?.data || [];
+      setRevenueTrends(trends);
+    } catch (e) {
+      
+    }
+  };
+
+  const handleVendorEarningsUpdate = (payload) => {
+    
+    load();
+  };
+
+  const handleEarningsUpdate = (payload) => {
+    
+    load();
+  };
 
   // Function to fetch Paystack balance
   const fetchPaystackBalance = async () => {
@@ -220,6 +380,7 @@ export default function Payments() {
 
       await initiatePayout(payoutData);
       load();
+      await loadPayouts();
       alert("Payout initiated successfully");
     } catch (error) {
       console.error("Failed to initiate payout:", error);
@@ -229,19 +390,25 @@ export default function Payments() {
 
   const handleApprovePayout = async (payoutId) => {
     try {
+      // Optimistically update the status to provide immediate feedback
+      setPayoutHistory(prev => prev.map(payout =>
+        payout.id === payoutId
+          ? { ...payout, status: "completed" }
+          : payout
+      ));
+
       await approvePayout(payoutId);
-      const loadPayouts = async () => {
-        const res = await getPayouts({ page: 1, limit: 20 });
-        const payload = res?.data;
-        const list = Array.isArray(payload)
-          ? payload
-          : payload?.data || payload?.items || payload?.results || [];
-        setPayoutHistory(Array.isArray(list) ? list : []);
-      };
-      loadPayouts();
+      // Refresh data to ensure we have the latest status from server
+      await loadPayouts();
       alert("Payout approved successfully");
     } catch (error) {
       console.error("Failed to approve payout:", error);
+      // Revert optimistic update on error
+      setPayoutHistory(prev => prev.map(payout =>
+        payout.id === payoutId
+          ? { ...payout, status: "pending" }
+          : payout
+      ));
       alert("Failed to approve payout");
     }
   };
@@ -321,12 +488,27 @@ export default function Payments() {
     }
   };
 
+
+
   useEffect(() => {
     const savedBankDetails = localStorage.getItem("bankDetails");
     if (savedBankDetails) {
       setBankDetails(JSON.parse(savedBankDetails));
     }
     let ignore = false;
+
+    const loadVendors = async () => {
+      try {
+        const res = await getVendors();
+        const vendorsList = extractArray(res.data);
+        if (!ignore) setVendors(vendorsList);
+        return vendorsList;
+      } catch (e) {
+        console.error("Failed to load vendors", e);
+        if (!ignore) setVendors([]);
+        return [];
+      }
+    };
 
     const loadKPIs = async () => {
       try {
@@ -380,23 +562,6 @@ export default function Payments() {
       }
     };
 
-    const loadPayouts = async () => {
-      try {
-        setLoadingPayouts(true);
-        const res = await getPayouts({ page: 1, limit: 20 });
-        const payload = res?.data;
-        const list = Array.isArray(payload)
-          ? payload
-          : payload?.data || payload?.items || payload?.results || [];
-        if (!ignore) setPayoutHistory(Array.isArray(list) ? list : []);
-      } catch (e) {
-        console.error("Failed to load payouts", e);
-        if (!ignore) setPayoutHistory([]);
-      } finally {
-        if (!ignore) setLoadingPayouts(false);
-      }
-    };
-    
     const loadEarnings = async () => {
       try {
         const res = await getTotalEarnings();
@@ -420,83 +585,20 @@ export default function Payments() {
       }
     };
 
-    load();
-    loadPayouts();
-    loadEarnings();
-    loadKPIs();
-    loadRevenueTrends();
+    const loadData = async () => {
+      load();
+      const vendorsList = await loadVendors();
+      loadPayouts(vendorsList);
+      loadEarnings();
+      loadKPIs();
+      loadRevenueTrends();
+    };
 
-  const handlePaymentUpdate = async (payload) => {
-    console.log("Payment update received in Payments component:", payload);
-    load();
-    loadPayouts();
-
-    try {
-      const res = await getTotalEarnings();
-      const data = res?.data;
-      if (data?.earnings) {
-        setDashboardKPIs(prev => ({
-          ...prev,
-          totalEarnings: data.earnings.thisYear,
-          totalEarningsChange: `+${data.earnings.yearChange}% from last year`,
-          totalEarningsTrend: data.earnings.yearChange >= 0 ? "up" : "down",
-          weeklyEarnings: data.earnings.thisWeek,
-          weeklyEarningsChange: `+${data.earnings.weekChange}% vs last week`,
-          weeklyEarningsTrend: data.earnings.weekChange >= 0 ? "up" : "down",
-          completedPayments: data.payments.completed.thisWeek,
-          completedPaymentsChange: `+${data.payments.completed.change}% vs last week`,
-          completedPaymentsTrend: data.payments.completed.change >= 0 ? "up" : "down",
-        }));
-      }
-    } catch (e) {
-      console.error("Failed to reload earnings KPIs on payment update", e);
-    }
-
-    const earningsKeys = [
-      'totalEarnings', 'totalEarningsChange', 'totalEarningsTrend',
-      'weeklyEarnings', 'weeklyEarningsChange', 'weeklyEarningsTrend',
-      'completedPayments', 'completedPaymentsChange', 'completedPaymentsTrend',
-      'availableBalance', 'lastPaymentDate'
-    ];
-    try {
-      const kpisRes = await getDashboardKPIs();
-      const kpis = kpisRes?.data?.data || kpisRes?.data || kpisRes || {};
-      setDashboardKPIs(prev => {
-        const updated = { ...prev };
-        Object.keys(kpis).forEach(key => {
-          if (kpis[key] !== undefined && !earningsKeys.includes(key)) {
-            updated[key] = kpis[key];
-          }
-        });
-        return updated;
-      });
-    } catch (e) {
-      console.error("Failed to reload KPIs on payment update", e);
-    }
-
-    try {
-      const trendsRes = await getRevenueTrends({ period: selectedPeriod });
-      const trends = Array.isArray(trendsRes?.data)
-        ? trendsRes.data
-        : trendsRes?.data?.data || [];
-      setRevenueTrends(trends);
-    } catch (e) {
-      console.error("Failed to reload revenue trends on payment update", e);
-    }
-  };
-
-  const handleVendorEarningsUpdate = (payload) => {
-    console.log("Vendor earnings update received:", payload);
-    load();
-  };
-
-  const handleEarningsUpdate = (payload) => {
-    console.log("Earnings update received:", payload);
-    load();
-  };
+    loadData();
 
     subscribe("payment_update", handlePaymentUpdate);
     subscribe("payout_update", handlePaymentUpdate);
+    subscribe("payoutUpdate", handlePaymentUpdate);
     subscribe("vendor-earnings-updated", handleVendorEarningsUpdate);
     subscribe("earnings-updated", handleEarningsUpdate);
 
@@ -534,6 +636,46 @@ export default function Payments() {
       fetchPaystackBalance();
     }
   }, [dashboardKPIs.availableBalance]);
+
+  // Refresh payout history when switching to history tab
+  useEffect(() => {
+    if (activeTab === "history") {
+      loadPayouts();
+    }
+  }, [activeTab]);
+
+  // Filter payout history based on search and status filters
+  useEffect(() => {
+    let filtered = [...payoutHistory];
+
+    // Filter by status
+    if (historyFilter !== "All") {
+      const statusMap = {
+        "Pending": ["pending", "Pending"],
+        "Completed": ["completed", "Success", "success"],
+        "Failed": ["failed", "Failed", "error"]
+      };
+
+      const allowedStatuses = statusMap[historyFilter] || [];
+      filtered = filtered.filter(payout =>
+        allowedStatuses.some(status =>
+          payout.status?.toLowerCase().includes(status.toLowerCase())
+        )
+      );
+    }
+
+    // Filter by search query (search in vendor name, payout ID, amount)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(payout =>
+        payout.vendor?.toLowerCase().includes(query) ||
+        payout.id?.toLowerCase().includes(query) ||
+        payout.amount?.toString().includes(query)
+      );
+    }
+
+    setFilteredPayoutHistory(filtered);
+  }, [payoutHistory, historyFilter, searchQuery]);
 
   const copyToClipboard = (text) => {
     if (text && !text.includes('•')) {
@@ -602,10 +744,7 @@ export default function Payments() {
                 </div>
               </div>
 
-              <Button className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700" onClick={() => alert('Please select a vendor from the table below to initiate a payout')}>
-                <Wallet className="mr-2 h-4 w-4" />
-                Initiate Payout
-              </Button>
+              {/* Initiate Payout button removed per request */}
 
               {/* Paystack Balance Card - Real-time */}
               <Card className="bg-gradient-to-br from-primary to-primary/90 text-white border-0 shadow-xl relative overflow-hidden">
@@ -908,7 +1047,13 @@ export default function Payments() {
                     <SelectItem value="pending">Pending</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon" className="shrink-0">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => loadPayouts()}
+                  disabled={loadingPayouts}
+                >
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </div>
@@ -921,7 +1066,7 @@ export default function Payments() {
                     <TableHead>Vendor's Name</TableHead>
                     <TableHead>Total Earned</TableHead>
                     <TableHead>Commission Earned</TableHead>
-                    <TableHead>Amount Due</TableHead>
+                    <TableHead>Amount Earned</TableHead>
                     <TableHead>Last Payout Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-12"></TableHead>
@@ -940,12 +1085,7 @@ export default function Payments() {
                     vendorsEarnings.map((vendor) => (
                       <TableRow key={vendor.id}>
                         <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                              <span className="text-sm font-medium">K</span>
-                            </div>
-                            <span className="font-medium">{vendor.name}</span>
-                          </div>
+                          <span className="font-medium">{vendor.name}</span>
                         </TableCell>
                         <TableCell>{vendor.totalEarned}</TableCell>
                         <TableCell>{vendor.commission}</TableCell>
@@ -965,7 +1105,7 @@ export default function Payments() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleViewDetails(vendor)}>View Details</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleInitiatePayout(vendor.id, vendor.amountDue.replace('₦', '').replace(/,/g, ''))}>Initiate Payout</DropdownMenuItem>
+                              {/* Initiate Payout action removed */}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -1033,31 +1173,33 @@ export default function Payments() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search transactions"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9 w-full sm:w-64"
                   />
                 </div>
-                <Select defaultValue="date">
-                  <SelectTrigger className="w-full sm:w-32">
-                    <SelectValue placeholder="Date" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date">Date</SelectItem>
-                    <SelectItem value="amount">Amount</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select defaultValue="status">
+                <Select value={historyFilter} onValueChange={setHistoryFilter}>
                   <SelectTrigger className="w-full sm:w-32">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="status">Status</SelectItem>
-                    <SelectItem value="success">Success</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
+                    <SelectItem value="All">All</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Failed">Failed</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button variant="outline" size="icon" className="shrink-0">
                   <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => loadPayouts()}
+                  disabled={loadingPayouts}
+                >
+                  <RefreshCw className={`h-4 w-4 ${loadingPayouts ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
             </div>
@@ -1080,25 +1222,26 @@ export default function Payments() {
                     <TableRow>
                       <TableCell colSpan={7} className="text-sm text-muted-foreground">Loading payouts...</TableCell>
                     </TableRow>
-                  ) : payoutHistory.map((payout, index) => (
+                  ) : filteredPayoutHistory.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-sm text-muted-foreground text-center py-8">
+                        {payoutHistory.length === 0 ? "No payouts found" : "No payouts match your filters"}
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredPayoutHistory.map((payout, index) => (
                     <TableRow key={payout.id || index}>
                       <TableCell className="font-mono text-sm">{payout.id}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                            <span className="text-sm font-medium">K</span>
-                          </div>
-                          <span className="font-medium">{payout.vendor}</span>
-                        </div>
+                        <span className="font-medium">{payout.vendor}</span>
                       </TableCell>
                       <TableCell>{typeof payout.amount === 'number' ? `₦${payout.amount.toLocaleString()}` : payout.amount}</TableCell>
                       <TableCell>{payout.method}</TableCell>
                       <TableCell>{payout.date || (payout.createdAt ? new Date(payout.createdAt).toLocaleDateString() : "-")}</TableCell>
                       <TableCell>
-                        <Badge 
+                        <Badge
                           variant={
-                            payout.status === "Success" || payout.status === "completed" ? "default" : 
-                            payout.status === "Pending" || payout.status === "pending" ? "secondary" : 
+                            payout.status === "Success" || payout.status === "completed" ? "default" :
+                            payout.status === "Pending" || payout.status === "pending" ? "secondary" :
                             "destructive"
                           }
                         >
@@ -1206,7 +1349,7 @@ export default function Payments() {
                     <p className="text-lg font-bold text-blue-600">{selectedVendor.commission}</p>
                   </div>
                   <div className="p-3 bg-orange-50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Pending Payment</p>
+                    <p className="text-xs text-muted-foreground">Amount Earned</p>
                     <p className="text-lg font-bold text-orange-600">{selectedVendor.amountDue}</p>
                   </div>
                 </div>

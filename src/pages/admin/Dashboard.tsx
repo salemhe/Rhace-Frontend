@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StatCard } from "@/components/Statcard";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   getDashboardKPIs,
@@ -13,6 +13,7 @@ import {
   getRevenueTrends,
   getTodaysReservations,
   getTopVendors,
+  getTopVendorEarnings,
   getVendorsEarnings,
   getUpcomingReservations,
   getBookingTrends,
@@ -34,7 +35,7 @@ export default function Dashboard() {
     return `₦${num.toLocaleString()}`;
   };
 
-  const { subscribe, unsubscribe } = useWebSocket();
+  const { subscribe, unsubscribe, connected } = useWebSocket();
 
   const [kpis, setKpis] = useState<any>(null);
   const [totalUsers, setTotalUsers] = useState<number | null>(null);
@@ -43,6 +44,7 @@ export default function Dashboard() {
   const [todaysReservations, setTodaysReservations] = useState<any[]>([]);
   const [topVendors, setTopVendors] = useState<any[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [wsStatus, setWsStatus] = useState<"connected" | "disconnected" | "connecting">("connecting");
 
   const fetchKPIs = async () => {
     try {
@@ -53,6 +55,52 @@ export default function Dashboard() {
       console.error("Failed to load KPIs", err);
     }
   };
+
+  useEffect(() => {
+    const fetchInitialData = () => {
+      Promise.all([
+        fetchKPIs(),
+        fetchRevenueTrends(),
+        fetchTodaysReservations(),
+        fetchTransactions(),
+        fetchTotalUsers(),
+      ]);
+      fetchTopVendors();
+    };
+    fetchInitialData();
+
+    // Poll dashboard data periodically as a fallback for realtime updates
+    const polling = setInterval(() => {
+      fetchKPIs();
+      fetchTotalUsers();
+      fetchTodaysReservations();
+      fetchTopVendors();
+      fetchRevenueTrends();
+    }, 30000);
+
+    return () => clearInterval(polling);
+  }, []);
+
+  useEffect(() => {
+    if (connected) {
+      setWsStatus("connected");
+      subscribe("new-reservation", (data: any) => {
+        console.log("New reservation received via WebSocket:", data);
+        refreshDashboard();
+      });
+      subscribe("new-transaction", (data: any) => {
+        console.log("New transaction received via WebSocket:", data);
+        refreshDashboard();
+      });
+    } else {
+      setWsStatus("disconnected");
+    }
+
+    return () => {
+      unsubscribe("new-reservation");
+      unsubscribe("new-transaction");
+    };
+  }, [connected, subscribe, unsubscribe]);
 
   const fetchRevenueTrends = async () => {
     try {
@@ -84,11 +132,51 @@ export default function Dashboard() {
 
   const fetchTopVendors = async () => {
     try {
-      const tv = await getTopVendors();
-      const vendors = tv?.data?.data || tv?.data || [];
-      setTopVendors(Array.isArray(vendors) ? vendors : []);
+      console.log("[Dashboard] Fetching top vendor earnings...");
+      // Use the correct endpoint for top performing vendors
+      const tv = await getTopVendorEarnings({ page: 1, limit: 10 });
+      console.log("[Dashboard] Top vendors response:", tv);
+      
+      // Handle the new response format from /payments/vendors-earnings
+      // Response format: { earnings: [...], pagination: {...} }
+      let vendors = [];
+      if (tv?.data?.earnings && Array.isArray(tv.data.earnings)) {
+        // Transform the data to match the UI expectations
+        vendors = tv.data.earnings.map((v: any) => ({
+          businessName: v.vendorName,
+          name: v.vendorName,
+          totalRevenue: v.totalEarnings,
+          revenue: v.totalEarnings,
+          totalReservations: v.totalPayments,
+          bookings: v.totalPayments,
+          vendorId: v.vendorId,
+          lastPaymentDate: v.lastPaymentDate,
+        }));
+      } else if (tv?.data?.data && Array.isArray(tv.data.data)) {
+        vendors = tv.data.data;
+      } else if (tv?.data && Array.isArray(tv.data)) {
+        vendors = tv.data;
+      } else if (Array.isArray(tv)) {
+        vendors = tv;
+      }
+      
+      setTopVendors(vendors);
+      console.log("[Dashboard] Top vendors set:", vendors.length);
     } catch (err) {
-      console.error("Failed to load top vendors", err);
+      console.error("[Dashboard] Failed to load top vendors", err);
+      // Fallback to old endpoint if new one fails
+      try {
+        const fallback = await getTopVendors();
+        let vendors = [];
+        if (fallback?.data?.data && Array.isArray(fallback.data.data)) {
+          vendors = fallback.data.data;
+        } else if (fallback?.data && Array.isArray(fallback.data)) {
+          vendors = fallback.data;
+        }
+        setTopVendors(vendors);
+      } catch (fallbackErr) {
+        console.error("[Dashboard] Fallback also failed", fallbackErr);
+      }
     }
   };
 
@@ -153,60 +241,7 @@ export default function Dashboard() {
     }
   };
 
-  useEffect(() => {
-    const fetchAll = async () => {
-      try {
-        const [tx, today, tv] = await Promise.all([
-          getRecentTransactions(),
-          getTodaysReservations(),
-          getTopVendors().catch(() => ({ data: [] })),
-        ]);
 
-        const normalizeTx = (t: any) => ({
-          id: t.id || "",
-          type: t.type || "vendor",
-          amount: t.amount || 0,
-          status: t.status || "Pending",
-          createdAt: t.createdAt || "",
-          guest: t.guest || null,
-          entity: t.entity || "",
-          method: t.method || "bank_transfer",
-        });
-
-        setTransactions(Array.isArray(tx?.data) ? tx.data.map(normalizeTx) : []);
-
-        const normalizeRes = (r: any) => ({
-          name: r.customerName || r.user?.name || r.guestName || "Guest",
-          id: r.id || r._id || r.reference || "",
-          date: r.date || r.checkInDate || r.createdAt || "",
-          time: r.time || r.checkInTime || "",
-          venue: r.vendorName || r.vendor?.businessName || r.businessName || "",
-          status: r.status || r.reservationStatus || "",
-        });
-
-        setTodaysReservations(Array.isArray(today?.data) ? today.data.map(normalizeRes) : []);
-        setTopVendors(Array.isArray(tv?.data) ? tv.data : []);
-      } catch (err) {
-        console.error("Failed to load dashboard data", err);
-      }
-    };
-
-    fetchAll();
-    fetchKPIs();
-    fetchTotalUsers();
-    fetchRevenueTrends();
-
-    // Poll dashboard data periodically as a fallback for realtime updates
-    const polling = setInterval(() => {
-      fetchKPIs();
-      fetchTotalUsers();
-      fetchTodaysReservations();
-      fetchTopVendors();
-      fetchRevenueTrends();
-    }, 30000);
-
-    return () => clearInterval(polling);
-  }, []);
 
   // WebSocket subscriptions for real-time updates
   useEffect(() => {

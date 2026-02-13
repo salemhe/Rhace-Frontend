@@ -71,15 +71,13 @@ const AdminSidebar = ({ isOpen, onClose }) => {
               <button
                 key={item.label}
                 onClick={() => handleItemClick(item)}
-                className={`w-[90%] flex items-center pl-7 py-2 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
-                  item.label === "Logout" ? "mt-32" : ""
-                } ${
+                className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
                   item.active
                     ? 'bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]'
                     : 'text-teal-100 hover:bg-teal-700 hover:text-white'
                 }`}
               >
-                <item.icon className="w-5 h-5 mr-3" />
+                <item.icon className="w-5 h-5" />
                 {item.label}
               </button>
             ))}
@@ -130,13 +128,13 @@ const AdminSidebar = ({ isOpen, onClose }) => {
             <button
               key={item.label}
               onClick={() => handleItemClick(item)}
-              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
+              className={`w-full flex items-center px-3 py-2 gap-3 rounded-lg text-left transition-colors duration-200 ${
                 item.active
                   ? 'bg-teal-700 text-white'
                   : 'text-teal-100 hover:bg-teal-700 hover:text-white'
               }`}
             >
-              <item.icon className="w-5 h-5 mr-3" />
+              <item.icon className="w-5 h-5" />
               {item.label}
             </button>
           ))}

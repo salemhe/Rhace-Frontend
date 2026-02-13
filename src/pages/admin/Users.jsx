@@ -261,6 +261,13 @@ export default function UserManagement() {
       const payload = response?.data;
       const reservations = extractArray(payload);
       setUserReservations(Array.isArray(reservations) ? reservations : []);
+
+      // Subscribe to real-time updates for this user's reservations
+      const reservationTopic = `reservations:user:${userId}`;
+      subscribe(reservationTopic, (updatedReservations) => {
+        setUserReservations(extractArray(updatedReservations));
+      });
+
     } catch (e) {
       console.error("Failed to load reservations", e);
       alert("Failed to load reservations");

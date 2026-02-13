@@ -1,61 +1,14 @@
-
-const FoodIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="18"
-    height="16"
-    fill="none"
-    viewBox="0 0 18 16"
-  >
-    <path
-      fill="#fff"
-      fillRule="evenodd"
-      d="M9.417.5c.683 0 1.242.545 1.255 1.23l.02.697.022.562.048.9.032.51.019.268h1.882c.755 0 1.296.644 1.275 1.329l-.004.375.004.233.009.263.016.292.023.322.032.35.042.38.053.406.066.436.038.228.085.476.101.504c.146.689.335 1.45.58 2.279l.194.633q.103.325.217.66H16.5a.833.833 0 0 1 0 1.667h-15a.833.833 0 1 1 0-1.667h1.048c.57-1.965.927-3.914 1.147-5.667l.081-.691.068-.667.029-.324.05-.626.038-.598.03-.564.02-.53.013-.491.009-.452v-.716l-.01-.59-.004-.116A1.26 1.26 0 0 1 5.278.5zm-.402 1.667h-3.32l.005.451v.557l-.007.45-.013.492-.019.529-.027.563-.017.295-.042.612-.053.642-.03.33-.07.68a40 40 0 0 1-1.035 5.666l-.108.4h6.167l-.159-.73-.075-.364-.142-.722-.129-.714-.118-.705-.109-.693-.098-.68-.089-.664-.08-.649-.103-.935-.06-.596-.052-.573-.084-1.067-.061-.95-.033-.624-.034-.859zM12.3 6.333h-1.345l.044.44.1.915c.221 1.874.555 4 1.058 6.145h1.514a34 34 0 0 1-.575-1.99l-.15-.608-.13-.58-.111-.553-.095-.524-.042-.25-.072-.481q-.033-.225-.059-.45l-.046-.422-.036-.39-.024-.36-.017-.328-.013-.434z"
-      clipRule="evenodd"
-    ></path>
-  </svg>
-);
-
-const Plate = ({ color = "#fff" }) => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="21"
-    height="20"
-    fill="none"
-    viewBox="0 0 21 20"
-  >
-    <g clipPath="url(#clip0_2583_379)">
-      <path
-        fill={color}
-        fillRule="evenodd"
-        d="M8 3.333a.833.833 0 0 1 .833-.833h3.334a.833.833 0 0 1 0 1.667h-.834v.862c4.534.409 7.509 5.11 5.775 9.447a.83.83 0 0 1-.775.524H4.667a.83.83 0 0 1-.774-.524c-1.735-4.337 1.24-9.038 5.774-9.447v-.862h-.834A.833.833 0 0 1 8 3.333m2.308 3.334c-3.521 0-5.986 3.377-5.047 6.666h10.478c.94-3.289-1.526-6.666-5.047-6.666zM3 16.667a.833.833 0 0 1 .833-.834h13.334a.833.833 0 0 1 0 1.667H3.833A.833.833 0 0 1 3 16.667"
-        clipRule="evenodd"
-      ></path>
-    </g>
-    <defs>
-      <clipPath id="clip0_2583_379">
-        <path fill="#fff" d="M.5 0h20v20H.5z"></path>
-      </clipPath>
-    </defs>
-  </svg>
-);
+ 
 
 
-const Amenities = ({ color = "#fff" }) => (
 
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="17"
-    height="16"
-    fill="none"
-    viewBox="0 0 17 16"
-  >
-    <path
-      fill={color}
-      d="m7.906 1.93.256-.107C10.537.766 12.895.792 14.438.993l.341.048.31.052.278.055.242.052c.72.165 1.17.78 1.22 1.443l.005.125v9.654c0 .855-.814 1.417-1.578 1.241l-.233-.051-.271-.052-.304-.05q-.256-.039-.514-.066l-.377-.033c-1.236-.087-2.845 0-4.463.658l-.255.108c-2.192.976-4.37 1.029-5.906.873l-.37-.042-.342-.05-.31-.052-.143-.027-.375-.079c-.721-.165-1.171-.78-1.221-1.443l-.005-.124V3.578c0-.855.813-1.418 1.577-1.241l.234.051.27.052.305.05c1.28.192 3.31.272 5.353-.56M8.5 4.668a3.333 3.333 0 1 0 0 6.666 3.333 3.333 0 0 0 0-6.666m0 1.666a1.667 1.667 0 1 1 0 3.334 1.667 1.667 0 0 1 0-3.334"
-    ></path>
-  </svg>
-);
+
+
+
+
+
+
+
 
 const DashBoardIcon = ({ className }) => (
   <svg
@@ -72,22 +25,7 @@ const DashBoardIcon = ({ className }) => (
   </svg>
 );
 
-const LogoutIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="17"
-    height="18"
-    fill="none"
-    viewBox="0 0 17 18"
-  >
-    <path
-      fill="#E5E7EB"
-      fillRule="evenodd"
-      d="M3 .667a2.5 2.5 0 0 0-2.5 2.5v11.666a2.5 2.5 0 0 0 2.5 2.5h5a2.5 2.5 0 0 0 2.5-2.5V3.167A2.5 2.5 0 0 0 8 .667zm8.578 4.41a.833.833 0 0 1 1.178 0l3.333 3.334a.833.833 0 0 1 0 1.178l-3.333 3.334a.833.833 0 0 1-1.178-1.179l1.91-1.91H6.333a.833.833 0 1 1 0-1.667h7.155l-1.91-1.911a.833.833 0 0 1 0-1.178"
-      clipRule="evenodd"
-    ></path>
-  </svg>
-);
+
 
 const BookingsIcon = ({ className }) => (
   <svg
@@ -285,7 +223,39 @@ const RhaceIcon = () => (
   </svg>
 );
 
-export { Amenities, BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, Plate, SettingsIcon, PrepaidIcon, GuestsIcon, PendingPaymentIcon, PeopleIcon, FoodIcon, UsersIcon, SvgIcon, RhaceIcon };
+const Amenities = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    fill="none"
+    viewBox="0 0 20 20"
+  >
+    <path
+      fill="currentColor"
+      className={className}
+      d="M10 2a2 2 0 0 1 2 2v1h3a1 1 0 0 1 0 2h-3v3a1 1 0 0 1-2 0v-3H6a1 1 0 0 1 0-2h3V4a2 2 0 0 1 2-2m0 6a1 1 0 1 0 0 2 1 1 0 0 0 0-2M6 10a1 1 0 1 0 0 2 1 1 0 0 0 0-2m8 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-8 4a1 1 0 1 0 0 2 1 1 0 0 0 0-2m8 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2m-8-8a1 1 0 1 0 0 2 1 1 0 0 0 0-2m8 0a1 1 0 1 0 0 2 1 1 0 0 0 0-2"
+    />
+  </svg>
+);
+
+const LogoutIcon = ({ className }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    fill="none"
+    viewBox="0 0 20 20"
+  >
+    <path
+      fill="currentColor"
+      className={className}
+      d="M3 3a1 1 0 0 1 1-1h5a1 1 0 0 1 0 2H5v10h4a1 1 0 0 1 0 2H4a1 1 0 0 1-1-1V3zm10.707 3.293a1 1 0 0 1 0 1.414L11.414 10l2.293 2.293a1 1 0 0 1-1.414 1.414l-3-3a1 1 0 0 1 0-1.414l3-3a1 1 0 0 1 1.414 0z"
+    />
+  </svg>
+);
+
+
 const SvgIcon = ({ isActive }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 16 16">
     <path
@@ -319,6 +289,22 @@ const SvgIcon3 = ({ isActive }) => (
   </svg>
 );
 
+const Plate = ({ color = "#000" }) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="20"
+    height="20"
+    fill="none"
+    viewBox="0 0 20 20"
+  >
+    <path
+      fill={color}
+      d="M10 2C5.582 2 2 5.582 2 10s3.582 8 8 8 8-3.582 8-8-3.582-8-8-8zm0 14c-3.314 0-6-2.686-6-6s2.686-6 6-6 6 2.686 6 6-2.686 6-6 6z"
+    />
+    <circle cx="10" cy="10" r="3" fill={color} />
+  </svg>
+);
+
 const Table = ({ className }) => (
   <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor" className={className} xmlns="http://www.w3.org/2000/svg">
     <path d="M18.3332 3.33301H1.6665" stroke="#0A6C6D" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
@@ -330,5 +316,5 @@ const Table = ({ className }) => (
 
 )
 
-export { Amenities, Table, BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, Plate, SettingsIcon, PrepaidIcon, GuestsIcon, PendingPaymentIcon, PeopleIcon, FoodIcon, UsersIcon, SvgIcon4, HeartIcon, SvgIcon, SvgIcon2, SvgIcon3 };
+export { Table, Plate, BookingsIcon, BranchesIcon, DashBoardIcon, MenuIcon, PaymentIcon, SettingsIcon, PrepaidIcon, GuestsIcon, PendingPaymentIcon, PeopleIcon, UsersIcon, SvgIcon4, HeartIcon, SvgIcon, SvgIcon2, SvgIcon3, RhaceIcon, Amenities, LogoutIcon };
 
