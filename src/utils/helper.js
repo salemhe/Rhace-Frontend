@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 export function capitalize(word) {
   if (!word) return ""; // handle empty strings safely
   return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
@@ -63,3 +65,19 @@ export const trimLongString = (str, num) => {
     return val;
   }
 };
+
+export function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    setIsMobile(mq.matches);
+
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+
+  return isMobile;
+}

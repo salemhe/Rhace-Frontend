@@ -1,15 +1,6 @@
 // "use client"
 import React, { useEffect, useState } from "react";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Wifi,
-  Users,
-  Bed,
-  Coffee,
-  Car,
-  Building,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Building } from "lucide-react";
 // import { RoomsData } from '@/lib/api';
 import { hotelService } from "@/services/hotel.service";
 import UniversalLoader from "../ui/LogoLoader";
@@ -17,6 +8,16 @@ import { toast } from "react-toastify";
 import { HiPercentBadge } from "react-icons/hi2";
 import { MdCheckBox } from "react-icons/md";
 import { capitalize } from "@/utils/helper";
+import {
+  Breakfast,
+  Car,
+  City,
+  FoodIcon,
+  PeopleIcon,
+  TwinBed,
+  UsersIcon,
+} from "@/public/icons/icons";
+import { FaWifi } from "react-icons/fa6";
 
 const Rooms = ({ id, setSelectedRoom, setShow }) => {
   const tabs = [
@@ -30,7 +31,7 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
 
   const [rooms, setRooms] = useState([]);
   const [filteredRooms, setFilteredRooms] = useState([]);
-  console.log(filteredRooms);
+  const [expandedAmenities, setExpandedAmenities] = useState({});
 
   const nextImage = (roomId, totalImages) => {
     setCurrentImageIndex((prev) => ({
@@ -50,9 +51,69 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
     return `₦${price.toLocaleString()}`;
   };
 
+  const toggleAmenities = (roomId, e) => {
+    e.stopPropagation();
+    setExpandedAmenities((prev) => ({
+      ...prev,
+      [roomId]: !prev[roomId],
+    }));
+  };
+
+  const getDisplayedAmenities = (room) => {
+    const amenitiesList = [];
+
+    if (room.amenities.includes("Wi-Fi")) {
+      amenitiesList.push({
+        icon: <FaWifi className="w-4 items-center h-4 text-[#606368] mr-2" />,
+        text: "Free WiFi",
+      });
+    }
+
+    amenitiesList.push({
+      icon: (
+        <span className="w-3 h-3 mr-3">
+          <PeopleIcon />
+        </span>
+      ),
+      text: `${room.adultsCapacity} Adults`,
+    });
+
+    amenitiesList.push({
+      icon: (
+        <span className="w-3 h-3 mr-3">
+          <TwinBed />
+        </span>
+      ),
+      text: room.amenities.bedType || "1 Twin Bed",
+    });
+
+    if (room.amenities.includes("Free Breakfast")) {
+      amenitiesList.push({
+        icon: <Breakfast className="w-3 h-3 mr-4" />,
+        text: "Free Breakfast",
+      });
+    }
+
+    if (room.amenities.includes("Free Parking")) {
+      amenitiesList.push({
+        icon: <Car className="w-3 h-3 mr-8" />,
+        text: "Free Parking",
+      });
+    }
+
+    if (room.amenities.includes("City View")) {
+      amenitiesList.push({
+        icon: <City className="w-3 h-3 mr-6" />,
+        text: "City View",
+      });
+    }
+
+    return amenitiesList;
+  };
+
   useEffect(() => {
     setFilteredRooms(rooms.filter((r) => r.category === activeTab.value));
-  }, [activeTab]);
+  }, [activeTab, rooms]);
 
   useEffect(() => {
     const fetchRooms = async () => {
@@ -68,19 +129,31 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
     fetchRooms();
   }, []);
 
+  const handleReserve = (room) => {
+    setSelectedRoom({
+      ...room,
+      pricePerNight:
+        room.pricePerNight - room.pricePerNight * (room.discount / 100),
+    });
+    toast.success(`Successfully selected ${room.name} room.`);
+    if (window.innerWidth >= 768)
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    setShow(true);
+  };
+
   if (isLoading) return <UniversalLoader type="cards" />;
 
   return (
     <div className="min-h-screen py-">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-4">
-          <h1 className="sm:text-2xl text-sm font-medium sm:font-bold text-gray-900 mb-3">
+        <div className="mb-4 ">
+          <h1 className="font-semibold mb-2 sm:text-lg text-sm">
             Select Room Type
           </h1>
 
           {/* Tabs */}
-          <div className="flex space-x-1 bg-whit hide-scrollbar overflow-auto w-full rounded-lg p-1 ">
+          <div className="flex space-x-1 bg-whit hide-scrollbar overflow-auto w-full rounded-lg py-1 ">
             {tabs.map((tab) => (
               <button
                 key={tab.value}
@@ -103,7 +176,7 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
             filteredRooms.map((room) => (
               <div
                 key={room._id}
-                className="bg-whte rounded-[20px] sm:rounded-lg shadow- overflow-hidden"
+                className="bg-whte rounded-[20px] sm:rounded-lg cursor-pointer shadow- overflow-hidden"
               >
                 {/* Image Section */}
                 <div className="relative h-48 rounded-[20px] sm:rounded-lg bg-gray-200">
@@ -146,50 +219,36 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
 
                   {/* Amenities */}
                   <div className="grid grid-cols-3 gap-2 mb-4 text-xs text-gray-600">
-                    {room.amenities.includes("Wi-Fi") && (
-                      <div className="flex items-center">
-                        <Wifi className="w-3 h-3 mr-1" />
-                        <span>Free WiFi</span>
-                      </div>
-                    )}
-                    <div className="flex items-center">
-                      <Users className="w-3 h-3 mr-1" />
-                      <span>{room.adultsCapacity} Adults</span>
-                    </div>
-                    <div className="flex items-center">
-                      <Bed className="w-3 h-3 mr-1" />
-                      <span>{room.amenities.bedType || "1 Twin Bed"}</span>
-                    </div>
-                    {room.amenities.includes("Free Breakfast") && (
-                      <div className="flex items-center">
-                        <Coffee className="w-3 h-3 mr-1" />
-                        <span>Free Breakfast</span>
-                      </div>
-                    )}
-                    {room.amenities.includes("Free Parking") && (
-                      <div className="flex items-center">
-                        <Car className="w-3 h-3 mr-1" />
-                        <span>Free Parking</span>
-                      </div>
-                    )}
-                    {room.amenities.includes("City View") && (
-                      <div className="flex items-center">
-                        <Building className="w-3 h-3 mr-1" />
-                        <span>City View</span>
-                      </div>
-                    )}
+                    {getDisplayedAmenities(room)
+                      .slice(0, expandedAmenities[room._id] ? undefined : 3)
+                      .map((amenity, index) => (
+                        <div key={index} className="flex items-center">
+                          {amenity.icon}
+                          <span className="font-normal text-xs sm:text-sm">
+                            {amenity.text}
+                          </span>
+                        </div>
+                      ))}
                   </div>
 
                   {/* Show more amenities link */}
-                  <a
-                    href="#"
-                    className=" font-normal items-center flex sm:font-medium text-xs sm:text-sm mb-4 "
-                  >
-                    <span className="text-[#0A6C6D]  underline ">
-                      Show more amenities
-                    </span>{" "}
-                    <ChevronRight className="w-4 h-4 text-[#606368] " />
-                  </a>
+                  {getDisplayedAmenities(room).length > 3 && (
+                    <button
+                      onClick={(e) => toggleAmenities(room._id, e)}
+                      className="font-normal items-center flex sm:font-medium text-xs sm:text-sm mb-4"
+                    >
+                      <span className="text-[#0A6C6D] underline">
+                        {expandedAmenities[room._id]
+                          ? "Show less amenities"
+                          : "Show more amenities"}
+                      </span>
+                      <ChevronRight
+                        className={`w-4 h-4 text-[#606368] transition-transform ${
+                          expandedAmenities[room._id] ? "rotate-90" : ""
+                        }`}
+                      />
+                    </button>
+                  )}
 
                   {/* Discount and Availability */}
                   <div className="flex items-center w-full justify-between mb-4">
@@ -238,17 +297,9 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
 
                   {/* Reserve Button */}
                   <button
-                    onClick={() => {
-                      setSelectedRoom({
-                        ...room,
-                        pricePerNight:
-                          room.pricePerNight -
-                          room.pricePerNight * (room.discount / 100),
-                      });
-                      toast.success(`Successfully selected ${room.name} room.`);
-                      if (window.innerWidth >= 768)
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                      setShow(true);
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleReserve(room);
                     }}
                     className="w-full bg-[#0A6C6D] hover:bg-teal-800 text-white font-medium py-2 px-4 rounded-[12px] mb-2"
                   >
