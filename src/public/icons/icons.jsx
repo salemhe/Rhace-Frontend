@@ -548,6 +548,7 @@ export {
   SvgIcon3,
   TwinBed,
   Wifi,
+  RhaceIcon,
   Breakfast,
   Car,
   City,
