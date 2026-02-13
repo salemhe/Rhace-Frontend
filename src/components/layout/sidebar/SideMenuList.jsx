@@ -1,4 +1,4 @@
-import { BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, PeopleIcon, SettingIcon } from '@/public/icons/icons';
+import { BookingsIcon, BranchesIcon, DashBoardIcon, LogoutIcon, MenuIcon, PaymentIcon, PeopleIcon, SettingsIcon } from '@/public/icons/icons';
 import { Users } from 'lucide-react';
 
 // Menu configurations
@@ -11,7 +11,7 @@ export const RestaurantList = {
     { icon: PaymentIcon, label: 'Payments', path: '/dashboard/restaurant/payments' },
   ],
   bottomItems: [
-    { icon: SettingIcon, label: 'Settings', path: '/dashboard/restaurant/settings' },
+    { icon: SettingsIcon, label: 'Settings', path: '/dashboard/restaurant/settings' },
     { icon: LogoutIcon, label: 'Logout', path: '/auth/vendor/login' },
   ]
 };
@@ -25,7 +25,7 @@ export const HotelList = {
      { icon: PeopleIcon, label: 'Staffs', path: '/hotel/staffs' },
   ],
     bottomItems: [
-    { icon: SettingIcon, label: 'Settings', path: '/hotel/settings' },
+    { icon: SettingsIcon, label: 'Settings', path: '/hotel/settings' },
     { icon: LogoutIcon, label: 'Logout', path: '/auth/vendor/login' },
   ]
 };
@@ -40,7 +40,7 @@ export const ClubList = {
     { icon: PeopleIcon, label: 'Staffs', path: '/club/Staffs' },
   ],
     bottomItems: [
-    { icon: SettingIcon, label: 'Settings', path: '/club/settings' },
+    { icon: SettingsIcon, label: 'Settings', path: '/club/settings' },
     { icon: LogoutIcon, label: 'Logout', path: '/auth/vendor/login' },
   ]
 };

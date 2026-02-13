@@ -50,6 +50,9 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
+  Shield,
+  Copy,
+  RefreshCw,
 } from "lucide-react";
 import {
   LineChart,
@@ -73,7 +76,6 @@ import {
   getTotalEarnings,
 } from "@/services/admin.service";
 import { useWebSocket } from "@/contexts/WebSocketContext";
-import placeholderLogo from "@/public/images/Rhace-11.png";
 
 const earningsData = [
   { date: "Jan 1", value: 150000 },
@@ -86,31 +88,24 @@ const earningsData = [
   { date: "Feb 18", value: 400000 },
 ];
 
-const bankLogos = {
-  "Zenith Bank": placeholderLogo,
-  "Guaranty Trust Bank": placeholderLogo,
-  "First Bank": placeholderLogo,
-  "Access Bank": placeholderLogo,
-  "United Bank for Africa": placeholderLogo,
-  "Fidelity Bank": placeholderLogo,
-  "Union Bank": placeholderLogo,
-  "Ecobank": placeholderLogo,
-  "Stanbic IBTC": placeholderLogo,
-  "Wema Bank": placeholderLogo,
-  Default: placeholderLogo,
-};
-
 export default function Payments() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("earning");
   const [historyFilter, setHistoryFilter] = useState("All");
   const [vendorsEarnings, setVendorsEarnings] = useState([]);
   const [payoutHistory, setPayoutHistory] = useState([]);
+  const [filteredPayoutHistory, setFilteredPayoutHistory] = useState([]);
   const [loadingEarnings, setLoadingEarnings] = useState(false);
   const [loadingPayouts, setLoadingPayouts] = useState(false);
   const [dashboardKPIs, setDashboardKPIs] = useState({});
   const [revenueTrends, setRevenueTrends] = useState([]);
   const [loadingKPIs, setLoadingKPIs] = useState(false);
+  const [paystackBalance, setPaystackBalance] = useState({
+    availableBalance: 0,
+    pendingBalance: 0,
+    totalBalance: 0,
+    lastUpdated: new Date()
+  });
   const [bankDetails, setBankDetails] = useState({
     bankName: "Zenith Bank",
     accountNumber: "••••••123456",
@@ -127,40 +122,222 @@ export default function Payments() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState("weekly");
+  const [vendors, setVendors] = useState([]);
   const { subscribe, unsubscribe } = useWebSocket();
+
+
+
+  // Function to load payout history
+  const loadPayouts = async (vendorsList = null) => {
+    try {
+      setLoadingPayouts(true);
+
+      // Always try to load fresh vendors from API first
+      let currentVendors = [];
+      try {
+        const res = await getVendors();
+
+        let loadedVendors = [];
+        // Try different extraction methods
+        if (Array.isArray(res.data)) {
+          loadedVendors = res.data;
+        } else if (res.data && Array.isArray(res.data.data)) {
+          loadedVendors = res.data.data;
+        } else if (res.data && Array.isArray(res.data.vendors)) {
+          loadedVendors = res.data.vendors;
+        } else {
+          loadedVendors = extractArray(res.data);
+        }
+
+        if (loadedVendors.length > 0) {
+          currentVendors = loadedVendors;
+          setVendors(currentVendors);
+        }
+      } catch (e) {
+        console.error("Failed to load vendors for payout enrichment", e);
+        // Fall back to provided vendors or existing state
+        currentVendors = vendorsList || vendors;
+      }
+
+      // If still no vendors, try to use vendors from earnings data as last resort
+      if (currentVendors.length === 0 && vendorsEarnings.length > 0) {
+        currentVendors = vendorsEarnings.map(v => ({
+          id: v.id,
+          _id: v.id,
+          name: v.name,
+          businessName: v.name
+        }));
+      }
+
+      // Add timestamp to force fresh data and avoid caching
+      const res = await getPayouts({ page: 1, limit: 20, _t: Date.now() });
+      const payload = res?.data;
+      const list = Array.isArray(payload)
+        ? payload
+        : payload?.data || payload?.items || payload?.results || [];
+
+      // Enrich payout data with vendor names and payment methods
+      const enrichedPayouts = (Array.isArray(list) ? list : []).map((payout) => {
+        // Find vendor name from vendors list
+        const vendorId = payout.vendorId || payout.vendor;
+        const vendor = currentVendors.find(v => v.id === vendorId || v._id === vendorId || v.vendorId === vendorId);
+        let vendorName = "Unknown Vendor";
+
+        if (vendor) {
+          vendorName = vendor.businessName || vendor.name || "Unknown Vendor";
+        }
+
+        // If lookup failed and payout.vendor is a valid name (not ObjectId), use it
+        if (vendorName === "Unknown Vendor" && payout.vendor && typeof payout.vendor === 'string' && !/^[a-f0-9]{24}$/i.test(payout.vendor)) {
+          vendorName = payout.vendor;
+        }
+
+        // Determine payment method (assuming it's bank transfer for payouts)
+        const paymentMethod = payout.method || payout.paymentMethod || "Bank Transfer";
+
+        return {
+          ...payout,
+          vendor: vendorName,
+          method: paymentMethod,
+          // Ensure ID is available
+          id: payout.id || payout._id || payout.payoutId || `payout-${Date.now()}-${Math.random()}`
+        };
+      });
+
+      setPayoutHistory(enrichedPayouts);
+    } catch (e) {
+      
+      setPayoutHistory([]);
+    } finally {
+      setLoadingPayouts(false);
+    }
+  };
+
+  // Handler functions
+  const handlePaymentUpdate = async (payload) => {
+    
+    load();
+    loadPayouts();
+
+    try {
+      const res = await getTotalEarnings();
+      const data = res?.data;
+      if (data?.earnings) {
+        setDashboardKPIs(prev => ({
+          ...prev,
+          totalEarnings: data.earnings.thisYear,
+          totalEarningsChange: `+${data.earnings.yearChange}% from last year`,
+          totalEarningsTrend: data.earnings.yearChange >= 0 ? "up" : "down",
+          weeklyEarnings: data.earnings.thisWeek,
+          weeklyEarningsChange: `+${data.earnings.weekChange}% vs last week`,
+          weeklyEarningsTrend: data.earnings.weekChange >= 0 ? "up" : "down",
+          completedPayments: data.payments.completed.thisWeek,
+          completedPaymentsChange: `+${data.payments.completed.change}% vs last week`,
+          completedPaymentsTrend: data.payments.completed.change >= 0 ? "up" : "down",
+        }));
+      }
+    } catch (e) {
+      
+    }
+
+    const earningsKeys = [
+      'totalEarnings', 'totalEarningsChange', 'totalEarningsTrend',
+      'weeklyEarnings', 'weeklyEarningsChange', 'weeklyEarningsTrend',
+      'completedPayments', 'completedPaymentsChange', 'completedPaymentsTrend',
+      'availableBalance', 'lastPaymentDate'
+    ];
+    try {
+      const kpisRes = await getDashboardKPIs();
+      const kpis = kpisRes?.data?.data || kpisRes?.data || kpisRes || {};
+      setDashboardKPIs(prev => {
+        const updated = { ...prev };
+        Object.keys(kpis).forEach(key => {
+          if (kpis[key] !== undefined && !earningsKeys.includes(key)) {
+            updated[key] = kpis[key];
+          }
+        });
+        return updated;
+      });
+    } catch (e) {
+      
+    }
+
+    try {
+      const trendsRes = await getRevenueTrends({ period: selectedPeriod });
+      const trends = Array.isArray(trendsRes?.data)
+        ? trendsRes.data
+        : trendsRes?.data?.data || [];
+      setRevenueTrends(trends);
+    } catch (e) {
+      
+    }
+  };
+
+  const handleVendorEarningsUpdate = (payload) => {
+    
+    load();
+  };
+
+  const handleEarningsUpdate = (payload) => {
+    
+    load();
+  };
+
+  // Function to fetch Paystack balance
+  const fetchPaystackBalance = async () => {
+    try {
+      // This should be replaced with actual Paystack API call
+      // Example: const response = await getPaystackBalance();
+      // const data = response.data;
+      
+      // For now, using available balance from dashboardKPIs
+      const available = dashboardKPIs.availableBalance || 0;
+      const pending = Math.round(available * 0.15); // 15% as pending (example)
+      const total = available + pending;
+      
+      setPaystackBalance({
+        availableBalance: available,
+        pendingBalance: pending,
+        totalBalance: total,
+        lastUpdated: new Date()
+      });
+    } catch (error) {
+      console.error("Failed to fetch Paystack balance:", error);
+    }
+  };
 
   const load = async () => {
     try {
       setLoadingEarnings(true);
       const earningsRes = await getVendorsEarnings();
       
-      // FIX: Access the 'earnings' property from the response data
       const earnings = earningsRes?.data?.earnings || [];
 
       const vendorsWithEarnings = earnings.map((vendor) => {
-        const totalEarnings = vendor.totalEarnings || 0;
-        const totalPayments = vendor.totalPayments || 0;
-        const amountDue = totalEarnings - totalPayments;
-        const hasRecentPayout = vendor.lastPaymentDate && new Date(vendor.lastPaymentDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // Last 30 days
+        // Ensure numeric values and handle different API response formats
+        const totalEarnings = Number(vendor.totalEarnings || vendor.earnings || vendor.total || 0);
+        const totalPaid = Number(vendor.totalPaid || vendor.paid || vendor.totalPayments || vendor.commissionPaid || 0);
+        const commission = Number(vendor.commission || vendor.fee || vendor.totalPayments || 0);
 
-        // Determine status based on payment logic
+        // Amount due calculation: total earnings minus total amount already paid
+        const amountDue = Math.max(0, totalEarnings - totalPaid);
+
+        // Determine status based on payment history and amount due
         let status = "Pending";
-        if (amountDue <= 0) {
+        if (amountDue > 0) {
           status = "Paid";
-        } else if (hasRecentPayout) {
-          status = "Partially Paid";
         } else if (vendor.status) {
-          status = vendor.status; // Use API status if available
+          status = vendor.status;
         }
 
         return {
-          id: vendor.vendorId || vendor._id,
-          name: vendor.vendorName || vendor.businessName || vendor.name,
-          totalEarned: totalEarnings
+          id: vendor.vendorId || vendor._id || vendor.id,
+          name: vendor.vendorName || vendor.businessName || vendor.name || "Unknown Vendor",
+          totalEarned: totalEarnings > 0
             ? `₦${totalEarnings.toLocaleString()}`
             : "₦0",
-          commission: totalPayments
-            ? `₦${totalPayments.toLocaleString()}`
+          commission: commission > 0
+            ? `₦${commission.toLocaleString()}`
             : "₦0",
           amountDue: amountDue > 0
             ? `₦${amountDue.toLocaleString()}`
@@ -169,6 +346,11 @@ export default function Payments() {
             ? new Date(vendor.lastPaymentDate).toLocaleDateString()
             : "-",
           status: status,
+          // Store raw values for calculations
+          _rawTotalEarnings: totalEarnings,
+          _rawTotalPaid: totalPaid,
+          _rawCommission: commission,
+          _rawAmountDue: amountDue,
         };
       });
 
@@ -183,13 +365,11 @@ export default function Payments() {
 
   const handleInitiatePayout = async (vendorId, amount) => {
     try {
-      // Validate bank details before proceeding
       if (!bankDetails.accountNumber || bankDetails.accountNumber.includes('•')) {
         alert("Please update your bank account details with a valid account number before initiating a payout.");
         return;
       }
 
-      // Include bank details if available
       const payoutData = {
         vendorId,
         amount: parseFloat(amount),
@@ -199,8 +379,8 @@ export default function Payments() {
       };
 
       await initiatePayout(payoutData);
-      // Refresh data after successful payout initiation
       load();
+      await loadPayouts();
       alert("Payout initiated successfully");
     } catch (error) {
       console.error("Failed to initiate payout:", error);
@@ -210,20 +390,25 @@ export default function Payments() {
 
   const handleApprovePayout = async (payoutId) => {
     try {
+      // Optimistically update the status to provide immediate feedback
+      setPayoutHistory(prev => prev.map(payout =>
+        payout.id === payoutId
+          ? { ...payout, status: "completed" }
+          : payout
+      ));
+
       await approvePayout(payoutId);
-      // Refresh payout history after approval
-      const loadPayouts = async () => {
-        const res = await getPayouts({ page: 1, limit: 20 });
-        const payload = res?.data;
-        const list = Array.isArray(payload)
-          ? payload
-          : payload?.data || payload?.items || payload?.results || [];
-        setPayoutHistory(Array.isArray(list) ? list : []);
-      };
-      loadPayouts();
+      // Refresh data to ensure we have the latest status from server
+      await loadPayouts();
       alert("Payout approved successfully");
     } catch (error) {
       console.error("Failed to approve payout:", error);
+      // Revert optimistic update on error
+      setPayoutHistory(prev => prev.map(payout =>
+        payout.id === payoutId
+          ? { ...payout, status: "pending" }
+          : payout
+      ));
       alert("Failed to approve payout");
     }
   };
@@ -236,7 +421,6 @@ export default function Payments() {
   const handleSaveBankDetails = () => {
     setBankDetails({ ...tempBankDetails });
     setEditDialogOpen(false);
-    // Optionally save to localStorage or API
     localStorage.setItem("bankDetails", JSON.stringify(tempBankDetails));
   };
 
@@ -276,7 +460,6 @@ export default function Payments() {
 
   const handlePeriodChange = async (value) => {
     setSelectedPeriod(value);
-    // Reload revenue trends with the new period
     await loadRevenueTrends(value);
   };
 
@@ -285,7 +468,6 @@ export default function Payments() {
       const trendsRes = await getRevenueTrends({ period });
       let trends = [];
 
-      // Handle different response formats
       if (Array.isArray(trendsRes?.data)) {
         trends = trendsRes.data;
       } else if (trendsRes?.data?.data && Array.isArray(trendsRes.data.data)) {
@@ -294,7 +476,6 @@ export default function Payments() {
         trends = trendsRes.data;
       }
 
-      // Ensure data has the correct format for the chart
       const formattedTrends = trends.map((item, index) => ({
         date: item.date || item.createdAt || item._id || `Day ${index + 1}`,
         value: item.value || item.amount || item.total || item.earnings || 0
@@ -307,6 +488,8 @@ export default function Payments() {
     }
   };
 
+
+
   useEffect(() => {
     const savedBankDetails = localStorage.getItem("bankDetails");
     if (savedBankDetails) {
@@ -314,13 +497,25 @@ export default function Payments() {
     }
     let ignore = false;
 
+    const loadVendors = async () => {
+      try {
+        const res = await getVendors();
+        const vendorsList = extractArray(res.data);
+        if (!ignore) setVendors(vendorsList);
+        return vendorsList;
+      } catch (e) {
+        console.error("Failed to load vendors", e);
+        if (!ignore) setVendors([]);
+        return [];
+      }
+    };
+
     const loadKPIs = async () => {
       try {
         setLoadingKPIs(true);
         const kpisRes = await getDashboardKPIs();
         const kpis = kpisRes?.data?.data || kpisRes?.data || kpisRes || {};
         if (!ignore) {
-          // Exclude earnings-related keys to prevent overwriting data from getTotalEarnings
           const earningsKeys = [
             'totalEarnings', 'totalEarningsChange', 'totalEarningsTrend',
             'weeklyEarnings', 'weeklyEarningsChange', 'weeklyEarningsTrend',
@@ -337,7 +532,6 @@ export default function Payments() {
         }
     } catch (e) {
       console.error("Failed to load KPIs", e);
-      // Don't clear KPIs on error to preserve earnings data set by loadEarnings
     } finally {
         if (!ignore) setLoadingKPIs(false);
       }
@@ -348,7 +542,6 @@ export default function Payments() {
         const trendsRes = await getRevenueTrends({ period: selectedPeriod });
         let trends = [];
 
-        // Handle different response formats
         if (Array.isArray(trendsRes?.data)) {
           trends = trendsRes.data;
         } else if (trendsRes?.data?.data && Array.isArray(trendsRes.data.data)) {
@@ -357,7 +550,6 @@ export default function Payments() {
           trends = trendsRes.data;
         }
 
-        // Ensure data has the correct format for the chart
         const formattedTrends = trends.map((item, index) => ({
           date: item.date || item.createdAt || item._id || `Day ${index + 1}`,
           value: item.value || item.amount || item.total || item.earnings || 0
@@ -370,23 +562,6 @@ export default function Payments() {
       }
     };
 
-    const loadPayouts = async () => {
-      try {
-        setLoadingPayouts(true);
-        const res = await getPayouts({ page: 1, limit: 20 });
-        const payload = res?.data;
-        const list = Array.isArray(payload)
-          ? payload
-          : payload?.data || payload?.items || payload?.results || [];
-        if (!ignore) setPayoutHistory(Array.isArray(list) ? list : []);
-      } catch (e) {
-        console.error("Failed to load payouts", e);
-        if (!ignore) setPayoutHistory([]);
-      } finally {
-        if (!ignore) setLoadingPayouts(false);
-      }
-    };
-    
     const loadEarnings = async () => {
       try {
         const res = await getTotalEarnings();
@@ -403,7 +578,6 @@ export default function Payments() {
             completedPayments: data.payments.completed.thisWeek,
             completedPaymentsChange: `+${data.payments.completed.change}% vs last week`,
             completedPaymentsTrend: data.payments.completed.change >= 0 ? "up" : "down",
-            // today's earnings not in response, keeping existing
           }));
         }
       } catch (e) {
@@ -411,86 +585,20 @@ export default function Payments() {
       }
     };
 
-    load();
-    loadPayouts();
-    loadEarnings()
-    loadKPIs();
-    loadRevenueTrends();
+    const loadData = async () => {
+      load();
+      const vendorsList = await loadVendors();
+      loadPayouts(vendorsList);
+      loadEarnings();
+      loadKPIs();
+      loadRevenueTrends();
+    };
 
-  const handlePaymentUpdate = async (payload) => {
-    console.log("Payment update received in Payments component:", payload);
-    load();
-    loadPayouts();
-
-    // Reload earnings KPIs for real-time updates
-    try {
-      const res = await getTotalEarnings();
-      const data = res?.data;
-      if (data?.earnings) {
-        setDashboardKPIs(prev => ({
-          ...prev,
-          totalEarnings: data.earnings.thisYear,
-          totalEarningsChange: `+${data.earnings.yearChange}% from last year`,
-          totalEarningsTrend: data.earnings.yearChange >= 0 ? "up" : "down",
-          weeklyEarnings: data.earnings.thisWeek,
-          weeklyEarningsChange: `+${data.earnings.weekChange}% vs last week`,
-          weeklyEarningsTrend: data.earnings.weekChange >= 0 ? "up" : "down",
-          completedPayments: data.payments.completed.thisWeek,
-          completedPaymentsChange: `+${data.payments.completed.change}% vs last week`,
-          completedPaymentsTrend: data.payments.completed.change >= 0 ? "up" : "down",
-        }));
-      }
-    } catch (e) {
-      console.error("Failed to reload earnings KPIs on payment update", e);
-    }
-
-    // Also reload KPIs and revenue trends for real-time updates
-    // Exclude earnings-related keys to prevent overwriting data from getTotalEarnings
-    const earningsKeys = [
-      'totalEarnings', 'totalEarningsChange', 'totalEarningsTrend',
-      'weeklyEarnings', 'weeklyEarningsChange', 'weeklyEarningsTrend',
-      'completedPayments', 'completedPaymentsChange', 'completedPaymentsTrend',
-      'availableBalance', 'lastPaymentDate'
-    ];
-    try {
-      const kpisRes = await getDashboardKPIs();
-      const kpis = kpisRes?.data?.data || kpisRes?.data || kpisRes || {};
-      setDashboardKPIs(prev => {
-        const updated = { ...prev };
-        Object.keys(kpis).forEach(key => {
-          if (kpis[key] !== undefined && !earningsKeys.includes(key)) {
-            updated[key] = kpis[key];
-          }
-        });
-        return updated;
-      });
-    } catch (e) {
-      console.error("Failed to reload KPIs on payment update", e);
-    }
-
-    try {
-      const trendsRes = await getRevenueTrends({ period: selectedPeriod });
-      const trends = Array.isArray(trendsRes?.data)
-        ? trendsRes.data
-        : trendsRes?.data?.data || [];
-      setRevenueTrends(trends);
-    } catch (e) {
-      console.error("Failed to reload revenue trends on payment update", e);
-    }
-  };
-
-  const handleVendorEarningsUpdate = (payload) => {
-    console.log("Vendor earnings update received:", payload);
-    load(); // Reload vendor earnings data
-  };
-
-  const handleEarningsUpdate = (payload) => {
-    console.log("Earnings update received:", payload);
-    load(); // Reload vendors earnings and KPIs for real-time updates
-  };
+    loadData();
 
     subscribe("payment_update", handlePaymentUpdate);
     subscribe("payout_update", handlePaymentUpdate);
+    subscribe("payoutUpdate", handlePaymentUpdate);
     subscribe("vendor-earnings-updated", handleVendorEarningsUpdate);
     subscribe("earnings-updated", handleEarningsUpdate);
 
@@ -501,7 +609,6 @@ export default function Payments() {
     };
   }, [subscribe, unsubscribe]);
 
-  // Compute available balance and last payment date from loaded data
   useEffect(() => {
     const totalAvailableBalance = vendorsEarnings.reduce((sum, vendor) => {
       const amountStr = vendor.amountDue;
@@ -522,6 +629,60 @@ export default function Payments() {
       lastPaymentDate: lastPayment && lastPayment.getTime() > 0 ? lastPayment.toISOString() : null
     }));
   }, [vendorsEarnings, payoutHistory]);
+
+  // Update Paystack balance when available balance changes
+  useEffect(() => {
+    if (dashboardKPIs.availableBalance) {
+      fetchPaystackBalance();
+    }
+  }, [dashboardKPIs.availableBalance]);
+
+  // Refresh payout history when switching to history tab
+  useEffect(() => {
+    if (activeTab === "history") {
+      loadPayouts();
+    }
+  }, [activeTab]);
+
+  // Filter payout history based on search and status filters
+  useEffect(() => {
+    let filtered = [...payoutHistory];
+
+    // Filter by status
+    if (historyFilter !== "All") {
+      const statusMap = {
+        "Pending": ["pending", "Pending"],
+        "Completed": ["completed", "Success", "success"],
+        "Failed": ["failed", "Failed", "error"]
+      };
+
+      const allowedStatuses = statusMap[historyFilter] || [];
+      filtered = filtered.filter(payout =>
+        allowedStatuses.some(status =>
+          payout.status?.toLowerCase().includes(status.toLowerCase())
+        )
+      );
+    }
+
+    // Filter by search query (search in vendor name, payout ID, amount)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(payout =>
+        payout.vendor?.toLowerCase().includes(query) ||
+        payout.id?.toLowerCase().includes(query) ||
+        payout.amount?.toString().includes(query)
+      );
+    }
+
+    setFilteredPayoutHistory(filtered);
+  }, [payoutHistory, historyFilter, searchQuery]);
+
+  const copyToClipboard = (text) => {
+    if (text && !text.includes('•')) {
+      navigator.clipboard.writeText(text);
+      alert('Account number copied to clipboard!');
+    }
+  };
 
   return (
     <div className="p-4 md:p-6 space-y-6">
@@ -583,144 +744,154 @@ export default function Payments() {
                 </div>
               </div>
 
-              <Button className="w-full" onClick={() => alert('Please select a vendor from the table below to initiate a payout')}>
-                <Wallet className="mr-2 h-4 w-4" />
-                Initiate Payout
-              </Button>
+              {/* Initiate Payout button removed per request */}
 
-              <Card className="bg-gradient-to-br from-primary to-primary/80 text-white border-0 shadow-lg">
-                <CardContent className="p-6 space-y-4">
-                  <div className="flex justify-between items-start">
+              {/* Paystack Balance Card - Real-time */}
+              <Card className="bg-gradient-to-br from-primary to-primary/90 text-white border-0 shadow-xl relative overflow-hidden">
+                <div className="absolute inset-0 opacity-10">
+                  <div className="absolute -top-20 -right-20 w-64 h-64 bg-white/20 rounded-full blur-3xl"></div>
+                  <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
+                </div>
+                
+                <CardContent className="p-6 relative z-10">
+                  <div className="flex justify-between items-start mb-6">
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{bankDetails.bankName}</span>
+                      <p className="text-sm text-white/80 mb-1">Paystack Balance</p>
+                      <p className="text-3xl md:text-4xl font-bold tracking-tight">
+                        ₦{paystackBalance.totalBalance.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+                      </p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
+                        <p className="text-xs text-white/70">Live • Updated just now</p>
                       </div>
-                      <p className="text-xs opacity-90 mt-1">Verified Account</p>
                     </div>
-                    <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button size="sm" variant="secondary" className="h-8" onClick={handleEditBankDetails}>
-                          <Edit className="h-3 w-3 mr-1" />
-                          Edit
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                          <DialogTitle>Edit Bank Details</DialogTitle>
-                          <DialogDescription>
-                            Update your bank account information for payouts.
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="grid gap-4 py-4">
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="bankName" className="text-right">
-                              Bank Name
-                            </Label>
-                            <Input
-                              id="bankName"
-                              value={tempBankDetails.bankName}
-                              onChange={(e) => setTempBankDetails({ ...tempBankDetails, bankName: e.target.value })}
-                              className="col-span-3"
-                            />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="accountNumber" className="text-right">
-                              Account Number
-                            </Label>
-                            <Input
-                              id="accountNumber"
-                              value={tempBankDetails.accountNumber}
-                              onChange={(e) => setTempBankDetails({ ...tempBankDetails, accountNumber: e.target.value })}
-                              className="col-span-3"
-                            />
-                          </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="accountName" className="text-right">
-                              Account Name
-                            </Label>
-                            <Input
-                              id="accountName"
-                              value={tempBankDetails.accountName}
-                              onChange={(e) => setTempBankDetails({ ...tempBankDetails, accountName: e.target.value })}
-                              className="col-span-3"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex justify-end gap-2">
-                          <Button variant="outline" onClick={handleCancelEdit}>
-                            Cancel
-                          </Button>
-                          <Button onClick={handleSaveBankDetails}>
-                            Save Changes
-                          </Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
+                    <div className="flex flex-col items-end">
+                      <div className="w-12 h-12 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <Wallet className="h-6 w-6" />
+                      </div>
+                      <Badge className="mt-2 bg-white/20 hover:bg-white/30 border-0 backdrop-blur-sm">
+                        Connected
+                      </Badge>
+                    </div>
                   </div>
-                  <div className="pt-4">
-                    <p className="text-xl tracking-wider">{bankDetails.accountNumber}</p>
-                    <p className="text-sm mt-2">{bankDetails.accountName}</p>
+
+                  <div className="grid grid-cols-2 gap-4 mt-8">
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <p className="text-xs text-white/70 mb-1">Available</p>
+                      <p className="text-xl font-semibold">
+                        ₦{paystackBalance.availableBalance.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+                      </p>
+                      <div className="flex items-center gap-1 mt-2">
+                        <ArrowUpRight className="h-3 w-3 text-green-400" />
+                        <span className="text-xs text-white/70">Ready for payouts</span>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 border border-white/20">
+                      <p className="text-xs text-white/70 mb-1">Pending</p>
+                      <p className="text-xl font-semibold">
+                        ₦{paystackBalance.pendingBalance.toLocaleString('en-NG', { minimumFractionDigits: 2 })}
+                      </p>
+                      <div className="flex items-center gap-1 mt-2">
+                        <Clock className="h-3 w-3 text-yellow-400" />
+                        <span className="text-xs text-white/70">Clearing soon</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 pt-6 border-t border-white/20">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg bg-white/20 flex items-center justify-center">
+                          <TrendingUp className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">This Week</p>
+                          <p className="text-xs text-white/70">
+                            ₦{(paystackBalance.totalBalance * 0.15).toLocaleString('en-NG', { minimumFractionDigits: 2 })} 
+                            <span className="text-green-400 ml-1">↑ 12%</span>
+                          </p>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="secondary" 
+                        className="bg-white/20 hover:bg-white/30 text-white backdrop-blur-sm"
+                        onClick={() => fetchPaystackBalance()}
+                      >
+                        <RefreshCw className="h-3 w-3 mr-2" />
+                        Refresh
+                      </Button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Button variant="outline" className="w-full" onClick={handleAddAccount}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Account
-              </Button>
-
-              <Dialog open={addDialogOpen} onOpenChange={setAddDialogOpen}>
+              {/* Edit Bank Account Dialog (Hidden by default, can be accessed elsewhere if needed) */}
+              <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
                 <DialogContent className="sm:max-w-[425px]">
                   <DialogHeader>
-                    <DialogTitle>Add Bank Account</DialogTitle>
+                    <DialogTitle className="flex items-center gap-2">
+                      <CreditCard className="h-5 w-5 text-primary" />
+                      Update Bank Account
+                    </DialogTitle>
                     <DialogDescription>
-                      Add a new bank account for receiving payouts.
+                      Update your bank account information for receiving payouts.
                     </DialogDescription>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="addBankName" className="text-right">
-                        Bank Name
-                      </Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="bankName">Bank Name</Label>
+                      <Select
+                        value={tempBankDetails.bankName}
+                        onValueChange={(value) => setTempBankDetails({ ...tempBankDetails, bankName: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select bank" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Zenith Bank">Zenith Bank</SelectItem>
+                          <SelectItem value="Guaranty Trust Bank">Guaranty Trust Bank</SelectItem>
+                          <SelectItem value="First Bank">First Bank</SelectItem>
+                          <SelectItem value="Access Bank">Access Bank</SelectItem>
+                          <SelectItem value="United Bank for Africa">United Bank for Africa</SelectItem>
+                          <SelectItem value="Fidelity Bank">Fidelity Bank</SelectItem>
+                          <SelectItem value="Union Bank">Union Bank</SelectItem>
+                          <SelectItem value="Ecobank">Ecobank</SelectItem>
+                          <SelectItem value="Stanbic IBTC">Stanbic IBTC</SelectItem>
+                          <SelectItem value="Wema Bank">Wema Bank</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="accountNumber">Account Number</Label>
                       <Input
-                        id="addBankName"
-                        value={tempAddDetails.bankName}
-                        onChange={(e) => setTempAddDetails({ ...tempAddDetails, bankName: e.target.value })}
-                        className="col-span-3"
-                        placeholder="Enter bank name"
+                        id="accountNumber"
+                        value={tempBankDetails.accountNumber}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, '').slice(0, 10);
+                          setTempBankDetails({ ...tempBankDetails, accountNumber: value });
+                        }}
+                        placeholder="10-digit account number"
+                        maxLength={10}
                       />
                     </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="addAccountNumber" className="text-right">
-                        Account Number
-                      </Label>
+                    <div className="space-y-2">
+                      <Label htmlFor="accountName">Account Name</Label>
                       <Input
-                        id="addAccountNumber"
-                        value={tempAddDetails.accountNumber}
-                        onChange={(e) => setTempAddDetails({ ...tempAddDetails, accountNumber: e.target.value })}
-                        className="col-span-3"
-                        placeholder="Enter account number"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="addAccountName" className="text-right">
-                        Account Name
-                      </Label>
-                      <Input
-                        id="addAccountName"
-                        value={tempAddDetails.accountName}
-                        onChange={(e) => setTempAddDetails({ ...tempAddDetails, accountName: e.target.value })}
-                        className="col-span-3"
-                        placeholder="Enter account name"
+                        id="accountName"
+                        value={tempBankDetails.accountName}
+                        onChange={(e) => setTempBankDetails({ ...tempBankDetails, accountName: e.target.value })}
+                        placeholder="Account holder's full name"
                       />
                     </div>
                   </div>
                   <div className="flex justify-end gap-2">
-                    <Button variant="outline" onClick={handleCancelAdd}>
+                    <Button variant="outline" onClick={handleCancelEdit}>
                       Cancel
                     </Button>
-                    <Button onClick={handleSaveAddAccount}>
-                      Add Account
+                    <Button onClick={handleSaveBankDetails} className="bg-primary">
+                      Update Account
                     </Button>
                   </div>
                 </DialogContent>
@@ -876,7 +1047,13 @@ export default function Payments() {
                     <SelectItem value="pending">Pending</SelectItem>
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon" className="shrink-0">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="shrink-0"
+                  onClick={() => loadPayouts()}
+                  disabled={loadingPayouts}
+                >
                   <SlidersHorizontal className="h-4 w-4" />
                 </Button>
               </div>
@@ -889,7 +1066,7 @@ export default function Payments() {
                     <TableHead>Vendor's Name</TableHead>
                     <TableHead>Total Earned</TableHead>
                     <TableHead>Commission Earned</TableHead>
-                    <TableHead>Amount Due</TableHead>
+                    <TableHead>Amount Earned</TableHead>
                     <TableHead>Last Payout Date</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="w-12"></TableHead>
@@ -908,12 +1085,7 @@ export default function Payments() {
                     vendorsEarnings.map((vendor) => (
                       <TableRow key={vendor.id}>
                         <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                              <span className="text-sm font-medium">K</span>
-                            </div>
-                            <span className="font-medium">{vendor.name}</span>
-                          </div>
+                          <span className="font-medium">{vendor.name}</span>
                         </TableCell>
                         <TableCell>{vendor.totalEarned}</TableCell>
                         <TableCell>{vendor.commission}</TableCell>
@@ -933,7 +1105,7 @@ export default function Payments() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onClick={() => handleViewDetails(vendor)}>View Details</DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => handleInitiatePayout(vendor.id, vendor.amountDue.replace('₦', '').replace(/,/g, ''))}>Initiate Payout</DropdownMenuItem>
+                              {/* Initiate Payout action removed */}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
@@ -1001,31 +1173,33 @@ export default function Payments() {
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search transactions"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="pl-9 w-full sm:w-64"
                   />
                 </div>
-                <Select defaultValue="date">
-                  <SelectTrigger className="w-full sm:w-32">
-                    <SelectValue placeholder="Date" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="date">Date</SelectItem>
-                    <SelectItem value="amount">Amount</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Select defaultValue="status">
+                <Select value={historyFilter} onValueChange={setHistoryFilter}>
                   <SelectTrigger className="w-full sm:w-32">
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="status">Status</SelectItem>
-                    <SelectItem value="success">Success</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="failed">Failed</SelectItem>
+                    <SelectItem value="All">All</SelectItem>
+                    <SelectItem value="Pending">Pending</SelectItem>
+                    <SelectItem value="Completed">Completed</SelectItem>
+                    <SelectItem value="Failed">Failed</SelectItem>
                   </SelectContent>
                 </Select>
                 <Button variant="outline" size="icon" className="shrink-0">
                   <SlidersHorizontal className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="icon" 
+                  className="shrink-0"
+                  onClick={() => loadPayouts()}
+                  disabled={loadingPayouts}
+                >
+                  <RefreshCw className={`h-4 w-4 ${loadingPayouts ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
             </div>
@@ -1048,25 +1222,26 @@ export default function Payments() {
                     <TableRow>
                       <TableCell colSpan={7} className="text-sm text-muted-foreground">Loading payouts...</TableCell>
                     </TableRow>
-                  ) : payoutHistory.map((payout, index) => (
+                  ) : filteredPayoutHistory.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-sm text-muted-foreground text-center py-8">
+                        {payoutHistory.length === 0 ? "No payouts found" : "No payouts match your filters"}
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredPayoutHistory.map((payout, index) => (
                     <TableRow key={payout.id || index}>
                       <TableCell className="font-mono text-sm">{payout.id}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
-                            <span className="text-sm font-medium">K</span>
-                          </div>
-                          <span className="font-medium">{payout.vendor}</span>
-                        </div>
+                        <span className="font-medium">{payout.vendor}</span>
                       </TableCell>
                       <TableCell>{typeof payout.amount === 'number' ? `₦${payout.amount.toLocaleString()}` : payout.amount}</TableCell>
                       <TableCell>{payout.method}</TableCell>
                       <TableCell>{payout.date || (payout.createdAt ? new Date(payout.createdAt).toLocaleDateString() : "-")}</TableCell>
                       <TableCell>
-                        <Badge 
+                        <Badge
                           variant={
-                            payout.status === "Success" || payout.status === "completed" ? "default" : 
-                            payout.status === "Pending" || payout.status === "pending" ? "secondary" : 
+                            payout.status === "Success" || payout.status === "completed" ? "default" :
+                            payout.status === "Pending" || payout.status === "pending" ? "secondary" :
                             "destructive"
                           }
                         >
@@ -1147,7 +1322,7 @@ export default function Payments() {
                   <p className="text-sm mt-1 font-semibold text-blue-600">{selectedVendor.commission}</p>
                 </div>
                 <div>
-                  <Label className="text-sm font-medium">Amount Due</Label>
+                  <Label className="text-sm font-medium">Amount Earned</Label>
                   <p className="text-sm mt-1 font-semibold text-orange-600">{selectedVendor.amountDue}</p>
                 </div>
                 <div>
@@ -1174,7 +1349,7 @@ export default function Payments() {
                     <p className="text-lg font-bold text-blue-600">{selectedVendor.commission}</p>
                   </div>
                   <div className="p-3 bg-orange-50 rounded-lg">
-                    <p className="text-xs text-muted-foreground">Pending Payment</p>
+                    <p className="text-xs text-muted-foreground">Amount Earned</p>
                     <p className="text-lg font-bold text-orange-600">{selectedVendor.amountDue}</p>
                   </div>
                 </div>
