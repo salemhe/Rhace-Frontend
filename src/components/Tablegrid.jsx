@@ -5,15 +5,15 @@ import {
   useFavorites,
   useRestaurantData,
 } from "@/hooks/favorites";
+import { HeartIcon } from "@/public/icons/icons";
 import { userService } from "@/services/user.service";
+import { formatOfferText } from "@/utils/helper";
+import { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa6";
 import { FiChevronRight, FiChevronsDown } from "react-icons/fi";
 import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
-import { HeartIcon } from "@/public/icons/icons";
-import { useState, useEffect } from "react";
 import UniversalLoader from "./user/ui/LogoLoader";
-import { formatOfferText } from "@/utils/helper";
 
 // Common cuisine color palette
 const cuisineColorPalette = [
@@ -265,6 +265,7 @@ export const TableGridTwo = ({ title, type }) => {
                 )
               }
               onMouseLeave={() => handleMouseLeave(restaurantId)}
+              onClick={() => navigate(`/hotels/${restaurant._id}`)}
             >
               {/* Image Section */}
               <div className="relative h-40 sm:h-44 w-full  cursor-pointer aspect-video">
