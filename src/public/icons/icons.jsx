@@ -118,7 +118,7 @@ const Plate = ({ color = "#fff" }) => (
   </svg>
 );
 
-const Amenities = ({ color = "#fff" }) => (
+const Amenity = ({ color = "#fff" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="17"
@@ -148,8 +148,6 @@ const DashBoardIcon = ({ className }) => (
     ></path>
   </svg>
 );
-
-
 
 const BookingsIcon = ({ className }) => (
   <svg
@@ -364,8 +362,18 @@ const RhaceIcon = () => (
     fill="none"
     viewBox="0 0 32 32"
   >
-    <circle cx="16" cy="16" r="15" fill="#fff" stroke="#000" strokeWidth="1"/>
-    <text x="16" y="21" textAnchor="middle" fill="#000" fontSize="16" fontFamily="Arial" fontWeight="bold">R</text>
+    <circle cx="16" cy="16" r="15" fill="#fff" stroke="#000" strokeWidth="1" />
+    <text
+      x="16"
+      y="21"
+      textAnchor="middle"
+      fill="#000"
+      fontSize="16"
+      fontFamily="Arial"
+      fontWeight="bold"
+    >
+      R
+    </text>
   </svg>
 );
 
@@ -400,7 +408,6 @@ const LogoutIcon = ({ className }) => (
     />
   </svg>
 );
-
 
 const SvgIcon = ({ isActive }) => (
   <svg
@@ -453,7 +460,7 @@ const SvgIcon3 = ({ isActive }) => (
   </svg>
 );
 
-const Plate = ({ color = "#000" }) => (
+const Plates = ({ color = "#000" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
     width="20"
@@ -525,6 +532,7 @@ export {
   LogoutIcon,
   MenuIcon,
   PaymentIcon,
+  Amenity,
   Plate,
   SettingsIcon,
   PrepaidIcon,
