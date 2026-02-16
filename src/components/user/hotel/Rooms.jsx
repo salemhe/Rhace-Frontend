@@ -1,23 +1,20 @@
 // "use client"
-import React, { useEffect, useState } from "react";
-import { ChevronLeft, ChevronRight, Building } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 // import { RoomsData } from '@/lib/api';
-import { hotelService } from "@/services/hotel.service";
-import UniversalLoader from "../ui/LogoLoader";
-import { toast } from "react-toastify";
-import { HiPercentBadge } from "react-icons/hi2";
-import { MdCheckBox } from "react-icons/md";
-import { capitalize } from "@/utils/helper";
 import {
   Breakfast,
   Car,
   City,
-  FoodIcon,
   PeopleIcon,
   TwinBed,
-  UsersIcon,
 } from "@/public/icons/icons";
+import { hotelService } from "@/services/hotel.service";
+import { capitalize } from "@/utils/helper";
 import { FaWifi } from "react-icons/fa6";
+import { HiPercentBadge } from "react-icons/hi2";
+import { MdCheckBox } from "react-icons/md";
+import UniversalLoader from "../ui/LogoLoader";
 
 const Rooms = ({ id, setSelectedRoom, setShow }) => {
   const tabs = [
@@ -135,7 +132,7 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
       pricePerNight:
         room.pricePerNight - room.pricePerNight * (room.discount / 100),
     });
-    toast.success(`Successfully selected ${room.name} room.`);
+    // toast.success(`Successfully selected ${room.name} room.`);
     if (window.innerWidth >= 768)
       window.scrollTo({ top: 0, behavior: "smooth" });
     setShow(true);

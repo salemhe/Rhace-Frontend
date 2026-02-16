@@ -94,6 +94,22 @@ const TwinBed = () => (
     ></path>
   </svg>
 );
+const Edit = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="16"
+    height="16"
+    fill="none"
+    viewBox="0 0 16 16"
+  >
+    <path
+      fill="#606368"
+      fillRule="evenodd"
+      d="M11.44.488a1.667 1.667 0 0 0-2.357 0L.488 9.083A1.67 1.67 0 0 0 0 10.261v4.361c0 .464.378.842.842.842l13.328-.001a.833.833 0 0 0 0-1.667H7.56l7.416-7.416a1.667 1.667 0 0 0 0-2.356zM5.203 13.796l8.594-8.594-3.535-3.536-8.595 8.595v3.535z"
+      clipRule="evenodd"
+    ></path>
+  </svg>
+);
 const Plate = ({ color = "#fff" }) => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -552,4 +568,5 @@ export {
   Breakfast,
   Car,
   City,
+  Edit,
 };
