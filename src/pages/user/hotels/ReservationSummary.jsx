@@ -161,7 +161,7 @@ export default function ReservationSummary() {
         Booking Details
       </div>
 
-      <div className="max-w-6xl mx-auto px-4 py-5 md:py-15 space-y-6">
+      <div className="max-w-6xl mx-auto px-4 py-5  md:py-15 space-y-6">
         {showBookingDetails && (
           <div className="max-w-[500px]">
             <div className="flex gap-4">
@@ -458,7 +458,7 @@ export default function ReservationSummary() {
                   </div>
                 </div>
               </div>
-              <div className="rounded-2xl bg-white border p-4">
+              <div className="rounded-2xl bg-white border mb-16 p-4">
                 <h3 className="text-lg font-semibold">Your Total</h3>
                 <div className=" divide-y">
                   <div className="pb-3 space-y-2 text-sm">
