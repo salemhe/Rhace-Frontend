@@ -1,19 +1,19 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
 import { useReservations } from "@/contexts/hotel/ReservationContext";
+import { hotelService } from "@/services/hotel.service";
+import { userService } from "@/services/user.service";
+import { trimLongString, useIsMobile } from "@/utils/helper";
 import { format } from "date-fns";
-import { ArrowLeft, Check, Edit, MapPin, Star } from "lucide-react";
+import { ArrowLeft, MapPin, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import ReservationHeader from "../../../components/user/hotel/ReservationHeader";
 import DatePicker from "../../../components/user/ui/datepicker";
 import { GuestPicker } from "../../../components/user/ui/guestpicker";
 import PaymentPage from "../../../components/user/ui/Payment";
-import { userService } from "@/services/user.service";
-import { hotelService } from "@/services/hotel.service";
-import UniversalLoader from "@/components/user/ui/LogoLoader";
-import { useIsMobile } from "@/utils/helper";
 
 function useSearchParams() {
   return new URLSearchParams(useLocation().search);
@@ -42,7 +42,6 @@ export default function ReservationSummary() {
     setSpecialRequest,
     nights,
     booking,
-    setPage,
     checkInDate,
     handleSubmit,
     checkOutDate,
@@ -133,7 +132,7 @@ export default function ReservationSummary() {
   return (
     <div className="min-h-screen mb-[65px] md:mt-0 bg-gray-50">
       <ReservationHeader title="Reservation Details" index={1} />
-      <div className="md:hidden flex items-center gap-3 px-4 py-3 ">
+      <div className="md:hidden flex items-center gap-3 px-4 py-3 mt-4 ">
         <button
           onClick={() =>
             next === true ? showNext(false) : navigate(`/hotels/${id}`)
@@ -163,57 +162,67 @@ export default function ReservationSummary() {
       </div>
 
       <div className="max-w-6xl mx-auto px-4 py-5 md:py-15 space-y-6">
-        <div className="max-w-[500px]">
-          <div className="flex gap-4">
-            <div className="relative size-[64px] md:w-32 md:h-24 rounded-2xl overflow-hidden flex-shrink-0">
-              <img
-                src={vendor?.profileImages?.[0] || "/hero-bg.png"}
-                alt="Restaurant interior"
-                className="object-cover size-full"
-              />
-            </div>
-            <div className="flex-1">
-              <h2 className="text-sm md:text-xl font-semibold mb-2">
-                {vendor?.businessName || "Restaurant Name"}
-              </h2>
-              <div className="flex items-start gap-1 text-gray-600 mb-2">
-                <div>
-                  <MapPin className="h-4 w-4" />
-                </div>
-                <span className="text-[12px] md:text-sm truncate w-[210px] sm:w-full">
-                  {vendor?.address || "123 Main St, City, Country"}
-                </span>
+        {showBookingDetails && (
+          <div className="max-w-[500px]">
+            <div className="flex gap-4">
+              <div className="relative size-[64px] md:w-32 md:h-24 rounded-2xl overflow-hidden flex-shrink-0">
+                <img
+                  src={vendor?.profileImages?.[0] || "/hero-bg.png"}
+                  alt="Restaurant interior"
+                  className="object-cover size-full"
+                />
               </div>
-              <div className="flex items-center gap-1">
-                <Star className="h-4 w-4 fill-[#F0AE02] text-[#F0AE02]" />
-                <span className="text-[12px] md:text-sm font-medium">
-                  {vendor?.rating || "4.8"} (
-                  {vendor?.reviews.toLocaleString() || "1,000"} reviews)
-                </span>
+              <div className="flex-1">
+                <h2 className="text-sm md:text-xl font-semibold mb-2">
+                  {vendor?.businessName || "Restaurant Name"}
+                </h2>
+                <div className="flex items-start gap-1 text-gray-600 mb-2">
+                  <div>
+                    <MapPin className="h-4 w-4" />
+                  </div>
+                  <span className="text-[12px] md:text-sm truncate w-[210px] sm:w-full">
+                    {vendor?.address || "123 Main St, City, Country"}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-[#F0AE02] text-[#F0AE02]" />
+                  <span className="text-[12px] md:text-sm font-medium">
+                    {vendor?.rating || "4.8"} (
+                    {vendor?.reviews.toLocaleString() || "1,000"} reviews)
+                  </span>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
         <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
           {showBookingDetails && (
             <div className="space-y-6 md:col-span-4">
               <div className="rounded-2xl bg-white border">
                 <div className=" divide-y">
                   <div className="flex p-4">
-                    <h3 className="text-lg font-semibold">Booking Details</h3>
+                    <h3 className="text-lg font-semibold">
+                      Reservation Details
+                    </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
                     <DatePicker
                       title="Check In Date"
                       value={checkInDate}
                       onChange={setCheckInDate}
+                      icon={true}
                     />
                     <DatePicker
                       title="Check out Date"
                       value={checkOutDate}
                       onChange={setCheckOutDate}
+                      icon={true}
                     />
-                    <GuestPicker value={guestCount} onChange={setGuestCount} />
+                    <GuestPicker
+                      value={guestCount}
+                      onChange={setGuestCount}
+                      icon={true}
+                    />
                   </div>
                 </div>
               </div>
@@ -223,12 +232,12 @@ export default function ReservationSummary() {
                     <h3 className="text-lg font-semibold">Room Summary</h3>
                   </div>
                   <div className="space-y-4 p-4">
-                    <div className="grid md:grid-cols-2 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-1">
                         <p className="text-xs text-gray-600">Room Name</p>
                         {!editRoom ? (
                           <p className="text-sm font-medium text-gray-900">
-                            {room.name}
+                            Superion {trimLongString(room.name, 8)}
                           </p>
                         ) : (
                           <input
@@ -334,11 +343,11 @@ export default function ReservationSummary() {
                   </Label>
                   <Textarea
                     id="special-request"
-                    placeholder="Let us know if you have any special request like dietary restrictions, birthday requests, etc."
+                    placeholder="Let us know if you have any special request"
                     value={specialRequest}
                     maxLength={500}
                     onChange={(e) => setSpecialRequest(e.target.value)}
-                    className="min-h-[100px] bg-[#F9FAFB] border text-sm border-[#E5E7EB] resize-none rounded-xl"
+                    className="min-h-[100px] bg-[#FFFFFF] border text-sm border-[#E5E7EB] resize-none rounded-xl"
                   />
                   <p className="absolute bottom-2 right-2 text-xs text-gray-400">
                     {specialRequest.length}/500
@@ -349,7 +358,7 @@ export default function ReservationSummary() {
                 <div className="divide-y">
                   <div className="flex p-4">
                     <h3 className="text-lg font-semibold">
-                      Reservation Details
+                      Choose Payment Plan
                     </h3>
                   </div>
                   <div className="p-4">
@@ -455,14 +464,20 @@ export default function ReservationSummary() {
                   <div className="pb-3 space-y-2 text-sm">
                     <p className="text-[#111827]">Price Details</p>
                     <div className="flex items-center justify-between">
-                      <p className="text-[#606368]">
-                        ₦
-                        {(
-                          (room.pricePerNight -
-                            room.pricePerNight * (room.discount / 100)) *
-                          nights
-                        ).toLocaleString()}{" "}
-                        / {nights} {nights === 1 ? "night" : "nights"}
+                      <p className="gap-2 flex items-center">
+                        <span className="underline font-semibold text-lg text-[#111827]">
+                          {" "}
+                          ₦
+                          {(
+                            (room.pricePerNight -
+                              room.pricePerNight * (room.discount / 100)) *
+                            nights
+                          ).toLocaleString()}{" "}
+                        </span>
+                        <span className="font-medium text-sm text-[#606368]">
+                          {" "}
+                          / {nights} {nights === 1 ? "night" : "nights"}
+                        </span>
                       </p>
                       <p className="text-[#111827]">
                         ₦
@@ -476,7 +491,7 @@ export default function ReservationSummary() {
                   </div>
                   <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
                     <p>Sub Total</p>
-                    <p>
+                    <p className="underline font-semibold text-lg text-[#111827]">
                       ₦
                       {partPay
                         ? (
@@ -519,13 +534,14 @@ export default function ReservationSummary() {
           <Button
             className={
               next === false
-                ? "bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 w-23 sm:w-full md:max-w-xs rounded-xl cursor-pointer"
-                : "bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 w-full md:max-w-xs rounded-xl cursor-pointer"
+                ? "bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 py-6 w-33 sm:w-full md:max-w-xs rounded-xl cursor-pointer"
+                : "bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 py-6 w-full  md:max-w-xs rounded-xl cursor-pointer"
             }
             onClick={handleContinue}
             disabled={!checkInDate || !guestCount}
+            size={"lg"}
           >
-            {isMobile ? "Next" : "Complete Reservations"}
+            {isMobile && next === false ? "Next" : "Complete Reservations"}
           </Button>
         </div>
       </div>
