@@ -15,6 +15,10 @@ export const getRecentTransactions = () => api.get("/dashboard/recent-transactio
 export const getRevenueTrends = (params = {}) => api.get("/dashboard/revenue-trends", { params });
 export const getTodaysReservations = () => api.get("/dashboard/todays-reservations");
 export const getTopVendors = () => api.get("/dashboard/top-vendors");
+
+// New function for top performing vendors - uses the correct endpoint
+export const getTopVendorEarnings = (params = {}) => api.get("/payments/vendors-earnings", { params });
+
 export const getVendorsEarnings = () => api.get("/dashboard/vendors-earnings");
 export const getUpcomingReservations = () => api.get("/dashboard/upcoming-reservations");
 export const getBookingTrends = () => api.get("/dashboard/booking-trends");

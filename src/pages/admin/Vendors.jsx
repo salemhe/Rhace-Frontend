@@ -171,7 +171,19 @@ export default function Vendors() {
 
     const handleVendorUpdate = (updatedVendor) => {
       setVendors((prev) =>
-        prev.map((v) => (v.id === updatedVendor.id || v._id === updatedVendor.id ? updatedVendor : v))
+        prev.map((v) => {
+          if (v.id === updatedVendor.id || v._id === updatedVendor.id) {
+            // Merge existing vendor data with updated data to preserve fields not included in update
+            // Ensure contact person fields are properly updated
+            const updatedContactPerson = updatedVendor.contactPerson || updatedVendor.contactName || updatedVendor.ownerName;
+            const mergedVendor = { ...v, ...updatedVendor, reservations: v.reservations };
+            if (updatedContactPerson) {
+              mergedVendor.contactPerson = updatedContactPerson;
+            }
+            return mergedVendor;
+          }
+          return v;
+        })
       );
       // Stats will be recalculated automatically by useEffect
     };
@@ -353,6 +365,7 @@ export default function Vendors() {
       // Only send fields that are allowed to be updated
       const allowedUpdates = {
         businessName: vendor.businessName,
+        contactPerson: vendor.contactPerson,
         businessDescription: vendor.businessDescription,
         email: vendor.email,
         phone: vendor.phone,
@@ -553,10 +566,7 @@ export default function Vendors() {
                     <p className="text-sm">{vendor.branches || 1}</p>
                   </td>
                   <td className="p-3">
-                    <div className="flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-500" />
-                      <p className="text-sm">{vendor.reservations || 0}</p>
-                    </div>
+                    <p className="text-sm">{vendor.reservations || 0}</p>
                   </td>
                   <td className="p-3">
                     <Badge variant={vendor.status === "Active" ? "default" : "outline"} className={vendor.status === "Active" ? "bg-green-100 text-green-800" : ""}>
@@ -646,8 +656,8 @@ export default function Vendors() {
                 </div>
                 <div className="text-right">
                   <p className="text-xs text-muted-foreground">Branches: {vendor.branches || 1}</p>
-                  <p className="flex items-center gap-1 text-xs text-muted-foreground">
-                  <Star className="w-4 h-4 text-yellow-500" /> Reservations: {vendor.reservations || 0}
+                  <p className="text-xs text-muted-foreground">
+                  Reservations: {vendor.reservations || 0}
                   </p>
                 </div>
               </div>
@@ -937,6 +947,15 @@ export default function Vendors() {
                     value={editingVendor.businessName || editingVendor.name || ""}
                     onChange={(e) => setEditingVendor({ ...editingVendor, businessName: e.target.value })}
                     placeholder="Enter business name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contactPerson">Contact Person</Label>
+                  <Input
+                    id="contactPerson"
+                    value={editingVendor.contactPerson || editingVendor.contactName || editingVendor.ownerName || ""}
+                    onChange={(e) => setEditingVendor({ ...editingVendor, contactPerson: e.target.value })}
+                    placeholder="Enter contact person name"
                   />
                 </div>
                 <div className="space-y-2">

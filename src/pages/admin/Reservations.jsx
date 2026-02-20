@@ -119,15 +119,32 @@ export default function Reservations() {
       });
     };
 
+    const handlePaymentUpdate = (paymentUpdate) => {
+      setReservations((prev) =>
+        prev.map((r) => {
+          if (getReservationId(r) === paymentUpdate.reservationId) {
+            return {
+              ...r,
+              paymentStatus: paymentUpdate.status,
+              payment: paymentUpdate.status,
+            };
+          }
+          return r;
+        })
+      );
+    };
+
     subscribe("reservation-updated", handleReservationUpdate);
     subscribe("reservation-created", handleReservationCreate);
     subscribe("reservation-deleted", handleReservationDelete);
     subscribe("reservation-counters-updated", handleCountersUpdate);
+    subscribe("payment_update", handlePaymentUpdate);
 
     return () => {
       unsubscribe("reservation-updated");
       unsubscribe("reservation-created");
       unsubscribe("reservation-deleted");
+      unsubscribe("payment_update");
     };
   }, [subscribe, unsubscribe, fetchReservations]);
 

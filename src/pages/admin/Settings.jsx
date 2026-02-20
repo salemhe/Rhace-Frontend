@@ -18,14 +18,21 @@ import { toast } from "react-toastify";
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("overview");
   const [settings, setSettings] = useState({});
+  const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const { subscribe, unsubscribe } = useWebSocket();
+  const { subscribe, unsubscribe, sendMessage } = useWebSocket();
 
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    if (settings) {
+      setFormData(settings);
+    }
+  }, [settings]);
 
   useEffect(() => {
     const handleSettingsUpdate = (payload) => {
@@ -59,13 +66,24 @@ export default function Settings() {
     }
   };
 
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSaveSettings = async (tabData) => {
     try {
       setSaving(true);
-      await updateSettings({ ...settings, ...tabData });
-      setSettings({ ...settings, ...tabData });
+
+      const updatedSettings = { ...settings, ...formData, ...tabData };
+      await updateSettings(updatedSettings);
+      setSettings(updatedSettings);
+
+      // Emit WebSocket event for real-time updates
+      sendMessage("settings_updated", updatedSettings);
+
       toast.success("Settings saved successfully");
     } catch (err) {
+      console.error("Failed to save settings:", err);
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);
@@ -120,7 +138,7 @@ export default function Settings() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="platform-name">Platform Name*</Label>
-                <Input id="platform-name" defaultValue="Bookies" maxLength={50} />
+                <Input id="platform-name" value={formData['platform-name'] || 'Bookies'} onChange={(e) => handleInputChange('platform-name', e.target.value)} maxLength={50} />
                 <p className="text-xs text-muted-foreground">
                   This name appears on vendor onboarding screens and email templates.
                 </p>
@@ -128,7 +146,7 @@ export default function Settings() {
 
               <div className="space-y-2">
                 <Label htmlFor="currency">Default Currency*</Label>
-                <Select defaultValue="ngn">
+                <Select value={formData.currency || 'ngn'} onValueChange={(value) => handleInputChange('currency', value)}>
                   <SelectTrigger id="currency">
                     <SelectValue />
                   </SelectTrigger>
@@ -202,7 +220,10 @@ export default function Settings() {
 
             <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-6 border-t">
               <Button variant="outline">Reset to Default</Button>
-              <Button>Save Changes</Button>
+              <Button onClick={() => handleSaveSettings({ /* overview settings */ })} disabled={saving}>
+                <Save className="h-4 w-4 mr-2" />
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </Card>
         </TabsContent>

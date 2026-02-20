@@ -118,7 +118,7 @@ export default function Reports() {
           }
         });
       });
-    }, 5000); // Poll every 5 seconds
+    }, 2000); // Poll every 2 seconds for faster updates
 
     return () => clearInterval(intervalId);
   }, [reportJobs, updateJobStatus]);
@@ -174,8 +174,28 @@ export default function Reports() {
 
   const handleDownload = async (jobId) => {
     try {
+      // First check if the job is actually completed
+      const statusResponse = await getReportStatus(jobId);
+      const status = statusResponse.data?.status;
+
+      if (status !== 'completed') {
+        toast.error(`Report is not ready yet. Current status: ${status}. Please wait for completion.`);
+        return;
+      }
+
       const response = await downloadReport(jobId);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+
+      // Check if response is valid
+      if (!response.data || response.data.size === 0) {
+        throw new Error('Empty response received from server');
+      }
+
+      // Check if it's actually a blob/file response
+      if (!(response.data instanceof Blob)) {
+        throw new Error('Invalid response format - expected file data');
+      }
+
+      const url = window.URL.createObjectURL(response.data);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', `report-${jobId}.xlsx`);
@@ -183,8 +203,25 @@ export default function Reports() {
       link.click();
       link.remove();
       window.URL.revokeObjectURL(url);
+
+      // Show success message
+      toast.success('Report downloaded successfully');
     } catch (error) {
       console.error("Failed to download report", error);
+
+      // More specific error messages
+      let errorMessage = 'Download failed';
+      if (error.response?.status === 404) {
+        errorMessage = 'Report not found. It may have been deleted or expired.';
+      } else if (error.response?.status === 403) {
+        errorMessage = 'Access denied. You may not have permission to download this report.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Server error. Please try again later.';
+      } else if (error.message) {
+        errorMessage = `Download failed: ${error.message}`;
+      }
+
+      toast.error(errorMessage);
     }
   };
 

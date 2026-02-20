@@ -1,20 +1,25 @@
-import React, { useState } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { Edit } from "@/public/icons/icons";
+import {
   addDays,
   addMonths,
-  subMonths,
-  isSameMonth,
+  endOfMonth,
+  endOfWeek,
+  format,
   isSameDay,
+  isSameMonth,
+  startOfMonth,
+  startOfWeek,
+  subMonths,
 } from "date-fns";
+import { useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { ChevronDown } from "lucide-react";
 import { Edit3 } from "@/public/icons/icons";
@@ -47,12 +52,13 @@ const DatePicker = ({
             key={cloneDay.toString()}
             className={`
                    w-8 h-8 sm:w-12.5 sm:h-12 flex items-center justify-center text-black text-sm font-normal cursor-pointer  outline-1  outline-gray-300 
-                   ${!isSameMonth(cloneDay, monthStart)
-                ? "text-neutral-400 "
-                : isSameDay(cloneDay, value || new Date())
-                  ? "bg-indigo-800 text-white"
-                  : "text-gray-700 hover:bg-indigo-100 bg-gray-100"
-              }
+                   ${
+                     !isSameMonth(cloneDay, monthStart)
+                       ? "text-neutral-400 "
+                       : isSameDay(cloneDay, value || new Date())
+                         ? "bg-indigo-800 text-white"
+                         : "text-gray-700 hover:bg-indigo-100 bg-gray-100"
+                   }
                  `}
             onClick={() => {
               onChange?.(cloneDay);
@@ -60,20 +66,20 @@ const DatePicker = ({
             }}
           >
             {format(cloneDay, "d")}
-          </div>
+          </div>,
         );
         day = addDays(day, 1);
       }
       rows.push(
         <div key={day.toString()} className="grid grid-cols-7 ">
           {days}
-        </div>
+        </div>,
       );
       days = [];
     }
   };
 
-  work()
+  work();
   return (
     <div>
       {" "}
@@ -96,6 +102,7 @@ const DatePicker = ({
             {edit && <Edit3 className="size-5" />}
           </Button>
         </PopoverTrigger>
+
         <PopoverContent className="w-64 sm:w-96" align="start">
           <div className="flex items-center justify-between mb-2 px-2">
             <span className="text-base flex-1 font-medium text-gray-800">

@@ -257,6 +257,90 @@ export const WebSocketProvider = ({ url, children }) => {
       }
     });
 
+    socket.current.on("vendor-earnings-updated", (payload) => {
+      const handler = listeners.current.get("vendor-earnings-updated");
+      if (handler) {
+        console.log("Vendor earnings updated received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("vendorEarningsUpdated", (payload) => {
+      const handler = listeners.current.get("vendor-earnings-updated");
+      if (handler) {
+        console.log("Vendor earnings updated (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    // Handle reservation status changed
+    socket.current.on("reservation-status-changed", (payload) => {
+      const handler = listeners.current.get("reservation-status-changed");
+      if (handler) {
+        console.log("Reservation status changed received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("reservationStatusChanged", (payload) => {
+      const handler = listeners.current.get("reservation-status-changed");
+      if (handler) {
+        console.log("Reservation status changed (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    // Handle payout processed
+    socket.current.on("payout-processed", (payload) => {
+      const handler = listeners.current.get("payout-processed");
+      if (handler) {
+        console.log("Payout processed received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("payoutProcessed", (payload) => {
+      const handler = listeners.current.get("payout-processed");
+      if (handler) {
+        console.log("Payout processed (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    // Handle payment created
+    socket.current.on("payment-created", (payload) => {
+      const handler = listeners.current.get("payment-created");
+      if (handler) {
+        console.log("Payment created received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("paymentCreated", (payload) => {
+      const handler = listeners.current.get("payment-created");
+      if (handler) {
+        console.log("Payment created (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
+    // Handle payment updated
+    socket.current.on("payment-updated", (payload) => {
+      const handler = listeners.current.get("payment-updated");
+      if (handler) {
+        console.log("Payment updated received:", payload);
+        handler(payload);
+      }
+    });
+
+    socket.current.on("paymentUpdated", (payload) => {
+      const handler = listeners.current.get("payment-updated");
+      if (handler) {
+        console.log("Payment updated (camelCase) received:", payload);
+        handler(payload);
+      }
+    });
+
     return () => {
       socket.current.disconnect();
     };

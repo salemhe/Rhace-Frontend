@@ -1,13 +1,14 @@
 // components/TimePicker.tsx
-import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
+import { Edit } from "@/public/icons/icons";
+import { useState } from "react";
 import { FiMinus, FiPlus } from "react-icons/fi";
 import { ChevronDown } from "lucide-react";
 import { Edit3 } from "@/public/icons/icons";
@@ -70,7 +71,7 @@ export function GuestPicker({
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 mt-2 overflow-auto">
-        {(Object.keys(GUEST_CONFIG)).map((type) => {
+        {Object.keys(GUEST_CONFIG).map((type) => {
           const { label, subtitle, min } = GUEST_CONFIG[type];
           const val = counts[type];
           return (

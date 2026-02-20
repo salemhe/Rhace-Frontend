@@ -1,30 +1,36 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
 import { useReservations } from "@/contexts/hotel/ReservationContext";
+import { hotelService } from "@/services/hotel.service";
+import { userService } from "@/services/user.service";
+import { trimLongString, useIsMobile } from "@/utils/helper";
 import { format } from "date-fns";
-import { ArrowLeft, Check, Edit, MapPin, Star } from "lucide-react";
+import { ArrowLeft, MapPin, Star } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import ReservationHeader from "../../../components/user/hotel/ReservationHeader";
 import DatePicker from "../../../components/user/ui/datepicker";
 import { GuestPicker } from "../../../components/user/ui/guestpicker";
 import PaymentPage from "../../../components/user/ui/Payment";
-import { userService } from "@/services/user.service";
-import { hotelService } from "@/services/hotel.service";
-import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 function useSearchParams() {
   return new URLSearchParams(useLocation().search);
 }
 
 export default function ReservationSummary() {
+  const isMobile = useIsMobile();
+
   const [popupOpen, setPopupOpen] = useState(false);
   const [editRoom, setEditRoom] = useState(false);
   const [roomName, setRoomName] = useState("Superion Deluxe Room");
   const [pricePerNight, setPricePerNight] = useState(150000);
   const [bedType, setBedType] = useState("1 master bed");
   const [guestsAllowed, setGuestsAllowed] = useState(2);
+  const [next, showNext] = useState(false);
+  const showBookingDetails = !isMobile || next === false;
+  const showPaymentStep = !isMobile || next === true;
 
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
@@ -109,9 +115,13 @@ export default function ReservationSummary() {
   }, []);
 
   const handleContinue = async () => {
-    const res = await handleSubmit();
-    if (res > 0) {
-      setPopupOpen(true);
+    if (next === false) {
+      showNext(true);
+    } else {
+      const res = await handleSubmit();
+      if (res > 0) {
+        setPopupOpen(true);
+      }
     }
   };
 
@@ -122,8 +132,12 @@ export default function ReservationSummary() {
   return (
     <div className="min-h-screen mb-[65px] md:mt-0 bg-gray-50">
       <ReservationHeader title="Reservation Details" index={1} />
-      <div className="md:hidden flex items-center gap-3 px-4 py-3 ">
-        <button onClick={() => navigate(`/hotels/${id}`)}>
+      <div className="md:hidden flex items-center gap-3 px-4 py-3 mt-4 ">
+        <button
+          onClick={() =>
+            next === true ? showNext(false) : navigate(`/hotels/${id}`)
+          }
+        >
           <svg
             width="20"
             height="20"
@@ -210,31 +224,31 @@ export default function ReservationSummary() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Room Name</p>
-                        <p className="text-sm  line-clamp-1 font-medium text-gray-900">
-                          Superion {room.category} {room.name}
-                        </p>
+                      <p className="text-sm  line-clamp-1 font-medium text-gray-900">
+                        Superion {room.category} {room.name}
+                      </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Price per Night</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          ₦
-                          {(
-                            room.pricePerNight -
-                            room.pricePerNight * (room.discount / 100)
-                          ).toLocaleString()}
-                        </p>
+                      <p className="text-sm font-medium text-gray-900">
+                        ₦
+                        {(
+                          room.pricePerNight -
+                          room.pricePerNight * (room.discount / 100)
+                        ).toLocaleString()}
+                      </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Bed Type</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {bedType}
-                        </p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {bedType}
+                      </p>
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Guests Allowed</p>
-                        <p className="text-sm font-medium text-gray-900">
-                          {room.adultsCapacity}
-                        </p>
+                      <p className="text-sm font-medium text-gray-900">
+                        {room.adultsCapacity}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
@@ -261,181 +275,377 @@ export default function ReservationSummary() {
                   onChange={(e) => setSpecialRequest(e.target.value)}
                   className="min-h-[100px] bg-[#F9FAFB] border text-sm border-[#E5E7EB] resize-none rounded-xl"
                 />
-                <p className="absolute bottom-2 right-2 text-xs text-gray-400">
-                  {specialRequest.length}/500
-                </p>
               </div>
-            </div>
-          </div>
-          <div className="md:col-span-3 space-y-6">
-            <div className="rounded-2xl bg-white border">
-              <div className="divide-y">
-                <div className="flex p-4">
-                  <h3 className="text-lg font-semibold">Reservation Details</h3>
-                </div>
-                <div className="p-4">
-                  <div className="cursor-pointer">
-                    <div className=" divide-y">
-                      <div
-                        className={`flex p-4 rounded-t-2xl gap-2 bg-[#F9FAFB] border justify-between items-center ${!partPay && "border-teal-700"}`}
-                        onClick={() => {
-                          setPartPay(false);
-                        }}
-                      >
-                        <h3 className="text-sm font-semibold">
-                          Pay ₦
-                          {(
-                            (room.pricePerNight -
-                              room.pricePerNight * (room.discount / 100)) *
-                            nights
-                          ).toLocaleString()}{" "}
-                          now
-                        </h3>
-                        <svg
-                          width="20"
-                          height="20"
-                          className="shrink-0"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect
-                            x="0.5"
-                            y="0.5"
-                            width="19"
-                            height="19"
-                            rx="9.5"
-                            stroke="#0A6C6D"
-                          />
-                          {!partPay && (
-                            <circle cx="10" cy="10" r="6" fill="#0A6C6D" />
-                          )}
-                        </svg>
-                      </div>
-                      <div
-                        className={`flex p-4 gap-2 rounded-b-2xl bg-[#F9FAFB] border justify-between items-center ${partPay && "border-teal-700"}`}
-                        onClick={() => {
-                          setPartPay(true);
-                        }}
-                      >
-                        <div className="space-y-1">
-                          <h3 className="text-sm font-semibold">
-                            Pay part now, rest later
-                          </h3>
-                          <p className="text-xs">
-                            Pay ₦
-                            {Math.round(
-                              ((room.pricePerNight -
-                                room.pricePerNight * (room.discount / 100)) *
-                                nights) /
-                                2,
-                            ).toLocaleString()}{" "}
-                            now, and ₦
-                            {Math.round(
-                              ((room.pricePerNight -
-                                room.pricePerNight * (room.discount / 100)) *
-                                nights) /
-                                2,
-                            ).toLocaleString()}{" "}
-                            on{" "}
-                            {checkInDate
-                              ? format(checkInDate, "do MMM, yyyy")
-                              : "the day of your arrival"}
-                            . No extra fees
-                          </p>
-                        </div>
-                        <svg
-                          width="20"
-                          height="20"
-                          className="shrink-0"
-                          viewBox="0 0 20 20"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <rect
-                            x="0.5"
-                            y="0.5"
-                            width="19"
-                            height="19"
-                            rx="9.5"
-                            stroke="#0A6C6D"
-                          />
-                          {partPay && (
-                            <circle cx="10" cy="10" r="6" fill="#0A6C6D" />
-                          )}
-                        </svg>
-                      </div>
-                    </div>
+              <div className="flex-1">
+                <h2 className="text-sm md:text-xl font-semibold mb-2">
+                  {vendor?.businessName || "Restaurant Name"}
+                </h2>
+                <div className="flex items-start gap-1 text-gray-600 mb-2">
+                  <div>
+                    <MapPin className="h-4 w-4" />
                   </div>
+                  <span className="text-[12px] md:text-sm truncate w-[210px] sm:w-full">
+                    {vendor?.address || "123 Main St, City, Country"}
+                  </span>
                 </div>
-              </div>
-            </div>
-            <div className="rounded-2xl bg-white border p-4">
-              <h3 className="text-lg font-semibold">Your Total</h3>
-              <div className=" divide-y">
-                <div className="pb-3 space-y-2 text-sm">
-                  <p className="text-[#111827]">Price Details</p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[#606368]">
-                      ₦
-                      {(
-                        (room.pricePerNight -
-                          room.pricePerNight * (room.discount / 100)) *
-                        nights
-                      ).toLocaleString()}{" "}
-                      / {nights} {nights === 1 ? "night" : "nights"}
-                    </p>
-                    <p className="text-[#111827]">
-                      ₦
-                      {(
-                        (room.pricePerNight -
-                          room.pricePerNight * (room.discount / 100)) *
-                        nights
-                      ).toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
-                  <p>Sub Total</p>
-                  <p>
-                    ₦
-                    {partPay
-                      ? (
-                          ((room.pricePerNight -
-                            room.pricePerNight * (room.discount / 100)) *
-                            nights) /
-                          2
-                        ).toLocaleString()
-                      : (
-                          (room.pricePerNight -
-                            room.pricePerNight * (room.discount / 100)) *
-                          nights
-                        ).toLocaleString()}
-                  </p>
+                <div className="flex items-center gap-1">
+                  <Star className="h-4 w-4 fill-[#F0AE02] text-[#F0AE02]" />
+                  <span className="text-[12px] md:text-sm font-medium">
+                    {vendor?.rating || "4.8"} (
+                    {vendor?.reviews.toLocaleString() || "1,000"} reviews)
+                  </span>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
+          {showBookingDetails && (
+            <div className="space-y-6 md:col-span-4">
+              <div className="rounded-2xl bg-white border">
+                <div className=" divide-y">
+                  <div className="flex p-4">
+                    <h3 className="text-lg font-semibold">
+                      Reservation Details
+                    </h3>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
+                    <DatePicker
+                      title="Check In Date"
+                      value={checkInDate}
+                      onChange={setCheckInDate}
+                      icon={true}
+                    />
+                    <DatePicker
+                      title="Check out Date"
+                      value={checkOutDate}
+                      onChange={setCheckOutDate}
+                      icon={true}
+                    />
+                    <GuestPicker
+                      value={guestCount}
+                      onChange={setGuestCount}
+                      icon={true}
+                    />
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white border">
+                <div className=" divide-y">
+                  <div className="flex p-4 justify-between items-center">
+                    <h3 className="text-lg font-semibold">Room Summary</h3>
+                  </div>
+                  <div className="space-y-4 p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-600">Room Name</p>
+                        {!editRoom ? (
+                          <p className="text-sm font-medium text-gray-900">
+                            Superion {trimLongString(room.name, 8)}
+                          </p>
+                        ) : (
+                          <input
+                            type="text"
+                            value={roomName}
+                            onChange={(e) => setRoomName(e.target.value)}
+                            className="w-full border rounded-lg p-2 text-sm"
+                          />
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-600">Price per Night</p>
+                        {!editRoom ? (
+                          <p className="text-sm font-medium text-gray-900">
+                            ₦
+                            {(
+                              room.pricePerNight -
+                              room.pricePerNight * (room.discount / 100)
+                            ).toLocaleString()}
+                          </p>
+                        ) : (
+                          <input
+                            type="number"
+                            value={pricePerNight}
+                            onChange={(e) =>
+                              setPricePerNight(Number(e.target.value))
+                            }
+                            className="w-full border rounded-lg p-2 text-sm"
+                          />
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-600">Bed Type</p>
+                        {!editRoom ? (
+                          <p className="text-sm font-medium text-gray-900">
+                            {bedType}
+                          </p>
+                        ) : (
+                          <input
+                            type="text"
+                            value={bedType}
+                            onChange={(e) => setBedType(e.target.value)}
+                            className="w-full border rounded-lg p-2 text-sm"
+                          />
+                        )}
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-600">Guests Allowed</p>
+                        {!editRoom ? (
+                          <p className="text-sm font-medium text-gray-900">
+                            {room.adultsCapacity}
+                          </p>
+                        ) : (
+                          <input
+                            type="number"
+                            value={guestsAllowed}
+                            min={1}
+                            onChange={(e) =>
+                              setGuestsAllowed(Number(e.target.value))
+                            }
+                            className="w-full border rounded-lg p-2 text-sm"
+                          />
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-[#0A6C6D] underline">
+                        Free cancellation until 24h before check-in
+                      </div>
+                      {editRoom && (
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              // revert
+                              setRoomName(room.name);
+                              setPricePerNight(room.pricePerNight);
+                              setBedType(room.bedType);
+                              setGuestsAllowed(room.adultsCount);
+                              setEditRoom(false);
+                            }}
+                            className="text-sm text-gray-500 px-3 py-1 rounded-lg border"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          {showPaymentStep && (
+            <div className="md:col-span-3 space-y-6">
+              <div className="mb-6 space-y-6">
+                <div className="relative">
+                  <Label
+                    htmlFor="special-request"
+                    className="text-sm font-medium mb-2 block"
+                  >
+                    Special Request (Optional)
+                  </Label>
+                  <Textarea
+                    id="special-request"
+                    placeholder="Let us know if you have any special request"
+                    value={specialRequest}
+                    maxLength={500}
+                    onChange={(e) => setSpecialRequest(e.target.value)}
+                    className="min-h-[100px] bg-[#FFFFFF] border text-sm border-[#E5E7EB] resize-none rounded-xl"
+                  />
+                  <p className="absolute bottom-2 right-2 text-xs text-gray-400">
+                    {specialRequest.length}/500
+                  </p>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white border">
+                <div className="divide-y">
+                  <div className="flex p-4">
+                    <h3 className="text-lg font-semibold">
+                      Choose Payment Plan
+                    </h3>
+                  </div>
+                  <div className="p-4">
+                    <div className="cursor-pointer">
+                      <div className=" divide-y">
+                        <div
+                          className={`flex p-4 rounded-t-2xl gap-2 bg-[#F9FAFB] border justify-between items-center ${!partPay && "border-teal-700"}`}
+                          onClick={() => {
+                            setPartPay(false);
+                          }}
+                        >
+                          <h3 className="text-sm font-semibold">
+                            Pay ₦
+                            {(
+                              (room.pricePerNight -
+                                room.pricePerNight * (room.discount / 100)) *
+                              nights
+                            ).toLocaleString()}{" "}
+                            now
+                          </h3>
+                          <svg
+                            width="20"
+                            height="20"
+                            className="shrink-0"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <rect
+                              x="0.5"
+                              y="0.5"
+                              width="19"
+                              height="19"
+                              rx="9.5"
+                              stroke="#0A6C6D"
+                            />
+                            {!partPay && (
+                              <circle cx="10" cy="10" r="6" fill="#0A6C6D" />
+                            )}
+                          </svg>
+                        </div>
+                        <div
+                          className={`flex p-4 gap-2 rounded-b-2xl bg-[#F9FAFB] border justify-between items-center ${partPay && "border-teal-700"}`}
+                          onClick={() => {
+                            setPartPay(true);
+                          }}
+                        >
+                          <div className="space-y-1">
+                            <h3 className="text-sm font-semibold">
+                              Pay part now, rest later
+                            </h3>
+                            <p className="text-xs">
+                              Pay ₦
+                              {Math.round(
+                                ((room.pricePerNight -
+                                  room.pricePerNight * (room.discount / 100)) *
+                                  nights) /
+                                2,
+                              ).toLocaleString()}{" "}
+                              now, and ₦
+                              {Math.round(
+                                ((room.pricePerNight -
+                                  room.pricePerNight * (room.discount / 100)) *
+                                  nights) /
+                                2,
+                              ).toLocaleString()}{" "}
+                              on{" "}
+                              {checkInDate
+                                ? format(checkInDate, "do MMM, yyyy")
+                                : "the day of your arrival"}
+                              . No extra fees
+                            </p>
+                          </div>
+                          <svg
+                            width="20"
+                            height="20"
+                            className="shrink-0"
+                            viewBox="0 0 20 20"
+                            fill="none"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <rect
+                              x="0.5"
+                              y="0.5"
+                              width="19"
+                              height="19"
+                              rx="9.5"
+                              stroke="#0A6C6D"
+                            />
+                            {partPay && (
+                              <circle cx="10" cy="10" r="6" fill="#0A6C6D" />
+                            )}
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white border mb-16 p-4">
+                <h3 className="text-lg font-semibold">Your Total</h3>
+                <div className=" divide-y">
+                  <div className="pb-3 space-y-2 text-sm">
+                    <p className="text-[#111827]">Price Details</p>
+                    <div className="flex items-center justify-between">
+                      <p className="gap-2 flex items-center">
+                        <span className="underline font-semibold text-lg text-[#111827]">
+                          {" "}
+                          ₦
+                          {(
+                            (room.pricePerNight -
+                              room.pricePerNight * (room.discount / 100)) *
+                            nights
+                          ).toLocaleString()}{" "}
+                        </span>
+                        <span className="font-medium text-sm text-[#606368]">
+                          {" "}
+                          / {nights} {nights === 1 ? "night" : "nights"}
+                        </span>
+                      </p>
+                      <p className="text-[#111827]">
+                        ₦
+                        {(
+                          (room.pricePerNight -
+                            room.pricePerNight * (room.discount / 100)) *
+                          nights
+                        ).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
+                    <p>Sub Total</p>
+                    <p className="underline font-semibold text-lg text-[#111827]">
+                      ₦
+                      {partPay
+                        ? (
+                          ((room.pricePerNight -
+                            room.pricePerNight * (room.discount / 100)) *
+                            nights) /
+                          2
+                        ).toLocaleString()
+                        : (
+                          (room.pricePerNight -
+                            room.pricePerNight * (room.discount / 100)) *
+                          nights
+                        ).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
 
-      <div className="w-full fixed bottom-0 left-0 bg-white border-t border-[#E5E7EB]">
-        <div className="flex flex-col sm:flex-row justify-between gap-2 items-center max-w-4xl mx-auto p-4">
-          <Button
-            onClick={() => navigate(-1)}
-            variant="ghost"
-            className="md:flex items-center hover:bg-transparent text-[#0A6C6D] hover:text-[#0A6C6D] cursor-pointer gap-2 hidden"
+        <div className="w-full fixed bottom-0 left-0 bg-white border-t border-[#E5E7EB]">
+          <div
+            className={`
+            ${next === false
+                ? "flex flex-col sm:flex-row justify-end  sm:justify-between gap-2 items-end"
+                : "flex flex-col sm:flex-row justify-between gap-2 items-center max-w-4xl mx-auto "
+              }  sm:justify-between p-4`}
           >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Hotel Details Page
-          </Button>
-          <Button
-            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 w-full md:max-w-xs rounded-xl cursor-pointer"
-            onClick={handleContinue}
-            disabled={!checkInDate || !guestCount}
-          >
-            Complete Reservations
-          </Button>
+            <Button
+              onClick={() => navigate(-1)}
+              variant="ghost"
+              className="md:flex items-center hover:bg-transparent text-[#0A6C6D] hover:text-[#0A6C6D] cursor-pointer gap-2 hidden"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Hotel Details Page
+            </Button>
+            <Button
+              className={
+                next === false
+                  ? "bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 py-6 w-33 sm:w-full md:max-w-xs rounded-xl cursor-pointer"
+                  : "bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 py-6 w-full  md:max-w-xs rounded-xl cursor-pointer"
+              }
+              onClick={handleContinue}
+              disabled={!checkInDate || !guestCount}
+              size={"lg"}
+            >
+              {isMobile && next === false ? "Next" : "Complete Reservations"}
+            </Button>
+          </div>
         </div>
       </div>
       {popupOpen && (
