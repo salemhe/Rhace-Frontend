@@ -8,7 +8,6 @@ import Hotel from "../../public/images/find-hotel.jpg";
 import Club from "../../public/images/find-club.png";
 // import LocationModal from "@/components/LocationModal";
 import { SvgIcon, SvgIcon2, SvgIcon3 } from "@/public/icons/icons";
-import { useUserLocation } from "@/contexts/LocationContext";
 import { CalendarClock, ChevronDown, ChevronUp, Home, Search, User } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/redux/slices/authSlice";
@@ -17,7 +16,6 @@ import { useNavigate } from "react-router";
 
 function ReservationHomePage() {
   const [mounted, setMounted] = useState(false);
-  const { location, requestLocation, isLoading } = useUserLocation();
   const [activeTab, setActiveTab] = useState("restaurants");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -128,13 +126,7 @@ function ReservationHomePage() {
   ]
 
   useEffect(() => {
-    localStorage.getItem('suppressLocationPrompt');
-  }, [location, isLoading]);
-  // console.log(setMounted(true));
-
-  useEffect(() => {
     setMounted(true);
-    requestLocation();
     const savedTab = localStorage.getItem("activeTab");
     if (savedTab && ["restaurants", "hotels", "clubs"].includes(savedTab)) {
       setActiveTab(savedTab);
@@ -273,21 +265,23 @@ function ReservationHomePage() {
         </div>
       )}
 
-      <div className="hidden md:block">
+      <div className={`${profile && "hidden"} md:block`}>
         <Footer />
       </div>
-      <div className="fixed bottom-0 left-0 w-full bg-white py-2 flex items-center justify-center gap-12 border-t md:hidden z-50">
-        {footer.map((item, i) => (
-          <button onClick={() => item.link && navigate(item.link)} key={i} className="text-sm font-medium text-gray-700 hover:text-gray-900">
-            <div className="flex items-center gap-1 flex-col ">
-              <div>
-                {item.icon}
+      {profile && (
+        <div className="fixed bottom-0 left-0 w-full bg-white py-2 flex items-center justify-center gap-12 border-t md:hidden z-50">
+          {footer.map((item, i) => (
+            <button onClick={() => item.link && navigate(item.link)} key={i} className="text-sm font-medium text-gray-700 hover:text-gray-900">
+              <div className="flex items-center gap-1 flex-col ">
+                <div>
+                  {item.icon}
+                </div>
+                <span className="text-xs">{item.title}</span>
               </div>
-              <span className="text-xs">{item.title}</span>
-            </div>
-          </button>
-        ))}
-      </div>
+            </button>
+          ))}
+        </div>
+      )}
       {/* <LocationModal /> */}
     </div>
   );

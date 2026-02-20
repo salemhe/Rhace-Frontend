@@ -148,7 +148,7 @@ const MenuPage = () => {
                                                 {restaurant.vendor.businessName}
                                             </span>
                                         </div>
-                                        <RestaurantSaveCopy id={id} menu={true} />
+                                        <RestaurantSaveCopy type="offers" id={id} menu={true} />
                                     </div>
                                 </div>
                             </div>

@@ -5,15 +5,16 @@ import {
   useFavorites,
   useRestaurantData,
 } from "@/hooks/favorites";
+import { HeartIcon } from "@/public/icons/icons";
 import { userService } from "@/services/user.service";
+import { formatOfferText } from "@/utils/helper";
+import { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa6";
 import { FiChevronRight, FiChevronsDown } from "react-icons/fi";
 import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
-import { HeartIcon } from "@/public/icons/icons";
-import { useState, useEffect } from "react";
 import UniversalLoader from "./user/ui/LogoLoader";
-import { formatOfferText } from "@/utils/helper";
+import { FavoriteButton } from "./user/ui/favoritebutton";
 
 // Common cuisine color palette
 const cuisineColorPalette = [
@@ -31,7 +32,6 @@ const TableGrid = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("restaurant", type);
   const navigate = useNavigate();
-  const { toggleFavorite, isLoadingFav, isFavorite } = useFavorites();
 
   if (isLoading) return <UniversalLoader type="cards" />;
 
@@ -107,21 +107,9 @@ const TableGrid = ({ title, type }) => {
                     </span>
                   )}
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(restaurant._id, "restaurant");
-                    }}
-                    className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md"
-                  >
-                    {isFavorite(
-                      restaurant._id || isLoadingFav(restaurant._id),
-                    ) ? (
-                      <HeartIcon className="text-red-500" />
-                    ) : (
-                      <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
-                    )}
-                  </button>
+                  <div className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md">
+                    <FavoriteButton vendor={restaurant} />
+                  </div>
                 </div>
 
                 {multipleImages && (
@@ -227,7 +215,6 @@ export const TableGridTwo = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("hotel", type);
   const navigate = useNavigate();
-  const { toggleFavorite, isLoadingFav, isFavorite } = useFavorites();
 
   if (isLoading) return <UniversalLoader type="cards" />;
 
@@ -265,6 +252,7 @@ export const TableGridTwo = ({ title, type }) => {
                 )
               }
               onMouseLeave={() => handleMouseLeave(restaurantId)}
+              onClick={() => navigate(`/hotels/${restaurant._id}`)}
             >
               {/* Image Section */}
               <div className="relative h-40 sm:h-44 w-full  cursor-pointer aspect-video">
@@ -297,21 +285,9 @@ export const TableGridTwo = ({ title, type }) => {
                     {restaurant.specialCategory}
                   </span>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(restaurant._id, "hotel");
-                  }}
-                  className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md"
-                >
-                  {isFavorite(
-                    restaurant._id || isLoadingFav(restaurant._id),
-                  ) ? (
-                    <HeartIcon className="text-red-500" />
-                  ) : (
-                    <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
-                  )}
-                </button>
+                <div className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md">
+                  <FavoriteButton vendor={restaurant} />
+                </div>
 
                 {multipleImages && (
                   <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-1.5">
@@ -450,7 +426,6 @@ export const TableGridThree = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("club", type);
   const navigate = useNavigate();
-  const { toggleFavorite, isLoadingFav, isFavorite } = useFavorites();
 
   if (isLoading) return <UniversalLoader type="cards" />;
 
@@ -520,29 +495,17 @@ export const TableGridThree = ({ title, type }) => {
 
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
+                  {(restaurant.specialCategory) && (
+                    <span className="absolute top-1 left-2 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                      {restaurant.specialCategory}
+                    </span>
+                  )}
+
+                  <div className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md">
+                    <FavoriteButton vendor={restaurant} />
+                  </div>
                 </div>
 
-                {restaurant.specialCategory && (
-                  <span className="absolute top-2 left-2 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
-                    {restaurant.specialCategory}
-                  </span>
-                )}
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(restaurant._id, "club");
-                  }}
-                  className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md"
-                >
-                  {isFavorite(
-                    restaurant._id || isLoadingFav(restaurant._id),
-                  ) ? (
-                    <HeartIcon className="text-red-500" />
-                  ) : (
-                    <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
-                  )}
-                </button>
 
                 {multipleImages && (
                   <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-1.5">
@@ -562,7 +525,7 @@ export const TableGridThree = ({ title, type }) => {
               </div>
 
               {/* Info Section */}
-              <div className="pt-3 flex-1 space-y-2 flex flex-col justify-between">
+              <a href={`/clubs/${restaurant._id}`} className="pt-3 flex-1 space-y-2 flex flex-col justify-between">
                 <div className="space-y-2">
                   <div className="flex flex-col-reverse px-2 sm:px-3  w-full justify-between">
                     <h3 className="text-sm sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
@@ -600,8 +563,10 @@ export const TableGridThree = ({ title, type }) => {
                   </div>
 
                   <div className="flex px-2 sm:px-3 text-gray-500 mt-1.5 justify-start items-center gap-1">
-                    <div className="font-medium leading-none">Table from</div>
-                    <div className="font-semibold text-black leading-none">
+                    <div className="font-medium text-xs sm:text-sm leading-none">
+                      Table from
+                    </div>
+                    <div className="text-black leading-none">
                       ₦{restaurant.priceRange.toLocaleString()}
                     </div>
                   </div>
@@ -634,7 +599,7 @@ export const TableGridThree = ({ title, type }) => {
                     Book Now
                   </Button>
                 </div>
-              </div>
+              </a>
             </div>
           );
         })}

@@ -15,6 +15,8 @@ const HotelInfo = ({
   id,
   selectedRoom,
   setSelectedRoom,
+  rooms,
+  setRooms,
 }) => {
   const tabs = [
     {
@@ -64,6 +66,8 @@ const HotelInfo = ({
             setShow={setShow}
             selectedRoom={selectedRoom}
             setSelectedRoom={setSelectedRoom}
+            rooms={rooms}
+            setRooms={setRooms}
             id={id}
           />
         )}

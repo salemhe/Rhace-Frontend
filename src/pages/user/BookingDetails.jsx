@@ -4,6 +4,9 @@ import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
 import { toast } from "react-toastify";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
+import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Edit3 } from "@/public/icons/icons";
 
 export default function BookingDetails() {
     const navigate = useNavigate()
@@ -46,88 +49,293 @@ export default function BookingDetails() {
                 {/* Main Heading */}
                 <div className="text-center mb-8">
                     <h1 className="text-xl font-bold text-[#111827] mb-2">
-                        Your reservation is confirmed & your meal has been paid
+                        {data.reservationType === "resraurantReservation" ? "Your reservation is confirmed & your meal has been paid" : "Your Reservation is confirmed & your payment has been received!"}
                     </h1>
                     <p className="text-[#6B7280] text-sm">
-                        Your pre-selected meals have been confirmed for your upcoming reservation
+                        {data.reservationType === "resraurantReservation" ? "Your pre-selected meals have been confirmed for your upcoming reservation" : "Thank you for completing your booking process. we look forward to seeing you"}
                     </p>
                 </div>
 
                 {/* Reservation Details */}
-                <div className="bg-white rounded-2xl border border-gray-200 mb-6">
-                    <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
-                        Reservation Details
-                    </h2>
-
-                    {/* HR tag after Reservation Details */}
-                    <hr className="border-gray-200 mb-4" />
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 px-4">
-                        <div>
-                            <p className="text-sm text-gray-600 mb-1">Restaurant</p>
-                            <p className="text-base font-medium text-gray-900 mb-1">
-                                {data.vendor.businessName || "hey"}
-                            </p>
-                            <p className="text-sm text-gray-600">{data.location}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600 mb-1">Reservation ID</p>
-                            <p className="font-medium text-gray-900">
-                                #{data._id.slice(0, 8).toUpperCase()}
-                            </p>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 mb-4">
-                        <div>
-                            <p className="text-sm text-gray-600 mb-1">Date & Time</p>
-                            <p className="font-medium text-gray-900">
-                                {new Date(data.date).toLocaleDateString(undefined, {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                })}{" "}
-                                •{" "}
-                                {data.time}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600 mb-1">Guests</p>
-                            <p className="font-medium text-gray-900">{data.guests} Guests</p>
-                        </div>
-                    </div>
-                </div>
-
-                {/* Meal Selection */}
-                {data.vendor.vendorType === "restaurant" && data.menus.length > 0 && (
-                    <div className="rounded-2xl border border-gray-200 mb-6 bg-white shadow-sm p-5">
-                        <div>
-                            <h2 className="font-semibold text-gray-900 mb-2">
-                                Your Selection ({data.menus.length} {data.menus.length > 1 ? "items" : "item"})
+                {data.reservationType === "restaurantReservation" && (
+                    <>
+                        <div className="bg-white rounded-2xl border border-gray-200 mb-6">
+                            <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                                Reservation Details
                             </h2>
-                            <ul className="divide-y divide-gray-100">
-                                {data.menus.map((item, index) => (
-                                    <li key={index} className="flex justify-between py-2">
-                                        <span className="text-gray-700">
-                                            {item.quantity}x {item.menu.name}
-                                        </span>
-                                        <span className="text-gray-900 font-medium">
-                                            ₦{item.menu.price.toLocaleString()}
-                                        </span>
-                                    </li>
+
+                            {/* HR tag after Reservation Details */}
+                            <hr className="border-gray-200 mb-4" />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 px-4">
+                                <div>
+                                    <p className="text-sm text-gray-600 mb-1">Restaurant</p>
+                                    <p className="text-base font-medium text-gray-900 mb-1">
+                                        {data.vendor.businessName || "hey"}
+                                    </p>
+                                    <p className="text-sm text-gray-600">{data.location}</p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600 mb-1">Reservation ID</p>
+                                    <p className="font-medium text-gray-900">
+                                        #{data._id.slice(0, 8).toUpperCase()}
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 mb-4">
+                                <div>
+                                    <p className="text-sm text-gray-600 mb-1">Date & Time</p>
+                                    <p className="font-medium text-gray-900">
+                                        {new Date(data.date).toLocaleDateString(undefined, {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                        })}{" "}
+                                        •{" "}
+                                        {data.time}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600 mb-1">Guests</p>
+                                    <p className="font-medium text-gray-900">{data.guests} Guests</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Meal Selection */}
+                        {data.vendor.vendorType === "restaurant" && data.menus.length > 0 && (
+                            <div className="rounded-2xl border border-gray-200 mb-6 bg-white shadow-sm p-5">
+                                <div>
+                                    <h2 className="font-semibold text-gray-900 mb-2">
+                                        Your Selection ({data.menus.length} {data.menus.length > 1 ? "items" : "item"})
+                                    </h2>
+                                    <ul className="divide-y divide-gray-100">
+                                        {data.menus.map((item, index) => (
+                                            <li key={index} className="flex justify-between py-2">
+                                                <span className="text-gray-700">
+                                                    {item.quantity}x {item.menu.name}
+                                                </span>
+                                                <span className="text-gray-900 font-medium">
+                                                    ₦{item.menu.price.toLocaleString()}
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="border-t border-gray-200 my-4"></div>
+
+                                <div className="flex justify-between items-center">
+                                    <p className="font-medium text-gray-800">Amount paid</p>
+                                    <p className="font-semibold text-[#37703F] text-lg">
+                                        ₦{data.totalAmount.toLocaleString()}
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                    </>
+                )}
+                {data.reservationType === "hotelReservation" && (
+                    <>
+                        <div className="bg-white rounded-2xl border border-gray-200 mb-6">
+                            <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                                Reservation Details
+                            </h2>
+
+                            <hr className="border-gray-200 mb-4" />
+
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 px-4 mb-4">
+                                <div>
+                                    <p className="text-sm text-gray-600 mb-1">Check In Date</p>
+                                    <p className="font-medium text-gray-900">
+                                        {new Date(data.checkInDate).toLocaleDateString('en-NG', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                        })}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600 mb-1">Check Out Date</p>
+                                    <p className="font-medium text-gray-900">
+                                        {new Date(data.checkInDate).toLocaleDateString('en-NG', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                        })}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-600 mb-1">Guests Allowed</p>
+                                    <p className="font-medium text-gray-900">{data.guests} Guests</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div className="rounded-2xl bg-white border border-gray-200 mb-6">
+                            <div className=" divide-y">
+                                <div className="flex p-4 justify-between items-center">
+                                    <h3 className="text-lg font-semibold">Room Summary</h3>
+                                </div>
+                                <div className="space-y-4 p-4">
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-gray-600">Room Name</p>
+                                            <p className="text-sm  line-clamp-1 font-medium text-gray-900">
+                                                Superion {data.room.category} {data.room.name}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-gray-600">Price per Night</p>
+                                            <p className="text-sm font-medium text-gray-900">
+                                                ₦
+                                                {(
+                                                    data.room.pricePerNight -
+                                                    data.room.pricePerNight * (data.room.discount / 100)
+                                                ).toLocaleString()}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-gray-600">Bed Type</p>
+                                            <p className="text-sm font-medium text-gray-900">
+                                                1 master bed
+                                            </p>
+                                        </div>
+                                        <div className="space-y-1">
+                                            <p className="text-xs text-gray-600">Guests Allowed</p>
+                                            <p className="text-sm font-medium text-gray-900">
+                                                {data.room.adultsCapacity}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </>
+                )}
+                {data.reservationType === "clubReservation" && (
+                    <>
+                        <div className="bg-white rounded-2xl border border-gray-200 mb-6">
+                            <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                                Reservation Details
+                            </h2>
+
+                            <hr className="border-gray-200 mb-4" />
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4 px-4">
+                                <div
+                                    className={cn(
+                                        "w-full justify-between text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] items-center rounded-xl px-6! min-w-[150px] flex h-[60px]"
+                                    )}
+                                >
+                                    <div className="gap-2 flex flex-col">
+                                        <div htmlFor="date" className="text-black text-xs">
+                                            Date
+                                        </div>
+                                        {format(data.date, "do MMM, yyyy")}
+                                    </div>
+                                    <Edit3 className="size-5" />
+                                </div>
+                                <div
+                                    className={cn(
+                                        "w-full justify-between text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] items-center rounded-xl px-6! min-w-[150px] flex h-[60px]"
+                                    )}
+                                >
+                                    <div className="gap-2 flex flex-col">
+                                        <div htmlFor="date" className="text-black text-xs">
+                                            Time
+                                        </div>
+                                        {data.time}
+                                    </div>
+                                    <Edit3 className="size-5" />
+                                </div>
+                                <div
+                                    className={cn(
+                                        "w-full justify-between text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] items-center rounded-xl px-6! min-w-[150px] flex h-[60px]"
+                                    )}
+                                >
+                                    <div className="gap-2 flex flex-col">
+                                        <div htmlFor="date" className="text-black text-xs">
+                                            Table
+                                        </div>
+                                        {data.table.name}
+                                    </div>
+                                    <Edit3 className="size-5" />
+                                </div>
+                                <div
+                                    className={cn(
+                                        "w-full justify-between text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] items-center rounded-xl px-6! min-w-[150px] flex h-[60px]"
+                                    )}
+                                >
+                                    <div className="gap-2 flex flex-col">
+                                        <div htmlFor="date" className="text-black text-xs">
+                                            Guest
+                                        </div>
+                                        {data.guests} People
+                                    </div>
+                                    <Edit3 className="size-5" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rounded-2xl border border-gray-200 mb-6 bg-white">
+                            <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                                Add Ons
+                            </h2>
+
+                            <hr className="border-gray-200 mb-4" />
+                            <div className="py-4 px-5 space-y-4">
+                                {data.combos.map((item, i) => (
+                                    <div
+                                        key={i}
+                                        className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-sm text-[#111827]">{item.name}</p>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-xs text-[#111827]">
+                                                {item.addOns.join(" ")}
+                                            </p>
+                                            <p className="text-sm text-[#111827]">
+                                                ₦{item.setPrice.toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
                                 ))}
-                            </ul>
+                                <div
+                                    className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
+                                >
+                                    <div className="flex justify-between items-center">
+                                        <p className="text-sm text-[#111827]">{data.table.name}</p>
+                                    </div>
+                                    <div className="flex justify-end items-center">
+                                        <p className="text-sm text-[#111827]">
+                                            ₦{data.table.price.toLocaleString()}
+                                        </p>
+                                    </div>
+                                </div>
+                                {data.drinks.map((item, i) => (
+                                    <div
+                                        key={i}
+                                        className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-sm text-[#111827]">{item.drink.name}</p>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-xs text-[#111827]">
+                                                {item.drink.volume}ml x {item.quantity}
+                                            </p>
+                                            <p className="text-sm text-[#111827]">
+                                                ₦{item.drink.price.toLocaleString()}
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-
-                        <div className="border-t border-gray-200 my-4"></div>
-
-                        <div className="flex justify-between items-center">
-                            <p className="font-medium text-gray-800">Amount paid</p>
-                            <p className="font-semibold text-[#37703F] text-lg">
-                                ₦{data.totalAmount.toLocaleString()}
-                            </p>
-                        </div>
-                    </div>
+                    </>
                 )}
             </div>
         </div>

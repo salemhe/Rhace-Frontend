@@ -18,7 +18,7 @@ const HotelOverview = ({ desc }) => {
   return (
     <div className="space-y-6 text-sm md:text-base">
       <div>
-        <h2 className="font-semibold">About Hotel</h2>
+        <h2 className="font-semibold sm:text-lg  text-sm">About Hotel</h2>
         <div
           ref={contentRef}
           className={cn(

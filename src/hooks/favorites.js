@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 
 export const useFavorites = () => {
   const [favorites, setFavorites] = useState([]);
-  const [isLoading, setIsLoading] = useState("");
+  const [isLoadingFav, setIsLoadingFav] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -13,152 +13,111 @@ export const useFavorites = () => {
     try {
       setLoading(true);
       setError(null);
+      
       const response = await userService.getFavorites();
       const res = response.favorites || response.data || response;
-      console.log("Favorites API response:", res);
 
-      // Handle different response structures
       let favoritesArray = [];
-
       if (Array.isArray(res)) {
         favoritesArray = res;
-      } else if (res && Array.isArray(res.data)) {
-        favoritesArray = res.data;
-      } else if (res && res.data && typeof res.data === "object") {
-        if (Array.isArray(res.data.items)) {
-          favoritesArray = res.data.items;
-        } else if (Array.isArray(res.data.results)) {
-          favoritesArray = res.data.results;
+      } else if (res?.data) {
+        if (Array.isArray(res.data)) {
+          favoritesArray = res.data;
         } else if (Array.isArray(res.data.favorites)) {
           favoritesArray = res.data.favorites;
-        } else {
-          favoritesArray = Object.values(res.data);
         }
-      } else if (res && typeof res === "object") {
-        favoritesArray = Object.values(res);
       }
 
-      if (!Array.isArray(favoritesArray)) {
-        favoritesArray = [];
-      }
-
-      console.log("Processed favorites array:", favoritesArray);
       setFavorites(favoritesArray);
+      return favoritesArray;
     } catch (error) {
       console.error("Error fetching favorites:", error);
-      setError(error.message);
       setFavorites([]);
+      return [];
     } finally {
       setLoading(false);
     }
   };
 
-  // Toggle favorite status - IMPROVED ERROR HANDLING
-  const toggleFavorite = async (vendorId, vendorType = "restaurant") => {
-    if (!vendorId) {
-      console.error("toggleFavorite called with invalid vendorId:", vendorId);
-      setError("Invalid vendor ID");
-      return;
-    }
+  // INSTANT toggle with optimistic updates
+  const toggleFavorite = async (vendorId, vendorData = {}) => {
+    if (!vendorId) return;
 
-    // Ensure vendorType is ALWAYS set and valid
-    const finalVendorType = vendorType || "restaurant";
+    const vendorType = vendorData.type || vendorData.vendorType || "restaurant";
+    
+    // Check current status
+    const isCurrentlyFavorite = favorites.some(
+      (fav) =>
+        fav.vendor?._id === vendorId ||
+        fav.vendorId === vendorId ||
+        fav._id === vendorId
+    );
 
-    // Validate vendorType
-    const allowedTypes = ["restaurant", "hotel", "club", "other"]; // Add your valid types
-    if (!allowedTypes.includes(finalVendorType)) {
-      console.error("Invalid vendorType:", finalVendorType);
-      setError("Invalid vendor type");
-      return;
-    }
-
-    console.log(`Toggling favorite for ${vendorId}, type: ${finalVendorType}`);
-
-    try {
-      setError(null);
-      setIsLoading(vendorId);
-
-      const isCurrentlyFavorite =
-        Array.isArray(favorites) &&
-        favorites.some(
-          (fav) =>
-            fav.vendor?._id === vendorId ||
-            fav.vendorId === vendorId ||
-            fav._id === vendorId ||
-            (fav && typeof fav === "object" && fav.vendor === vendorId)
-        );
-
-      console.log(
-        `Toggling favorite for ${vendorId}, type: ${finalVendorType}, currently favorite: ${isCurrentlyFavorite}`
+    // ⚡ INSTANT UI UPDATE (no waiting!)
+    if (isCurrentlyFavorite) {
+      // Remove immediately
+      setFavorites((prev) =>
+        prev.filter((fav) => {
+          const favId = fav.vendor?._id || fav.vendorId || fav._id;
+          return favId !== vendorId;
+        })
       );
+    } else {
+      // Add immediately with optimistic data
+      const optimisticFavorite = {
+        _id: `temp-${vendorId}`,
+        vendor: vendorData.vendor || {
+          _id: vendorId,
+          name: vendorData.name,
+          image: vendorData.image,
+          ...vendorData
+        },
+        vendorId: vendorId,
+        vendorType: vendorType,
+        createdAt: new Date().toISOString()
+      };
+      
+      setFavorites((prev) => [...prev, optimisticFavorite]);
+    }
+
+    // 🔄 Background sync (user doesn't wait for this)
+    try {
+      setIsLoadingFav(vendorId);
 
       if (isCurrentlyFavorite) {
-        // Remove from favorites
         await userService.removeFromFavorites(vendorId);
-
-        // Update state by filtering out the vendor
-        setFavorites((prev) =>
-          Array.isArray(prev)
-            ? prev.filter((fav) => {
-                const favId =
-                  fav.vendor?._id || fav.vendorId || fav._id || fav.vendor;
-                return favId !== vendorId;
-              })
-            : []
-        );
-
-        console.log(`Successfully removed ${vendorId} from favorites`);
       } else {
-        // Add to favorites
-        console.log(
-          `Adding ${vendorId} to favorites with type: ${finalVendorType}`
-        );
-        const result = await userService.addToFavorites(
-          vendorId,
-          finalVendorType
-        );
-        console.log("Add to favorites result:", result);
-
-        // Refetch to get complete data from server
-        await fetchFavorites();
-
-        console.log(`Successfully added ${vendorId} to favorites`);
+        await userService.addToFavorites(vendorId, vendorType);
       }
-    } catch (error) {
-      console.error("Error toggling favorite:", error);
-      toast.error("Error toggling favorite");
-      const errorMessage =
-        error.response?.data?.message ||
-        error.message ||
-        "Failed to toggle favorite";
-      setError(errorMessage);
 
-      // Revert optimistic update on error by refetching
-      fetchFavorites();
+      // Silently sync with server to get complete data
+      await fetchFavorites();
+    } catch (error) {
+      console.error("Error syncing favorite:", error);
+      
+      // ⚠️ Revert on error
+      toast.error(
+        isCurrentlyFavorite 
+          ? "Couldn't remove from favorites" 
+          : "Couldn't add to favorites"
+      );
+      
+      // Refetch to restore correct state
+      await fetchFavorites();
     } finally {
-      setIsLoading("");
+      setIsLoadingFav("");
     }
   };
 
   // Check if a venue is favorite
   const isFavorite = (vendorId) => {
-    if (!vendorId) return false;
-
-    if (!Array.isArray(favorites)) {
-      console.warn("favorites is not an array:", favorites);
-      return false;
-    }
+    if (!vendorId || !Array.isArray(favorites)) return false;
 
     return favorites.some((fav) => {
-      const favId = fav.vendor?._id || fav.vendorId || fav._id || fav.vendor;
+      const favId = fav.vendor?._id || fav.vendorId || fav._id;
       return favId === vendorId;
     });
   };
-
-  const isLoadingFav = (vendorId) => {
-    if (!vendorId) return false;
-    return isLoading === vendorId;
-  }
 
   useEffect(() => {
     fetchFavorites();
@@ -168,10 +127,10 @@ export const useFavorites = () => {
     favorites,
     loading,
     error,
+    isLoadingFav,
     fetchFavorites,
     toggleFavorite,
     isFavorite,
-    isLoadingFav,
     refetch: fetchFavorites,
   };
 };

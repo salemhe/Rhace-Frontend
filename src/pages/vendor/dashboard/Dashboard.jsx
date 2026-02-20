@@ -7,6 +7,10 @@ import { capitalize } from '@/utils/helper';
 import { ChevronRight, Clock, ExternalLink, ListX, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { StatCard } from '@/components/dashboard/stats/mainStats';
+import { Calendar, CardPay, Cash2, Group3 } from '@/components/dashboard/ui/svg';
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 const VendorDashboard = () => {
   // const [showAlert, setShowAlert] = useState(true);
@@ -64,8 +68,8 @@ const VendorDashboard = () => {
     {
       title: 'Reservations made today',
       value: counters?.reservationsToday || 0,
-      change: 12,
-      changeType: 'positive',
+      change: counters?.reservationsTodayChange || 0,
+      changeType: (counters?.reservationsTodayChange || 0) >= 0 ? 'positive' : 'negative',
       icon: BookingsIcon,
       iconColors: '#60A5FA',
       bgColor: 'bg-blue-50',
@@ -74,8 +78,8 @@ const VendorDashboard = () => {
     {
       title: 'Prepaid Reservations',
       value: counters?.prepaidReservations || 0,
-      change: 8,
-      changeType: 'positive',
+      change: counters?.prepaidReservationsChange || 0,
+      changeType: (counters?.prepaidReservationsChange || 0) >= 0 ? 'positive' : 'negative',
       icon: PrepaidIcon,
       iconColors: '#06CD02',
       bgColor: 'bg-green-50',
@@ -84,8 +88,8 @@ const VendorDashboard = () => {
     {
       title: 'Expected Guests Today',
       value: counters?.expectedGuestsToday || 0,
-      change: 8,
-      changeType: 'positive',
+      change: counters?.expectedGuestsTodayChange || 0,
+      changeType: (counters?.expectedGuestsTodayChange || 0) >= 0 ? 'positive' : 'negative',
       icon: GuestsIcon,
       bgColor: 'bg-purple-50',
       iconColor: 'text-purple-600',
@@ -93,16 +97,46 @@ const VendorDashboard = () => {
     {
       title: 'Pending Payments',
       value: counters?.pendingPayments || 0,
-      change: 5,
-      changeType: 'negative',
+      change: counters?.pendingPaymentsChange || 0,
+      changeType: (counters?.pendingPaymentsChange || 0) >= 0 ? 'positive' : 'negative',
       icon: PendingPaymentIcon,
       bgColor: 'bg-yellow-50',
       iconColor: 'text-yellow-600',
     },
   ];
 
-  const chartData = (timeFilter === 'Weekly' ? bookingTrends?.weekly : bookingTrends?.monthly) || [];
-  const maxValue = Math.max(...chartData.map((d) => d.value), 0);
+  // Chart data based on filter
+  const currentBookingTrends = (timeFilter === 'Weekly' ? bookingTrends?.weekly : bookingTrends?.monthly) || [];
+
+  const chartData = currentBookingTrends.map(item => ({
+    day: item.day || item.week, // Assuming 'day' for weekly, 'week' for monthly
+    this: item.value || 0, // Assuming 'value' is the current period's data
+    last: item.previousValue || 0 // Assuming 'previousValue' exists for comparison, default to 0 if not
+  }));
+
+  // Calculate maxValue for the chart (considering both 'this' and 'last' values)
+  const maxValue = Math.max(
+    ...chartData.flatMap(item => [item.this || 0, item.last || 0]),
+    0
+  );
+  
+  // Calculate booking trends percentage change
+  const thisTotalBookings = chartData.reduce((sum, item) => sum + (item.this || 0), 0);
+  const lastTotalBookings = chartData.reduce((sum, item) => sum + (item.last || 0), 0);
+  const bookingTrendsChange = lastTotalBookings > 0 
+    ? (((thisTotalBookings - lastTotalBookings) / lastTotalBookings) * 100).toFixed(0)
+    : 0;
+  
+  const chartConfig = {
+    this: {
+      label: "This week",
+      color: "#60A5FA",
+    },
+    last: {
+      label: "Last week",
+      color: "#0A6C6D",
+    },
+  }
 
   // Revenue data based on filter
   const revenueData =
@@ -169,7 +203,7 @@ const VendorDashboard = () => {
                     }`}
                   >
                     <span className="mr-1">{stat.changeType === 'positive' ? '↑' : '↓'}</span>
-                    {stat.change}% vs last week
+                    {Math.abs(stat.change)}% vs last week
                   </p>
                 </div>
 
@@ -234,7 +268,7 @@ const VendorDashboard = () => {
             </div>
 
             {/* Reservations Trends */}
-            <div className="bg-white rounded-lg border hidden md:block border-gray-200">
+            <div className="bg-white rounded-lg border w-full hidden md:block border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Reservations Trends</h3>
                 <div className="flex items-center gap-3">
@@ -252,7 +286,7 @@ const VendorDashboard = () => {
                   </select>
                 </div>
               </div>
-              <div className="p-5">
+              <div className="p-5 w-full">
                 <div className="flex items-center gap-6 mb-6">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-teal-600 rounded-full mr-2"></div>
@@ -263,26 +297,39 @@ const VendorDashboard = () => {
                     <span className="text-sm text-gray-600">Last {timeFilter.toLowerCase().slice(0, -2)}</span>
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900 mb-1">{chartData.reduce((sum, item) => sum + item.value, 0)}</p>
-                <p className="text-sm text-green-600 mb-6 flex items-center">
-                  <span className="mr-1">↑</span>
-                  8% vs last {timeFilter.toLowerCase().slice(0, -2)}
+                <p className="text-3xl font-bold text-gray-900 mb-1">{thisTotalBookings}</p>
+                <p className={`text-sm mb-6 flex items-center ${bookingTrendsChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className="mr-1">{bookingTrendsChange >= 0 ? '↑' : '↓'}</span>
+                  {Math.abs(bookingTrendsChange)}% vs last {timeFilter.toLowerCase().slice(0, -2)}
                 </p>
 
                 {/* Bar Chart */}
-                <div className="flex items-end justify-between h-40 gap-2">
-                  {chartData.map((item, index) => (
-                    <div key={index} className="flex-1 flex flex-col items-center justify-end h-full group">
-                      <div className="w-full flex flex-col justify-end relative" style={{ height: '100%' }}>
-                        <div
-                          className="w-16 mx-auto bg-gradient-to-t from-teal-600 to-teal-400 rounded-t transition-all duration-300 hover:from-teal-700 hover:to-teal-500 cursor-pointer"
-                          style={{ height: `${(item.value / maxValue) * 100}%` }}
-                          title={`${item.value} reservations`}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-gray-600 mt-2">{item.day}</span>
-                    </div>
-                  ))}
+                <div className="">
+                  <ChartContainer config={chartConfig}>
+                    <BarChart accessibilityLayer data={chartData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="day"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) => value.slice(0, 3)}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                      <Bar
+                        dataKey="last"
+                        stackId="a"
+                        fill="#0A6C6D"
+                        radius={[0, 0, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="this"
+                        stackId="a"
+                        fill="#60A5FA"
+                        radius={[10, 10, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
                 </div>
               </div>
             </div>
