@@ -194,119 +194,13 @@ export default function ReservationSummary() {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
-          <div className="space-y-6 md:col-span-4">
-            <div className="rounded-2xl bg-white border">
-              <div className=" divide-y">
-                <div className="flex p-4">
-                  <h3 className="text-lg font-semibold">Booking Details</h3>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-                  <DatePicker
-                    title="Check In Date"
-                    value={checkInDate}
-                    onChange={setCheckInDate}
-                  />
-                  <DatePicker
-                    title="Check out Date"
-                    value={checkOutDate}
-                    onChange={setCheckOutDate}
-                  />
-                  <GuestPicker value={guestCount} onChange={setGuestCount} />
-                </div>
-              </div>
-            </div>
-            <div className="rounded-2xl bg-white border">
-              <div className=" divide-y">
-                <div className="flex p-4 justify-between items-center">
-                  <h3 className="text-lg font-semibold">Room Summary</h3>
-                </div>
-                <div className="space-y-4 p-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-600">Room Name</p>
-                      <p className="text-sm  line-clamp-1 font-medium text-gray-900">
-                        Superion {room.category} {room.name}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-600">Price per Night</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        ₦
-                        {(
-                          room.pricePerNight -
-                          room.pricePerNight * (room.discount / 100)
-                        ).toLocaleString()}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-600">Bed Type</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {bedType}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-xs text-gray-600">Guests Allowed</p>
-                      <p className="text-sm font-medium text-gray-900">
-                        {room.adultsCapacity}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="text-sm text-[#0A6C6D] underline">
-                      Free cancellation until 24h before check-in
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="mb-6 space-y-6">
-              <div className="relative">
-                <Label
-                  htmlFor="special-request"
-                  className="text-sm font-medium mb-2 block"
-                >
-                  Special Request (Optional)
-                </Label>
-                <Textarea
-                  id="special-request"
-                  placeholder="Let us know if you have any special request like dietary restrictions, birthday requests, etc."
-                  value={specialRequest}
-                  maxLength={500}
-                  onChange={(e) => setSpecialRequest(e.target.value)}
-                  className="min-h-[100px] bg-[#F9FAFB] border text-sm border-[#E5E7EB] resize-none rounded-xl"
-                />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-sm md:text-xl font-semibold mb-2">
-                  {vendor?.businessName || "Restaurant Name"}
-                </h2>
-                <div className="flex items-start gap-1 text-gray-600 mb-2">
-                  <div>
-                    <MapPin className="h-4 w-4" />
-                  </div>
-                  <span className="text-[12px] md:text-sm truncate w-[210px] sm:w-full">
-                    {vendor?.address || "123 Main St, City, Country"}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 fill-[#F0AE02] text-[#F0AE02]" />
-                  <span className="text-[12px] md:text-sm font-medium">
-                    {vendor?.rating || "4.8"} (
-                    {vendor?.reviews.toLocaleString() || "1,000"} reviews)
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
           {showBookingDetails && (
             <div className="space-y-6 md:col-span-4">
               <div className="rounded-2xl bg-white border">
                 <div className=" divide-y">
                   <div className="flex p-4">
                     <h3 className="text-lg font-semibold">
-                      Reservation Details
+                      Booking Details
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
@@ -314,18 +208,18 @@ export default function ReservationSummary() {
                       title="Check In Date"
                       value={checkInDate}
                       onChange={setCheckInDate}
-                      icon={true}
+                      edit
                     />
                     <DatePicker
                       title="Check out Date"
                       value={checkOutDate}
                       onChange={setCheckOutDate}
-                      icon={true}
+                      edit
                     />
                     <GuestPicker
                       value={guestCount}
                       onChange={setGuestCount}
-                      icon={true}
+                      edit
                     />
                   </div>
                 </div>
@@ -433,11 +327,32 @@ export default function ReservationSummary() {
                   </div>
                 </div>
               </div>
+              <div className="mb-6 hidden md:block space-y-6">
+                <div className="relative">
+                  <Label
+                    htmlFor="special-request"
+                    className="text-sm font-medium mb-2 block"
+                  >
+                    Special Request (Optional)
+                  </Label>
+                  <Textarea
+                    id="special-request"
+                    placeholder="Let us know if you have any special request"
+                    value={specialRequest}
+                    maxLength={500}
+                    onChange={(e) => setSpecialRequest(e.target.value)}
+                    className="min-h-[100px] bg-[#FFFFFF] border text-sm border-[#E5E7EB] resize-none rounded-xl"
+                  />
+                  <p className="absolute bottom-2 right-2 text-xs text-gray-400">
+                    {specialRequest.length}/500
+                  </p>
+                </div>
+              </div>
             </div>
           )}
           {showPaymentStep && (
             <div className="md:col-span-3 space-y-6">
-              <div className="mb-6 space-y-6">
+              <div className="mb-6 md:hidden space-y-6">
                 <div className="relative">
                   <Label
                     htmlFor="special-request"
@@ -569,7 +484,7 @@ export default function ReservationSummary() {
                     <p className="text-[#111827]">Price Details</p>
                     <div className="flex items-center justify-between">
                       <p className="gap-2 flex items-center">
-                        <span className="underline font-semibold text-lg text-[#111827]">
+                        <span className="border-b pb-0 border-[#111827] font-semibold text-lg text-[#111827]">
                           {" "}
                           ₦
                           {(
@@ -595,7 +510,7 @@ export default function ReservationSummary() {
                   </div>
                   <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
                     <p>Sub Total</p>
-                    <p className="underline font-semibold text-lg text-[#111827]">
+                    <p className="font-semibold text-lg text-[#111827]">
                       ₦
                       {partPay
                         ? (
