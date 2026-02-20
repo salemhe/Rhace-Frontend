@@ -342,7 +342,7 @@ const Signup = () => {
         setGoogleLoading(true);
         const code = tokenResponse.code;
         await authService.googleRegister(code);
-        toast.success("Congratulations! Next: verify your email")
+        toast.success("Congratulations! Next: Login")
         navigate('/auth/user/login')
       } catch (error) {
         console.error("Google login failed:", error);

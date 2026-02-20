@@ -2,18 +2,14 @@ import { Banknote, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import ReservationHeader from "@/components/user/restaurant/ReservationHeader";
-// import { RestaurantBooking } from "@/lib/api";
 import { useState } from "react";
 import PaymentPage from "@/components/user/ui/Payment";
-// import { toast } from "react-toastify";
-// import { userService } from "@/services/user.service";
 import { useParams } from "react-router";
-// import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 export default function PrePaymentPage() {
     const [popupOpen, setPopupOpen] = useState(false)
     const { id } = useParams();
-    const storedData = localStorage.getItem('preferences');
+    const storedData = localStorage.getItem('resData');
     const data = JSON.parse(storedData);
     const [showConfirm, setShowConfirm] = useState(false);
     const booking = data.find(booking => booking.resId === id);

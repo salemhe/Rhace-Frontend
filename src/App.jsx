@@ -33,10 +33,12 @@ import Reservation from "./pages/user/restaurant/Reservation";
 import PrePaymentPage from "./pages/user/restaurant/PrePayment";
 import CompletedPage from "./pages/user/restaurant/Completed";
 import ConfirmPage from "./pages/user/restaurant/Confirmation";
-import ClubPage from "./pages/user/club/ClubPage";
 import ClubReservation from "./pages/user/club/Reservation";
 import HotelsPage from "./pages/user/hotels/HotelsPage";
+import HotelConfirmPage from "./pages/user/hotels/Confirmation";
+import ClubConfirmPage from "./pages/user/club/Confirmation";
 import HotelReservation from "./pages/user/hotels/ReservationSummary";
+import ClubPage from "./pages/user/club/ClubPage";
 import BookingsPage from "./pages/user/Bookings";
 import SearchContent from "./pages/user/Search";
 import Favorites from "./pages/user/Favourites";
@@ -129,9 +131,13 @@ const clubRoutes = [{ path: "/clubs/:id", element: <ClubPage /> }];
 
 const clubReservationRoutes = [
   { path: "/clubs/:id/reservations", element: <ClubReservation /> },
+  { path: "/clubs/confirmation/:id", element: <ClubConfirmPage /> },
 ];
 
-const hotelRoutes = [{ path: "/hotels/:id", element: <HotelsPage /> }];
+const hotelRoutes = [
+  { path: "/hotels/:id", element: <HotelsPage /> },
+  { path: "/hotels/confirmation/:id", element: <HotelConfirmPage /> },
+];
 
 const hotelReservationRoutes = [
   { path: "/hotels/:id/reservations", element: <HotelReservation /> },

@@ -7,6 +7,10 @@ import { capitalize } from '@/utils/helper';
 import { ChevronRight, Clock, ExternalLink, ListX, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { StatCard } from '@/components/dashboard/stats/mainStats';
+import { Calendar, CardPay, Cash2, Group3 } from '@/components/dashboard/ui/svg';
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 const VendorDashboard = () => {
   // const [showAlert, setShowAlert] = useState(true);
@@ -112,6 +116,40 @@ const VendorDashboard = () => {
 
   const chartData = (timeFilter === 'Weekly' ? bookingTrends?.weekly : bookingTrends?.monthly) || [];
   const maxValue = Math.max(...chartData.map((d) => d.value), 0);
+  // Chart data based on filter
+  const getChartData = () => {
+    if (timeFilter === 'Weekly') {
+      return [
+        { day: 'Mon', this: 25, last: 40 },
+        { day: 'Tues', this: 50, last: 10 },
+        { day: 'Wed', this: 45, last: 40 },
+        { day: 'Thurs', this: 30, last: 5 },
+        { day: 'Fri', this: 75, last: 60 },
+        { day: 'Sat', this: 85, last: 70 },
+        { day: 'Sun', this: 80, last: 15 }
+      ];
+    } else {
+      return [
+        { day: 'Week 1', this: 180, last: 180 },
+        { day: 'Week 2', this: 220, last: 220 },
+        { day: 'Week 3', this: 195, last: 195 },
+        { day: 'Week 4', this: 240, last: 240 }
+      ];
+    }
+  };
+
+  const chartData = getChartData();
+  const chartConfig = {
+    this: {
+      label: "This week",
+      color: "#60A5FA",
+    },
+    last: {
+      label: "Last week",
+      color: "#0A6C6D",
+    },
+  }
+  const maxValue = Math.max(...chartData.map(d => d.value));
 
   // Revenue data based on filter
   const revenueData =
@@ -244,6 +282,23 @@ const VendorDashboard = () => {
                 </div>
               </div>
             ))}
+          <div className='grid grid-cols-2 md:grid-cols-4 border bg-white rounded-2xl'>
+            <div className='flex h-full items-center'>
+              <StatCard title="Reservations made today" value={reservationStats.todayStats[0].details} change={reservationStats.todayStats[0].change} icon={<Calendar />} color="blue" />
+              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+            </div>
+            <div className='flex h-full items-center'>
+              <StatCard title="Prepaid Reservations" value={reservationStats.todayStats[1].details} change={reservationStats.todayStats[1].change} icon={<CardPay />} color="green" />
+              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+            </div>
+            <div className='flex h-full items-center'>
+              <StatCard title="Expected Guests Today" value={reservationStats.todayStats[2].details} change={reservationStats.todayStats[2].change} icon={<Group3 />} color="purple" />
+              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+            </div>
+            <StatCard title="Pending Payments" value={(reservationStats.todayStats[3].details).toLocaleString('en-US', {
+              minimumFractionDigits: 2,
+              maximumFractionDigits: 2
+            })} change={reservationStats.todayStats[3].change} icon={<Cash2 fill="#E1B505" className="text-[#E1B505]" />} color="orange" />
           </div>
 
           {/* Main Content Grid */}
@@ -296,7 +351,7 @@ const VendorDashboard = () => {
             </div>
 
             {/* Reservations Trends */}
-            <div className="bg-white rounded-lg border hidden md:block border-gray-200">
+            <div className="bg-white rounded-lg border w-full hidden md:block border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Reservations Trends</h3>
                 <div className="flex items-center gap-3">
@@ -314,7 +369,7 @@ const VendorDashboard = () => {
                   </select>
                 </div>
               </div>
-              <div className="p-5">
+              <div className="p-5 w-full">
                 <div className="flex items-center gap-6 mb-6">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-teal-600 rounded-full mr-2"></div>
@@ -325,26 +380,39 @@ const VendorDashboard = () => {
                     <span className="text-sm text-gray-600">Last {timeFilter.toLowerCase().slice(0, -2)}</span>
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900 mb-1">{chartData.reduce((sum, item) => sum + item.value, 0)}</p>
+                <p className="text-3xl font-bold text-gray-900 mb-1">{chartData.reduce((sum, item) => sum + item.this, 0)}</p>
                 <p className="text-sm text-green-600 mb-6 flex items-center">
                   <span className="mr-1">↑</span>
                   8% vs last {timeFilter.toLowerCase().slice(0, -2)}
                 </p>
 
                 {/* Bar Chart */}
-                <div className="flex items-end justify-between h-40 gap-2">
-                  {chartData.map((item, index) => (
-                    <div key={index} className="flex-1 flex flex-col items-center justify-end h-full group">
-                      <div className="w-full flex flex-col justify-end relative" style={{ height: '100%' }}>
-                        <div
-                          className="w-16 mx-auto bg-gradient-to-t from-teal-600 to-teal-400 rounded-t transition-all duration-300 hover:from-teal-700 hover:to-teal-500 cursor-pointer"
-                          style={{ height: `${(item.value / maxValue) * 100}%` }}
-                          title={`${item.value} reservations`}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-gray-600 mt-2">{item.day}</span>
-                    </div>
-                  ))}
+                <div className="">
+                  <ChartContainer config={chartConfig}>
+                    <BarChart accessibilityLayer data={chartData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="day"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) => value.slice(0, 3)}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                      <Bar
+                        dataKey="last"
+                        stackId="a"
+                        fill="#0A6C6D"
+                        radius={[0, 0, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="this"
+                        stackId="a"
+                        fill="#60A5FA"
+                        radius={[10, 10, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
                 </div>
               </div>
             </div>

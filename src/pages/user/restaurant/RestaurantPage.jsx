@@ -78,6 +78,7 @@ const RestaurantsPage = () => {
                                     name={restaurant.businessName}
                                 />
                                 <RestaurantImages2
+                                    vendor={restaurant}
                                     images={restaurant?.profileImages ?? []}
                                     name={restaurant.businessName}
                                 />
@@ -92,7 +93,7 @@ const RestaurantsPage = () => {
                                                 Opened
                                             </span>
                                         </div>
-                                        <RestaurantSaveCopy id={id} />
+                                        <RestaurantSaveCopy type="restaurants" id={id} vendor={restaurant} />
                                     </div>
                                     <div className="md:flex hidden gap-1 items-center text-xs">
                                         <StarRating size={16} rating={Number(restaurant.rating)} readOnly />

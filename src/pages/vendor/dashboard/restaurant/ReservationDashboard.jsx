@@ -45,6 +45,7 @@ import { userService } from '@/services/user.service';
 // import { formatCustomDate } from '@/utils/formatDate';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import UniversalLoader from '@/components/user/ui/LogoLoader';
+import { formatTime } from '@/utils/formatDate';
 
 
 const categories = [
@@ -155,8 +156,8 @@ const ReservationDashboard = () => {
           </div>
         )
       },
-      cell: ({ row }) => <div className={`${row.getValue("mealPreselected") ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 w-max rounded-full`}>
-        {row.getValue("mealPreselected") ? <Check className='text-[#37703F] size-5' /> : <XIcon className='text-[#EF4444] size-5' />}{row.getValue("mealPreselected") ? "Yes" : "No"}</div>,
+      cell: ({ row }) => <div className={`${row.getValue("mealPreselected") ? "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]" : "text-[#EF4444] bg-[#FCE6E6] border-[#ffbbbb]"} flex py-1.5 px-3 w-max items-center border rounded-full`}>
+        {row.getValue("mealPreselected") ? <Check className='text-[#37703F] size-4' /> : <XIcon className='text-[#EF4444] size-4' />}{row.getValue("mealPreselected") ? "Yes" : "No"}</div>,
     },
     {
       accessorKey: "paymentStatus",
@@ -168,8 +169,8 @@ const ReservationDashboard = () => {
           </div>
         )
       },
-      cell: ({ row }) => <div className={` w-max ${row.getValue("paymentStatus") === "success" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-        {row.getValue("paymentStatus")}</div>,
+      cell: ({ row }) => <div className={` w-max ${row.getValue("paymentStatus") === "paid" ? "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]" : "text-[#EF4444] bg-[#FCE6E6] border-[#ffbbbb]"} flex py-1.5 px-3 border rounded-full`}>
+        {row.getValue("paymentStatus") === "not_paid" ? "Pay at Restaurant" : row.getValue("paymentStatus").split("_").join(" ")}</div>,
     },
     {
       accessorKey: "reservationStatus",
@@ -181,8 +182,8 @@ const ReservationDashboard = () => {
           </div>
         )
       },
-      cell: ({ row }) => <div className={`w-max ${row.getValue("reservationStatus") === "Paid" ? "bg-[#D1FAE5] text-[#37703F]" : "text-[#EF4444] bg-[#FCE6E6]"} flex py-1.5 px-3 rounded-full`}>
-        {row.getValue("reservationStatus")}</div>,
+      cell: ({ row }) => <div className={`w-max ${row.getValue("reservationStatus") === "upcoming" ? "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]" : "text-[#EF4444] bg-[#FCE6E6] border-[#FAE48A]"} flex py-1.5 px-3 border rounded-full`}>
+        {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}</div>,
     },
     {
       id: "actions",
@@ -350,7 +351,7 @@ const ReservationDashboard = () => {
           </div>
         </div>
         {!hideTab &&
-          <div className='hidden md:grid grid-cols-4 border rounded-2xl'>
+          <div className='hidden md:grid grid-cols-4 border bg-white rounded-2xl'>
             <div className='flex h-full items-center'>
               <StatCard title="Reservations made today" value={stats.totalReservations.count} change={stats.totalReservations.change} icon={<Calendar />} color="blue" />
               <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
@@ -367,7 +368,7 @@ const ReservationDashboard = () => {
             <StatCard title="Pending Payments" value={(stats.pendingPayments.count).toLocaleString('en-US', {
               minimumFractionDigits: 2,
               maximumFractionDigits: 2
-            })} change={stats.pendingPayments.change} icon={<Cash2 fill="#E1B505" />} color="orange" />
+            })} change={stats.pendingPayments.change} icon={<Cash2 fill="#E1B505" className="text-[#E1B505]" />} color="orange" />
             {/* </div> */}
           </div>
         }
