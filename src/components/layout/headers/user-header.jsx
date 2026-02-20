@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { Bell, ChevronDown, ChevronUp, Heart, User } from "lucide-react";
+import { Bell, ChevronDown, ChevronUp, Heart, LogIn, User } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
@@ -87,7 +87,7 @@ const UserHeader = () => {
 
   return (
     <header
-      className={`absolute md:fixed top-0 z-50 w-full transition-all duration-300 ${scrolled ? "bg-white shadow-md" : "bg-transparent text-white"}`}
+      className={`${profile ? "absolute md:fixed" : "fixed"} top-0 z-50 w-full transition-all duration-300 ${scrolled ? "bg-white shadow-md" : "bg-transparent text-white"}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">
@@ -123,73 +123,85 @@ const UserHeader = () => {
           </nav>
 
           {/* User Actions */}
-          <div className="flex items-center space-x-4">
-            <button
-              className={`hidden md:flex p-2 rounded-full transition-colors duration-200 ${scrolled || isSearchPage ? "text-gray-700 hover:bg-gray-100" : "text-white hover:bg-white/10"}`}
-            >
-              <Heart className="w-5 h-5" />
-            </button>
-            <button
-              className={`hidden md:flex p-2 rounded-full transition-colors duration-200 ${scrolled || isSearchPage ? "text-gray-700 hover:bg-gray-100" : "text-white hover:bg-white/10"}`}
-            >
-              <Bell className="w-5 h-5" />
-            </button>
-
-            {/* Profile Dropdown */}
-            <div className="relative text-gray-700" ref={dropdownRef}>
+          {profile ? (
+            <div className="flex items-center space-x-4">
               <button
-                onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className={`flex items-center space-x-3 px-2 py-2 rounded-full transition-colors duration-200 ${scrolled || isSearchPage ? "outline outline-gray-200 hover:bg-gray-50" : "outline outline-white/30 hover:bg-white/10"}`}
+                className={`hidden md:flex p-2 rounded-full transition-colors duration-200 ${scrolled || isSearchPage ? "text-gray-700 hover:bg-gray-100" : "text-white hover:bg-white/10"}`}
               >
-                {loading ? (
-                  <div className="w-6 h-6 bg-gray-300 rounded-full animate-pulse" />
-                ) : (
-                  // <img
-                  //   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
-                  //   alt="Profile"
-                  //   className="w-6 h-6 rounded-full object-cover"
-                  // />
-                  <>
-                    {profile ? (
-                      <Avatar className="w-8 h-8">
-                        <AvatarImage
-                          src={profile.profilePic}
-                          alt={`${profile.firstName} ${profile.lastName}`}
-                        />
-                        <AvatarFallback>
-                          {profile.firstName[0].toUpperCase()}
-                          {profile.lastName[0].toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    ) : (
-                      <User className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />
-                    )}
-                  </>
-                )}
-                {isMenuOpen ? (
-                  <ChevronUp
-                    className={`w-5 h-5 ${scrolled || isSearchPage ? "text-gray-700" : "text-white"}`}
-                  />
-                ) : (
-                  <ChevronDown
-                    className={`w-5 h-5 ${scrolled || isSearchPage ? "text-gray-700" : "text-white"}`}
-                  />
-                )}
+                <Heart className="w-5 h-5" />
+              </button>
+              <button
+                className={`hidden md:flex p-2 rounded-full transition-colors duration-200 ${scrolled || isSearchPage ? "text-gray-700 hover:bg-gray-100" : "text-white hover:bg-white/10"}`}
+              >
+                <Bell className="w-5 h-5" />
               </button>
 
-              {isMenuOpen && (
-                <div className="absolute top-full right-0 mt-2 w-72 z-50">
-                  <UserProfileMenu
-                    onClose={() => setIsMenuOpen(false)}
-                    navigate={navigate}
-                    isAuthenticated={user.isAuthenticated}
-                    handleLogout={handleLogout}
-                    user={profile}
-                  />
-                </div>
-              )}
+              {/* Profile Dropdown */}
+              <div className="relative text-gray-700" ref={dropdownRef}>
+                <button
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  className={`flex items-center space-x-3 px-2 py-2 rounded-full transition-colors duration-200 ${scrolled || isSearchPage ? "outline outline-gray-200 hover:bg-gray-50" : "outline outline-white/30 hover:bg-white/10"}`}
+                >
+                  {loading ? (
+                    <div className="w-6 h-6 bg-gray-300 rounded-full animate-pulse" />
+                  ) : (
+                    // <img
+                    //   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop"
+                    //   alt="Profile"
+                    //   className="w-6 h-6 rounded-full object-cover"
+                    // />
+                    <>
+                      {profile ? (
+                        <Avatar className="w-8 h-8">
+                          <AvatarImage
+                            src={profile.profilePic}
+                            alt={`${profile.firstName} ${profile.lastName}`}
+                          />
+                          <AvatarFallback>
+                            {profile.firstName[0].toUpperCase()}
+                            {profile.lastName[0].toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <User className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />
+                      )}
+                    </>
+                  )}
+                  {isMenuOpen ? (
+                    <ChevronUp
+                      className={`w-5 h-5 ${scrolled || isSearchPage ? "text-gray-700" : "text-white"}`}
+                    />
+                  ) : (
+                    <ChevronDown
+                      className={`w-5 h-5 ${scrolled || isSearchPage ? "text-gray-700" : "text-white"}`}
+                    />
+                  )}
+                </button>
+
+                {isMenuOpen && (
+                  <div className="absolute top-full right-0 mt-2 w-72 z-50">
+                    <UserProfileMenu
+                      onClose={() => setIsMenuOpen(false)}
+                      navigate={navigate}
+                      isAuthenticated={user.isAuthenticated}
+                      handleLogout={handleLogout}
+                      user={profile}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          ) : (
+            <button onClick={() => navigate("/auth/user/login")} className="
+              text-xs flex gap-2 items-center sm:text-sm
+              rounded-full py-2 px-4 sm:px-6 sm:py-3 tracking-wide 
+              text-white hover:cursor-pointer
+              bg-linear-to-b from-[#0A6C6D] to-[#08577C] hover:from-[#084F4F] hover:to-[#064E5C]
+              transition-all duration-200 shadow-sm"
+            >
+              Login <LogIn className="size-4" />
+            </button>
+          )}
         </div>
       </div>
     </header>

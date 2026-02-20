@@ -1,6 +1,5 @@
 import { createContext, useContext, useState } from "react";
 import { toast } from "react-toastify";
-import { userService } from "@/services/user.service";
 import { useSelector } from 'react-redux';
 
 const ReservationContext = createContext(
@@ -40,6 +39,10 @@ export function ReservationsProvider({
 
     const occasions = ["Birthday", "Casual", "Business", "Anniversary", "Other"];
 
+    const generateId = () => {
+        return Date.now().toString(36).substring(0, 8).toUpperCase();
+    };
+
 
     const handleSubmit = async () => {
         try {
@@ -65,7 +68,7 @@ export function ReservationsProvider({
 
             // Prepare reservation data
             const reservationData = {
-                // _id: "1",
+                resId: generateId(),
                 reservationType: "hotel",
                 customerName: `${user.firstName} ${user.lastName}`.trim(),
                 customerEmail: user.email,
@@ -82,18 +85,20 @@ export function ReservationsProvider({
                 image: vendor.profileImages?.[0],
             };
 
-            const res = await userService.createReservation(reservationData);
+            // const res = await userService.createReservation(reservationData);
 
-            const reservationResponse = res.data;
-            setBooking(reservationResponse);
+            // const reservationResponse = res.data;
+            // setBooking(reservationResponse);
 
 
-            toast.success("Reservation submitted successfully!");
-            return 1
-
+            // toast.success("Reservation submitted successfully!");
+            setBooking(reservationData)
+            const resDatas = JSON.parse(localStorage.getItem('resData') || '[]');
+            localStorage.setItem('resData', JSON.stringify([...resDatas, reservationData]));
+            
             // Navigate to confirmation page
             // navigate(`/restaurants/completed/${reservationResponse._id}`);
-
+            return 1
         } catch (error) {
             console.error("Error submitting reservation:", error);
 
@@ -140,6 +145,7 @@ export function ReservationsProvider({
                 roomId,
                 setActiveTab,
                 booking,
+                setBooking,
                 page,
                 nights,
                 setPage,

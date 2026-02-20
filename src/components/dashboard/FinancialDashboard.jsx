@@ -158,7 +158,7 @@ const FinancialDashboard = ({ info }) => {
                                 </defs>
                                 <Area
                                     dataKey="earnings"
-                                    type="natural"
+                                    type="linear"
                                     fill="url(#fillDesktop)"
                                     fillOpacity={0.4}
                                     stroke="#60A5FA"

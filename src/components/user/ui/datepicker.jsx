@@ -16,12 +16,16 @@ import {
   isSameDay,
 } from "date-fns";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { ChevronDown } from "lucide-react";
+import { Edit3 } from "@/public/icons/icons";
 
 const DatePicker = ({
   value,
   onChange,
   className,
-  title = "Select date"
+  title = "Select date",
+  chevron,
+  edit,
 }) => {
   const [open, setOpen] = useState(false);
   const [currentMonth, setCurrentMonth] = useState(value || new Date());
@@ -78,24 +82,21 @@ const DatePicker = ({
           <Button
             variant="outline"
             className={cn(
-              "w-full justify-start text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
+              "w-full justify-between text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] items-center rounded-xl px-6! min-w-[150px] flex h-[60px]",
               !value && "text-muted-foreground", className
             )}
           >
-            <Label htmlFor="date" className="text-black">
-              {title}
-            </Label>
-            {value ? format(value, "do MMM, yyyy") : "Select date"}
+            <div className="gap-2 flex flex-col">
+              <Label htmlFor="date" className="text-black text-xs">
+                {title}
+              </Label>
+              {value ? format(value, "do MMM, yyyy") : "Select date"}
+            </div>
+            {chevron && <ChevronDown className="size-5" />}
+            {edit && <Edit3 className="size-5" />}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-64 sm:w-96" align="start">
-          {/* <Calendar
-            initialFocus
-            mode="single"
-            selected={date}
-            onSelect={setDate}
-            disabled={(date) => date < new Date()}
-          /> */}
           <div className="flex items-center justify-between mb-2 px-2">
             <span className="text-base flex-1 font-medium text-gray-800">
               {format(currentMonth, "MMMM yyyy")}

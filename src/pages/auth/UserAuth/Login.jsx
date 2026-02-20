@@ -222,7 +222,7 @@ const Login = () => {
         navigate(redirectTo, { replace: true });
       } catch (error) {
         console.error("Google login failed:", error);
-        toast.error("Google login failed. Please try again.");
+        toast.error(error.response.data.message);
       } finally {
         setGoogleLoading(false);
       }

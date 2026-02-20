@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
+import { FavoriteButton2 } from "./favoriteButton";
 
 const Images2 = ({
     images,
     name,
+    vendor,
 }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const navigate = useNavigate();
@@ -18,6 +21,17 @@ const Images2 = ({
         }, 5000);
         return () => clearInterval(interval);
     }, [images.length]);
+
+    const handleCopy = () => {
+        navigator.clipboard
+            .writeText(
+                `https://rhace-frontend.vercel.app/${vendor.vendorType}/${vendor._id}`
+            )
+            .then(() => toast.success("Link copied to clipboard!"))
+            .catch(() => {
+                toast.error("Failed to copy.");
+            });
+    };
 
     return (
         <>
@@ -51,6 +65,7 @@ const Images2 = ({
                     </button>
                     <div className="flex gap-2">
                         <button
+                            onClick={handleCopy}
                             className="size-10 rounded-xl bg-white text-black hover:bg-gray-50 flex justify-center border border-[#E5E7EB] items-center gap-2"
                         >
                             <svg
@@ -73,38 +88,14 @@ const Images2 = ({
                                 </defs>
                             </svg>
                         </button>
-                        <button
-                            className="size-10 rounded-xl bg-white text-black hover:bg-gray-50 flex justify-center border border-[#E5E7EB] items-center gap-2"
-                        >
-                            <svg
-                                width="20"
-                                height="20"
-                                viewBox="0 0 20 20"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                            >
-                                <g clipPath="url(#clip0_2317_1077)">
-                                    <path
-                                        fillRule="evenodd"
-                                        clipRule="evenodd"
-                                        d="M15.4117 3.1675C17.1575 4.185 18.3858 6.25083 18.3317 8.66083C18.2642 11.6692 15.9233 14.3225 11.9325 16.6925C11.3408 17.0442 10.7175 17.5 10 17.5C9.29585 17.5 8.64585 17.0358 8.06668 16.6917C4.07752 14.3225 1.73585 11.6683 1.66835 8.66083C1.61418 6.25083 2.84252 4.18583 4.58835 3.1675C6.22168 2.21666 8.27335 2.21083 10 3.615C11.7267 2.21083 13.7783 2.21583 15.4117 3.1675ZM14.5725 4.60833C13.4108 3.93166 11.9592 3.95583 10.7025 5.2275C10.6105 5.32017 10.5011 5.39372 10.3805 5.44391C10.2599 5.4941 10.1306 5.51993 10 5.51993C9.86942 5.51993 9.74011 5.4941 9.61955 5.44391C9.49898 5.39372 9.38953 5.32017 9.29752 5.2275C8.04085 3.95583 6.58918 3.93166 5.42752 4.60833C4.22418 5.31 3.29418 6.79833 3.33502 8.625C3.38168 10.7175 5.03502 12.9533 8.91835 15.26C9.25835 15.4625 9.61335 15.7217 10 15.8292C10.3867 15.7217 10.7417 15.4625 11.0817 15.26C14.965 12.9533 16.6183 10.7183 16.665 8.62416C16.7067 6.79916 15.7758 5.31 14.5725 4.60833Z"
-                                        fill="#111827"
-                                    />
-                                </g>
-                                <defs>
-                                    <clipPath id="clip0_2317_1077">
-                                        <rect width="20" height="20" fill="white" />
-                                    </clipPath>
-                                </defs>
-                            </svg>
-                        </button>
+                        <FavoriteButton2 vendor={vendor} />
                     </div>
                 </div>
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40 flex space-x-2">
+                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40 flex space-x-1">
                     {images.map((_, index) => (
                         <button
                             key={index}
-                            className={`w-2.5 h-2.5 rounded-full transition-all duration-200 ${currentImageIndex === index ? "bg-white w-7.5" : "bg-gray-400"
+                            className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${currentImageIndex === index ? "bg-white w-4" : "bg-gray-400"
                                 }`}
                             onClick={() => setCurrentImageIndex(index)}
                         />

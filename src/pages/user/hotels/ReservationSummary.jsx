@@ -36,7 +36,6 @@ export default function ReservationSummary() {
     setSpecialRequest,
     nights,
     booking,
-    setPage,
     checkInDate,
     handleSubmit,
     checkOutDate,
@@ -208,25 +207,15 @@ export default function ReservationSummary() {
                   <h3 className="text-lg font-semibold">Room Summary</h3>
                 </div>
                 <div className="space-y-4 p-4">
-                  <div className="grid md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Room Name</p>
-                      {!editRoom ? (
-                        <p className="text-sm font-medium text-gray-900">
-                          {room.name}
+                        <p className="text-sm  line-clamp-1 font-medium text-gray-900">
+                          Superion {room.category} {room.name}
                         </p>
-                      ) : (
-                        <input
-                          type="text"
-                          value={roomName}
-                          onChange={(e) => setRoomName(e.target.value)}
-                          className="w-full border rounded-lg p-2 text-sm"
-                        />
-                      )}
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Price per Night</p>
-                      {!editRoom ? (
                         <p className="text-sm font-medium text-gray-900">
                           ₦
                           {(
@@ -234,73 +223,24 @@ export default function ReservationSummary() {
                             room.pricePerNight * (room.discount / 100)
                           ).toLocaleString()}
                         </p>
-                      ) : (
-                        <input
-                          type="number"
-                          value={pricePerNight}
-                          onChange={(e) =>
-                            setPricePerNight(Number(e.target.value))
-                          }
-                          className="w-full border rounded-lg p-2 text-sm"
-                        />
-                      )}
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Bed Type</p>
-                      {!editRoom ? (
                         <p className="text-sm font-medium text-gray-900">
                           {bedType}
                         </p>
-                      ) : (
-                        <input
-                          type="text"
-                          value={bedType}
-                          onChange={(e) => setBedType(e.target.value)}
-                          className="w-full border rounded-lg p-2 text-sm"
-                        />
-                      )}
                     </div>
                     <div className="space-y-1">
                       <p className="text-xs text-gray-600">Guests Allowed</p>
-                      {!editRoom ? (
                         <p className="text-sm font-medium text-gray-900">
                           {room.adultsCapacity}
                         </p>
-                      ) : (
-                        <input
-                          type="number"
-                          value={guestsAllowed}
-                          min={1}
-                          onChange={(e) =>
-                            setGuestsAllowed(Number(e.target.value))
-                          }
-                          className="w-full border rounded-lg p-2 text-sm"
-                        />
-                      )}
                     </div>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="text-sm text-[#0A6C6D] underline">
                       Free cancellation until 24h before check-in
                     </div>
-                    {editRoom && (
-                      <div className="flex gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            // revert
-                            setRoomName(room.name);
-                            setPricePerNight(room.pricePerNight);
-                            setBedType(room.bedType);
-                            setGuestsAllowed(room.adultsCount);
-                            setEditRoom(false);
-                          }}
-                          className="text-sm text-gray-500 px-3 py-1 rounded-lg border"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -500,9 +440,7 @@ export default function ReservationSummary() {
       </div>
       {popupOpen && (
         <PaymentPage
-          type="restaurants"
           booking={booking}
-          id={booking._id}
           setPopupOpen={setPopupOpen}
         />
       )}

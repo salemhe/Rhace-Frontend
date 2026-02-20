@@ -9,24 +9,28 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
 import { FiMinus, FiPlus } from "react-icons/fi";
+import { ChevronDown } from "lucide-react";
+import { Edit3 } from "@/public/icons/icons";
 
 const GUEST_CONFIG = {
-  adults:    { label: 'Adults',   subtitle: '18 years and above',    min: 1 },
-  children:  { label: 'Children', subtitle: '18 years and under',    min: 0 },
-  infants:   { label: 'Infant',   subtitle: 'Under the age of 2',     min: 0 },
+  adults: { label: 'Adults', subtitle: '18 years and above', min: 1 },
+  children: { label: 'Children', subtitle: '18 years and under', min: 0 },
+  infants: { label: 'Infant', subtitle: 'Under the age of 2', min: 0 },
 };
 
 export function GuestPicker({
   value,
   onChange,
   className,
+  chevron,
+  edit,
 }) {
   const [open, setOpen] = useState(false);
-    const [counts, setCounts] = useState({
-      adults: 1,
-      children: 0,
-      infants: 0,
-    });
+  const [counts, setCounts] = useState({
+    adults: 1,
+    children: 0,
+    infants: 0,
+  });
 
   const inc = (type) => {
     setCounts((c) => {
@@ -51,14 +55,18 @@ export function GuestPicker({
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
+            "w-full justify-between text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] items-center rounded-xl !px-6 min-w-[150px] flex h-[60px]",
             !value && "text-muted-foreground", className
           )}
         >
-          <Label htmlFor="date" className="text-black">
-            Guest
-          </Label>
-          {value ? `${value} ${Number(value) > 1 ? 'Guests' : 'Guest'}` : "Number of guests"}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="date" className="text-black text-xs">
+              Guest
+            </Label>
+            {value ? `${value} ${Number(value) > 1 ? 'Guests' : 'Guest'}` : "Number of guests"}
+          </div>
+          {chevron && <ChevronDown className="size-5" />}
+          {edit && <Edit3 className="size-5" />}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 mt-2 overflow-auto">

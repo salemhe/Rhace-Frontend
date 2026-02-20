@@ -1,4 +1,4 @@
-import { ArrowLeft, MapPin, Star, X } from "lucide-react";
+import { ArrowLeft, MapPin, Plus, Star, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useReservations } from "@/contexts/club/ReservationContext";
 import ReservationHeader from "./ReservationHeader";
@@ -11,11 +11,15 @@ import { format } from "date-fns";
 import { useNavigate } from "react-router";
 import { useState } from "react";
 import PaymentPage from "../ui/Payment";
+import { TablePicker } from "../ui/tablepicker";
+import ScrollToTop from "@/components/ScrollToTop";
 
-export default function ReservationSummary({ id }) {
+export default function ReservationSummary() {
   const [popupOpen, setPopupOpen] = useState(false)
   const {
     comboItems,
+    setBottleItems,
+    setComboItems,
     bottleItems,
     vipExtraItems,
     guestCount,
@@ -28,13 +32,16 @@ export default function ReservationSummary({ id }) {
     time,
     setTime,
     table,
+    setTable,
     vendor,
     totalPrice,
     handleSubmit,
     booking,
     isLoading,
     setPartPay,
-    partPay
+    partPay,
+    tableSelected,
+    loading
   } = useReservations();
   const navigate = useNavigate();
 
@@ -45,8 +52,19 @@ export default function ReservationSummary({ id }) {
     }
   }
 
+  const handleTable = (v) => {
+    setTable(
+      table.map((item) => ({
+        ...item,
+        selected: item._id === v._id ? !item.selected : false,
+      }))
+    );
+  }
+
+
   return (
     <div className="min-h-screen mb-[65px] md:mt-0 bg-gray-50">
+      <ScrollToTop />
       <ReservationHeader title="Reservation Details" index={2} />
       <div className="md:hidden flex items-center gap-3 px-4 py-3 ">
         <button onClick={() => setPage(0)}>
@@ -113,16 +131,18 @@ export default function ReservationSummary({ id }) {
                   <h3 className="text-lg font-semibold">Reservation Details</h3>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-                  <DatePicker value={date} onChange={setDate} />
-                  <TimePicker value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
-                  <GuestPicker value={guestCount} onChange={setGuestCount} />
+                  <DatePicker title="Date" edit value={date} onChange={setDate} />
+                  <TimePicker title="Time" edit value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
+                  <TablePicker edit loading={loading} tables={table} value={tableSelected && tableSelected.name} onChange={(value) => handleTable(value)} />
+                  <GuestPicker edit value={guestCount} onChange={setGuestCount} />
                 </div>
               </div>
             </div>
             <div className="rounded-2xl bg-white border">
               <div className=" divide-y">
-                <div className="flex p-4">
-                  <h3 className="text-lg font-semibold">Reservation Details</h3>
+                <div className="flex p-4 text-[#0A6C6D] justify-between">
+                  <h3 className="text-lg font-semibold">Add Ons</h3>
+                  <button onClick={() => setPage(0)} className="flex gap-2 font-medium"><Plus /> Add more</button>
                 </div>
                 <div className="space-y-4 p-4">
                   {comboItems.filter((item) => item.selected).map((item, i) => (
@@ -132,7 +152,17 @@ export default function ReservationSummary({ id }) {
                     >
                       <div className="flex justify-between items-center">
                         <p className="text-sm text-[#111827]">{item.name}</p>
-                        <X className="text-[#606368]" />
+                        <button onClick={() => {
+                          setComboItems(
+                            comboItems.map((item) => ({
+                              ...item,
+                              selected: item._id === item._id && false,
+                            }))
+                          )
+                        }
+                        }>
+                          <X className="text-[#606368] shrink-0" />
+                        </button>
                       </div>
                       <div className="flex justify-between items-center">
                         <p className="text-xs text-[#111827]">
@@ -151,9 +181,19 @@ export default function ReservationSummary({ id }) {
                     >
                       <div className="flex justify-between items-center">
                         <p className="text-sm text-[#111827]">{item.name}</p>
-                        <X className="text-[#606368]" />
+                        <button onClick={() => {
+                          setTable(
+                            table.map((item) => ({
+                              ...item,
+                              selected: item._id === item._id && false,
+                            }))
+                          )
+                        }
+                        }>
+                          <X className="text-[#606368] shrink-0" />
+                        </button>
                       </div>
-                      <div className="flex justify-between items-center">
+                      <div className="flex justify-end items-center">
                         <p className="text-sm text-[#111827]">
                           ₦{item.price.toLocaleString()}
                         </p>
@@ -167,7 +207,17 @@ export default function ReservationSummary({ id }) {
                     >
                       <div className="flex justify-between items-center">
                         <p className="text-sm text-[#111827]">{item.name}</p>
-                        <X className="text-[#606368]" />
+                        <button onClick={() => {
+                          setBottleItems(
+                            bottleItems.map((item) => ({
+                              ...item,
+                              quantity: item._id === item._id && 0,
+                            }))
+                          )
+                        }
+                        }>
+                          <X className="text-[#606368] shrink-0" />
+                        </button>
                       </div>
                       <div className="flex justify-between items-center">
                         <p className="text-xs text-[#111827]">
@@ -192,11 +242,11 @@ export default function ReservationSummary({ id }) {
                 </Label>
                 <Textarea
                   id="special-request"
-                  placeholder="Let us know if you have any special request like dietary restrictions, birthday requests, etc."
+                  placeholder="Let us know if you have any special request"
                   value={specialRequest}
                   maxLength={500}
                   onChange={(e) => setSpecialRequest(e.target.value)}
-                  className="min-h-[100px] bg-[#F9FAFB] border text-sm border-[#E5E7EB] resize-none rounded-xl"
+                  className="min-h-[100px] bg-white border text-sm border-[#E5E7EB] resize-none rounded-xl"
                 />
                 <p className="absolute bottom-2 right-2 text-xs text-gray-400">
                   {specialRequest.length}/500
@@ -208,7 +258,7 @@ export default function ReservationSummary({ id }) {
             <div className="rounded-2xl bg-white border">
               <div className=" divide-y">
                 <div className="flex p-4">
-                  <h3 className="text-lg font-semibold">Reservation Details</h3>
+                  <h3 className="text-lg font-semibold">Choose Payment Plan</h3>
                 </div>
                 <div className="p-4">
                   <div className="cursor-pointer">
@@ -254,15 +304,6 @@ export default function ReservationSummary({ id }) {
               <div className="divide-y">
                 <div className="pb-3 space-y-2 text-sm">
                   <p className="text-[#111827]">Price Details</p>
-                  <div className="flex items-center justify-between">
-                    <p className="text-[#606368]">Table fee</p>
-                    <p className="text-[#111827]">
-                      ₦
-                      {(
-                        vendor && vendor.priceRange * parseInt(guestCount, 10)
-                      )?.toLocaleString()}
-                    </p>
-                  </div>
                   {comboItems.filter((item) => item.selected).length > 0 && (
                     <div className="flex items-center justify-between">
                       <p className="text-[#606368]">Premium combos</p>
@@ -333,7 +374,7 @@ export default function ReservationSummary({ id }) {
             Back to Club Page
           </Button>
           <Button
-            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 w-full max-w-xs rounded-xl cursor-pointer"
+            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 w-full max-w-xs rounded-xl cursor-pointer h-10"
             onClick={handleContinue}
             disabled={!date || !guestCount || !time || isLoading}
           >
@@ -341,9 +382,10 @@ export default function ReservationSummary({ id }) {
           </Button>
         </div>
       </div>
-      {popupOpen &&
-        <PaymentPage booking={booking} id={vendor._id} type="clubs" setPopupOpen={setPopupOpen} />
+      {
+        popupOpen &&
+        <PaymentPage booking={booking} setPopupOpen={setPopupOpen} />
       }
-    </div>
+    </div >
   );
 }

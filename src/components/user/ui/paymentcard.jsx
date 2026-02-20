@@ -3,11 +3,11 @@ import React from 'react';
 const PaymentCard = ({ payment, onViewDetails }) => {
   const getStatusStyle = (status) => {
     switch (status) {
-      case 'Success':
+      case 'success':
         return 'bg-emerald-50 text-emerald-700 border-emerald-100';
-      case 'Pending':
+      case 'pending':
         return 'bg-amber-50 text-amber-700 border-amber-100';
-      case 'Failed':
+      case 'failed':
         return 'bg-rose-50 text-rose-700 border-rose-100';
       default:
         return 'bg-gray-50 text-gray-700 border-gray-100';
@@ -54,7 +54,7 @@ const PaymentCard = ({ payment, onViewDetails }) => {
         <div className="flex items-center gap-3 sm:gap-4 w-full sm:w-auto justify-between sm:justify-end">
           <div className="text-right flex gap-4">
             <div className="text-[#0A6E7D] font-bold text-base sm:text-lg">
-              NGN {payment.amountPaid.toLocaleString('en-NG', { 
+              {payment.amount.toLocaleString('en-NG', { 
                 style: 'currency', 
                 currency: 'NGN' 
               })}

@@ -1,24 +1,25 @@
 // "use client"
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ChevronLeft,
   ChevronRight,
-  Wifi,
-  Users,
-  Bed,
-  Coffee,
-  Car,
-  Building,
+  // Wifi,
+  // Users,
+  // Bed,
+  // Coffee,
+  // Car,
+  // Building,
 } from "lucide-react";
 // import { RoomsData } from '@/lib/api';
-import { hotelService } from "@/services/hotel.service";
+// import { hotelService } from "@/services/hotel.service";
 import UniversalLoader from "../ui/LogoLoader";
 import { toast } from "react-toastify";
 import { HiPercentBadge } from "react-icons/hi2";
-import { MdCheckBox } from "react-icons/md";
+// import { MdCheckBox } from "react-icons/md";
 import { capitalize } from "@/utils/helper";
+import { BedFill, Building1, Car2, CheckMark, Group3, Wifi } from "@/public/icons/icons";
 
-const Rooms = ({ id, setSelectedRoom, setShow }) => {
+const Rooms = ({ setSelectedRoom, setShow, rooms }) => {
   const tabs = [
     { title: "Superior Standard Room", value: "Standard" },
     { title: "Superior Deluxe Room", value: "Deluxe" },
@@ -26,11 +27,9 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
   ];
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [currentImageIndex, setCurrentImageIndex] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
 
-  const [rooms, setRooms] = useState([]);
-  const [filteredRooms, setFilteredRooms] = useState([]);
-  console.log(filteredRooms);
+  
+  const filteredRooms = rooms.filter((r) => r.category === activeTab.value)
 
   const nextImage = (roomId, totalImages) => {
     setCurrentImageIndex((prev) => ({
@@ -50,28 +49,25 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
     return `₦${price.toLocaleString()}`;
   };
 
-  useEffect(() => {
-    setFilteredRooms(rooms.filter((r) => r.category === activeTab.value));
-  }, [activeTab]);
 
-  useEffect(() => {
-    const fetchRooms = async () => {
-      try {
-        const res = await hotelService.getRoomTypes(id);
-        setRooms(res);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchRooms();
-  }, []);
+  // useEffect(() => {
+  //   const fetchRooms = async () => {
+  //     try {
+  //       const res = await hotelService.getRoomTypes(id);
+  //       setRooms(res);
+  //     } catch (error) {
+  //       console.error(error);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+  //   fetchRooms();
+  // }, []);
 
-  if (isLoading) return <UniversalLoader />;
+  if (!rooms) return <UniversalLoader />;
 
   return (
-    <div className="min-h-screen py-">
+    <div className="min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-4">
@@ -145,62 +141,64 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
                   </p>
 
                   {/* Amenities */}
-                  <div className="grid grid-cols-3 gap-2 mb-4 text-xs text-gray-600">
+                  <div className="grid grid-cols-3 gap-2 mb-4 text-xs text-[#111827]">
                     {room.amenities.includes("Wi-Fi") && (
                       <div className="flex items-center">
-                        <Wifi className="w-3 h-3 mr-1" />
+                        <Wifi className="size-5 mr-1" />
                         <span>Free WiFi</span>
                       </div>
                     )}
                     <div className="flex items-center">
-                      <Users className="w-3 h-3 mr-1" />
+                      <Group3 className="size-5 mr-1" />
                       <span>{room.adultsCapacity} Adults</span>
                     </div>
                     <div className="flex items-center">
-                      <Bed className="w-3 h-3 mr-1" />
+                      <BedFill className="size-5 mr-1" />
                       <span>{room.amenities.bedType || "1 Twin Bed"}</span>
                     </div>
                     {room.amenities.includes("Free Breakfast") && (
                       <div className="flex items-center">
-                        <Coffee className="w-3 h-3 mr-1" />
+                        <DishCoverFill className="size-5 mr-1" />
                         <span>Free Breakfast</span>
                       </div>
                     )}
                     {room.amenities.includes("Free Parking") && (
                       <div className="flex items-center">
-                        <Car className="w-3 h-3 mr-1" />
+                        <Car2 className="size-5 mr-1" />
                         <span>Free Parking</span>
                       </div>
                     )}
                     {room.amenities.includes("City View") && (
                       <div className="flex items-center">
-                        <Building className="w-3 h-3 mr-1" />
+                        <Building1 className="size-5 mr-1" />
                         <span>City View</span>
                       </div>
                     )}
                   </div>
 
                   {/* Show more amenities link */}
-                  <a
+                  {room.amenities.length > 5 && (
+                    <a
                     href="#"
                     className=" font-normal items-center flex sm:font-medium text-xs sm:text-sm mb-4 "
-                  >
+                    >
                     <span className="text-[#0A6C6D]  underline ">
                       Show more amenities
                     </span>{" "}
                     <ChevronRight className="w-4 h-4 text-[#606368] " />
                   </a>
+                  )}
 
                   {/* Discount and Availability */}
                   <div className="flex items-center w-full justify-between mb-4">
                     <div className="flex items-center justify-between w-full space-x-2">
                       <span className="border-[#E0B300] border flex justify-center gap-2 items-center text-[#111827] text-xs px-2 py-1 rounded-lg">
-                        <HiPercentBadge className="text-[#E0B300]" />
+                        <HiPercentBadge className="text-[#E0B300] size-5" />
                         <span>{room.discount}% Discount</span>
                       </span>
-                      <div className="flex items-center gap-1.5 text-teal-600 text-xs">
+                      <div className="flex items-center gap-1.5 text-xs">
                         {/* <div className="w-2 h-2 bg-teal-600 rounded-full mr-1"></div> */}
-                        <MdCheckBox className="text-teal-600 w-5 h-5" />
+                        <CheckMark className="w-5 h-5" />
                         <span className="text-[#111827]">
                           {room.totalUnits} rooms left
                         </span>
@@ -214,11 +212,11 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
                   </p>
 
                   {/* Pricing */}
-                  <div className="flex items-center justify-between mb-4">
-                    <div>
-                      <span className="text-lg font-semibold   sm:font-bold text-gray-900">
+                  <div className="flex items-center justify-between font-semibold mb-4">
+                    <div className="flex items-center">
+                      <span className="text-lg font-semibold sm:font-bold text-[#111827]">
                         Price:{" "}
-                        <span className="underline">
+                        <span className="border-b border-[#111827]">
                           {formatPrice(
                             room.pricePerNight -
                               room.pricePerNight * (room.discount / 100),
@@ -226,11 +224,11 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
                         </span>
                       </span>
                       {room.discount > 0 && (
-                        <span className="text-lg font-semibold   sm:font-bold  text-[#606368] line-through ml-2">
+                        <span className="text-lg font-semibold sm:font-bold  text-[#606368] line-through ml-2">
                           {formatPrice(room.pricePerNight)}
                         </span>
                       )}
-                      <span className="text-xs text-[#606368] ml-1">
+                      <span className="text-xs text-[#606368] font-normal ml-1">
                         /night
                       </span>
                     </div>
@@ -241,11 +239,8 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
                     onClick={() => {
                       setSelectedRoom({
                         ...room,
-                        pricePerNight:
-                          room.pricePerNight -
-                          room.pricePerNight * (room.discount / 100),
                       });
-                      toast.success(`Successfully selected ${room.name} room.`);
+                      toast.success(`Successfully selected ${room.name}.`);
                       if (window.innerWidth >= 768)
                         window.scrollTo({ top: 0, behavior: "smooth" });
                       setShow(true);
@@ -262,6 +257,11 @@ const Rooms = ({ id, setSelectedRoom, setShow }) => {
                 </div>
               </div>
             ))}
+            {filteredRooms.length === 0 && (
+              <div className="text-sm text-gray-500">
+                No rooms for this category
+              </div>
+            )}
         </div>
       </div>
     </div>
