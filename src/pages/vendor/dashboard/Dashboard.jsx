@@ -101,15 +101,6 @@ const VendorDashboard = () => {
     },
   ];
 
-  // Reservations data
-  // const [reservations, setReservations] = useState([
-  //   { id: 1, name: 'Emily Johnson', reservationId: '#12345', date: 'June 5, 2025', time: '7:30 pm', guests: 4, status: 'Upcoming', statusColor: 'bg-teal-50 text-teal-700', minutesUntil: 45 },
-  //   { id: 2, name: 'Michael Chen', reservationId: '#12346', date: 'June 5, 2025', time: '8:00 pm', guests: 2, status: 'Upcoming', statusColor: 'bg-teal-50 text-teal-700', minutesUntil: 75 },
-  //   { id: 3, name: 'Sarah Williams', reservationId: '#12347', date: 'June 5, 2025', time: '7:15 pm', guests: 6, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 28 },
-  //   { id: 4, name: 'David Brown', reservationId: '#12348', date: 'June 5, 2025', time: '7:20 pm', guests: 3, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 18 },
-  //   { id: 5, name: 'Jessica Martinez', reservationId: '#12349', date: 'June 5, 2025', time: '7:10 pm', guests: 5, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 8 }
-  // ]);
-
   const chartData = (timeFilter === 'Weekly' ? bookingTrends?.weekly : bookingTrends?.monthly) || [];
   const maxValue = Math.max(...chartData.map((d) => d.value), 0);
 
@@ -128,38 +119,6 @@ const VendorDashboard = () => {
       sources: [],
     };
 
-  // Calculate upcoming reservations count
-  // const upcomingCount = reservations.filter(r => r.minutesUntil <= 30).length;
-
-  // // Simulate new reservation
-  // const addNewReservation = () => {
-  //   const names = ['John Doe', 'Jane Smith', 'Robert Taylor', 'Lisa Anderson', 'Tom Wilson'];
-  //   const randomName = names[Math.floor(Math.random() * names.length)];
-  //   const randomGuests = Math.floor(Math.random() * 6) + 2;
-  //   const newId = Math.max(...reservations.map(r => r.id)) + 1;
-
-  //   const newReservation = {
-  //     id: newId,
-  //     name: randomName,
-  //     reservationId: `₦${12345 + newId}`,
-  //     date: 'June 5, 2025',
-  //     time: '9:00 pm',
-  //     guests: randomGuests,
-  //     status: 'Upcoming',
-  //     statusColor: 'bg-teal-50 text-teal-700',
-  //     minutesUntil: 120
-  //   };
-
-  //   setReservations([newReservation, ...reservations.slice(0, 4)]);
-
-  //   // Update stats
-  //   setStats(prevStats => prevStats.map((stat, idx) => {
-  //     if (idx === 0) return { ...stat, value: stat.value + 1 };
-  //     if (idx === 2) return { ...stat, value: stat.value + randomGuests };
-  //     return stat;
-  //   }));
-  // };
-
   // Generate donut chart path
   const generateDonutPath = (percentage, offset = 0) => {
     const radius = 70;
@@ -169,8 +128,6 @@ const VendorDashboard = () => {
 
     return { dashArray, dashOffset, circumference };
   };
-
-
 
   if (loading) {
     return (
@@ -183,36 +140,17 @@ const VendorDashboard = () => {
   return (
     <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
       <div className="min-h-screen mb-14 bg-gray-50 p-6">
-
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Alert Banner */}
-          {/* {showAlert && upcomingCount > 0 && (
-            <div className="bg-yellow-50 border-l-3 border-yellow-200 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <Clock className="w-5 h-5 text-yellow-600 mr-3" />
-                <p className="text-yellow-800 text-sm font-medium">
-                  {upcomingCount} Reservation{upcomingCount > 1 ? 's' : ''} commencing in the next 30 minutes
-                </p>
-              </div>
-              <button onClick={() => setShowAlert(false)} className="text-yellow-600 hover:text-yellow-800">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          )} */}
-
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Welcome Back, {capitalize(vendor.businessName)}!</h1>
               <p className="text-gray-600 mt-1">Here's what is happening today.</p>
             </div>
-            {/* <div>
-            <button onClick={addNewReservation} className="px-3 py-2 bg-teal-600 text-white rounded-md text-sm hover:bg-teal-700">Simulate Reservation</button>
-          </div> */}
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 bg-white md:grid-cols-2 lg:grid-cols-4 gap-4  rounded-lg border border-gray-200 ">
+          <div className="grid grid-cols-1 bg-white md:grid-cols-2 lg:grid-cols-4 gap-4 rounded-lg border border-gray-200">
             {stats.map((stat, index) => (
               <div key={index} className="flex justify-between p-5">
                 <div>
@@ -398,8 +336,8 @@ const VendorDashboard = () => {
                             fill="none"
                             stroke="#14b8a6"
                             strokeWidth="24"
-                            strokeDasharray={`${generateDonutPath(newCustomers, total).dashArray
-                              } ${generateDonutPath(newCustomers, total).circumference}`}
+                            strokeDasharray={`${generateDonutPath(newPercentage, total).dashArray
+                              } ${generateDonutPath(newPercentage, total).circumference}`}
                           />
 
                           {/* Returning Customers Segment */}
@@ -410,9 +348,9 @@ const VendorDashboard = () => {
                             fill="none"
                             stroke="#fbbf24"
                             strokeWidth="24"
-                            strokeDasharray={`${generateDonutPath(returningCustomers, total).dashArray
-                              } ${generateDonutPath(returningCustomers, total).circumference}`}
-                            strokeDashoffset={`${generateDonutPath(newCustomers, total).dashOffset
+                            strokeDasharray={`${generateDonutPath(returningPercentage, total).dashArray
+                              } ${generateDonutPath(returningPercentage, total).circumference}`}
+                            strokeDashoffset={`${-generateDonutPath(newPercentage, total).dashArray
                               }`}
                           />
                         </svg>
@@ -443,9 +381,7 @@ const VendorDashboard = () => {
                         <div className="flex items-center gap-3">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-yellow-400 rounded-full mr-2"></div>
-                            <span className="text-sm text-gray-600">
-                              {returningPercentage}%
-                            </span>
+                            <span className="text-sm text-gray-600">{returningPercentage}%</span>
                           </div>
                           <span className="text-sm text-gray-900 font-medium">
                             Returning Customers
@@ -458,57 +394,41 @@ const VendorDashboard = () => {
               </div>
             </div>
 
-
-            {/* Revenue (Menu Category) */}
+            {/* Revenue by Category */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Revenue (Menu Category)</h3>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={revenueFilter}
-                    onChange={(e) => setRevenueFilter(e.target.value)}
-                    className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white cursor-pointer"
-                  >
-                    <option>Weekly</option>
-                    <option>Monthly</option>
-                  </select>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
-                </div>
+                <h3 className="text-base font-semibold text-gray-900">Revenue by Category</h3>
+                <select
+                  value={revenueFilter}
+                  onChange={(e) => setRevenueFilter(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white cursor-pointer"
+                >
+                  <option>Weekly</option>
+                  <option>Monthly</option>
+                </select>
               </div>
               <div className="p-5">
-                <div className="mb-4">
-                  <p className="text-2xl font-bold text-gray-900">₦{revenueData.total.toLocaleString()}</p>
-                  <p className="text-sm text-green-600 flex items-center">
-                    <span className="mr-1">↑</span>
-                    {revenueData.change}% vs last {revenueFilter.toLowerCase().slice(0, -2)}
-                  </p>
-                </div>
-
-                {/* Color Bar */}
-                <div className="flex h-3 rounded-full overflow-hidden mb-4">
+                <p className="text-2xl font-bold text-gray-900 mb-1">
+                  ₦{revenueData.total.toLocaleString()}
+                </p>
+                <p className="text-xs text-green-600 mb-4 flex items-center">
+                  <span className="mr-1">↑</span>
+                  {revenueData.change}% vs last {revenueFilter.toLowerCase().slice(0, -2)}
+                </p>
+                <div className="space-y-3">
                   {revenueData.items.map((item, index) => (
-                    <div
-                      key={index}
-                      className={`${item.color} transition-all duration-300 hover:opacity-80 cursor-pointer`}
-                      style={{ width: `${item.percentage}%` }}
-                      title={`${item.category}: ₦${item.amount.toLocaleString()}`}
-                    />
-                  ))}
-                </div>
-
-                {/* Legend */}
-                <div className="space-y-2">
-                  {revenueData.items.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm hover:bg-gray-50 p-1 rounded transition-colors">
-                      <div className="flex items-center">
-                        <div className={`w-3 h-3 rounded-sm ${item.color} mr-2`}></div>
-                        <span className="text-gray-900 font-medium">{item.category}</span>
+                    <div key={index}>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm text-gray-600">{item.name}</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          ₦{item.amount.toLocaleString()}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-gray-900 font-medium">{item.percentage}%</span>
-                        <span className="text-gray-500">(₦{item.amount.toLocaleString()})</span>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-teal-600 h-2 rounded-full"
+                          style={{ width: `${item.percentage}%` }}
+                        ></div>
                       </div>
                     </div>
                   ))}
@@ -516,7 +436,7 @@ const VendorDashboard = () => {
               </div>
             </div>
 
-            {/* Reservation Source */}
+            {/* Reservation Source - Updated to match the donut chart style */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-base font-semibold text-gray-900">Reservation Source</h3>
@@ -538,8 +458,8 @@ const VendorDashboard = () => {
                 <div className="relative w-48 h-48 mb-4">
                   <svg className="w-full h-full -rotate-90">
                     {sourceData.sources.map((source, index) => {
-                      const offset = sourceData.sources.slice(0, index).reduce((sum, s) => sum + s.value, 0);
-                      const paths = generateDonutPath(source.value, offset);
+                      const offset = sourceData.sources.slice(0, index).reduce((sum, s) => sum + s.percentage, 0);
+                      const paths = generateDonutPath(source.percentage, offset);
                       const colors = ['#14b8a6', '#fbbf24', '#60a5fa'];
 
                       return (
@@ -563,15 +483,18 @@ const VendorDashboard = () => {
                   </div>
                 </div>
                 <div className="space-y-2 w-full">
-                  {sourceData.sources.map((source, index) => (
-                    <div key={index} className="flex items-center justify-between hover:bg-gray-50 p-1 rounded transition-colors">
-                      <div className="flex items-center">
-                        <div className={`w-3 h-3 ${source.color} rounded-full mr-2`}></div>
-                        <span className="text-sm text-gray-900 font-medium">{source.name}</span>
+                  {sourceData.sources.map((source, index) => {
+                    const colors = ['bg-teal-600', 'bg-yellow-400', 'bg-blue-400'];
+                    return (
+                      <div key={index} className="flex items-center justify-between hover:bg-gray-50 p-1 rounded transition-colors">
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 ${colors[index]} rounded-full mr-2`}></div>
+                          <span className="text-sm text-gray-900 font-medium">{source.name}</span>
+                        </div>
+                        <span className="text-sm text-gray-600">{source.percentage}%</span>
                       </div>
-                      <span className="text-sm text-gray-600">{source.value}%</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
