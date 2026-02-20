@@ -1,21 +1,41 @@
-"use client";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
 import { GuestPicker } from "../ui/guestpicker";
 import DatePicker from "../ui/datepicker";
+import * as SelectPrimitive from "@radix-ui/react-select"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+} from "@/components/ui/select"
+import { cn } from "@/lib/utils";
+import { Label } from "@/components/ui/label";
 
-const HotelBookingForm = ({ id, selectedRoom }) => {
+const HotelBookingForm = ({ id, selectedRoom, rooms, setSelectedRoom }) => {
   const [date, setDate] = useState();
   const [date2, setDate2] = useState();
-  const [request, setRequest] = useState("");
   const [guests, setGuests] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const category = [
+    {
+      name: "Standard",
+      rooms: rooms && rooms.filter((r) => r.category === "Standard")
+    },
+    {
+      name: "Deluxe",
+      rooms: rooms && rooms.filter((r) => r.category === "Deluxe")
+    },
+    {
+      name: "Executive",
+      rooms: rooms && rooms.filter((r) => r.category === "Executive")
+    },
+  ]
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,11 +43,12 @@ const HotelBookingForm = ({ id, selectedRoom }) => {
       date: date ? date.toISOString() : "",
       date2: date2 ? date2.toISOString() : "",
       guests,
-      specialRequest: request,
       roomId: selectedRoom._id,
     });
 
+
     try {
+      setIsLoading(true)
       if (!date || !date2) {
         throw new Error("Date is required");
       }
@@ -47,25 +68,31 @@ const HotelBookingForm = ({ id, selectedRoom }) => {
       setIsLoading(false);
     }
   };
-  console.log(selectedRoom);
+
+  const formatPrice = (price) => {
+    return `₦${price.toLocaleString()}`;
+  };
 
   return (
     <div
       className="p-4 rounded-2xl bg-[#ffffff] border border-[#E5E7EB]"
       data-booking-form
     >
-      {selectedRoom._id && (
+      {selectedRoom && (
         <div className="w-96 h-7 inline-flex justify-between items-center">
           <div className="flex justify-start items-center gap-1">
             <div className="justify-start text-gray-900 text-xl font-bold font-['Inter'] leading-relaxed">
-              ₦{selectedRoom.pricePerNight.toLocaleString()}
+              {formatPrice(
+                selectedRoom.pricePerNight -
+                selectedRoom.pricePerNight * (selectedRoom.discount / 100),
+              )}
             </div>
             <div className="justify-start text-zinc-600 text-sm font-normal font-['Inter'] leading-tight">
               /night
             </div>
           </div>
           {selectedRoom.discount > 0 && (
-            <div className="h-7 px-2 rounded-lg  outline-1 outline-offset-[-1px] outline-yellow-500 inline-flex flex-col justify-center items-center gap-2">
+            <div className="h-7 px-2 rounded-lg  outline-1 -outline-offset-1 outline-yellow-500 inline-flex flex-col justify-center items-center gap-2">
               <div className="inline-flex justify-start items-center gap-1.5">
                 <div className="w-4 h-4 relative overflow-hidden">
                   <SvgIcon />
@@ -81,7 +108,7 @@ const HotelBookingForm = ({ id, selectedRoom }) => {
       <div className="w-96 justify-start text-zinc-600 text-sm font-bold font-['Inter'] leading-tight">
         Prices includes all fees
       </div>
-      {!selectedRoom._id && (
+      {!selectedRoom && (
         <p className="text-xs">
           Select the room of your choice <span className="text-red-500">*</span>
         </p>
@@ -96,19 +123,38 @@ const HotelBookingForm = ({ id, selectedRoom }) => {
           />
         </div>
         <GuestPicker value={guests} onChange={setGuests} />
-        <div className="flex flex-col gap-y-3">
-          <Label htmlFor="special-request">Special Request</Label>
-          <Textarea
-            id="special-request"
-            value={request}
-            onChange={(e) => setRequest(e.target.value)}
-            placeholder="e.g Night Party"
-            className="resize-none h-[100px] font-normal bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl"
-          />
-        </div>
+        <Select disabled={!rooms} onValueChange={(value) => setSelectedRoom(rooms.find(r => r._id === value))} >
+          <SelectPrimitive.Trigger asChild className="w-full">
+            <Button
+              variant="outline"
+              type="button"
+              className={cn(
+                "w-full justify-start text-left font-normal bg-[#F9FAFB] border gap-2 border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
+                !selectedRoom && "text-muted-foreground"
+              )}
+            >
+              <Label className="text-black">
+                Room Type
+              </Label>
+              {selectedRoom ? `${selectedRoom.name}` : "Select Room types"}
+            </Button>
+          </SelectPrimitive.Trigger>
+          <SelectContent>
+            {category.map((item, i) => (
+              <SelectGroup key={i}>
+                <SelectLabel>{item.name}</SelectLabel>
+                {
+                  item.rooms && item.rooms.map((room, idx) => (
+                    <SelectItem key={idx} value={room._id}>{room.name}</SelectItem>
+                  ))
+                }
+              </SelectGroup>
+            ))}
+          </SelectContent>
+        </Select>
         <Button
           type="submit"
-          disabled={!date || !date2 || isLoading || !selectedRoom._id}
+          disabled={!date || !date2 || isLoading || !selectedRoom}
           className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
         >
           {isLoading ? (

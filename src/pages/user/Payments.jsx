@@ -1,6 +1,7 @@
 import Header from '@/components/user/Header';
 import PaymentCard from '@/components/user/ui/paymentcard';
 import { paymentService } from '@/services/payment.service';
+import { Loader2 } from 'lucide-react';
 import React, { useEffect, useMemo, useState } from 'react'
 import { Area, AreaChart, ResponsiveContainer } from 'recharts';
 
@@ -8,7 +9,7 @@ const PaymentsHistory = () => {
     const [payments, setPayments] = useState([]);
     const [filterStatus, setFilterStatus] = useState('All');
     const [selectedPayment, setSelectedPayment] = useState(null);
-    // const [isLoading, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
     const filteredPayments = useMemo(() => {
         return filterStatus === 'All'
@@ -18,8 +19,8 @@ const PaymentsHistory = () => {
 
     const totalSpent = useMemo(() => {
         return payments
-            .filter(p => p.status === 'Paid')
-            .reduce((sum, p) => sum + p.amountPaid, 0);
+            .filter(p => p.status === 'success')
+            .reduce((sum, p) => sum + p.amount, 0);
     }, [payments]);
 
     const chartData = useMemo(() => {
@@ -28,14 +29,21 @@ const PaymentsHistory = () => {
             .reverse()
             .map(p => ({
                 date: new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                amountPaid: p.amountPaid
+                amount: p.amount
             }));
     }, [payments]);
 
     useEffect(() => {
         const fetchPayments = async () => {
-            const payments = await paymentService.getPayments();
-            setPayments(payments);
+            setIsLoading(true)
+            try {
+                const payments = await paymentService.getPayments();
+                setPayments(payments);
+            } catch (error) {
+                console.log(error)
+            } finally {
+                setIsLoading(false)
+            }
         }
         fetchPayments();
     }, [])
@@ -56,12 +64,16 @@ const PaymentsHistory = () => {
                             <div className="bg-white border border-gray-100 rounded-lg p-4 flex items-center gap-4">
                                 <div className="text-left">
                                     <div className="text-xs text-gray-400 font-medium uppercase tracking-wider">Total Spent (Monthly)</div>
-                                    <div className="text-2xl font-bold text-[#0A6E7D]">NGN {totalSpent.toLocaleString()}</div>
+                                    <div className="text-2xl font-bold text-[#0A6E7D]">
+                                        {totalSpent.toLocaleString('en-NG', {
+                                            style: 'currency',
+                                            currency: 'NGN'
+                                        })}</div>
                                 </div>
                                 <div className="w-24 h-12">
                                     <ResponsiveContainer width="100%" height="100%">
                                         <AreaChart data={chartData}>
-                                            <Area type="monotone" dataKey="amountPaid" stroke="#0A6E7D" fill="#0A6E7D33" strokeWidth={2} />
+                                            <Area type="monotone" dataKey="amount" stroke="#0A6E7D" fill="#0A6E7D33" strokeWidth={2} />
                                         </AreaChart>
                                     </ResponsiveContainer>
                                 </div>
@@ -71,7 +83,7 @@ const PaymentsHistory = () => {
 
                     {/* Filters */}
                     <div className="flex items-center gap-2 mb-6 overflow-x-auto pb-2 custom-scrollbar">
-                        {['All', 'Paid', 'Pending', 'Failed'].map((status, i) => (
+                        {['All', 'success', 'pending', 'failed'].map((status, i) => (
                             <button
                                 key={i}
                                 onClick={() => setFilterStatus(status)}
@@ -94,7 +106,13 @@ const PaymentsHistory = () => {
                                 onViewDetails={setSelectedPayment}
                             />
                         ))}
-                        {filteredPayments.length === 0 && (
+                        {isLoading && (
+                            <div className="text-center py-20 bg-white rounded-3xl border flex flex-col items-center gap-4 border-dashed border-gray-300">
+                                <Loader2 className='animate-spin text-8' />
+                                <div className="text-gray-400 mb-2">No payments found for this filter</div>
+                            </div>
+                        )}
+                        {!isLoading && filteredPayments.length === 0 && (
                             <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-gray-300">
                                 <div className="text-gray-400 mb-2">No payments found for this filter</div>
                                 <button onClick={() => setFilterStatus('All')} className="text-[#0A6E7D] font-semibold underline">View all history</button>
@@ -133,12 +151,12 @@ const PaymentsHistory = () => {
                                         <div>
                                             <div className="text-xs text-gray-400 font-bold uppercase tracking-widest mb-1">Total Payment</div>
                                             <div className="text-3xl font-extrabold text-[#0A6E7D]">
-                                                NGN{selectedPayment.amountPaid.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                                ₦{selectedPayment.amount.toLocaleString("en-NG")}
                                             </div>
                                         </div>
-                                        <div className={`px-4 py-1.5 rounded-full text-xs font-bold border uppercase tracking-widest ${selectedPayment.status === 'Paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
-                                                selectedPayment.status === 'Pending' ? 'bg-amber-50 text-amber-700 border-amber-100' :
-                                                    'bg-rose-50 text-rose-700 border-rose-100'
+                                        <div className={`px-4 py-1.5 rounded-full text-xs font-bold border uppercase tracking-widest ${selectedPayment.status === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                                            selectedPayment.status === 'pending' ? 'bg-amber-50 text-amber-700 border-amber-100' :
+                                                'bg-rose-50 text-rose-700 border-rose-100'
                                             }`}>
                                             {selectedPayment.status}
                                         </div>
@@ -153,7 +171,7 @@ const PaymentsHistory = () => {
                                         </div>
                                         <div>
                                             <div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Reference</div>
-                                            <div className="text-xs font-semibold text-gray-800 uppercase tracking-tighter">{selectedPayment.reference}</div>
+                                            <div className="text-xs font-semibold text-gray-800 uppercase tracking-tighter">{selectedPayment.paystackReference}</div>
                                         </div>
                                         <div>
                                             <div className="text-[10px] text-gray-400 font-bold uppercase mb-0.5">Payment Method</div>
@@ -161,14 +179,14 @@ const PaymentsHistory = () => {
                                         </div>
                                     </div>
 
-                                    <div className="flex gap-4">
+                                    {/* <div className="flex gap-4">
                                         <button className="flex-1 bg-[#0A6E7D] text-white py-3.5 rounded-2xl font-bold hover:bg-[#085a66] transition-all shadow-lg shadow-[#0A6E7D]/20">
                                             Download PDF Receipt
                                         </button>
                                         <button className="px-5 py-3.5 border border-gray-200 rounded-2xl text-gray-600 font-bold hover:bg-gray-50 transition-all">
                                             Support
                                         </button>
-                                    </div>
+                                    </div> */}
                                 </div>
                             </div>
                         </div>

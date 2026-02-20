@@ -230,7 +230,7 @@ export function Onboard() {
     >
       <path
         fill="#1f2937"  // ← Tailwind's gray-800
-        stroke="#fff"
+        // stroke="#fff"
         strokeWidth="1"
         fillRule="evenodd"
         d="M5.5 1.333A.833.833 0 0 1 6.333.5h3.334a.833.833 0 0 1 0 1.667h-.834v.862c4.534.409 7.509 5.11 5.775 9.447a.83.83 0 0 1-.775.524H2.167a.83.83 0 0 1-.774-.524c-1.735-4.337 1.24-9.038 5.774-9.447v-.862h-.834a.833.833 0 0 1-.833-.834m2.308 3.334c-3.521 0-5.986 3.377-5.047 6.666h10.478c.94-3.289-1.526-6.666-5.047-6.666zm-7.308 10a.833.833 0 0 1 .833-.834h13.334a.833.833 0 0 1 0 1.667H1.333a.833.833 0 0 1-.833-.833"
@@ -250,7 +250,7 @@ export function Onboard() {
     >
       <path
         fill="#1f2937"
-        stroke="#fff"
+        // stroke="#fff"
         strokeWidth="1"
         fillRule="evenodd"
         d="M7.96.83a1.67 1.67 0 0 0-1.384.153l-3.433 2.06a1.67 1.67 0 0 0-.81 1.429v11.195H1.5a.833.833 0 0 0 0 1.666h15a.833.833 0 1 0 0-1.666h-.833V4.6a1.67 1.67 0 0 0-1.14-1.58zM14 15.668V4.6L8.167 2.657v13.01zM6.5 2.972 4 4.472v11.195h2.5z"
@@ -258,28 +258,16 @@ export function Onboard() {
       />
     </svg>
   );
-
   const SvgIcon3 = ({ className }) => (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="14"
-      height="18"
-      viewBox="0 0 14 18"
-      fill="none"
-      className={className}
-    >
+    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18" fill="currentColor" className={className} >
       <path
-        fill="none"
-        stroke="#000"   // 👈 changed from #fff to #000
-        strokeWidth="1"
+        fill="#111827"
         fillRule="evenodd"
-        d="M11.1666 0.666992C11.8296 0.666992 12.4655 0.930384 12.9344 1.39923C13.4032 1.86807 13.6666 2.50395 13.6666 3.16699V14.8337C13.6666 15.4967 13.4032 16.1326 12.9344 16.6014C12.4655 17.0703 11.8296 17.3337 11.1666 17.3337H2.83325C2.17021 17.3337 1.53433 17.0703 1.06549 16.6014C0.596644 16.1326 0.333252 15.4967 0.333252 14.8337V3.16699C0.333252 2.50395 0.596644 1.86807 1.06549 1.39923C1.53433 0.930384 2.17021 0.666992 2.83325 0.666992H11.1666Z"
+        d="M11.1666 0.666992C11.8296 0.666992 12.4655 0.930384 12.9344 1.39923C13.4032 1.86807 13.6666 2.50395 13.6666 3.16699V14.8337C13.6666 15.4967 13.4032 16.1326 12.9344 16.6014C12.4655 17.0703 11.8296 17.3337 11.1666 17.3337H2.83325C2.17021 17.3337 1.53433 17.0703 1.06549 16.6014C0.596644 16.1326 0.333252 15.4967 0.333252 14.8337V3.16699C0.333252 2.50395 0.596644 1.86807 1.06549 1.39923C1.53433 0.930384 2.17021 0.666992 2.83325 0.666992H11.1666ZM11.1666 2.33366H2.83325C2.61224 2.33366 2.40028 2.42146 2.244 2.57774C2.08772 2.73402 1.99992 2.94598 1.99992 3.16699V14.8337C1.99992 15.0547 2.08772 15.2666 2.244 15.4229C2.40028 15.5792 2.61224 15.667 2.83325 15.667H11.1666C11.3876 15.667 11.5996 15.5792 11.7558 15.4229C11.9121 15.2666 11.9999 15.0547 11.9999 14.8337V3.16699C11.9999 2.94598 11.9121 2.73402 11.7558 2.57774C11.5996 2.42146 11.3876 2.33366 11.1666 2.33366ZM6.99992 7.33366C7.88397 7.33366 8.73182 7.68485 9.35694 8.30997C9.98206 8.93509 10.3333 9.78294 10.3333 10.667C10.3333 11.551 9.98206 12.3989 9.35694 13.024C8.73182 13.6491 7.88397 14.0003 6.99992 14.0003C6.11586 14.0003 5.26802 13.6491 4.6429 13.024C4.01777 12.3989 3.66659 11.551 3.66659 10.667C3.66659 9.78294 4.01777 8.93509 4.6429 8.30997C5.26802 7.68485 6.11586 7.33366 6.99992 7.33366ZM6.99992 9.00033C6.55789 9.00033 6.13397 9.17592 5.82141 9.48848C5.50885 9.80104 5.33325 10.225 5.33325 10.667C5.33325 11.109 5.50885 11.5329 5.82141 11.8455C6.13397 12.1581 6.55789 12.3337 6.99992 12.3337C7.44195 12.3337 7.86587 12.1581 8.17843 11.8455C8.49099 11.5329 8.66658 11.109 8.66658 10.667C8.66658 10.225 8.49099 9.80104 8.17843 9.48848C7.86587 9.17592 7.44195 9.00033 6.99992 9.00033ZM6.99992 4.00033C7.33144 4.00033 7.64938 4.13202 7.8838 4.36644C8.11822 4.60086 8.24992 4.9188 8.24992 5.25033C8.24992 5.58185 8.11822 5.89979 7.8838 6.13421C7.64938 6.36863 7.33144 6.50033 6.99992 6.50033C6.6684 6.50033 6.35046 6.36863 6.11603 6.13421C5.88161 5.89979 5.74992 5.58185 5.74992 5.25033C5.74992 4.9188 5.88161 4.60086 6.11603 4.36644C6.35046 4.13202 6.6684 4.00033 6.99992 4.00033Z"
         clipRule="evenodd"
       />
     </svg>
-  )
-
-
+  );
 
 
 
@@ -600,6 +588,7 @@ export function Onboard() {
                     <Label className="text-base font-medium">Select Your Bank</Label>
                     <Select
                       value={formData.bankCode}
+                      disabled={loading}
                       onValueChange={(value) => {
                         const bank = banks.find((b) => b.code === value)
                         updateFormData({
@@ -609,10 +598,10 @@ export function Onboard() {
                         setBankVerified(false)
                       }}
                     >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose your bank" />
+                      <SelectTrigger className="">
+                        {loading ? (<><span>Loading Banks...</span></>) : <SelectValue placeholder="Choose your bank" />}
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="w-full max-w-[300px]">
                         {banks.map((bank, i) => (
                           <SelectItem key={i} value={bank.code}>
                             {bank.name}
@@ -649,10 +638,10 @@ export function Onboard() {
                         className="w-[100px] h-[25px] py-5 rounded-md bg-[#0A6C6D] text-white text-sm font-normal transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D]"
                       >
                         {isVerifyingBank ? (
-                          <>
-                            <Clock className="w-4 h-4 mr-2 animate-spin" />
+                          <span className="flex gap-2 items-center">
+                            <Clock className="w-4 h-4 animate-spin" />
                             Verifying
-                          </>
+                          </span>
                         ) : (
                           "Verify"
                         )}
@@ -793,6 +782,8 @@ export function Onboard() {
                           <Input
                             id="closingTime"
                             type="time"
+                            // defaultValue="10:30:00"
+                            // step="1"
                             value={formData.closingTime}
                             onChange={(e) => updateFormData({ closingTime: e.target.value })}
                           />
@@ -846,7 +837,7 @@ export function Onboard() {
               )}
 
               {/* Navigation */}
-              <div className="flex justify-between pt-8 border-t">
+              <div className="flex justify-between pt-8">
                 <Button
                   variant="outline"
                   onClick={handleBack}
