@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
-import { FavoriteButton2 } from "./favoriteButton";
+import { FavoriteButton2 } from "./favoritebutton";
 
 const Images2 = ({
     images,
