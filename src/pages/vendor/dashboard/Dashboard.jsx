@@ -13,60 +13,93 @@ const VendorDashboard = () => {
   const [timeFilter, setTimeFilter] = useState('Weekly');
   const [revenueFilter, setRevenueFilter] = useState('Weekly');
   const [sourceFilter, setSourceFilter] = useState('Weekly');
-  // const [currentTime, setCurrentTime] = useState(new Date());
-  const [reservationStats, setReservationStats] = useState(null);
+  const [counters, setCounters] = useState(null);
+  const [todaysReservations, setTodaysReservations] = useState([]);
+  const [bookingTrends, setBookingTrends] = useState([]);
+  const [customerFrequency, setCustomerFrequency] = useState(null);
+  const [revenueByCategory, setRevenueByCategory] = useState(null);
+  const [reservationSources, setReservationSources] = useState(null);
   const [loading, setLoading] = useState(true);
   const vendor = useSelector((state) => state.auth.vendor);
 
   // Update current time every minute
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    return () => clearInterval(timer);
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [
+          countersRes,
+          todaysReservationsRes,
+          bookingTrendsRes,
+          customerFrequencyRes,
+          revenueByCategoryRes,
+          reservationSourcesRes,
+        ] = await Promise.all([
+          reservationService.getReservationCounters(),
+          reservationService.getTodaysReservations(),
+          reservationService.getBookingTrends(),
+          reservationService.getCustomerFrequency(),
+          reservationService.getRevenueByCategory(),
+          reservationService.getReservationSources(),
+        ]);
+
+        setCounters(countersRes);
+        setTodaysReservations(todaysReservationsRes);
+        setBookingTrends(bookingTrendsRes);
+        setCustomerFrequency(customerFrequencyRes);
+        setRevenueByCategory(revenueByCategoryRes);
+        setReservationSources(reservationSourcesRes);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
   }, []);
 
   // Stats data
-  const [stats, setStats] = useState([
+  const stats = [
     {
       title: 'Reservations made today',
-      value: 32,
+      value: counters?.reservationsToday || 0,
       change: 12,
       changeType: 'positive',
       icon: BookingsIcon,
-      iconColors: "#60A5FA",
+      iconColors: '#60A5FA',
       bgColor: 'bg-blue-50',
-      iconColor: 'text-blue-600'
+      iconColor: 'text-blue-600',
     },
     {
       title: 'Prepaid Reservations',
-      value: 16,
+      value: counters?.prepaidReservations || 0,
       change: 8,
       changeType: 'positive',
       icon: PrepaidIcon,
-      iconColors: "#06CD02",
+      iconColors: '#06CD02',
       bgColor: 'bg-green-50',
-      iconColor: 'text-green-600'
+      iconColor: 'text-green-600',
     },
     {
       title: 'Expected Guests Today',
-      value: 80,
+      value: counters?.expectedGuestsToday || 0,
       change: 8,
       changeType: 'positive',
       icon: GuestsIcon,
       bgColor: 'bg-purple-50',
-      iconColor: 'text-purple-600'
+      iconColor: 'text-purple-600',
     },
     {
       title: 'Pending Payments',
-      value: 2546.00,
+      value: counters?.pendingPayments || 0,
       change: 5,
       changeType: 'negative',
       icon: PendingPaymentIcon,
       bgColor: 'bg-yellow-50',
-      iconColor: 'text-yellow-600'
-    }
-  ]);
+      iconColor: 'text-yellow-600',
+    },
+  ];
 
   // Reservations data
   // const [reservations, setReservations] = useState([
@@ -77,97 +110,23 @@ const VendorDashboard = () => {
   //   { id: 5, name: 'Jessica Martinez', reservationId: '#12349', date: 'June 5, 2025', time: '7:10 pm', guests: 5, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 8 }
   // ]);
 
-  // Chart data based on filter
-  const getChartData = () => {
-    if (timeFilter === 'Weekly') {
-      return [
-        { day: 'Mon', value: 25 },
-        { day: 'Tues', value: 50 },
-        { day: 'Wed', value: 45 },
-        { day: 'Thurs', value: 30 },
-        { day: 'Fri', value: 75 },
-        { day: 'Sat', value: 85 },
-        { day: 'Sun', value: 80 }
-      ];
-    } else {
-      return [
-        { day: 'Week 1', value: 180 },
-        { day: 'Week 2', value: 220 },
-        { day: 'Week 3', value: 195 },
-        { day: 'Week 4', value: 240 }
-      ];
-    }
-  };
-
-  const chartData = getChartData();
-  const maxValue = Math.max(...chartData.map(d => d.value));
+  const chartData = (timeFilter === 'Weekly' ? bookingTrends?.weekly : bookingTrends?.monthly) || [];
+  const maxValue = Math.max(...chartData.map((d) => d.value), 0);
 
   // Revenue data based on filter
-  const getRevenueData = () => {
-    if (revenueFilter === 'Weekly') {
-      return {
-        total: 220500,
-        change: 8,
-        items: [
-          { category: 'Main Dish', percentage: 50, amount: 110000, color: 'bg-teal-600' },
-          { category: 'Drinks', percentage: 22.7, amount: 50000, color: 'bg-red-500' },
-          { category: 'Starters', percentage: 13.6, amount: 30000, color: 'bg-yellow-400' },
-          { category: 'Desserts', percentage: 9.3, amount: 20500, color: 'bg-purple-500' },
-          { category: 'Sides', percentage: 4.7, amount: 10000, color: 'bg-teal-300' }
-        ]
-      };
-    } else {
-      return {
-        total: 952000,
-        change: 12,
-        items: [
-          { category: 'Main Dish', percentage: 48, amount: 456960, color: 'bg-teal-600' },
-          { category: 'Drinks', percentage: 24, amount: 228480, color: 'bg-red-500' },
-          { category: 'Starters', percentage: 15, amount: 142800, color: 'bg-yellow-400' },
-          { category: 'Desserts', percentage: 8, amount: 76160, color: 'bg-purple-500' },
-          { category: 'Sides', percentage: 5, amount: 47600, color: 'bg-teal-300' }
-        ]
-      };
-    }
-  };
-
-  const revenueData = getRevenueData();
-
-  // Customer frequency based on filter
-  // const getCustomerData = () => {
-  //   if (timeFilter === 'Weekly') {
-  //     return { total: 100, new: 45, returning: 55 };
-  //   } else {
-  //     return { total: 430, new: 180, returning: 250 };
-  //   }
-  // };
-
-  // const customerData = getCustomerData();
+  const revenueData =
+    (revenueFilter === 'Weekly' ? revenueByCategory?.weekly : revenueByCategory?.monthly) || {
+      total: 0,
+      change: 0,
+      items: [],
+    };
 
   // Reservation source based on filter
-  const getSourceData = () => {
-    if (sourceFilter === 'Weekly') {
-      return {
-        total: 100,
-        sources: [
-          { name: '50 websites', value: 50, color: 'bg-teal-600' },
-          { name: '30 mobile', value: 30, color: 'bg-yellow-400' },
-          { name: '20 walk-in', value: 20, color: 'bg-blue-400' }
-        ]
-      };
-    } else {
-      return {
-        total: 430,
-        sources: [
-          { name: '220 websites', value: 51, color: 'bg-teal-600' },
-          { name: '130 mobile', value: 30, color: 'bg-yellow-400' },
-          { name: '80 walk-in', value: 19, color: 'bg-blue-400' }
-        ]
-      };
-    }
-  };
-
-  const sourceData = getSourceData();
+  const sourceData =
+    (sourceFilter === 'Weekly' ? reservationSources?.weekly : reservationSources?.monthly) || {
+      total: 0,
+      sources: [],
+    };
 
   // Calculate upcoming reservations count
   // const upcomingCount = reservations.filter(r => r.minutesUntil <= 30).length;
@@ -211,21 +170,7 @@ const VendorDashboard = () => {
     return { dashArray, dashOffset, circumference };
   };
 
-  useEffect(() => {
-    const fetchSummary = async () => {
-      try {
-        setLoading(true);
-        const res = await reservationService.getSummary()
-        console.log('Summary Data:', res);
-        setReservationStats(res.data);
-      } catch (error) {
-        console.error('Error fetching summary data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSummary();
-  }, [])
+
 
   if (loading) {
     return (
@@ -268,44 +213,37 @@ const VendorDashboard = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 bg-white md:grid-cols-2 lg:grid-cols-4 gap-4  rounded-lg border border-gray-200 ">
-            {reservationStats.todayStats.map((stat, index) => {
-              const Icon = stats[index].icon; // ✅ Extract the component
-              return (
-                <div key={index} className="flex justify-between p-5">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{stats[index].title}</p>
-                    <p className="text-3xl font-bold text-gray-900 mb-2">
-                      {index === 3
-                        ? `₦${stat.details.toLocaleString('en-US', {
+            {stats.map((stat, index) => (
+              <div key={index} className="flex justify-between p-5">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-2">
+                    {index === 3
+                      ? `₦${stat.value.toLocaleString('en-US', {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}`
-                        : stat.details}
-                    </p>
-                    <p
-                      className={`text-sm flex items-center ${stat.change >= 0 ? 'text-green-600' : 'text-red-600'
-                        }`}
-                    >
-                      <span className="mr-1">{stat.change >= 0 ? '↑' : '↓'}</span>
-                      {stat.change}% vs last week
-                    </p>
-                  </div>
+                      : stat.value}
+                  </p>
+                  <p
+                    className={`text-xs flex items-center ${
+                      stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    <span className="mr-1">{stat.changeType === 'positive' ? '↑' : '↓'}</span>
+                    {stat.change}% vs last week
+                  </p>
+                </div>
 
-                  <div className="flex items-start justify-between mb-3">
-                    <div
-                      className={`w-12 h-12 ${stats[index].bgColor} rounded-lg flex items-center justify-center`}
-                    >
-                      {/* ✅ Correct component usage */}
-                      <Icon
-                        className={`w-6 h-6 ${stats[index].iconColor}`}
-                        colors={stats[index].iconColors}
-                      />
-                    </div>
+                <div className="flex items-start justify-between mb-3">
+                  <div
+                    className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}
+                  >
+                    <stat.icon className={`w-6 h-6 ${stat.iconColor}`} colors={stat.iconColors} />
                   </div>
                 </div>
-              );
-            })}
-
+              </div>
+            ))}
           </div>
 
           {/* Main Content Grid */}
@@ -320,7 +258,7 @@ const VendorDashboard = () => {
                 </a>
               </div>
               <div className="p-5 space-y-3">
-                {reservationStats.todaysReservations.length > 0 ? reservationStats.todaysReservations.slice(0, 5).map((reservation) => (
+                {todaysReservations.length > 0 ? todaysReservations.slice(0, 5).map((reservation) => (
                   <div key={reservation._id} className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-lg transition-colors">
                     <div className="flex items-center flex-1">
                       <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
@@ -438,8 +376,8 @@ const VendorDashboard = () => {
               <div className="p-5 flex flex-col items-center">
                 {(() => {
                   // 🧮 Compute totals and percentages
-                  const newCustomers = reservationStats.customerFrequency.new || 0;
-                  const returningCustomers = reservationStats.customerFrequency.returning || 0;
+                  const newCustomers = customerFrequency?.new || 0;
+                  const returningCustomers = customerFrequency?.returning || 0;
                   const total = newCustomers + returningCustomers;
 
                   const newPercentage =
