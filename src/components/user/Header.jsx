@@ -15,9 +15,9 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 // import { SearchSectionTwo } from "./SearchSection";
 import { logout } from "@/redux/slices/authSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { SearchSectionTwo } from "../SearchSection";
 
 // logo imports —
+import logoWhite from "@/public/images/Rhace-09.png";
 import logoBlack from "@/public/images/Rhace-11.png";
 
 const Header = ({ onClick = () => {}, activeTab = null }) => {
@@ -27,15 +27,15 @@ const Header = ({ onClick = () => {}, activeTab = null }) => {
   const [scrolled, setScrolled] = useState(false);
   const [isHomePage, setIsHomePage] = useState(pathname === "/");
   const [isSearchPage, setIsSearchPage] = useState(
-    pathname.startsWith("/search")
+    pathname.startsWith("/search"),
   );
   const [isLoginSlug, setIsLoginSlug] = useState(pathname.startsWith("-login"));
   const [ishotelPaymentPage, setIsHotelPaymentPage] = useState(
-    pathname.startsWith("/hotels/:id/payment")
+    pathname.startsWith("/hotels/:id/payment"),
   );
   const [onboarding, setOnboarding] = useState(pathname === "/onboarding");
   const [isverifyStaffPage, setIsVerifyStaffPage] = useState(
-    pathname.startsWith("/verify-staff")
+    pathname.startsWith("/verify-staff"),
   );
   const user = useSelector((state) => state.auth);
 
@@ -43,7 +43,7 @@ const Header = ({ onClick = () => {}, activeTab = null }) => {
   useEffect(() => {
     setIsLoginSlug(pathname?.endsWith("-login"));
     setIsHotelPaymentPage(
-      pathname?.startsWith("/hotels/") && pathname.endsWith("/payment")
+      pathname?.startsWith("/hotels/") && pathname.endsWith("/payment"),
     );
     setOnboarding(pathname === "/onboarding");
     setIsVerifyStaffPage(pathname?.startsWith("/verify-staff"));
@@ -173,7 +173,7 @@ const Header = ({ onClick = () => {}, activeTab = null }) => {
 
             {/* Secondary links */}
             <DropdownMenuItem asChild className="  px-4 py-2">
-              <a href="/account">Account</a>
+              <a href="/account-settings">Account</a>
             </DropdownMenuItem>
             <DropdownMenuItem asChild className="  px-4 py-2">
               <a href="/contact">Help Center</a>
@@ -295,7 +295,13 @@ const Header = ({ onClick = () => {}, activeTab = null }) => {
             <div className="shrink-0 flex items-center">
               <a href="/" className="flex items-center space-x-2">
                 <img
-                  src={logoBlack}
+                  src={
+                    scrolled && isHomePage
+                      ? logoBlack
+                      : isHomePage
+                        ? logoWhite
+                        : logoBlack
+                  }
                   alt="Rhace Logo"
                   className="h-6 w-auto object-contain transition-all duration-300"
                 />

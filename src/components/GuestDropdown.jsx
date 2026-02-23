@@ -1,11 +1,11 @@
 // GuestDropdown.tsx
-import React, { useState, useRef, useEffect } from 'react';
-import { FiChevronDown, FiMinus, FiPlus } from 'react-icons/fi';
+import { useEffect, useRef, useState } from "react";
+import { FiChevronDown, FiMinus, FiPlus } from "react-icons/fi";
 
 const GUEST_CONFIG = {
-  adults:    { label: 'Adults',   subtitle: '18 years and above',    min: 1 },
-  children:  { label: 'Children', subtitle: '18 years and under',    min: 1 },
-  infants:   { label: 'Infant',   subtitle: 'Under the age of 2',     min: 0 },
+  adults: { label: "Adults", subtitle: "18 years and above", min: 1 },
+  children: { label: "Children", subtitle: "18 years and under", min: 1 },
+  infants: { label: "Infant", subtitle: "Under the age of 2", min: 0 },
 };
 
 export const GuestDropdown = ({ onChange }) => {
@@ -21,23 +21,23 @@ export const GuestDropdown = ({ onChange }) => {
   // close on outside click
   useEffect(() => {
     const handler = (e) => {
-      if (ref.current && !ref.current.contains(e.target )) {
+      if (ref.current && !ref.current.contains(e.target)) {
         setShow(false);
       }
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
   }, []);
 
   const inc = (type) => {
-    setCounts(c => {
+    setCounts((c) => {
       const next = { ...c, [type]: c[type] + 1 };
       onChange?.(next);
       return next;
     });
   };
   const dec = (type) => {
-    setCounts(c => {
+    setCounts((c) => {
       const min = GUEST_CONFIG[type].min;
       const nextVal = Math.max(c[type] - 1, min);
       const next = { ...c, [type]: nextVal };
@@ -52,11 +52,11 @@ export const GuestDropdown = ({ onChange }) => {
     <div className="relative inline-block w-full" ref={ref}>
       {/* trigger */}
       <div
-        className="w-full flex items-center justify-between  pt-1 bg-white  rounded-lg cursor-pointer"
-        onClick={() => setShow(s => !s)}
+        className="w-full flex items-center justify-between  pt-1  rounded-lg cursor-pointer"
+        onClick={() => setShow((s) => !s)}
       >
         <span className="text-sm text-gray-700">
-          {totalGuests} {totalGuests > 1 ? 'Guests' : 'Guest'}
+          {totalGuests} {totalGuests > 1 ? "Guests" : "Guest"}
         </span>
         <FiChevronDown className="text-gray-500" />
       </div>
@@ -64,7 +64,7 @@ export const GuestDropdown = ({ onChange }) => {
       {/* dropdown panel */}
       {show && (
         <div className="absolute left-0 right-0 z-50 w-72 mt-2 bg-white rounded-lg shadow-lg p-4">
-          {(Object.keys(GUEST_CONFIG)).map(type => {
+          {Object.keys(GUEST_CONFIG).map((type) => {
             const { label, subtitle, min } = GUEST_CONFIG[type];
             const val = counts[type];
             return (
@@ -85,9 +85,9 @@ export const GuestDropdown = ({ onChange }) => {
                     <FiMinus className="w-4 h-4 text-gray-600" />
                   </button>
                   <div className="outline-1 h-8 px-3 outline-offset-[-1px] outline-neutral-200 inline-flex items-center justify-center">
-                  <span className=" text-center font-medium text-sm text-gray-700 ">
-                    {val}
-                  </span>
+                    <span className=" text-center font-medium text-sm text-gray-700 ">
+                      {val}
+                    </span>
                   </div>
                   <button
                     onClick={() => inc(type)}

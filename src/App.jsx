@@ -92,6 +92,8 @@ import BookingDetails from "./pages/user/BookingDetails";
 import Payments from "./pages/admin/Payments";
 import PaymentsHistory from "./pages/user/Payments";
 import MenuPage from "./pages/user/restaurant/Menu";
+import UserLandingPage from "./pages/user/landingPage";
+import AccountSettings from "./pages/user/account";
 
 // Route Arrays
 const authRoutes = {
@@ -109,9 +111,7 @@ const authRoutes = {
     { path: "reset-password", element: <VendorResetPassword /> },
     { path: "otp", element: <VendorOtp /> },
   ],
-  admin: [
-    { path: "login", element: <AdminLogin /> },
-  ],
+  admin: [{ path: "login", element: <AdminLogin /> }],
 };
 
 const restaurantRoutes = [
@@ -142,12 +142,21 @@ const userGeneralRoutes = [
   { path: "/search", element: <SearchContent /> },
   { path: "/favorites", element: <Favorites /> },
   { path: "/bookings/:id", element: <BookingDetails /> },
-  { path: "/payments", element: <PaymentsHistory />}
+  { path: "/payments", element: <PaymentsHistory /> },
+  { path: "account-settings", element: <AccountSettings /> },
+  { path: "/book-reservation", element: <ReservationHomePage /> },
 ];
 
 const adminDashboardRoutes = [
   { path: "", element: <AdminDashboard /> },
-  { path: "vendors", element: <ErrorBoundary><AdminVendors /></ErrorBoundary> },
+  {
+    path: "vendors",
+    element: (
+      <ErrorBoundary>
+        <AdminVendors />
+      </ErrorBoundary>
+    ),
+  },
   { path: "users", element: <AdminUsers /> },
   { path: "reservations", element: <AdminReservations /> },
   { path: "payments", element: <AdminPayments /> },
@@ -195,7 +204,7 @@ function App() {
         {/* Main Layout */}
         <Route element={<Layout />}>
           {/* Home / Info Pages */}
-          <Route path="/" element={<ReservationHomePage />} />
+          <Route path="/" element={<UserLandingPage />} />
           <Route path="/about" element={<AboutRhace />} />
           <Route path="/contact" element={<ContactRhace />} />
           <Route path="/faq" element={<HelpCenterRhace />} />
@@ -228,7 +237,11 @@ function App() {
             {/* Admin */}
             <Route path="admin">
               {authRoutes.admin.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
           </Route>
@@ -300,15 +313,27 @@ function App() {
                   element={route.element}
                 />
               ))}
-            {dashboardRestaurantRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
-            {hotelVendorRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
-            {clubVendorRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
+              {dashboardRestaurantRoutes.map((route) => (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
+              {hotelVendorRoutes.map((route) => (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
+              {clubVendorRoutes.map((route) => (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
             </Route>
           </Route>
 
@@ -316,7 +341,11 @@ function App() {
           <Route element={<AdminProtectedRoute />}>
             <Route path="/dashboard/admin" element={<AdminLayout />}>
               {adminDashboardRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
           </Route>
