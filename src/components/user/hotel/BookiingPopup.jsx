@@ -197,7 +197,7 @@ const HotelBookingPopup = ({
       {activeTab !== "rooms" && (
         <div className="flex fixed bottom-0 left-0 w-full bg-white p-4 border-t border-[#E5E7EB]">
           <Button
-            className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
+            className="w-full  py-6 rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
             onClick={() => setActiveTab("rooms")}
           >
             Reserve Room

@@ -84,13 +84,13 @@ const RestaurantsPage = () => {
                                 />
                                 <div className="space-y-2">
                                     <div className="flex flex-col md:flex-row md:justify-between md:items-cente w-full gap-4">
-                                        <div className="flex gap-2 items-center pt-2 md:pt-0 px-4 md:px-0">
+                                        <div className="flex justify-between items-center pt-2 md:pt-0 px-4 md:px-0">
                                             <h1 className="text-2xl text-[#111827] font-semibold">
                                                 {restaurant.businessName}{" "}
                                             </h1>{" "}
                                             <span className="px-2 py-0.5 rounded-full border border-[#37703F] bg-[#D1FAE5] text-xs text-[#37703F]">
                                                 {" "}
-                                                Opened
+                                                Open
                                             </span>
                                         </div>
                                         <RestaurantSaveCopy type="restaurants" id={id} vendor={restaurant} />

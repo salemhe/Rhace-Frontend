@@ -22,10 +22,10 @@ export default function PrePaymentPage() {
                 {/* Main Heading */}
                 <div className="text-center mb-8">
                     <h1 className="text-xl font-semibold text-gray-900 mb-2">
-                        {booking.payLater ? "Pay for Reservation" : "Thank you for your meal selection"}
+                        {booking.payLater ? "Complete Your Reservation" : "Thank you for your meal selection"}
                     </h1>
                     <p className="text-gray-600 text-sm">
-                        {booking && booking.payLater ? "You have chosen to pay later for this reservation." : "Your pre-selected meals have been confirmed for your upcoming reservation."}
+                        {booking && booking.payLater ? "You’ve chosen to pay at the restaurant. A reservation fee is required to secure your booking." : "Your pre-selected meals have been confirmed for your upcoming reservation."}
                     </p>
                 </div>
 
@@ -73,10 +73,10 @@ export default function PrePaymentPage() {
                             </div>
                             <div>
                                 <h3 className="font-medium text-xs md:text-base mb-1">
-                                    You are Paying Reservation
+                                    Reservation Fee Required
                                 </h3>
                                 <p className="md:text-sm text-xs text-gray-600">
-                                    You are to pay a Reservation fee, since you didnt pre-select a meal.
+                                    A reservation fee applies because no meal was selected in advance. This helps secure your table.
                                 </p>
                             </div>
                         </div>
@@ -90,7 +90,7 @@ export default function PrePaymentPage() {
                             <h3 className="font-semibold text-xs md:text-base text-gray-900 mb-3">
                                 Choose your payment option
                             </h3>
-                            <p className="text-gray-900 text-sm md:text-base mb-4 font-bold">
+                            <p className="text-gray-900 text-sm md:text-base mb-4 font-semibold">
                                 <span className="">Amount to pay:</span> ₦
                                 {booking.totalAmount.toLocaleString()}
                             </p>
@@ -190,9 +190,9 @@ export default function PrePaymentPage() {
             {showConfirm && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
                     <div className="rounded-xl p-5 max-w-md mx-4 border bg-[#FFFBEB] border-[#E0B300]">
-                        <h2 className="text-lg font-semibold flex items-center"><AlertTriangle className="size-6 inline mr-2 text-[#E0B300]" />Confirm Pay at Restaurant</h2>
+                        <h2 className="text-lg font-semibold flex items-center mb-3"><AlertTriangle className="size-6 inline mr-2 text-[#E0B300]" />Confirm Pay at Restaurant</h2>
                         <p className="text-sm">
-                            Are you sure you want to pay at the restaurant? You will be required to pay a reservation fee of ₦1000 to reserve the table.
+                            You have chosen to pay at the restaurant. A reservation fee of <b>₦1,000 </b> will be required to secure your table.
                         </p>
                         <div className="flex items-center justify-between gap-4">
                             <Button

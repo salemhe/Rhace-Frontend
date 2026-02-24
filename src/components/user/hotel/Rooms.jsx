@@ -143,7 +143,7 @@ const Rooms = ({ setSelectedRoom, setShow, rooms }) => {
         {/* Header */}
         <div className="mb-4 ">
           <h1 className="font-semibold mb-2 sm:text-lg text-sm">
-            Select Room Typesss
+            Select Room Types
           </h1>
 
           {/* Tabs */}
