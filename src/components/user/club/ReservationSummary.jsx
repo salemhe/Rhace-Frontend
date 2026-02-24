@@ -345,7 +345,7 @@ export default function ReservationSummary() {
                       <div className="flex items-center justify-between">
                         <p className="text-[#606368]">Premium combos</p>
                         <p className="text-[#111827]">
-                          #
+                          ₦
                           {comboItems.filter((item) => item.selected)
                             .reduce((total, item) => total + (item.setPrice || 0), 0)
                             ?.toLocaleString()}
@@ -356,7 +356,7 @@ export default function ReservationSummary() {
                       <div className="flex items-center justify-between">
                         <p className="text-[#606368]">Table</p>
                         <p className="text-[#111827]">
-                          #
+                          ₦
                           {table.filter((item) => item.selected)
                             .reduce((total, item) => total + (item.price || 0), 0)
                             ?.toLocaleString()}
@@ -367,7 +367,7 @@ export default function ReservationSummary() {
                       <div className="flex items-center justify-between">
                         <p className="text-[#606368]">Premium Bottles</p>
                         <p className="text-[#111827]">
-                          #
+                          ₦
                           {bottleItems.filter((item) => item.quantity > 0)
                             .reduce(
                               (total, item) =>
@@ -382,7 +382,7 @@ export default function ReservationSummary() {
                       <div className="flex items-center justify-between">
                         <p className="text-[#606368]">VIP Extras</p>
                         <p className="text-[#111827]">
-                          #
+                          ₦
                           {vipExtraItems
                             .reduce((total, item) => total + (item.price || 0), 0)
                             ?.toLocaleString()}
@@ -392,7 +392,7 @@ export default function ReservationSummary() {
                   </div>
                   <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
                     <p>Sub Total</p>
-                    <p>₦{partPay ? (totalPrice / 2).toLocaleString() : totalPrice.toLocaleString()}</p>
+                    <p className="font-semibold">₦{partPay ? (totalPrice / 2).toLocaleString() : totalPrice.toLocaleString()}</p>
                   </div>
                 </div>
               </div>

@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/select"
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
-import { FiChevronDown } from "react-icons/fi";
 
 const HotelBookingForm = ({ id, selectedRoom, rooms, setSelectedRoom }) => {
   const [date, setDate] = useState();
