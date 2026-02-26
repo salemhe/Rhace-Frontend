@@ -1,5 +1,8 @@
 import Header from "@/components/user/Header";
-import { useEffect, useState } from "react";
+import { logout } from "@/redux/slices/authSlice";
+import { capitalize } from "@/utils/helper";
+import { useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 
 const FONT_URL =
   "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap";
@@ -53,11 +56,18 @@ const icons = {
     "M16 17l5-5-5-5",
     "M21 12H9",
   ],
-  bar: ["M18 20V10", "M12 20V4", "M6 20v-6"],
+  camera: [
+    "M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z",
+    "M12 9a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
+  ],
+  trash: ["M3 6h18", "M19 6l-1 14H6L5 6", "M8 6V4h8v2"],
+  upload: [
+    "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
+    "M17 8l-5-5-5 5",
+    "M12 3v12",
+  ],
   circle: "M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z",
-  menu: ["M3 12h18", "M3 6h18", "M3 18h18"],
   x: ["M18 6L6 18", "M6 6l12 12"],
-  chevronDown: ["M6 9l6 6 6-6"],
 };
 
 /* ── Toggle ── */
@@ -214,7 +224,7 @@ function CardHeader({ iconKey, title, sub, badge }) {
           <Icon d={icons[iconKey]} size={16} />
         </div>
         <div>
-          <div className="font-display text-base font-normal text-slate-800 sm:text-lg">
+          <div className=" text-base font-normal text-slate-800 sm:text-lg">
             {title}
           </div>
           <div className="text-[11px] text-slate-400 mt-0.5">{sub}</div>
@@ -249,16 +259,128 @@ function BtnRow({ onCancel, onSave, label }) {
   );
 }
 
+/* ── SignOut Confirm Modal ── */
+function SignOutModal({ visible, onCancel, onConfirm }) {
+  if (!visible) return null;
+  return (
+    <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-slate-900/30 backdrop-blur-sm"
+        onClick={onCancel}
+      />
+      {/* Dialog */}
+      <div className="relative w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
+        <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-red-50 text-red-500">
+          <Icon d={icons.logout} size={20} />
+        </div>
+        <h3 className=" text-lg font-normal text-slate-800">Sign out?</h3>
+        <p className="mt-1.5 text-[13px] text-slate-400">
+          You'll be logged out of your account on this device.
+        </p>
+        <div className="mt-5 flex gap-2.5">
+          <button
+            onClick={onCancel}
+            className="flex-1 rounded-xl border border-slate-200 py-2.5 text-[11px] font-medium uppercase tracking-widest text-slate-500 transition-colors hover:border-slate-300 hover:text-slate-700"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            className="flex-1 rounded-xl bg-red-500 py-2.5 text-[11px] font-medium uppercase tracking-widest text-white shadow-sm shadow-red-100 transition-all hover:bg-red-600"
+          >
+            Sign Out
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Avatar Editor ── */
+function AvatarEditor({ avatar, name, onAvatarChange, uploadRef }) {
+  const fileInputRef = useRef(null);
+  // expose trigger to parent
+  useEffect(() => {
+    if (uploadRef) uploadRef.current = () => fileInputRef.current?.click();
+  }, [uploadRef]);
+  const [dragging, setDragging] = useState(false);
+
+  const initials = name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const handleFile = (file) => {
+    if (!file || !file.type.startsWith("image/")) return;
+    const reader = new FileReader();
+    reader.onload = (e) => onAvatarChange(e.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragging(false);
+    handleFile(e.dataTransfer.files[0]);
+  };
+
+  return (
+    <div className="group relative mx-auto w-fit">
+      <div
+        className={`relative h-24 w-24 cursor-pointer rounded-full ring-4 ring-white shadow-xl transition-all duration-200 ${dragging ? "ring-teal-400 scale-105" : ""}`}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragging(true);
+        }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+        onClick={() => fileInputRef.current?.click()}
+      >
+        {avatar ? (
+          <img
+            src={avatar}
+            alt="Profile"
+            className="h-full w-full rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-full w-full items-center justify-center rounded-full bg-teal-600  text-3xl text-white">
+            {initials}
+          </div>
+        )}
+
+        {/* Hover overlay */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center rounded-full bg-black/50 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <Icon d={icons.camera} size={18} className="text-white" />
+          <span className="mt-1 text-[9px] font-medium uppercase tracking-widest text-white">
+            Change
+          </span>
+        </div>
+
+        {/* Online badge */}
+        <div className="absolute bottom-1 right-1 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-emerald-400">
+          <Icon d={icons.check} size={8} className="text-white" />
+        </div>
+      </div>
+
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => handleFile(e.target.files[0])}
+      />
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════
    Main Component
 ══════════════════════════════════════════════════════════ */
 export default function AccountSettings() {
-  const [newEmail, setNewEmail] = useState("");
-  const [confirmEmail, setConfirmEmail] = useState("");
-  const [emailHint, setEmailHint] = useState({
-    msg: "A verification link will be sent to your new address.",
-    type: "muted",
-  });
+  const [avatar, setAvatar] = useState(null);
+  const uploadRef = useRef(null);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confirmPw, setConfirmPw] = useState("");
@@ -266,37 +388,32 @@ export default function AccountSettings() {
   const [showNew, setShowNew] = useState(false);
   const [showConf, setShowConf] = useState(false);
   const [pwHint, setPwHint] = useState({ msg: "", type: "muted" });
-  const [twoFA, setTwoFA] = useState(true);
-  const [loginNotif, setLoginNotif] = useState(true);
-  const [bookingNotif, setBookingNotif] = useState(false);
   const [toast, setToast] = useState({ visible: false, msg: "" });
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const user = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        setLoading(true);
+        if (user.isAuthenticated) {
+          setProfile(user.user);
+        }
+      } catch (error) {
+        console.log(error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, []);
 
   const showToast = (msg) => {
     setToast({ visible: true, msg });
     setTimeout(() => setToast({ visible: false, msg: "" }), 3200);
-  };
-
-  const saveEmail = () => {
-    if (!newEmail || !confirmEmail)
-      return setEmailHint({
-        msg: "Please fill in both fields.",
-        type: "error",
-      });
-    if (!/\S+@\S+\.\S+/.test(newEmail))
-      return setEmailHint({
-        msg: "Please enter a valid email address.",
-        type: "error",
-      });
-    if (newEmail !== confirmEmail)
-      return setEmailHint({
-        msg: "Email addresses do not match.",
-        type: "error",
-      });
-    setEmailHint({ msg: "Verification sent!", type: "success" });
-    showToast("Verification email sent to " + newEmail);
-    setNewEmail("");
-    setConfirmEmail("");
   };
 
   const matchHint = () =>
@@ -322,6 +439,21 @@ export default function AccountSettings() {
     setPwHint({ msg: "", type: "muted" });
   };
 
+  const handleAvatarChange = (src) => {
+    setAvatar(src);
+    if (src) showToast("Profile picture updated.");
+    else showToast("Profile picture removed.");
+  };
+
+  const handleSignOut = () => {
+    setShowSignOutModal(false);
+    showToast("Signed out successfully.");
+
+    dispatch(logout());
+    setProfile(null);
+    // Add actual sign-out logic here (e.g., router.push('/login'))
+  };
+
   const eyeBtn = (show, setShow) => (
     <button
       onClick={() => setShow(!show)}
@@ -331,14 +463,6 @@ export default function AccountSettings() {
     </button>
   );
 
-  const navItems = [
-    { label: "Account Security", icon: "user", active: true },
-    { label: "Privacy", icon: "lock" },
-    { label: "Membership", icon: "bar" },
-    { label: "Notifications", icon: "bell" },
-    { label: "Sign Out", icon: "logout" },
-  ];
-
   const divider = <div className="my-1 h-px bg-slate-100" />;
 
   return (
@@ -347,7 +471,7 @@ export default function AccountSettings() {
         @import url('${FONT_URL}');
         * { box-sizing: border-box; }
         body { background: #f1f5f6; font-family: 'DM Sans', sans-serif; }
-        .font-display { font-family: 'Playfair Display', serif; }
+        . { font-family: 'Playfair Display', serif; }
         input:-webkit-autofill { -webkit-box-shadow: 0 0 0 100px #f8fafc inset !important; -webkit-text-fill-color: #374151 !important; }
         input::placeholder { color: #cbd5e1; }
         ::-webkit-scrollbar { width: 5px; }
@@ -364,141 +488,102 @@ export default function AccountSettings() {
         }}
       />
 
-      {/* ── Nav ── */}
+      {/* NAVBAR */}
       <Header />
-
       {/* ── Layout ── */}
-      <div className="relative z-10 mx-auto max-w-5xl px-4 py-38 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto max-w-5xl mt-20 px-4 py-16 sm:px-6 lg:px-8">
         {/* Page title — visible on mobile above grid */}
-        <div className="mb-6 lg:hidden">
-          <h1 className="font-display text-3xl font-light text-slate-800">
-            Settings
-          </h1>
+        <div className="mb-6 lhidden">
+          <h1 className=" text-3xl font-light text-slate-800">Settings</h1>
           <p className="mt-1 text-[11px] uppercase tracking-widest text-slate-400">
             Account Preferences
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[220px_1fr]">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-[280px_1fr]">
           {/* ── Sidebar ── */}
           <aside className="flex flex-col gap-5 lg:sticky lg:top-24 lg:h-fit">
             {/* Title — desktop only */}
-            <div className="hidden lg:block">
-              <h1 className="font-display text-3xl font-light text-slate-800">
+            {/* <div className="hidden lg:block">
+              <h1 className=" text-3xl font-light text-slate-800">
                 Settings
               </h1>
               <p className="mt-1 text-[11px] uppercase tracking-widest text-slate-400">
                 Account Preferences
               </p>
-            </div>
+            </div> */}
 
             {/* User card */}
-            <Card delay={0} className="p-5 text-center">
-              <div className="relative mx-auto mb-3 h-14 w-14 sm:h-16 sm:w-16">
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-teal-600 font-display text-xl text-white shadow-md shadow-teal-100 sm:text-2xl">
-                  A
-                </div>
-                <div className="absolute bottom-0 right-0 flex h-4 w-4 items-center justify-center rounded-full border-2 border-white bg-emerald-400">
-                  <Icon d={icons.check} size={8} className="text-white" />
-                </div>
-              </div>
-              <div className="font-display text-sm font-normal text-slate-800 sm:text-base">
-                Alexandra Mercer
-              </div>
-              <div className="mt-2 inline-block rounded-full border border-teal-100 bg-teal-50 px-3 py-0.5 text-[10px] uppercase tracking-widest text-teal-600">
-                Gold Member
-              </div>
-              <div className="mt-2 text-[11px] text-slate-400">
-                a.mercer@example.com
-              </div>
-            </Card>
+            <Card delay={0} className="overflow-hidden">
+              {/* Decorative top band */}
+              <div className="h-16 w-full bg-gradient-to-br from-teal-500 to-teal-700" />
 
-            {/* Sidebar nav — horizontal scroll on mobile, vertical on desktop */}
-            <Card delay={80} className="overflow-hidden">
-              {/* Mobile: horizontal scrollable pill list */}
-              <div className="flex gap-2 overflow-x-auto p-3 lg:hidden">
-                {navItems.map((item) => (
-                  <a
-                    key={item.label}
-                    href="#"
-                    className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs transition-colors ${item.active ? "bg-teal-50 text-teal-600" : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"}`}
-                  >
-                    <Icon d={icons[item.icon]} size={13} />
-                    <span className="whitespace-nowrap">{item.label}</span>
-                  </a>
-                ))}
-              </div>
+              <div className="px-4 pb-6">
+                {/* Avatar — overlaps the band */}
+                <div className="-mt-10 mb-4 flex justify-center">
+                  <AvatarEditor
+                    avatar={avatar}
+                    name={`${profile.firstName} ${profile.lastName}`}
+                    onAvatarChange={handleAvatarChange}
+                    uploadRef={uploadRef}
+                  />
+                </div>
 
-              {/* Desktop: vertical list */}
-              <div className="hidden lg:block">
-                {navItems.map((item, idx) => (
-                  <a
-                    key={item.label}
-                    href="#"
-                    className={`flex items-center gap-3 px-4 py-3 text-sm transition-all ${idx < navItems.length - 1 ? "border-b border-slate-100" : ""} ${item.active ? "border-l-2 border-l-teal-500 bg-teal-50 pl-3.5 text-teal-600" : "border-l-2 border-l-transparent text-slate-400 hover:bg-slate-50 hover:text-slate-700"}`}
+                {/* User info */}
+                <div className="text-center">
+                  <div className="shrink-0 text-xl font-normal text-slate-800">
+                    {capitalize(profile.firstName)}{" "}
+                    {capitalize(profile.lastName)}
+                  </div>
+                  <div className="mt-1 text-[12px] text-slate-400">
+                    {profile.email}
+                  </div>
+                  {/* <div className="mt-3 inline-block rounded-full border border-teal-100 bg-teal-50 px-4 py-1 text-[10px] uppercase tracking-widest text-teal-600">
+                    Gold Member
+                  </div> */}
+                </div>
+
+                {/* Upload / Remove buttons */}
+                <div className="mt-4 flex justify-center gap-2">
+                  <button
+                    onClick={() => uploadRef.current?.()}
+                    className="flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-teal-600 transition-colors hover:bg-teal-100"
                   >
-                    <Icon d={icons[item.icon]} size={14} />
-                    <span className="tracking-wide">{item.label}</span>
-                  </a>
-                ))}
+                    <Icon d={icons.upload} size={11} />
+                    Upload Photo
+                  </button>
+                  {avatar && (
+                    <button
+                      onClick={() => handleAvatarChange(null)}
+                      className="flex items-center gap-1.5 rounded-lg border border-red-100 bg-red-50 px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-red-400 transition-colors hover:bg-red-100"
+                    >
+                      <Icon d={icons.trash} size={11} />
+                      Remove
+                    </button>
+                  )}
+                </div>
+
+                <p className="mt-2 text-center text-[10px] text-slate-300">
+                  JPG, PNG or GIF · Max 5 MB
+                </p>
+
+                {/* Divider */}
+                <div className="my-5 h-px bg-slate-100" />
+
+                {/* Sign Out Button */}
+                <button
+                  onClick={() => setShowSignOutModal(true)}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl border border-red-100 bg-red-50 py-3 text-[11px] font-medium uppercase tracking-widest text-red-400 transition-all hover:border-red-200 hover:bg-red-100 hover:text-red-500"
+                >
+                  <Icon d={icons.logout} size={13} />
+                  Sign Out
+                </button>
               </div>
             </Card>
           </aside>
 
           {/* ── Main ── */}
           <main className="flex flex-col gap-5">
-            {/* Email Card */}
-            <Card delay={120}>
-              <CardHeader
-                iconKey="mail"
-                title="Email Address"
-                sub="Manage your login email"
-                badge="Verified"
-              />
-              <div className="space-y-4 p-5 sm:p-6">
-                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  <InputField
-                    label="Current Email"
-                    type="email"
-                    value="a.mercer@example.com"
-                    icon="mail"
-                    readOnly
-                  />
-                  <InputField
-                    label="New Email Address"
-                    type="email"
-                    placeholder="Enter new email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    icon="mail"
-                  />
-                </div>
-                <InputField
-                  label="Confirm New Email"
-                  type="email"
-                  placeholder="Re-enter new email"
-                  value={confirmEmail}
-                  onChange={(e) => setConfirmEmail(e.target.value)}
-                  icon="mail"
-                  hint={emailHint.msg}
-                  hintType={emailHint.type}
-                />
-                {divider}
-                <BtnRow
-                  onCancel={() => {
-                    setNewEmail("");
-                    setConfirmEmail("");
-                    setEmailHint({
-                      msg: "A verification link will be sent to your new address.",
-                      type: "muted",
-                    });
-                  }}
-                  onSave={saveEmail}
-                  label="Update Email"
-                />
-              </div>
-            </Card>
-
             {/* Password Card */}
             <Card delay={200}>
               <CardHeader
@@ -561,71 +646,16 @@ export default function AccountSettings() {
                 />
               </div>
             </Card>
-
-            {/* Security Card */}
-            <Card delay={280}>
-              <CardHeader
-                iconKey="shield"
-                title="Security & Access"
-                sub="Additional layers of protection"
-              />
-              <div className="divide-y divide-slate-100 px-5 sm:px-6">
-                {[
-                  {
-                    label: "Two-Factor Authentication",
-                    desc: "Require a code via SMS or authenticator each time you sign in.",
-                    val: twoFA,
-                    set: setTwoFA,
-                  },
-                  {
-                    label: "Login Notifications",
-                    desc: "Get an email alert when a new device accesses your account.",
-                    val: loginNotif,
-                    set: setLoginNotif,
-                  },
-                  {
-                    label: "Booking Confirmations",
-                    desc: "Receive emails for restaurant, hotel and club reservations.",
-                    val: bookingNotif,
-                    set: setBookingNotif,
-                  },
-                ].map((item) => (
-                  <div
-                    key={item.label}
-                    className="flex items-center justify-between gap-4 py-4"
-                  >
-                    <div>
-                      <div className="text-sm font-medium text-slate-700">
-                        {item.label}
-                      </div>
-                      <div className="mt-0.5 text-[11px] leading-relaxed text-slate-400">
-                        {item.desc}
-                      </div>
-                    </div>
-                    <Toggle checked={item.val} onChange={item.set} />
-                  </div>
-                ))}
-              </div>
-
-              {/* Danger zone */}
-              <div className="m-5 rounded-xl border border-red-100 bg-red-50 p-4 sm:m-6">
-                <p className="mb-1.5 text-[10px] uppercase tracking-widest text-red-300">
-                  Danger Zone
-                </p>
-                <p className="mb-3 text-[11px] leading-relaxed text-red-300">
-                  Permanently removes all reservation history, saved venues and
-                  membership rewards. This cannot be undone.
-                </p>
-                <button className="rounded-lg border border-red-200 px-3.5 py-1.5 text-[11px] uppercase tracking-wider text-red-400 transition-colors hover:border-red-300 hover:bg-red-100 hover:text-red-500">
-                  Delete Account
-                </button>
-              </div>
-            </Card>
           </main>
         </div>
       </div>
 
       <Toast msg={toast.msg} visible={toast.visible} />
+      <SignOutModal
+        visible={showSignOutModal}
+        onCancel={() => setShowSignOutModal(false)}
+        onConfirm={handleSignOut}
+      />
     </>
   );
 }
