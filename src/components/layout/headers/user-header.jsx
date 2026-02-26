@@ -278,7 +278,10 @@ export function UserProfileMenu({
 
       {/* Menu Items Section 2 */}
       <div className="py-1">
-        <MenuItem text="Account" onClick={() => handleNavigation("/account")} />
+        <MenuItem
+          text="Account"
+          onClick={() => handleNavigation("/account-settings")}
+        />
         <MenuItem
           text="Help Center"
           onClick={() => handleNavigation("/contact")}

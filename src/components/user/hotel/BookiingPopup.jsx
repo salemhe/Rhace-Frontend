@@ -1,5 +1,5 @@
 import { Button } from "@/components//ui/button";
-import { Loader2, X } from "lucide-react";
+import { Loader2, X, ChevronDown  } from "lucide-react";
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
@@ -129,24 +129,36 @@ const HotelBookingPopup = ({
           )}
           <form onSubmit={handleSubmit} className="space-y-6 mt-6">
             <div className="flex flex-col md:flex-row w-full gap-4">
-              <DatePicker
-                title="Check in Date"
-                className="bg-white"
-                value={date}
-                onChange={setDate}
-              />
-              <DatePicker
-                title="Check out Date"
-                className="bg-white"
-                value={date2}
-                onChange={setDate2}
-              />
+              <div className="relative w-full">
+                <DatePicker
+                  title="Check in Date"
+                  className="bg-white"
+                  value={date}
+                  onChange={setDate}
+                />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-900 pointer-events-none" />
+              </div>
+              
+              <div className="relative w-full">
+                <DatePicker
+                  title="Check out Date"
+                  className="bg-white"
+                  value={date2}
+                  onChange={setDate2}
+                />
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-900 pointer-events-none" />
+              </div>
             </div>
-            <GuestPicker
-              className="bg-white"
-              value={guests}
-              onChange={setGuests}
-            />
+
+            <div className="relative w-full">
+              <GuestPicker
+                className="bg-white"
+                value={guests}
+                onChange={setGuests}
+              />
+              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-900 pointer-events-none "/>
+            </div>
+            
             <Select disabled={!rooms} onValueChange={(value) => setSelectedRoom(rooms.find(r => r._id === value))} >
               <SelectPrimitive.Trigger asChild className="w-full">
                 <Button
@@ -157,12 +169,17 @@ const HotelBookingPopup = ({
                     !selectedRoom && "text-muted-foreground"
                   )}
                 >
-                  <Label className="text-black">
-                    Room Type
-                  </Label>
-                  {selectedRoom ? `${selectedRoom.name}` : "Select Room types"}
+                  <div className="flex flex-col items-start">
+                    <Label className="text-black">
+                      Room Type
+                    </Label>
+                    <span>
+                      {selectedRoom ? `${selectedRoom.name}` : "Select Room types"}
+                    </span>
+                  </div>
                 </Button>
               </SelectPrimitive.Trigger>
+
               <SelectContent>
                 {category.map((item, i) => (
                   <SelectGroup key={i}>
@@ -180,7 +197,7 @@ const HotelBookingPopup = ({
               <Button
                 type="submit"
                 disabled={!date || !date2 || isLoading || !selectedRoom}
-                className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
+                className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50 py-6 md:py-0"
               >
                 {isLoading ? (
                   <>
@@ -197,7 +214,7 @@ const HotelBookingPopup = ({
       {activeTab !== "rooms" && (
         <div className="flex fixed bottom-0 left-0 w-full bg-white p-4 border-t border-[#E5E7EB]">
           <Button
-            className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
+            className="w-full  py-6 rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
             onClick={() => setActiveTab("rooms")}
           >
             Reserve Room

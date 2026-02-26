@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
 import logoWhite from "@/public/images/Rhace-09.png";
+import { motion } from "framer-motion";
 
 export default function Footer() {
   return (

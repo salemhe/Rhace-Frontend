@@ -506,7 +506,7 @@ export default function PreSelectMeal({ id }) {
           </div>
           <div className="md:hidden w-full flex justify-between items-center gap-2">
             {selectedItems.length > 0 ? (
-              <Button onClick={handleSubmit} className="flex items-center h-10 justify-between rounded-xl bg-[#0A6C6D] h-10 px-8 w-full">
+              <Button onClick={handleSubmit} className="flex items-center h-10 py-6 justify-between rounded-xl bg-[#0A6C6D]  px-8 w-full">
                 <span>Checkout ({selectedItems.length} items)</span>
                 <span>₦{calculateSubtotal().toLocaleString()}</span>
               </Button>

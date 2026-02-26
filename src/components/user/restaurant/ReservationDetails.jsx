@@ -273,7 +273,7 @@ export default function ReservationDetails({
             Back to Restaurant Page
           </Button>
           <Button
-            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/80 px-8 w-full md:max-w-xs h-10 rounded-xl cursor-pointer"
+            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/80 px-8 py-6 md:py-0 w-full md:max-w-xs h-10 rounded-xl cursor-pointer"
             onClick={handleContinue}
             disabled={!date || !seatingPreference || !guestCount || !time}
           >

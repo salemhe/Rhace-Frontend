@@ -91,7 +91,7 @@ const HotelsPage = () => {
                       </h1>{" "}
                       <span className="px-2 py-0.5 rounded-full border border-[#37703F] bg-[#D1FAE5] text-xs text-[#37703F]">
                         {" "}
-                        Opened
+                        Open
                       </span>
                     </div>
                     <HotelSaveCopy type="hotels" vendor={hotel} id={id} />
