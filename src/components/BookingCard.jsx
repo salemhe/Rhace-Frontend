@@ -17,13 +17,13 @@ function BookingCard ({ booking, onEdit, onDelete }) {
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'Confirmed':
+      case 'paid':
         return 'bg-green-100 text-green-800 border-green-200';
-      case 'Pending':
+      case 'not_paid':
         return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'Cancelled':
+      case 'cancelled':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'Completed':
+      case 'part_paid':
         return 'bg-emerald-100 text-emerald-800 border-emerald-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
@@ -31,7 +31,7 @@ function BookingCard ({ booking, onEdit, onDelete }) {
   };
 
   const getButtonText = (status) => {
-    if (status === 'success' || status === 'Cancelled') {
+    if (status === 'success' || status === 'cancelled') {
       return 'Leave Review';
     }
     return 'View Details';
@@ -109,7 +109,7 @@ function BookingCard ({ booking, onEdit, onDelete }) {
                 booking.paymentStatus
               )}`}
             >
-              {booking.paymentStatus}
+              {booking.paymentStatus.split("_").join(" ")}
             </span>
 
             <button

@@ -69,8 +69,8 @@ export function ReservationsProvider({
         image: vendor.profileImages?.[0],
       };
 
-      const existingPreferences = JSON.parse(localStorage.getItem('preferences') || '[]');
-      localStorage.setItem('preferences', JSON.stringify([...existingPreferences, reservationData]));
+      const resDatas = JSON.parse(localStorage.getItem('resData') || '[]');
+      localStorage.setItem('resData', JSON.stringify([...resDatas, reservationData]));
 
 
       // const res = await userService.createReservation(reservationData);
@@ -155,8 +155,8 @@ export function ReservationsProvider({
 
       // const reservationResponse = res.data;
 
-      const existingPreferences = JSON.parse(localStorage.getItem('preferences') || '[]');
-      localStorage.setItem('preferences', JSON.stringify([...existingPreferences, reservationData]));
+      const resDatas = JSON.parse(localStorage.getItem('resData') || '[]');
+      localStorage.setItem('resData', JSON.stringify([...resDatas, reservationData]));
 
 
       // toast.success("Reservation submitted successfully!");

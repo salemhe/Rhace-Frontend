@@ -21,9 +21,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate } from "react-router";
 import { useInView, motion } from "framer-motion";
-import { userService } from "@/services/user.service";
-import { clubService } from "@/services/club.service";
 import UniversalLoader from "../ui/LogoLoader";
+import { TablePicker } from "../ui/tablepicker";
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
 
 export default function ReservationDetails({
   id,
@@ -45,17 +46,16 @@ export default function ReservationDetails({
     setTable,
     time,
     setTime,
-    setVendor,
     vendor,
     setProposedPayment,
     totalPrice,
+    tableSelected,
+    loading,
+    comboLoading,
+    bottlesLoading,
+    tableLoading,
   } = useReservations();
-  const [loading, setLoading] = useState(true);
-  const [comboLoading, setComboLoading] = useState(true);
-  const [bottlesLoading, setBottlesLoading] = useState(true);
-  const [tableLoading, setTableLoading] = useState(true);
   const [itemsToShow, setItemsToShow] = useState(8);
-  const [tablesToShow, setTablesToShow] = useState(6);
   const [activeTab, setActiveTab] = useState("All Bottles");
   const navigate = useNavigate();
   const ref = useRef(null);
@@ -64,6 +64,8 @@ export default function ReservationDetails({
   const isInView = useInView(ref, { once: true, margin: "-100px" });
   const [maxTranslate, setMaxTranslate] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [scrollState, setScrollState] = useState({ atStart: true, atEnd: false });
+  const [tableAdded, setTableAdded] = useState(false)
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -74,8 +76,29 @@ export default function ReservationDetails({
     setMaxTranslate(contentWidth - containerWidth);
   }, [comboItems]);
 
+  const handleTable = (v) => {
+    setTable(
+      table.map((item) => ({
+        ...item,
+        selected: item._id === v._id ? true : false,
+      }))
+    );
+  }
 
+  useEffect(() => {
+    if (table.length > 0 && !tableAdded) {
+      const theTable = table.find(t => t._id === searchQuery.table)
+      handleTable(theTable)
+      setTableAdded(true)
+    }
+  }, [table])
 
+  const filteredBottles =
+    activeTab === "All Bottles"
+      ? bottleItems
+      : bottleItems?.filter((item) => item.category === activeTab);
+
+  const displayedItems = filteredBottles?.slice(0, itemsToShow);
 
 
   const nextSlide = () => {
@@ -95,70 +118,10 @@ export default function ReservationDetails({
     currentIndex * slideWidth,
     maxTranslate
   );
-  const fetchVendor = async () => {
-    try {
-      setLoading(true);
-      const res = await userService.getVendor("club", id);
-      setVendor(res.data[0]);
-    } catch (error) {
-      console.error("Error fetching vendor:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  const fetchCombos = async () => {
-    try {
-      setComboLoading(true);
-      const res = await clubService.getBottleSet(id);
-      console.log(res)
-      setComboItems(res.bottleSets.map((item) => {
-        return { ...item, quantity: 0 }
-      }));
-    } catch (error) {
-      console.error("Error fetching vendor:", error);
-    } finally {
-      setComboLoading(false);
-    }
-  };
-  const fetchBottles = async () => {
-    try {
-      setBottlesLoading(true);
-      const res = await clubService.getDrinks(id);
-      console.log(res)
-      setBottleItems(res.drinks.map((item) => {
-        return { ...item, quantity: 0 }
-      }));
-    } catch (error) {
-      console.error("Error fetching vendor:", error);
-    } finally {
-      setBottlesLoading(false);
-    }
-  };
-  const fetchTables = async () => {
-    try {
-      setTableLoading(true);
-      const res = await clubService.getTables(id);
-      setTable(res.tables.map((item) => {
-        return { ...item, selected: false }
-      }));
-    } catch (error) {
-      console.error("Error fetching vendor:", error);
-    } finally {
-      setTableLoading(false);
-    }
-  };
   const LOAD_MORE_STEP = 4;
 
-  const filteredBottles =
-    activeTab === "All Bottles"
-      ? bottleItems
-      : bottleItems?.filter((item) => item.category === activeTab);
-
-  const displayedItems = filteredBottles?.slice(0, itemsToShow);
-  const displayTables = table.slice(0, tablesToShow);
 
   const hasMore = (filteredBottles ? filteredBottles.length : 0) > itemsToShow;
-  const tableHasMore = (table ? table.length : 0) > tablesToShow;
 
   const handleShowMore = () => {
     setItemsToShow((prev) =>
@@ -169,24 +132,6 @@ export default function ReservationDetails({
     );
   };
 
-  const handleTableShowMore = () => {
-    setTablesToShow((prev) =>
-      Math.min(
-        prev + LOAD_MORE_STEP,
-        filteredBottles ? filteredBottles.length : 0
-      )
-    );
-  };
-
-  useEffect(() => {
-    fetchVendor();
-    fetchCombos();
-    fetchBottles();
-    fetchTables();
-    setDate(new Date(searchQuery.date));
-    setTime(searchQuery.time);
-    setGuestCount(searchQuery.guests);
-  }, []);
 
   const handleContinue = () => {
     if (!date || !guestCount || !time) {
@@ -231,6 +176,14 @@ export default function ReservationDetails({
         })
       );
     }
+  };
+
+
+  const onScroll = e => {
+    const el = e.target;
+    const atStart = el.scrollLeft <= 0;
+    const atEnd = el.scrollLeft + el.clientWidth >= el.scrollWidth - 1;
+    setScrollState({ atStart, atEnd });
   };
 
   return (
@@ -296,21 +249,22 @@ export default function ReservationDetails({
         <div className="rounded-2xl bg-white border">
           <div className=" divide-y">
             <div className="flex p-4">
-              <h3 className="text-lg font-semibold">Reservation Details</h3>
+              <h3 className="text-lg font-medium md:font-semibold">Reservation Details</h3>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-4">
-              <DatePicker value={date} onChange={setDate} />
-              <TimePicker value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
-              <GuestPicker value={guestCount} onChange={setGuestCount} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-4">
+              <DatePicker title="Date" edit value={date} onChange={setDate} />
+              <TimePicker title="Time" edit value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
+              <TablePicker edit loading={loading} tables={table} value={tableSelected && tableSelected.name} onChange={(value) => handleTable(value)} />
+              <GuestPicker edit value={guestCount} onChange={setGuestCount} />
             </div>
           </div>
         </div>
         <div className="mb-6 space-y-6">
-          <div className="mb-6 hidden md:block">
-            <h3 className="text-lg font-semibold mb-2">
+          <div className="mb-6">
+            <h3 className="md:text-lg font-medium md:font-semibold mb-2">
               Let&apos;s Plan For Your Arrival
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-xs md:text-sm text-gray-600">
               Would you like to add any extras to enhance your night?
             </p>
           </div>
@@ -321,7 +275,12 @@ export default function ReservationDetails({
                 Tables
               </h3>
             </div>
-            <div className="flex overflow-x-auto hide-scrollbar px-6 mask-x-from-95% mask-x-to-100% w-full" ref={containerRef} >
+            <div onScroll={onScroll} className={cn(
+              "flex overflow-x-auto scroll-smooth hide-scrollbar transition-all w-full",
+              !scrollState.atStart && !scrollState.atEnd && "mask-x-from-95% mask-x-to-100%",
+              scrollState.atStart && !scrollState.atEnd && "[mask-image:linear-gradient(to_right,black_95%,transparent)]",
+              scrollState.atEnd && !scrollState.atStart && "[mask-image:linear-gradient(to_left,black_95%,transparent)]",
+            )} ref={containerRef} >
               <motion.div
                 className="flex gap-6"
                 transition={{ duration: 0.6, ease: "easeInOut" }}
@@ -329,14 +288,15 @@ export default function ReservationDetails({
                 {tableLoading ? (
                   <div className="flex w-full justify-center items-center">
 
-                  <UniversalLoader />
+                    <UniversalLoader />
                   </div>
-                ) : displayTables.length === 0 ? (
+                ) : table.length === 0 ? (
                   <div>No available Tables</div>
                 ) : (
-                    <div className="flex w-full gap-4 sm:gap-6">
-                      {displayTables?.map((item) => (
-                        <div className="bg-white p-3 space-y-4 rounded-xl border w-[150px] flex flex-col justify-between duration-200 transition-all">
+                  <div className="flex w-full gap-4 sm:gap-6">
+                    {table?.map((item) => (
+                      <div key={item._id} className={`p-1 rounded-xl border w-[230px] flex ${item.selected ? "bg-[#E7F0F0] border-[#B3D1D2]" : "bg-white"}`}>
+                        <div className={`p-2 flex flex-col justify-between duration-200 w-full space-y-4 bg-white transition-all border rounded-lg ${item.selected ? "border-[#E5E7EB]" : "border-transparent"}`}>
                           <div>
                             <h3 className="font-bold text-gray-800 text-sm">{item.name}</h3>
                           </div>
@@ -350,7 +310,7 @@ export default function ReservationDetails({
                               </div>
                             ))}
                           </div>
-                          <div className="flex justify-between items-center">
+                          <div className="flex justify-between w-full items-center">
                             <p className="font-semibold text-gray-900">
                               ₦{item.price.toLocaleString()}
                             </p>
@@ -381,8 +341,9 @@ export default function ReservationDetails({
                             </div>
                           </div>
                         </div>
-                      ))}
-                    </div>
+                      </div>
+                    ))}
+                  </div>
                 )
                 }
               </motion.div>
@@ -408,7 +369,7 @@ export default function ReservationDetails({
             </div>
             <div className="flex overflow-hidden w-full" ref={containerRef} >
               <motion.div
-                className="flex gap-6"
+                className="flex gap-6 w-full"
                 animate={{ x: -translateX }}
                 transition={{ duration: 0.6, ease: "easeInOut" }}
               >
@@ -471,7 +432,23 @@ export default function ReservationDetails({
                                     }`}
                                   onClick={() => handleSelectionChange(item._id)}
                                 >
-                                  {item.selected && <Check className="h-3 w-3" />}
+                                  {item.selected && (
+                                    <svg
+                                      width="16"
+                                      height="16"
+                                      viewBox="0 0 16 16"
+                                      fill="none"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                    >
+                                      <path
+                                        d="M3.33301 9.33301C3.33301 9.33301 4.66634 9.66634 5.66634 11.6663C5.66634 11.6663 9.37221 5.55523 12.6663 4.33301"
+                                        stroke="white"
+                                        strokeWidth="1.5"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                      />
+                                    </svg>
+                                  )}
                                 </div>
                                 <span className="text-xs text-[#111827]">Add</span>
                               </div>
@@ -549,25 +526,49 @@ export default function ReservationDetails({
                         </div>
                         <div className="flex items-center text-xs md:text-sm justify-between">
                           <p>₦{item.price.toLocaleString()}</p>
-                          <div className="flex items-center">
+                          <div className="flex items-center gap-1">
                             <Button
                               variant="outline"
                               size="icon"
-                              className=" size-5 md:size-8 rounded-full"
-                              onClick={() => handleQuantityChange(item._id, -1)}
+                              className="size-4 md:size-6 rounded-full border-[#1E3A8A] border-2 text-[#1E3A8A]"
+                              onClick={() =>
+                                handleQuantityChange(item._id, -1)
+                              }
                             >
-                              <Minus className="size-2 md:size-3" />
+                              <Minus className="size-2" />
                             </Button>
                             <span className="w-8 text-center">
-                              {item.quantity}
+                              <Input
+                                type="number"
+                                value={item.quantity}
+                                min={0}
+                                max={20}
+                                inputMode="numeric"
+                                pattern="[0-9]*"
+                                className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none text-center px-1 md:px-2 h-6 md:h-8 text-sm md:text-base"
+                                onWheel={(e) =>
+                                  (e.target).blur()
+                                }
+                                onChange={(e) => {
+                                  let value = Number(e.target.value);
+                                  if (value < 1) value = 1;
+                                  handleQuantityChange(
+                                    item._id,
+                                    value,
+                                    "input"
+                                  );
+                                }}
+                              />
                             </span>
                             <Button
                               variant="outline"
                               size="icon"
-                              className=" size-5 md:size-8 rounded-full"
-                              onClick={() => handleQuantityChange(item._id, 1)}
+                              className="size-4 md:size-6 rounded-full border-[#1E3A8A] border-2 text-[#1E3A8A]"
+                              onClick={() =>
+                                handleQuantityChange(item._id, 1)
+                              }
                             >
-                              <Plus className="size-2 md:size-3" />
+                              <Plus className="size-2" />
                             </Button>
                           </div>
                         </div>
@@ -602,11 +603,11 @@ export default function ReservationDetails({
             </Label>
             <Textarea
               id="special-request"
-              placeholder="Let us know if you have any special request like dietary restrictions, birthday requests, etc."
+              placeholder="Let us know if you have any special request"
               value={specialRequest}
               maxLength={500}
               onChange={(e) => setSpecialRequest(e.target.value)}
-              className="min-h-[100px] bg-[#F9FAFB] border text-sm border-[#E5E7EB] resize-none rounded-xl"
+              className="min-h-[100px] bg-white border text-sm border-[#E5E7EB] resize-none rounded-xl"
             />
             <p className="absolute bottom-2 right-2 text-xs text-gray-400">
               {specialRequest.length}/500
@@ -625,7 +626,7 @@ export default function ReservationDetails({
             Back to Club Page
           </Button>
           <Button
-            className="bg-teal-600 hover:bg-teal-700 px-8 w-full max-w-xs rounded-xl cursor-pointer"
+            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 w-full max-w-xs rounded-xl h-10 cursor-pointer"
             onClick={handleContinue}
             disabled={!date || !guestCount || !time}
           >

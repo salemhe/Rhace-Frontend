@@ -14,6 +14,8 @@ import { FiChevronRight, FiChevronsDown } from "react-icons/fi";
 import { useNavigate } from "react-router";
 import { Button } from "./ui/button";
 import UniversalLoader from "./user/ui/LogoLoader";
+import { FavoriteButton } from "./user/ui/favoritebutton";
+
 
 // Common cuisine color palette
 const cuisineColorPalette = [
@@ -31,13 +33,14 @@ const TableGrid = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("restaurant", type);
   const navigate = useNavigate();
-  const { toggleFavorite, isLoadingFav, isFavorite } = useFavorites();
 
   if (isLoading) return <UniversalLoader type="cards" />;
 
   if (!restaurants || restaurants.length === 0) return null;
 
   let limit = 4;
+
+
 
   return (
     <div className="mb-12 md:mb-20 lg:mb-[92px] px- sm:px-6 lg:px-8">
@@ -66,7 +69,8 @@ const TableGrid = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pb-2 sm:pb-4 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
+              onClick={() => navigate(`/restaurants/${restaurant._id}`)}
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pb-2 sm:pb-4 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border border-gray-300 transition-all duration-300 active:scale-[0.98] hover:shadow-md hover:-translate-y-1"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -78,7 +82,7 @@ const TableGrid = ({ title, type }) => {
               onMouseLeave={() => handleMouseLeave(restaurantId)}
             >
               {/* Image Section */}
-              <div className="relative px-2 pt-2 h-30 sm:h-44 w-full  cursor-pointer aspect-video">
+              <div className="relative px-2 pt-2 h-30 sm:h-44 w-full  cursor-pointer aspect-video group">
                 <div className="relative h-full w-full overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
                   {images.map((image, index) => (
                     <img
@@ -98,6 +102,24 @@ const TableGrid = ({ title, type }) => {
                       }}
                     />
                   ))}
+                  {/* Right Arrow */}
+                  {multipleImages && (
+                    <button
+                      onClick={(e) =>
+                        handleNextImage(restaurantId, images.length, e)
+                      }
+                      className="absolute right-2 top-1/2 -translate-y-1/2 z-40 
+                                sm:hidden 
+                                bg-white/80 backdrop-blur-sm 
+                                text-gray-700 
+                                rounded-full p-2 
+                                shadow-md 
+                                active:scale-95"
+                      aria-label="Next image"
+                    >
+                      <FiChevronRight className="w-4 h-4" />
+                    </button>
+                  )}
 
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
@@ -107,21 +129,9 @@ const TableGrid = ({ title, type }) => {
                     </span>
                   )}
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      toggleFavorite(restaurant._id, "restaurant");
-                    }}
-                    className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md"
-                  >
-                    {isFavorite(
-                      restaurant._id || isLoadingFav(restaurant._id),
-                    ) ? (
-                      <HeartIcon className="text-red-500" />
-                    ) : (
-                      <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
-                    )}
-                  </button>
+                  <div className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md">
+                    <FavoriteButton vendor={restaurant} />
+                  </div>
                 </div>
 
                 {multipleImages && (
@@ -142,11 +152,11 @@ const TableGrid = ({ title, type }) => {
               </div>
 
               {/* Info Section */}
-              <div className="pt-3 px-2 sm:px-3 flex-1 flex flex-col justify-between">
+              <div className="pt-3 px-2 mb-1 sm:px-3 flex-1 flex flex-col justify-between ">
                 <div className="space-y-1.5">
                   <div className="flex items-center">
                     <FaStar className="text-yellow-500 mr-1 text-base" />
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-normal text-gray-900">
                       {restaurant.rating?.toFixed(1)}
                     </span>
                     <span className="text-xs sm:text-sm text-gray-500 ml-1">
@@ -160,18 +170,18 @@ const TableGrid = ({ title, type }) => {
                   </div>
 
                   {cuisinesArray.length > 0 && (
-                    <div className=" line-clamp-1 mt-2 text-sm text-gray-500 font-semibold">
+                    <div className=" line-clamp-1 mt-2 text-sm text-gray-500 ">
                       {cuisinesArray.join(", ")}
                     </div>
                   )}
-                  <div className="flex  mt-4 items-center gap-1 sm:text-sm text-xs text-gray-500 ">
+                  <div className="flex  mt-2 items-center gap-1 sm:text-sm text-xs text-gray-500 ">
                     <p className="line-clamp-1 ">
                       <span>{restaurant.address}</span>
                     </p>
                   </div>
                 </div>
 
-                <div className="mt-2 sm:mt-4 w-full flex ">
+                {/* <div className="mt-2 sm:mt-4 w-full flex ">
                   <Button
                     onClick={() => navigate(`/restaurants/${restaurant._id}`)}
                     className=" hidden sm:flex
@@ -197,7 +207,7 @@ const TableGrid = ({ title, type }) => {
                   >
                     Reserve Table
                   </Button>
-                </div>
+                </div> */}
               </div>
             </div>
           );
@@ -227,7 +237,6 @@ export const TableGridTwo = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("hotel", type);
   const navigate = useNavigate();
-  const { toggleFavorite, isLoadingFav, isFavorite } = useFavorites();
 
   if (isLoading) return <UniversalLoader type="cards" />;
 
@@ -255,7 +264,7 @@ export const TableGridTwo = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto p-2 h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pt-2 pb-2 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto p-2 h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pt-2 pb-2 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden border transition-all duration-300  active:scale-[0.98] hover:shadow-md hover:-translate-y-1"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -268,7 +277,7 @@ export const TableGridTwo = ({ title, type }) => {
               onClick={() => navigate(`/hotels/${restaurant._id}`)}
             >
               {/* Image Section */}
-              <div className="relative h-40 sm:h-44 w-full  cursor-pointer aspect-video">
+              <div className="relative h-30 sm:h-44 w-full  cursor-pointer aspect-video">
                 <div className="relative h-full w-full overflow-hidden rounded-lg sm:rounded-xl bg-gray-100">
                   {images.map((image, index) => (
                     <img
@@ -298,21 +307,9 @@ export const TableGridTwo = ({ title, type }) => {
                     {restaurant.specialCategory}
                   </span>
                 )}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(restaurant._id, "hotel");
-                  }}
-                  className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md"
-                >
-                  {isFavorite(
-                    restaurant._id || isLoadingFav(restaurant._id),
-                  ) ? (
-                    <HeartIcon className="text-red-500" />
-                  ) : (
-                    <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
-                  )}
-                </button>
+                <div className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md">
+                  <FavoriteButton vendor={restaurant} />
+                </div>
 
                 {multipleImages && (
                   <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-1.5">
@@ -337,7 +334,7 @@ export const TableGridTwo = ({ title, type }) => {
                   <div className="flex w-full justify-between">
                     <div className="flex items-center">
                       <FaStar className="text-yellow-500 mr-1 text-base" />
-                      <span className="text-sm font-semibold text-gray-900">
+                      <span className="text-sm font-normal text-gray-900">
                         {restaurant.rating?.toFixed(1)}
                       </span>
                       <span className="text-xs sm:text-sm text-gray-500 ml-1">
@@ -349,7 +346,7 @@ export const TableGridTwo = ({ title, type }) => {
                     {restaurant.businessName}
                   </h3>
 
-                  <div className="flex items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
+                  <div className="flex items-center gap-1 sm:text-sm text-xs  text-gray-500 mt-2">
                     <p className="line-clamp-1 ">
                       <span>{restaurant.address}</span>
                     </p>
@@ -357,12 +354,12 @@ export const TableGridTwo = ({ title, type }) => {
                 </div>
 
                 <div className="w-full">
-                  <div className="flex justify-between items-center mb-1.5">
+                  <div className="flex justify-between items-center mb-1.5 mt-2">
                     <div className="flex text-black justify-start items-center gap-1">
-                      <div className="text-lg font-medium leading-none">
+                      <div className=" text-[15px] sm:text-normal sm:font-medium leading-none">
                         ₦{restaurant.priceRange.toLocaleString()}
                       </div>
-                      <div className="text-[8px] sm:text-[xs] font-normal leading-none">
+                      <div className="text-[14px] sm:text-[xs] font-normal leading-none text-gray-500">
                         /night
                       </div>
                     </div>
@@ -395,7 +392,7 @@ export const TableGridTwo = ({ title, type }) => {
                   </div>
 
                   <div className="mt-0 sm:mt-4  w-full flex ">
-                    <Button
+                    {/* <Button
                       onClick={() => navigate(`/hotels/${restaurant._id}`)}
                       className=" hidden sm:flex
                       w-full text-xs sm:text-sm font-semibold 
@@ -419,7 +416,7 @@ export const TableGridTwo = ({ title, type }) => {
                       transition-all duration-200 shadow-sm"
                     >
                       Book Now
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </div>
@@ -451,7 +448,6 @@ export const TableGridThree = ({ title, type }) => {
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("club", type);
   const navigate = useNavigate();
-  const { toggleFavorite, isLoadingFav, isFavorite } = useFavorites();
 
   if (isLoading) return <UniversalLoader type="cards" />;
 
@@ -486,7 +482,7 @@ export const TableGridThree = ({ title, type }) => {
           return (
             <div
               key={restaurantId}
-              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pt- pb-2 sm:pb-4 flex flex-col bg-white rounded-xl sm:rounded-2xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.06)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.08)] transition-all duration-300"
+              className="snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full shrink-0 sm:shrink cursor-pointer pt- pb-2 sm:pb-4 flex flex-col bg-white border border-gray-300 rounded-xl sm:rounded-2xl overflow-hidden transition-all duration-300"
               onMouseEnter={() =>
                 handleMouseEnter(
                   restaurantId,
@@ -521,29 +517,17 @@ export const TableGridThree = ({ title, type }) => {
 
                   {/* Overlay */}
                   <div className="absolute inset-0 bg-linear-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
+                  {(restaurant.specialCategory) && (
+                    <span className="absolute top-1 left-2 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
+                      {restaurant.specialCategory}
+                    </span>
+                  )}
+
+                  <div className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md">
+                    <FavoriteButton vendor={restaurant} />
+                  </div>
                 </div>
 
-                {restaurant.specialCategory && (
-                  <span className="absolute top-2 left-2 bg-yellow-500/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
-                    {restaurant.specialCategory}
-                  </span>
-                )}
-
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    toggleFavorite(restaurant._id, "club");
-                  }}
-                  className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md"
-                >
-                  {isFavorite(
-                    restaurant._id || isLoadingFav(restaurant._id),
-                  ) ? (
-                    <HeartIcon className="text-red-500" />
-                  ) : (
-                    <HeartIcon className="text-[#F9FAFB] hover:text-red-400" />
-                  )}
-                </button>
 
                 {multipleImages && (
                   <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 flex space-x-1 sm:space-x-1.5">
@@ -563,7 +547,7 @@ export const TableGridThree = ({ title, type }) => {
               </div>
 
               {/* Info Section */}
-              <div className="pt-3 flex-1 space-y-2 flex flex-col justify-between">
+              <a href={`/clubs/${restaurant._id}`} className="pt-3 flex-1 space-y-2 flex flex-col justify-between">
                 <div className="space-y-2">
                   <div className="flex flex-col-reverse px-2 sm:px-3  w-full justify-between">
                     <h3 className="text-sm sm:text-lg font-semibold capitalize text-gray-900 leading-tight line-clamp-1">
@@ -592,7 +576,7 @@ export const TableGridThree = ({ title, type }) => {
 
                   <div className="flex px-2 sm:px-3 items-center mt-1.5">
                     <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
-                    <span className="text-sm font-semibold text-gray-900">
+                    <span className="text-sm font-normal text-gray-900">
                       {restaurant.rating?.toFixed(1)}
                     </span>
                     <span className="text-xs sm:text-sm text-gray-500 ml-1">
@@ -601,15 +585,17 @@ export const TableGridThree = ({ title, type }) => {
                   </div>
 
                   <div className="flex px-2 sm:px-3 text-gray-500 mt-1.5 justify-start items-center gap-1">
-                    <div className="font-medium leading-none">Table from</div>
-                    <div className="font-semibold text-black leading-none">
+                    <div className="font-medium text-xs sm:text-sm leading-none">
+                      Table from
+                    </div>
+                    <div className="text-[13px] sm:text-sm text-black leading-none">
                       ₦{restaurant.priceRange.toLocaleString()}
                     </div>
                   </div>
                 </div>
 
                 <div className="px-2 sm:px-3  w-full cursor-pointer flex ">
-                  <Button
+                  {/* <Button
                     onClick={() => navigate(`/clubs/${restaurant._id}`)}
                     className=" hidden sm:flex
                       w-full text-xs sm:text-sm font-semibold 
@@ -633,9 +619,9 @@ export const TableGridThree = ({ title, type }) => {
                       transition-all duration-200 shadow-sm"
                   >
                     Book Now
-                  </Button>
+                  </Button> */}
                 </div>
-              </div>
+              </a>
             </div>
           );
         })}

@@ -14,6 +14,7 @@ import Header from "@/components/user/Header";
 import { userService } from "@/services/user.service";
 import StarRating from "@/components/ui/starrating";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
+import { hotelService } from "@/services/hotel.service";
 
 const HotelsPage = () => {
   const [activeTab, setActiveTab] = useState("details");
@@ -22,18 +23,8 @@ const HotelsPage = () => {
   const [hotel, setHotel] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [show, setShow] = useState(false);
-  const [selectedRoom, setSelectedRoom] = useState({
-    _id: "",
-    adultsCapacity: 0,
-    amenities: [],
-    childrenCapacity: 0,
-    description: "",
-    hotelId: "",
-    images: [],
-    name: "",
-    pricePerNight: 0,
-    totalUnits: 0,
-  });
+  const [rooms, setRooms] = useState(null);
+  const [selectedRoom, setSelectedRoom] = useState(null);
 
   useEffect(() => {
     const fetchHotel = async () => {
@@ -48,9 +39,18 @@ const HotelsPage = () => {
       }
     };
     fetchHotel();
+    const fetchRooms = async () => {
+      try {
+        const res = await hotelService.getRoomTypes(id);
+        setRooms(res);
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    fetchRooms();
   }, []);
 
-  if (isLoading) return <UniversalLoader fullscreen />;
+  if (isLoading || !rooms) return <UniversalLoader fullscreen />;
   return (
     <>
       <div className="hidden md:block">
@@ -67,6 +67,7 @@ const HotelsPage = () => {
                     name={hotel.businessName}
                   />
                   <Images2
+                    vendor={hotel}
                     images={hotel?.profileImages ?? []}
                     name={hotel.businessName}
                   />
@@ -74,7 +75,9 @@ const HotelsPage = () => {
                     <div className="hidden md:block">
                       <HotelBookingForm
                         selectedRoom={selectedRoom}
+                        setSelectedRoom={setSelectedRoom}
                         id={id}
+                        rooms={rooms}
                         restaurant={hotel}
                       />
                     </div>
@@ -88,10 +91,10 @@ const HotelsPage = () => {
                       </h1>{" "}
                       <span className="px-2 py-0.5 rounded-full border border-[#37703F] bg-[#D1FAE5] text-xs text-[#37703F]">
                         {" "}
-                        Opened
+                        Open
                       </span>
                     </div>
-                    <HotelSaveCopy id={id} />
+                    <HotelSaveCopy type="hotels" vendor={hotel} id={id} />
                   </div>
                   <div className="md:flex hidden gap-1 items-center text-xs">
                     <StarRating
@@ -118,6 +121,7 @@ const HotelsPage = () => {
                 setActiveTab={setActiveTab}
                 selectedRoom={selectedRoom}
                 setShow={setShow}
+                rooms={rooms}
                 setSelectedRoom={setSelectedRoom}
               />
             </div>
@@ -129,7 +133,9 @@ const HotelsPage = () => {
               <div className="hidden md:block">
                 <HotelBookingForm
                   selectedRoom={selectedRoom}
+                  setSelectedRoom={setSelectedRoom}
                   id={id}
+                  rooms={rooms}
                   restaurant={hotel}
                 />
               </div>
@@ -185,6 +191,8 @@ const HotelsPage = () => {
           show={show}
           setShow={setShow}
           selectedRoom={selectedRoom}
+          setSelectedRoom={setSelectedRoom}
+          rooms={rooms}
           id={id}
         />
       </main>

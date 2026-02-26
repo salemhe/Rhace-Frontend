@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { paymentService } from "@/services/payment.service";
-import { formatCustomDate } from "@/utils/formatDate";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
 import Success from "@/public/images/success.gif";
 
@@ -20,7 +19,6 @@ export default function ConfirmPage() {
     });
 
     useEffect(() => {
-        // 1. Handle missing ID immediately
         if (!id) {
             setState(prev => ({
                 ...prev,
@@ -31,7 +29,7 @@ export default function ConfirmPage() {
         }
 
         let isMounted = true;
-        let timeoutId; // We use timeout, not interval
+        let timeoutId;
         let pollCount = 0;
         const MAX_POLLS = 10;
 
@@ -39,10 +37,8 @@ export default function ConfirmPage() {
             try {
                 const result = await paymentService.completeReservation(id);
 
-                // If component unmounted, stop everything
                 if (!isMounted) return;
 
-                // SUCCESS: Update state
                 setState({
                     reservation: result.reservation,
                     payment: result.payment,
@@ -56,22 +52,18 @@ export default function ConfirmPage() {
                 if (result.isNewBooking) {
                     toast.success("Reservation confirmed successfully!");
                 }
-                // Note: We simply don't call setTimeout here, so polling stops.
 
             } catch (err) {
                 if (!isMounted) return;
 
-                // POLLING LOGIC: Only retry if 404 and under limit
                 if (err.response?.status === 404 && pollCount < MAX_POLLS) {
                     pollCount++;
                     console.log(`Polling attempt ${pollCount}/${MAX_POLLS}...`);
 
-                    // Schedule the NEXT attempt only after this one failed
                     timeoutId = setTimeout(completeReservation, 2000);
                     return;
                 }
 
-                // FATAL ERROR LOGIC
                 const errorMessage = err.response?.data?.message || "Failed to confirm reservation";
 
                 setState({
@@ -84,10 +76,8 @@ export default function ConfirmPage() {
             }
         };
 
-        // Start the first attempt
         completeReservation();
 
-        // Cleanup
         return () => {
             isMounted = false;
             if (timeoutId) clearTimeout(timeoutId);
@@ -133,7 +123,8 @@ export default function ConfirmPage() {
         );
     }
 
-    const { reservation: data, payment } = state;
+    const { reservation: data } = state;
+    const room = data.room;
 
     return (
         <div className="min-h-screen bg-gray-50 px-4 py-6 md:px-6 md:py-8">
@@ -169,100 +160,77 @@ export default function ConfirmPage() {
 
                     <hr className="border-gray-200 mb-4" />
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 px-4">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 px-4 mb-4">
                         <div>
-                            <p className="text-sm text-gray-600 mb-1">Restaurant</p>
-                            <p className="text-base font-medium text-gray-900 mb-1">
-                                {data.vendor.businessName || data.vendor.name}
-                            </p>
-                            <p className="text-sm text-gray-600">{data.location}</p>
-                        </div>
-                        <div>
-                            <p className="text-sm text-gray-600 mb-1">Reservation ID</p>
+                            <p className="text-sm text-gray-600 mb-1">Check In Date</p>
                             <p className="font-medium text-gray-900">
-                                {data.bookingCode}
+                                {new Date(data.checkInDate).toLocaleDateString('en-NG', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                })}
                             </p>
                         </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 mb-4">
-                        {data.date && (
-                            <div>
-                                <p className="text-sm text-gray-600 mb-1">Date & Time</p>
-                                <p className="font-medium text-gray-900">
-                                    {new Date(data.date).toLocaleDateString(undefined, {
-                                        year: "numeric",
-                                        month: "long",
-                                        day: "numeric",
-                                    })}{" "}
-                                    {data.time && `• ${data.time}`}
-                                </p>
-                            </div>
-                        )}
-                        {data.checkInDate && (
-                            <div>
-                                <p className="text-sm text-gray-600 mb-1">Check-in / Check-out</p>
-                                <p className="font-medium text-gray-900">
-                                    {new Date(data.checkInDate).toLocaleDateString()} - {new Date(data.checkOutDate).toLocaleDateString()}
-                                </p>
-                            </div>
-                        )}
                         <div>
-                            <p className="text-sm text-gray-600 mb-1">Guests</p>
+                            <p className="text-sm text-gray-600 mb-1">Check Out Date</p>
+                            <p className="font-medium text-gray-900">
+                                {new Date(data.checkInDate).toLocaleDateString('en-NG', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                })}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600 mb-1">Guests Allowed</p>
                             <p className="font-medium text-gray-900">{data.guests} Guests</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Payment Summary */}
-                <div className="rounded-2xl border border-gray-200 mb-6 bg-white p-4">
-                    {data.menus.length > 0 && (
-                        <div>
-                            <h2 className="font-semibold text-gray-900 mb-2">
-                                Your Selection ({data.menus.length} {data.menus.length > 1 ? "items" : "item"})
-                            </h2>
-                            <ul className="divide-y divide-gray-100">
-                                {data.menus.map((item, index) => (
-                                    <li key={index} className="flex justify-between py-2">
-                                        <span className="text-gray-700">
-                                            {item.quantity}x {item.menu.name}
-                                        </span>
-                                        <span className="text-gray-900 font-medium">
-                                            ₦{item.menu.price.toLocaleString()}
-                                        </span>
-                                    </li>
-                                ))}
-                            </ul>
+                <div className="rounded-2xl bg-white border border-gray-200 mb-6">
+                    <div className=" divide-y">
+                        <div className="flex p-4 justify-between items-center">
+                            <h3 className="text-lg font-semibold">Room Summary</h3>
                         </div>
-                    )}
-                    <div className="flex justify-between items-center">
-                        <p className="font-medium text-gray-800">Amount paid</p>
-                        <p className="font-semibold text-[#37703F] text-lg">
-                            ₦{data.totalAmount.toLocaleString()}
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-2 mt-3">
-                        {!data.payLater ? (
-                            <>
-                                <span className="inline-flex items-center justify-center shrink-0 size-7 bg-[#37703F] text-white rounded-full">
-                                    <Check className="size-5 shrink-0" />
-                                </span>
-                                <p className="text-sm text-gray-600">
-                                    <span className="font-medium text-[#37703F]">Paid</span> • Payment
-                                    made at {formatCustomDate(payment.paid_at)}
-                                </p>
-                            </>
-                        ) : (
-                            <>
-                                <span className="inline-flex items-center justify-center shrink-0 size-7 text-[#E0B300] rounded-full">
-                                    <Clock className="size-5 shrink-0" />
-                                </span>
-                                <p className="text-sm font-medium text-[#E0B300]">
-                                    Pay at Restaurant
-                                </p>
-                            </>
-                        )}
+                        <div className="space-y-4 p-4">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-600">Room Name</p>
+                                    <p className="text-sm  line-clamp-1 font-medium text-gray-900">
+                                        Superion {room.category} {room.name}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-600">Price per Night</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        ₦
+                                        {(
+                                            room.pricePerNight -
+                                            room.pricePerNight * (room.discount / 100)
+                                        ).toLocaleString()}
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-600">Bed Type</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        1 master bed
+                                    </p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-xs text-gray-600">Guests Allowed</p>
+                                    <p className="text-sm font-medium text-gray-900">
+                                        {room.adultsCapacity}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex items-center justify-between">
+                                <div className="text-sm text-[#0A6C6D] underline">
+                                    Free cancellation until 24h before check-in
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

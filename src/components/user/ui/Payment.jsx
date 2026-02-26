@@ -1,125 +1,200 @@
-"use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "react-toastify";
 import { paymentService } from "@/services/payment.service";
 import paystackLogo from "@/public/images/paystack.svg";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Shield, Lock } from "lucide-react";
 
 export default function PaymentPage({ booking, setPopupOpen, payLater }) {
-  const [isLoading, setIsLoading] = useState(false);
-  const [payment, setPayment] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [selectedPayment, setSelectedPayment] = useState(null);
 
+    const displayAmount = payLater ? 1000 : booking.totalAmount;
 
-  booking.totalAmount = payLater ? 1000 : booking.totalAmount;
-  const handlePayClick = async () => {
-    try {
-      setIsLoading(true);
-      if (!payment)
-        return;
-      const res = await paymentService.initializePayment({ amount: booking.totalAmount, email: booking.customerEmail, vendorId: booking.vendor, bookingId: booking.resId, customerName: booking.customerName, type: booking.reservationType, payLater });
+    const handlePayClick = async () => {
+        if (isLoading) return;
 
-      window.location.href = res.data.authorization_url;
-    } catch (error) {
-      console.log(error);
-      toast.error("Failed to redirect to Paystack");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+        setIsLoading(true);
 
-  const paymentMethod = [
-    {
-      name: "Paystack",
-      logo: paystackLogo,
-    }
-  ]
-
-  return (
-    <div className="min-h-screen fixed top-0 left-0 w-full flex items-center justify-center z-50 bg-black/60 px-4 py-4 md:px-6 md:py-6">
-      <div className="max-w-md w-full mx-auto">
-        <Card className="border border-gray-200">
-          <CardHeader className="text-center">
-            <CardTitle className="text-xl font-semibold text-gray-900">
-              Make Payment
-            </CardTitle>
-          </CardHeader>
-
-          <CardContent className="space-y-2">
-            <div>
-              <h3 className="font-semibold text-gray-900">
-                Payment Details
-              </h3>
-              <p className="text-sm text-gray-600 mb-2">
-                Select a payment method to proceed with your reservation.
-              </p>
-              <div className="space-y-4">
-                {paymentMethod.map((method, index) => (
-                  <div
-                    key={index}
-                    className={`flex items-center justify-between p-3 border-2 cursor-pointer rounded-md ${payment?.name === method.name ? "border-[#0A6C6D] " : "hover:border-gray-500"
-                      }`}
-                    onClick={() => setPayment(method)}
-                  >
-                    <div className="flex items-center gap-3">
-                      <img src={method.logo} alt={method.name} className="w-6 h-6" />
-                      <span className="text-sm font-medium text-gray-700">
-                        {method.name}
-                      </span>
-                    </div>
-                    <svg width="20" height="20" className="shrink-0" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <rect x="0.5" y="0.5" width="19" height="19" rx="9.5" stroke="#0A6C6D" />
-                      {payment && <circle cx="10" cy="10" r="6" fill="#0A6C6D" />}
-                    </svg>
-                  </div>
-                ))}
-              </div>
-            </div>
+        try {
+            const res = await paymentService.initializePayment({
+                vendorId: booking.vendor,
+                reservationType: booking.reservationType,
+                location: booking.location,
+                customerName: booking.customerName,
+                customerEmail: booking.customerEmail,
+                customerPhone: booking.customerPhone,
+                payLater,
+                partPaid: booking.partPaid,
+                ...(booking.reservationType === 'restaurant' && {
+                    date: booking.date,
+                    time: booking.time,
+                    guests: booking.guests,
+                    mealPreselected: booking.mealPreselected,
+                    menus: booking.menus?.map(m => ({
+                        menuId: m._id,
+                        quantity: m.quantity,
+                        specialRequest: m.specialRequest
+                    })),
+                    specialOccasion: booking.specialOccasion,
+                    seatingPreference: booking.seatingPreference,
+                    specialRequest: booking.specialRequest
+                }),
+                ...(booking.reservationType === 'hotel' && {
+                    checkInDate: booking.checkInDate,
+                    checkOutDate: booking.checkOutDate,
+                    guests: booking.guests,
+                    roomId: booking.room,
+                    specialRequest: booking.specialRequest
+                }),
+                ...(booking.reservationType === 'club' && {
+                    date: booking.date,
+                    time: booking.time,
+                    guests: booking.guests,
+                    drinks: booking.drinks?.map(d => ({
+                        drink: d.drink,
+                        quantity: d.quantity
+                    })),
+                    combos: booking.combos?.map(c => c),
+                    table: booking.table
+                })
+            });
             
-            {payLater && <div className="bg-[#FFFBEB] border border-[#E0B300] rounded-lg p-2">
-              <div className="flex gap-2 items-center">
-                  <AlertTriangle className="size-5 text-[#E0B300] shrink-0" />
-                <h3 className="text-sm font-light">
-                  You are Paying a Reservation Fee of 1000 naira.
-                </h3>
-              </div>
-            </div>}
-            {/* Action Buttons */}
-            <div className="flex gap-3 pt-6">
-              <Button
-                variant="outline"
-                className="w-1/3 h-11 text-sm font-medium border-gray-300"
-                onClick={() => {
-                  setPopupOpen(false)
-                }}
-              >
-                Exit
-              </Button>
-              <Button
-                className="w-2/3 h-11 text-sm font-medium disabled:cursor-not-allowed bg-[#0A6C6D] hover:bg-teal-800"
-                onClick={handlePayClick}
-                disabled={isLoading || !payment}
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="animate-spin rounded-full h-3 w-3 cursor-progress border-b-2 border-white"></div>
-                    Redirecting...
-                  </div>
-                ) : (
-                  `Pay ₦${booking.totalAmount.toLocaleString()} now`
-                )}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
+            window.location.href = res.data.authorization_url;
+
+        } catch (error) {
+            const errorMessage = error.response?.data?.message || "Failed to initialize payment";
+            toast.error(errorMessage);
+            setIsLoading(false);
+        }
+    };
+
+    const paymentMethods = [
+        {
+            name: "Paystack",
+            logo: paystackLogo,
+            description: "Secure payment with cards, bank transfer, or USSD"
+        }
+    ];
+
+    return (
+        <div className="min-h-screen fixed top-0 left-0 w-full flex items-center justify-center z-50 bg-black/60 px-2 md:px-4 py-4">
+            <Card className="max-w-md w-full border rounded-2xl border-gray-200">
+                <CardHeader className="text-center">
+                    <CardTitle className="text-xl font-semibold text-gray-900">
+                        Secure Payment
+                    </CardTitle>
+                    <p className="text-sm text-gray-600 mt-1">
+                        Complete your payment to confirm reservation
+                    </p>
+                </CardHeader>
+
+                <CardContent className="space-y-4">
+                    <div className="">
+                        <div className="flex justify-between items-center mb-1">
+                            <span className="text-xs text-gray-600">Total Amount</span>
+                            <span className="text-xl font-semibold text-[#0A6C6D]">
+                                ₦{displayAmount.toLocaleString()}
+                            </span>
+                        </div>
+                    </div>
+
+                    {payLater && (
+                        <div className="bg-[#FFFBEB] border border-[#E0B300] rounded-lg p-3">
+                            <div className="flex gap-2 items-start">
+                                <AlertTriangle className="size-5 text-[#E0B300] shrink-0 mt-0.5" />
+                                <div>
+                                    <h4 className="text-sm font-medium mb-1">Reservation Fee</h4>
+                                    <p className="text-xs text-gray-600">
+                                        Pay ₦1,000 now to secure your reservation. Meal payment due at venue.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div>
+                        <h3 className="font-semibold text-gray-900 mb-3">
+                            Payment Method
+                        </h3>
+                        <div className="space-y-3">
+                            {paymentMethods.map((method, index) => (
+                                <div
+                                    key={index}
+                                    className={`flex items-center justify-between p-4 border-2 cursor-pointer rounded-lg transition-all ${
+                                        selectedPayment?.name === method.name
+                                            ? "border-[#0A6C6D] bg-[#0A6C6D]/5"
+                                            : "border-gray-200 hover:border-gray-300"
+                                    }`}
+                                    onClick={() => setSelectedPayment(method)}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <img src={method.logo} alt={method.name} className="w-8 h-8" />
+                                        <div>
+                                            <span className="text-sm font-medium text-gray-900 block">
+                                                {method.name}
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                                {method.description}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div
+                                        className={`w-5 h-5 shrink-0 rounded-full border-2 flex items-center justify-center ${
+                                            selectedPayment?.name === method.name
+                                                ? "border-[#0A6C6D]"
+                                                : "border-gray-300"
+                                        }`}
+                                    >
+                                        {selectedPayment?.name === method.name && (
+                                            <div className="size-3 shrink-0 rounded-full bg-[#0A6C6D]"></div>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex items-center justify-center gap-2 text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                        <Shield className="w-4 h-4 shrink-0" />
+                        <span>Secured by Paystack • PCI DSS Compliant</span>
+                        <Lock className="w-4 h-4 shrink-0" />
+                    </div>
+
+                    <div className="flex gap-3 pt-2">
+                        <Button
+                            variant="outline"
+                            className="w-1/3 h-11 text-sm font-medium border-gray-300"
+                            onClick={() => setPopupOpen(false)}
+                            disabled={isLoading}
+                        >
+                            Cancel
+                        </Button>
+                        <Button
+                            className="w-2/3 h-11 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed bg-[#0A6C6D] hover:bg-teal-800"
+                            onClick={handlePayClick}
+                            disabled={isLoading || !selectedPayment}
+                        >
+                            {isLoading ? (
+                                <div className="flex items-center gap-2">
+                                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                                    <span>Processing...</span>
+                                </div>
+                            ) : (
+                                `Pay ₦${displayAmount.toLocaleString()}`
+                            )}
+                        </Button>
+                    </div>
+
+                    <p className="text-xs text-center text-gray-500 pt-2">
+                        By proceeding, you agree to our{" "}
+                        <a href="/terms" className="text-[#0A6C6D] hover:underline">Terms</a>
+                        {" "}and{" "}
+                        <a href="/privacy" className="text-[#0A6C6D] hover:underline">Privacy Policy</a>
+                    </p>
+                </CardContent>
+            </Card>
+        </div>
+    );
 }

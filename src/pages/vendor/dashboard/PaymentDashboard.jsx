@@ -147,7 +147,19 @@ const PaymentDashboard = () => {
         const user = row.original
         return (
           <span className='text-[#111827] font-medium text-sm'>
-            {user.paymentMethod.split("_").join(" ").toUpperCase()}
+            {user.paymentMethod && user.paymentMethod.split("_").join(" ").toUpperCase()}
+          </span>
+        )
+      },
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <span className='text-[#111827] font-medium text-sm'>
+            {"\u20A6"}{user.amountPaid.toLocaleString()}
           </span>
         )
       },
@@ -158,8 +170,8 @@ const PaymentDashboard = () => {
       filterFn: (row, columnId, value) => {
         return value === "" || row.getValue(columnId) === value
       },
-      cell: ({ row }) => <div className={`${row.getValue("status") === "Paid" ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
-        <div className={`${row.getValue("status") === "Paid" ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full bg-[#37703F]`} />
+      cell: ({ row }) => <div className={`${row.getValue("status") === "success" ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
+        <div className={`${row.getValue("status") === "success" ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full bg-[#37703F]`} />
         {row.getValue("status")}</div>
     },
     {
@@ -515,8 +527,8 @@ const PaymentDashboard = () => {
                     </div>
                   </div>
                   <div>
-                    <p className='capitalize text-[#606368] text-xs'>{item.paymentMethod.split("_").join(" ")}</p>
-                    <p className='text-[#111827] text-sm'>{"\u20A6"}{item.amount.toLocaleString()}</p>
+                    <p className='capitalize text-[#606368] text-xs'>{item.paymentMethod && item.paymentMethod.split("_").join(" ")}</p>
+                    <p className='text-[#111827] text-sm'>{"\u20A6"}{item.amountPaid.toLocaleString()}</p>
                   </div>
                   <p className='text-[#606368] text-sm'>
                     {new Date(item.createdAt).toLocaleDateString()}
