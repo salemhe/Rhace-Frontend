@@ -6,8 +6,8 @@
 
 @font-face {
   font-family: "Inter";
-  src:local("Inter"),
-  url('./public/fonts/Inter/Inter-VariableFont_opsz_wght.ttf') 
+  src:
+    local("Inter"), url("./public/fonts/Inter/Inter-VariableFont_opsz_wght.ttf");
 }
 
 @theme inline {
@@ -172,4 +172,17 @@ Link {
 
 .animate-fadeIn {
   animation: fadeIn 0.2s ease-out;
+}
+
+.section-layout {
+  width: 100%;
+  max-width: 120rem;
+  margin-inline: auto;
+}
+
+@media only screen and (min-width: 107em) {
+  .section-layout {
+    width: 155rem;
+    margin: 0rem auto;
+  }
 }

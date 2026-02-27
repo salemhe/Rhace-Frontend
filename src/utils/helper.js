@@ -81,3 +81,5 @@ export function useIsMobile() {
 
   return isMobile;
 }
+
+export const routeIs = (path) => window.location.pathname === path;

@@ -1,14 +1,27 @@
 import Footer from "@/components/Footer";
-import UserHeader, { UserProfileMenu } from "@/components/layout/headers/user-header";
+import UserHeader, {
+  UserProfileMenu,
+} from "@/components/layout/headers/user-header";
 import SearchSection from "@/components/SearchSection";
-import TableGrid, { TableGridFour, TableGridThree, TableGridTwo } from "@/components/Tablegrid";
+import TableGrid, {
+  TableGridFour,
+  TableGridThree,
+  TableGridTwo,
+} from "@/components/Tablegrid";
 import { useEffect, useRef, useState } from "react";
-import Restaurant from "../../public/images/find.png";
-import Hotel from "../../public/images/find-hotel.jpg";
 import Club from "../../public/images/find-club.png";
+import Hotel from "../../public/images/find-hotel.jpg";
+import Restaurant from "../../public/images/find.png";
 // import LocationModal from "@/components/LocationModal";
 import { SvgIcon, SvgIcon2, SvgIcon3 } from "@/public/icons/icons";
-import { CalendarClock, ChevronDown, ChevronUp, Home, Search, User } from "lucide-react";
+import {
+  CalendarClock,
+  ChevronDown,
+  ChevronUp,
+  Home,
+  Search,
+  User,
+} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "@/redux/slices/authSlice";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -57,8 +70,8 @@ function ReservationHomePage() {
         setIsMenuOpen(false);
       }
     };
-    if (isMenuOpen) document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    if (isMenuOpen) document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen]);
 
   const footer = [
@@ -79,51 +92,54 @@ function ReservationHomePage() {
     },
     {
       title: "Profile",
-      icon: <div className="relative text-gray-700" ref={dropdownRef}>
-        <button
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          className={`flex items-center space-x-1`}
-        >
-          {loading ? (
-            <div className="w-4 h-4 bg-gray-300 rounded-full animate-pulse" />
-          ) : (
-            <>
-              {profile ? (
+      icon: (
+        <div className="relative text-gray-700" ref={dropdownRef}>
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className={`flex items-center space-x-1`}
+          >
+            {loading ? (
+              <div className="w-4 h-4 bg-gray-300 rounded-full animate-pulse" />
+            ) : (
+              <>
+                {profile ? (
+                  <Avatar className="w-6 h-6">
+                    <AvatarImage
+                      src={profile.profilePic}
+                      alt={`${profile.firstName} ${profile.lastName}`}
+                    />
+                    <AvatarFallback className="text-xs">
+                      {profile.firstName[0].toUpperCase()}
+                      {profile.lastName[0].toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                ) : (
+                  <User className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />
+                )}
+              </>
+            )}
+            {isMenuOpen ? (
+              <ChevronUp className={`w-5 h-5 text-gray-700`} />
+            ) : (
+              <ChevronDown className={`w-5 h-5 text-gray-700`} />
+            )}
+          </button>
 
-                <Avatar className="w-6 h-6">
-                  <AvatarImage
-                    src={profile.profilePic}
-                    alt={`${profile.firstName} ${profile.lastName}`}
-                  />
-                  <AvatarFallback className="text-xs">
-                    {profile.firstName[0].toUpperCase()}
-                    {profile.lastName[0].toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-              ) : <User className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />}
-            </>
+          {isMenuOpen && (
+            <div className="absolute bottom-full right-0 mt-2 w-72 z-50">
+              <UserProfileMenu
+                onClose={() => setIsMenuOpen(false)}
+                navigate={navigate}
+                isAuthenticated={user.isAuthenticated}
+                handleLogout={handleLogout}
+                user={profile}
+              />
+            </div>
           )}
-          {isMenuOpen ? (
-            <ChevronUp className={`w-5 h-5 text-gray-700`} />
-          ) : (
-            <ChevronDown className={`w-5 h-5 text-gray-700`} />
-          )}
-        </button>
-
-        {isMenuOpen && (
-          <div className="absolute bottom-full right-0 mt-2 w-72 z-50">
-            <UserProfileMenu
-              onClose={() => setIsMenuOpen(false)}
-              navigate={navigate}
-              isAuthenticated={user.isAuthenticated}
-              handleLogout={handleLogout}
-              user={profile}
-            />
-          </div>
-        )}
-      </div>,
+        </div>
+      ),
     },
-  ]
+  ];
 
   useEffect(() => {
     setMounted(true);
@@ -132,8 +148,6 @@ function ReservationHomePage() {
       setActiveTab(savedTab);
     }
   }, []);
-
-
 
   const tabs = [
     {
@@ -157,7 +171,7 @@ function ReservationHomePage() {
     if (mounted) {
       localStorage.setItem("activeTab", tab);
     }
-  }
+  };
   return (
     <div
     // className="min-h-[500px] h-[500px]"
@@ -187,7 +201,7 @@ function ReservationHomePage() {
                 Find your Perfect Table
               </h1>
               <p className="text-xs font-normal sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
-                Discover and reserve the best restaurants in your city
+                Discover and reserve the best restaurants in your citysss
               </p>
             </>
           ) : activeTab === "hotels" ? (
@@ -217,10 +231,11 @@ function ReservationHomePage() {
               return (
                 <button
                   key={tab.value}
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-[36px] gap-1.5 sm:gap-2.5 cursor-pointer text-[12px] sm:text-sm flex items-center font-medium transition-colors duration-200 ${activeTab === tab.value
-                    ? "bg-slate-200 text-gray-900"
-                    : "bg-transparent text-gray-50 hover:bg-white/10"
-                    }`}
+                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-[36px] gap-1.5 sm:gap-2.5 cursor-pointer text-[12px] sm:text-sm flex items-center font-medium transition-colors duration-200 ${
+                    activeTab === tab.value
+                      ? "bg-slate-200 text-gray-900"
+                      : "bg-transparent text-gray-50 hover:bg-white/10"
+                  }`}
                   onClick={() => handleTabChange(tab.value)}
                 >
                   <figure className="w-4 h-4 sm:w-5 sm:h-5 flex items-center">
@@ -234,10 +249,8 @@ function ReservationHomePage() {
 
           {/* Search Section */}
           <div className="relative w-full mt-4 sm:mt-5 lg:mt-6 px-1  sm:px-0 z-20">
-            <SearchSection activeTab={activeTab} onSearch={() => { }} />
+            <SearchSection activeTab={activeTab} onSearch={() => {}} />
           </div>
-
-
         </div>
       </div>
 
@@ -248,7 +261,6 @@ function ReservationHomePage() {
           <TableGrid title="Top-Rated Restaurants" type="top-rate" />
           <TableGrid title="Nearby Restaurants" type="nearby" />
         </div>
-
       )}
       {activeTab === "hotels" && (
         <div className=" mt-16 sm:mt-[65px] mx-auto lg:px-8 py-8">
@@ -271,11 +283,13 @@ function ReservationHomePage() {
       {profile && (
         <div className="fixed bottom-0 left-0 w-full bg-white py-2 flex items-center justify-center gap-12 border-t md:hidden z-50">
           {footer.map((item, i) => (
-            <button onClick={() => item.link && navigate(item.link)} key={i} className="text-sm font-medium text-gray-700 hover:text-gray-900">
+            <button
+              onClick={() => item.link && navigate(item.link)}
+              key={i}
+              className="text-sm font-medium text-gray-700 hover:text-gray-900"
+            >
               <div className="flex items-center gap-1 flex-col ">
-                <div>
-                  {item.icon}
-                </div>
+                <div>{item.icon}</div>
                 <span className="text-xs">{item.title}</span>
               </div>
             </button>
@@ -288,3 +302,21 @@ function ReservationHomePage() {
 }
 
 export default ReservationHomePage;
+
+const TaxClinicExplainerData = [
+  {
+    title: "Understand the Risk",
+    description:
+      "Understand what changed in Nigeria’s 2026 tax system, why turnover now matters, and how the rules relate to your type of business before taking any action.",
+  },
+  {
+    title: "Register Your Interest",
+    description:
+      "Share basic details about your business so we can understand your context and determine the most relevant guidance for you. No accounts. No passwords.",
+  },
+  {
+    title: "Get Guided Support",
+    description:
+      "Receive curated communication, webinars, or one on one guidance based on your needs, with scheduling and outreach handled directly by the clinic team.",
+  },
+];
