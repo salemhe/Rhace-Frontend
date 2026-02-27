@@ -232,7 +232,6 @@ import { useNavigate } from 'react-router-dom';
 
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
 const normaliseType = (type) => {
    if (!type) return '';
    const t = type.toLowerCase();
@@ -256,9 +255,9 @@ const formatDateShort = (dateStr) => {
 
 // SvgIcon=Restaurant | SvgIcon2=Hotel | SvgIcon3=Club
 const TYPE_ICON = {
-   Hotel:      <SvgIcon2 className="w-4 h-4 flex-shrink-0" />,
-   Restaurant: <SvgIcon  className="w-4 h-4 flex-shrink-0" />,
-   Club:       <SvgIcon3 className="w-4 h-4 flex-shrink-0" />,
+   Hotel:      <SvgIcon2 className="w-4 h-4 flex-shrink-0 text-black" />,
+   Restaurant: <SvgIcon  className="w-4 h-4 flex-shrink-0 text-black" />,
+   Club:       <SvgIcon3 className="w-4 h-4 flex-shrink-0 text-black" />,
 };
 
 
@@ -355,7 +354,7 @@ function EmptyState({ type, isFiltered }) {
       <div className="flex flex-col items-center justify-center py-20 px-4 text-center">
          <div className="w-24 h-24 rounded-full bg-teal-50 flex items-center justify-center mb-6">
             {type === 'upcoming'
-               ? <Sparkles className="w-10 h-10 text-teal-500" />
+               ? <Search className="w-10 h-10 text-teal-600" />
                : <CalendarX className="w-10 h-10 text-gray-400" />}
          </div>
          {type === 'upcoming' ? (
@@ -506,8 +505,8 @@ function FilterPanel({ typeFilter, onTypeChange, dateFrom, dateTo, onDateFrom, o
                         }`}
                      >
                         {t !== 'All' && (
-                           <span className={`flex items-center ${isActive ? '[&_svg]:text-white' : ''}`}>
-                              {TYPE_ICON[t]}
+                           <span className={`flex items-center ${isActive ? '[&_svg]:text-black' : ''}`}>
+                              {/* {TYPE_ICON[t]} */}
                            </span>
                         )}
                         {t}
@@ -522,7 +521,7 @@ function FilterPanel({ typeFilter, onTypeChange, dateFrom, dateTo, onDateFrom, o
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Date range</p>
             <div className="flex items-center gap-3 flex-wrap">
                <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <Calendar className="w-4 h-4 text-black" />
                   <input
                      type="date"
                      value={dateFrom}
@@ -532,7 +531,7 @@ function FilterPanel({ typeFilter, onTypeChange, dateFrom, dateTo, onDateFrom, o
                </div>
                <span className="text-gray-400 text-sm">to</span>
                <div className="flex items-center gap-2 bg-white border border-gray-200 rounded-lg px-3 py-2">
-                  <Calendar className="w-4 h-4 text-gray-400" />
+                  <Calendar className="w-4 h-4 text-black" />
                   <input
                      type="date"
                      value={dateTo}
@@ -688,7 +687,7 @@ function BookingsPage() {
                <BookingsSkeleton />
             ) : (
                <>
-                  {/* ── Top toggle ── */}
+                  {/* Top toggle */}
                   <Tabs
                      value={topTab}
                      onValueChange={(value) => {
