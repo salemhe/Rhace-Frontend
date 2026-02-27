@@ -62,7 +62,7 @@ const BookingForm = ({ id, tables, loading }) => {
             <Button
                 type="submit"
                 disabled={!date || !time || isLoading || !table}
-                className="w-full rounded-xl h-10 bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
+                className="w-full rounded-xl h-10 py-6 bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
             >
                 {isLoading ? (
                     <>

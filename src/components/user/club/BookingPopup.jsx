@@ -75,7 +75,7 @@ const BookingPopup = ({ id, tables, loading }) => {
               <Button
                 type="submit"
                 disabled={!date || !time || isLoading}
-                className="w-full rounded-xl bg-[#0A6C6D] h-10 hover:bg-[0A6C6D]/50"
+                className="w-full rounded-xl bg-[#0A6C6D] py-6 h-10 hover:bg-[0A6C6D]/50"
               >
                 {isLoading ? (
                   <>
@@ -91,7 +91,7 @@ const BookingPopup = ({ id, tables, loading }) => {
       )}
       <div className="flex fixed bottom-0 left-0 w-full bg-white p-4 border-t border-[#E5E7EB]">
         <Button
-          className="w-full rounded-xl bg-[#0A6C6D] h-10 hover:bg-[0A6C6D]/50"
+          className="w-full rounded-xl bg-[#0A6C6D] py-6 h-10 hover:bg-[0A6C6D]/50"
           onClick={handlePopup}
         >
           Reserve Table

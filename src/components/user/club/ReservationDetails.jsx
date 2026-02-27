@@ -626,7 +626,7 @@ export default function ReservationDetails({
             Back to Club Page
           </Button>
           <Button
-            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 w-full max-w-xs rounded-xl h-10 cursor-pointer"
+            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 px-8 py-6 w-full max-w-xs rounded-xl h-10 cursor-pointer"
             onClick={handleContinue}
             disabled={!date || !guestCount || !time}
           >
