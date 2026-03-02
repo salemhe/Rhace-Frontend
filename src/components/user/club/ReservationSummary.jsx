@@ -425,7 +425,7 @@ export default function ReservationSummary() {
             onClick={handleContinue}
             disabled={!date || !guestCount || !time || isLoading}
           >
-            {isMobile && next === false ? "Next" : isLoading ? "Processing..." : "Complete Reservations"}
+            {isMobile && next === false ? "Next" : isLoading ? "Processing..." : "Continue to Payment"}
           </Button>
         </div>
       </div>
