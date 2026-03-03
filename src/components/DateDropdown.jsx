@@ -59,8 +59,8 @@ export const DateDropdown = ({ selectedDate, onChange }) => {
                !isSameMonth(cloneDay, monthStart)
                  ? "text-neutral-400 "
                  : isSameDay(cloneDay, selectedDate || new Date())
-                   ? "bg-teal-800 text-white"
-                   : "text-gray-700 hover:bg-teal-50 bg-gray-100"
+                   ? "bg-indigo-800 text-white"
+                   : "text-gray-700 hover:bg-indigo-50 bg-gray-100"
              }
            `}
             onClick={() => {

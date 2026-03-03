@@ -15,7 +15,7 @@
   --text-dark: #0a1a1a;
   --text-mid: #2d4a4a;
   --text-light: #5a7a7a;
-  --border: rgba(14, 180, 180, 0.18);
+  /* --border: rgba(14, 180, 180, 0.18); */
 }
 
 .how {
@@ -102,12 +102,12 @@
   color: var(--teal-600);
   margin-bottom: 0.8rem;
 }
-h2 {
+/* h2 {
   font-size: clamp(2rem, 4vw, 3rem);
   color: var(--text-dark);
   line-height: 1.15;
   margin-bottom: 1rem;
-}
+} */
 .section-sub {
   font-size: 1rem;
   color: var(--text-light);

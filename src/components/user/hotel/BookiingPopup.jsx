@@ -129,35 +129,29 @@ const HotelBookingPopup = ({
           )}
           <form onSubmit={handleSubmit} className="space-y-6 mt-6">
             <div className="flex flex-col md:flex-row w-full gap-4">
-              <div className="relative w-full">
                 <DatePicker
                   title="Check in Date"
                   className="bg-white"
                   value={date}
                   onChange={setDate}
+                  chevron
                 />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-900 pointer-events-none" />
-              </div>
               
-              <div className="relative w-full">
                 <DatePicker
                   title="Check out Date"
                   className="bg-white"
                   value={date2}
                   onChange={setDate2}
+                  chevron
                 />
-                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-900 pointer-events-none" />
-              </div>
             </div>
 
-            <div className="relative w-full">
               <GuestPicker
                 className="bg-white"
                 value={guests}
                 onChange={setGuests}
+                chevron
               />
-              <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-900 pointer-events-none "/>
-            </div>
             
             <Select disabled={!rooms} onValueChange={(value) => setSelectedRoom(rooms.find(r => r._id === value))} >
               <SelectPrimitive.Trigger asChild className="w-full">
