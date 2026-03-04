@@ -74,6 +74,11 @@ import {
   getDashboardKPIs,
   getRevenueTrends,
   getTotalEarnings,
+  getPaystackBalance,
+  getPaystackTransactions,
+  getPaystackTransactionStats,
+  getAdminEarnings,
+  getSuccessfulPaymentsCount,
 } from "@/services/admin.service";
 import { useWebSocket } from "@/contexts/WebSocketContext";
 
@@ -87,6 +92,162 @@ const earningsData = [
   { date: "Feb 11", value: 420000 },
   { date: "Feb 18", value: 400000 },
 ];
+
+// Helper functions for date calculations
+const getStartOfWeek = () => {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = now.getDate() - day + (day === 0 ? -6 : 1); // Adjust when day is Sunday
+  const startOfWeek = new Date(now.setDate(diff));
+  startOfWeek.setHours(0, 0, 0, 0);
+  return startOfWeek;
+};
+
+const getStartOfToday = () => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+};
+
+// Function to fetch all Paystack stats dynamically
+const loadPaystackStats = async (setPaystackStats, setPaystackBalance) => {
+  try {
+    setPaystackStats(prev => ({ ...prev, loading: true }));
+    setPaystackError(null);
+
+    // Fetch transactions from Paystack
+    const transactionsRes = await getPaystackTransactions({ perPage: 100 });
+    let transactions = [];
+
+    // make sure we actually got an object/array – some backends respond with HTML
+    if (!transactionsRes || typeof transactionsRes.data !== 'object') {
+      throw new Error('Unexpected Paystack transactions response');
+    }
+
+    // Extract transactions from response - handle different response formats
+    if (Array.isArray(transactionsRes.data)) {
+      transactions = transactionsRes.data;
+    } else if (transactionsRes.data.data && Array.isArray(transactionsRes.data.data)) {
+      transactions = transactionsRes.data.data;
+    } else if (transactionsRes.data.transactions && Array.isArray(transactionsRes.data.transactions)) {
+      transactions = transactionsRes.data.transactions;
+    }
+
+    // If there are more pages, we might need to fetch them
+    // For now, let's work with what we have
+
+    const startOfWeek = getStartOfWeek();
+    const startOfToday = getStartOfToday();
+
+    // also compute boundaries for prior periods
+    const startOfLastWeek = new Date(startOfWeek);
+    startOfLastWeek.setDate(startOfLastWeek.getDate() - 7);
+
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+
+    // Calculate stats from transactions
+    let totalEarnings = 0;
+    let weeklyEarnings = 0;
+    let todayEarnings = 0;
+    let completedPayments = 0;
+
+    let lastWeekEarnings = 0;
+    let yesterdayEarnings = 0;
+    let lastWeekCount = 0;
+    let yesterdayCount = 0;
+
+    transactions.forEach(tx => {
+      // Only count successful transactions
+      const status = tx.status?.toLowerCase();
+      if (status !== 'success' && status !== 'successful') return;
+
+      const amount = Number(tx.amount || tx.amountPaid || tx.value || 0);
+      const txDate = tx.createdAt ? new Date(tx.createdAt) : null;
+
+      if (!txDate) return;
+
+      // Total earnings - all successful transactions
+      totalEarnings += amount;
+      completedPayments++;
+
+      // Weekly earnings - this week so far
+      if (txDate >= startOfWeek) {
+        weeklyEarnings += amount;
+      }
+
+      // Last week earnings
+      if (txDate >= startOfLastWeek && txDate < startOfWeek) {
+        lastWeekEarnings += amount;
+        lastWeekCount++;
+      }
+
+      // Today's earnings
+      if (txDate >= startOfToday) {
+        todayEarnings += amount;
+      }
+
+      // Yesterday earnings
+      if (txDate >= startOfYesterday && txDate < startOfToday) {
+        yesterdayEarnings += amount;
+        yesterdayCount++;
+      }
+    });
+
+    // Also fetch balance from Paystack for additional data (shown separately in UI)
+    try {
+      const balanceRes = await getPaystackBalance();
+      // if API returns a string page instead of JSON, throw so we catch below
+      if (typeof balanceRes?.data === 'string' && !balanceRes.data.trim().startsWith('{')) {
+        throw new Error(`unexpected paystack balance response: ${balanceRes.data.slice(0,200)}`);
+      }
+      const balanceData = balanceRes?.data?.data || balanceRes?.data || {};
+
+      setPaystackBalance({
+        availableBalance: balanceData.availableBalance || balanceData.balance || 0,
+        pendingBalance: balanceData.pendingBalance || 0,
+        totalBalance: balanceData.balance || totalEarnings,
+        lastUpdated: new Date()
+      });
+    } catch (balanceError) {
+      console.warn("Failed to fetch Paystack balance, using transaction calculations:", balanceError);
+      // Use transaction-based calculations as fallback
+      setPaystackBalance(prev => ({
+        ...prev,
+        totalBalance: totalEarnings,
+        lastUpdated: new Date()
+      }));
+    }
+
+    // calculate percentage changes and trends
+    const weeklyChange = lastWeekEarnings > 0 ? ((weeklyEarnings - lastWeekEarnings) / lastWeekEarnings) * 100 : 0;
+    const weeklyTrend = weeklyChange >= 0 ? 'up' : 'down';
+    const todayChange = yesterdayEarnings > 0 ? ((todayEarnings - yesterdayEarnings) / yesterdayEarnings) * 100 : 0;
+    const todayTrend = todayChange >= 0 ? 'up' : 'down';
+    const completedChange = lastWeekCount > 0 ? ((completedPayments - lastWeekCount) / lastWeekCount) * 100 : 0;
+    const completedTrend = completedChange >= 0 ? 'up' : 'down';
+
+    // Update stats
+    setPaystackStats({
+      totalEarnings,
+      weeklyEarnings,
+      weeklyEarningsChange: weeklyChange,
+      weeklyEarningsTrend: weeklyTrend,
+      todayEarnings,
+      todayEarningsChange: todayChange,
+      todayEarningsTrend: todayTrend,
+      completedPayments,
+      completedPaymentsChange: completedChange,
+      completedPaymentsTrend: completedTrend,
+      loading: false,
+      lastUpdated: new Date()
+    });
+
+  } catch (error) {
+    console.error("Failed to load Paystack stats:", error);
+    setPaystackError(error.message || String(error));
+    setPaystackStats(prev => ({ ...prev, loading: false }));
+  }
+};
 
 export default function Payments() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -122,8 +283,114 @@ export default function Payments() {
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedVendor, setSelectedVendor] = useState(null);
   const [selectedPeriod, setSelectedPeriod] = useState("weekly");
-  const [vendors, setVendors] = useState([]);
+const [vendors, setVendors] = useState([]);
   const { subscribe, unsubscribe } = useWebSocket();
+  const [paystackStats, setPaystackStats] = useState({
+    totalEarnings: 0,
+    weeklyEarnings: 0,
+    weeklyEarningsChange: 0,
+    weeklyEarningsTrend: 'up',
+    todayEarnings: 0,
+    todayEarningsChange: 0,
+    todayEarningsTrend: 'up',
+    completedPayments: 0,
+    completedPaymentsChange: 0,
+    completedPaymentsTrend: 'up',
+    loading: false
+  });
+const [paystackError, setPaystackError] = useState(null); // store fetch errors
+
+  // New state for admin earnings (vendor % - Paystack commission)
+  const [adminEarnings, setAdminEarnings] = useState({
+    totalGrossAmount: 0,
+    totalVendorCommission: 0,
+    totalPaystackCommission: 0,
+    totalAdminEarnings: 0,
+    totalPayments: 0,
+    averagePaymentAmount: 0,
+    vendorBreakdown: [],
+    loading: false
+  });
+
+  // New state for successful payments count
+  const [successfulPayments, setSuccessfulPayments] = useState({
+    totalSuccessful: 0,
+    totalFailed: 0,
+    totalPending: 0,
+    totalCancelled: 0,
+    totalAllPayments: 0,
+    successRate: "0%",
+    byPaymentMethod: [],
+    byVendorType: [],
+    loading: false
+  });
+
+  // helper wrapper so callers don't have to pass state setters
+  const fetchPaystackStats = async () => {
+    await loadPaystackStats(setPaystackStats, setPaystackBalance);
+  };
+
+  // Function to load admin earnings from new endpoint
+  const loadAdminEarnings = async (params = {}) => {
+    try {
+      setAdminEarnings(prev => ({ ...prev, loading: true }));
+      const res = await getAdminEarnings(params);
+      const data = res?.data?.data || res?.data || res || {};
+      
+      setAdminEarnings({
+        totalGrossAmount: data.summary?.totalGrossAmount || 0,
+        totalVendorCommission: data.summary?.totalVendorCommission || 0,
+        totalPaystackCommission: data.summary?.totalPaystackCommission || 0,
+        totalAdminEarnings: data.summary?.totalAdminEarnings || 0,
+        totalPayments: data.summary?.totalPayments || 0,
+        averagePaymentAmount: data.summary?.averagePaymentAmount || 0,
+        vendorBreakdown: data.vendorBreakdown || [],
+        loading: false
+      });
+
+      // Update dashboard KPIs with admin earnings data
+      setDashboardKPIs(prev => ({
+        ...prev,
+        totalEarnings: data.summary?.totalAdminEarnings || prev.totalEarnings,
+        totalGrossAmount: data.summary?.totalGrossAmount || prev.totalGrossAmount,
+        totalVendorCommission: data.summary?.totalVendorCommission || prev.totalVendorCommission,
+        totalPaystackCommission: data.summary?.totalPaystackCommission || prev.totalPaystackCommission
+      }));
+    } catch (error) {
+      console.error("Failed to load admin earnings:", error);
+      setAdminEarnings(prev => ({ ...prev, loading: false }));
+    }
+  };
+
+  // Function to load successful payments count from new endpoint
+  const loadSuccessfulPayments = async (params = {}) => {
+    try {
+      setSuccessfulPayments(prev => ({ ...prev, loading: true }));
+      const res = await getSuccessfulPaymentsCount(params);
+      const data = res?.data?.data || res?.data || res || {};
+      
+      setSuccessfulPayments({
+        totalSuccessful: data.summary?.totalSuccessful || 0,
+        totalFailed: data.summary?.totalFailed || 0,
+        totalPending: data.summary?.totalPending || 0,
+        totalCancelled: data.summary?.totalCancelled || 0,
+        totalAllPayments: data.summary?.totalAllPayments || 0,
+        successRate: data.summary?.successRate || "0%",
+        byPaymentMethod: data.byPaymentMethod || [],
+        byVendorType: data.byVendorType || [],
+        loading: false
+      });
+
+      // Update dashboard KPIs with successful payments data
+      setDashboardKPIs(prev => ({
+        ...prev,
+        completedPayments: data.summary?.totalSuccessful || prev.completedPayments
+      }));
+    } catch (error) {
+      console.error("Failed to load successful payments:", error);
+      setSuccessfulPayments(prev => ({ ...prev, loading: false }));
+    }
+  };
 
 
 
@@ -215,29 +482,34 @@ export default function Payments() {
 
   // Handler functions
   const handlePaymentUpdate = async (payload) => {
-    
+    // refresh local data that depend on backend
     load();
     loadPayouts();
 
+    // always re‑read Paystack transactions, and wait so that the effect below
+    // will reliably copy them into dashboardKPIs before any backend values arrive
+    await fetchPaystackStats();
+
+    // call backend KPI endpoints as a fallback/for additional fields such as
+    // percentage changes.  We intentionally avoid overwriting the four primary
+    // stats (total/weekly/today/completed) because those come directly from
+    // Paystack and are mirrored by the paystackStats effect.
     try {
       const res = await getTotalEarnings();
       const data = res?.data;
       if (data?.earnings) {
         setDashboardKPIs(prev => ({
           ...prev,
-          totalEarnings: data.earnings.thisYear,
           totalEarningsChange: `+${data.earnings.yearChange}% from last year`,
           totalEarningsTrend: data.earnings.yearChange >= 0 ? "up" : "down",
-          weeklyEarnings: data.earnings.thisWeek,
           weeklyEarningsChange: `+${data.earnings.weekChange}% vs last week`,
           weeklyEarningsTrend: data.earnings.weekChange >= 0 ? "up" : "down",
-          completedPayments: data.payments.completed.thisWeek,
           completedPaymentsChange: `+${data.payments.completed.change}% vs last week`,
           completedPaymentsTrend: data.payments.completed.change >= 0 ? "up" : "down",
         }));
       }
     } catch (e) {
-      
+      // ignore
     }
 
     const earningsKeys = [
@@ -259,7 +531,7 @@ export default function Payments() {
         return updated;
       });
     } catch (e) {
-      
+      // ignore
     }
 
     try {
@@ -269,7 +541,7 @@ export default function Payments() {
         : trendsRes?.data?.data || [];
       setRevenueTrends(trends);
     } catch (e) {
-      
+      // ignore
     }
   };
 
@@ -585,13 +857,34 @@ export default function Payments() {
       }
     };
 
-    const loadData = async () => {
+const loadData = async () => {
       load();
       const vendorsList = await loadVendors();
       loadPayouts(vendorsList);
       loadEarnings();
       loadKPIs();
       loadRevenueTrends();
+      
+      // Fetch admin earnings from new endpoint (vendor % - Paystack commission)
+      try {
+        await loadAdminEarnings();
+      } catch (err) {
+        console.warn("Error fetching admin earnings:", err);
+      }
+      
+      // Fetch successful payments count from new endpoint
+      try {
+        await loadSuccessfulPayments();
+      } catch (err) {
+        console.warn("Error fetching successful payments:", err);
+      }
+      
+      // fetch live paystack numbers as soon as page loads
+      try {
+        await fetchPaystackStats();
+      } catch (err) {
+        console.warn("Error fetching Paystack stats in loadData", err);
+      }
     };
 
     loadData();
@@ -636,6 +929,25 @@ export default function Payments() {
       fetchPaystackBalance();
     }
   }, [dashboardKPIs.availableBalance]);
+
+  // mirror live paystack stats into KPI object so statcards automatically use them
+  useEffect(() => {
+    if (!paystackStats.loading) {
+      setDashboardKPIs(prev => ({
+        ...prev,
+        totalEarnings: paystackStats.totalEarnings,
+        weeklyEarnings: paystackStats.weeklyEarnings,
+        weeklyEarningsChange: paystackStats.weeklyEarningsChange !== undefined ? `+${paystackStats.weeklyEarningsChange.toFixed(1)}% vs last week` : prev.weeklyEarningsChange,
+        weeklyEarningsTrend: paystackStats.weeklyEarningsTrend || prev.weeklyEarningsTrend,
+        todayEarnings: paystackStats.todayEarnings,
+        todayEarningsChange: paystackStats.todayEarningsChange !== undefined ? `+${paystackStats.todayEarningsChange.toFixed(1)}% vs yesterday` : prev.todayEarningsChange,
+        todayEarningsTrend: paystackStats.todayEarningsTrend || prev.todayEarningsTrend,
+        completedPayments: paystackStats.completedPayments,
+        completedPaymentsChange: paystackStats.completedPaymentsChange !== undefined ? `+${paystackStats.completedPaymentsChange.toFixed(1)}% vs last week` : prev.completedPaymentsChange,
+        completedPaymentsTrend: paystackStats.completedPaymentsTrend || prev.completedPaymentsTrend,
+      }));
+    }
+  }, [paystackStats]);
 
   // Refresh payout history when switching to history tab
   useEffect(() => {
@@ -686,6 +998,11 @@ export default function Payments() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
+      {paystackError && (
+        <div className="p-2 bg-red-100 text-red-800 rounded">
+          Failed to load Paystack data: {paystackError}
+        </div>
+      )}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="bg-muted/50">
           <TabsTrigger value="earning">Vendor's Earning</TabsTrigger>
@@ -715,7 +1032,8 @@ export default function Payments() {
               />
               <StatCard
                 title="Completed Payments"
-                value={dashboardKPIs.completedPayments ? `₦${dashboardKPIs.completedPayments.toLocaleString()}` : "₦0"}
+                // we treat this as a count of successful transactions – more intuitive when earnings are already shown as amounts
+                value={dashboardKPIs.completedPayments ? dashboardKPIs.completedPayments.toLocaleString() : "0"}
                 change={dashboardKPIs.completedPaymentsChange || "+0% vs last week"}
                 trend={dashboardKPIs.completedPaymentsTrend || "up"}
                 icon={CheckCircle}
