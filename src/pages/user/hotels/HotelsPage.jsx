@@ -50,7 +50,7 @@ const HotelsPage = () => {
     fetchRooms();
   }, []);
 
-  if (isLoading || !rooms) return <UniversalLoader fullscreen />;
+  if (isLoading || !rooms) return <UniversalLoader fullscreen type="vendor-page"/>;
   return (
     <>
       <div className="hidden md:block">

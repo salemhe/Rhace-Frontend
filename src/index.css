@@ -186,3 +186,19 @@ Link {
     margin: 0rem auto;
   }
 }
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position:  400px 0; }
+}
+
+.skeleton-shine {
+  background-image: linear-gradient(
+    90deg,
+    #e5e7eb 25%,
+    #d1d5db 50%,
+    #e5e7eb 75%
+  );
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
