@@ -417,7 +417,7 @@ const Rooms = ({ setSelectedRooms, setShow, rooms }) => {
                     <button
                       onClick={() => addToSelection(room)}
                       className="w-full bg-[#0A6C6D] hover:bg-teal-800 text-white font-medium py-2 px-4 rounded-[12px] mb-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      disabled={room.totalUnits < 1 || (quantities[room._id] || 0) < 1}
+                      // disabled={room.totalUnits < 1 || (quantities[room._id] || 0) < 1}
                     >
                       Reserve Room
                     </button>
