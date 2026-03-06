@@ -144,7 +144,7 @@ export default function PreSelectMeal({ id }) {
 
   if (loading) {
     return (
-      <UniversalLoader fullscreen />
+      <UniversalLoader fullscreen type="preselect-meal"/>
     );
   }
 

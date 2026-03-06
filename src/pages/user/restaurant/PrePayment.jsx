@@ -191,9 +191,14 @@ export default function PrePaymentPage() {
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
                     <div className="rounded-xl p-5 max-w-md mx-4 border bg-[#FFFBEB] border-[#E0B300]">
                         <h2 className="text-lg font-semibold flex items-center mb-3"><AlertTriangle className="size-6 inline mr-2 text-[#E0B300]" />Confirm Pay at Restaurant</h2>
-                        <p className="text-sm">
-                            You have chosen to pay at the restaurant. A reservation fee of <b>₦1,000 </b> will be required to secure your table.
-                        </p>
+                            <div className="text-sm space-y-3">
+                                <p>
+                                    You have chosen to pay at the restaurant.
+                                </p>
+                                <p>
+                                    A reservation fee of <span className="font-semibold">₦1,000</span> will be required to secure your table.
+                                </p>
+                            </div>
                         <div className="flex items-center justify-between gap-4">
                             <Button
                                 variant="outline"

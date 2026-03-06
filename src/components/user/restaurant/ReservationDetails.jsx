@@ -154,8 +154,8 @@ export default function ReservationDetails({
               <h3 className="text-lg font-semibold">Reservation Details</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-              <DatePicker value={date} onChange={setDate} />
-              <TimePicker value={time} onChange={setTime} 
+              <DatePicker value={date} onChange={setDate} edit/>
+              <TimePicker value={time} onChange={setTime} edit
                               slot={[
                   '09:00 AM','09:30 AM',
                   '10:00 AM','10:30 AM',
@@ -171,7 +171,7 @@ export default function ReservationDetails({
                   '08:00 PM','08:30 PM',
                 ]}
               />
-              <GuestPicker value={guestCount} onChange={setGuestCount} />
+              <GuestPicker value={guestCount} onChange={setGuestCount} edit/>
             </div>
           </div>
         </div>
