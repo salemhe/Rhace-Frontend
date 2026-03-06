@@ -1698,4 +1698,4 @@ export default function ReservationDetails({
 
 //WISDOM KINDLY FIX UP THE PAYMENT TOTAL FOR THIS..
 // It currently selects tables, and table quanitiy 
-// The payment logic doesnt add 
+// The payment logic doesnt add the extra price for each quanitity.. so FIX IT.

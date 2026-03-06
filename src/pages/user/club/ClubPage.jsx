@@ -52,7 +52,7 @@ const ClubPage = () => {
         fetchTables();
     }, [])
 
-      if (isLoading) return <UniversalLoader fullscreen />
+      if (isLoading) return <UniversalLoader fullscreen type="vendor-page"/>
 
     return (
         <>
