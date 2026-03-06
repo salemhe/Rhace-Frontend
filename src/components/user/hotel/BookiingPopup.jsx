@@ -167,7 +167,7 @@ const HotelBookingPopup = ({
             className="flex items-center gap-2 text-sm"
             onClick={() => setShow(false)}
           >
-            <X className="text-gray-600" /> Exit
+            <X className="text-gray-600" /> Exit/Select more rooms
           </button>
           
           {/* Selected Rooms Summary */}
@@ -208,22 +208,20 @@ const HotelBookingPopup = ({
                       {/* Per-room dates and guests - compact for mobile */}
                       <div className="grid grid-cols-2 gap-2 mb-2">
                         <div>
-                          <label className="text-xs text-gray-500 block">Check-in</label>
                           <DatePicker
-                            title=""
+                            title="Check In Date"
                             value={room.checkInDate ? new Date(room.checkInDate) : null}
                             onChange={(date) => updateRoomDates(room._id, 'checkInDate', date)}
-                            className="bg-white h-9"
+                            className="bg-white "
                             chevron
                           />
                         </div>
                         <div>
-                          <label className="text-xs text-gray-500 block">Check-out</label>
                           <DatePicker
-                            title=""
+                            title="Check Out Date"
                             value={room.checkOutDate ? new Date(room.checkOutDate) : null}
                             onChange={(date) => updateRoomDates(room._id, 'checkOutDate', date)}
-                            className="bg-white h-9"
+                            className="bg-white "
                             chevron
                           />
                         </div>
@@ -252,11 +250,10 @@ const HotelBookingPopup = ({
                         </div>
                         
                         <div className="flex items-center gap-2">
-                          <span className="text-xs text-gray-500">Guests:</span>
                           <GuestPicker
                             value={room.guests || 1}
                             onChange={(value) => updateRoomGuests(room._id, value)}
-                            className="bg-white h-8"
+                            className="bg-white "
                             chevron
                           />
                         </div>
