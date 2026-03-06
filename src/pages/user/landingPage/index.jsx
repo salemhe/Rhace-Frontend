@@ -570,7 +570,7 @@ function UserLandingPage() {
         </div>
       </main>
 
-      <div className="fixed bottom-0 left-0 w-full bg-white py-2 flex items-center justify-center gap-12 border-t md:hidden z-50">
+     {profile && <div className="fixed bottom-0 left-0 w-full bg-white py-2 flex items-center justify-center gap-12 border-t md:hidden z-50">
         {footer.map((item, i) => (
           <button
             onClick={() => item.link && navigate(item.link)}
@@ -583,9 +583,9 @@ function UserLandingPage() {
             </div>
           </button>
         ))}
-      </div>
+      </div>}
       {/* Footer */}
-      <div className="hidden md:block">
+      <div className={`${profile && "hidden"} md:block`}>
         <Footer />
       </div>
     </div>
