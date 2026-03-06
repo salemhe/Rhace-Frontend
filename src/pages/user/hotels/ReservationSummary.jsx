@@ -322,17 +322,17 @@ export default function ReservationSummary() {
                                 <div className="flex items-center gap-2">
                                   <button
                                   onClick={() => handleUpdateQuantity(room._id, -1)}
-                                  className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                                  className="sm:w-8 sm:h-8 w-5 h-5 rounded-full border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
                                   disabled={quantity <= 1}
                                 >
                                   <Minus className="w-3 h-3" />
                                 </button>
-                                <span className="w-8 text-center text-sm font-medium">
+                                <span className="sm:w-8 w-5 text-center text-sm font-medium">
                                   {quantity}
                                 </span>
                                 <button
                                   onClick={() => handleUpdateQuantity(room._id, 1)}
-                                  className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                                  className="sm:w-8 sm:h-8 w-5 h-5 rounded-full border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
                                   disabled={quantity >= (room.totalUnits || 10)}
                                 >
                                   <Plus className="w-3 h-3" />
