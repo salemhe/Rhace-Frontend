@@ -6,6 +6,7 @@ import { Testimonials } from "./components/Testimonials";
 import { CTA } from "./components/CTA";
 import { Footer } from "./components/Footer";
 import { FAQ } from "./components/FAQ";
+import ProductPreview from "./components/ProductPreview";
 
 export default function VendornHomePage() {
   return (
@@ -13,9 +14,10 @@ export default function VendornHomePage() {
       <Header />
       <Hero />
       <Features />
+      <ProductPreview />
       <HowItWorks />
       <FAQ />
-      <CTA />
+      {/* <CTA /> */}
       <Footer />
     </div>
   );
