@@ -114,14 +114,18 @@ export default function Footer() {
         >
           <p className="text-gray-400">© 2025 Rhace. All rights reserved.</p>
           <div className="flex gap-6">
-            {["Privacy", "Terms", "Cookies"].map((item, index) => (
+            {[
+              { name: "Privacy", href: "/privacy-policy" },
+              { name: "Terms", href: "/terms" },
+              { name: "Cookies", href: "#" },
+            ].map((item, index) => (
               <motion.a
                 key={index}
-                href="#"
+                href={item.href}
                 className="hover:text-teal-400 transition-colors"
                 whileHover={{ y: -2 }}
               >
-                {item}
+                {item.name}
               </motion.a>
             ))}
           </div>

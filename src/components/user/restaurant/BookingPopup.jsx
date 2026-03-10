@@ -132,11 +132,12 @@ return (
         </button>
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
           <div className="flex flex-col md:flex-row w-full gap-4">
-            <DatePicker className="bg-white" value={date} onChange={setDate} />
+            <DatePicker className="bg-white" value={date} onChange={setDate} chevron/>
             <TimePicker
               className="bg-white"
               value={time}
               onChange={setTime}
+              chevron
               slot={[
                 '09:00 AM', '09:30 AM',
                 '10:00 AM', '10:30 AM',
@@ -153,7 +154,7 @@ return (
               ]}
             />
           </div>
-          <GuestPicker className="bg-white" value={guests} onChange={setGuests} />
+          <GuestPicker className="bg-white" value={guests} onChange={setGuests} chevron/>
           <div className="flex flex-col gap-y-3">
             <Label htmlFor="special-request">Special Request</Label>
             <Textarea

@@ -152,3 +152,14 @@ export const getReportStatus = (id) => api.get(`/reports/${id}/status`);
 export const downloadReport = (id) => api.get(`/reports/${id}/download`, { responseType: 'blob', headers: { Accept: 'application/octet-stream' } });
 
 export const getPayments = (params) => api.get("/payments", { params });
+
+// Paystack API Functions - Direct integration
+export const getPaystackBalance = () => api.get("/payments/paystack/balance");
+export const getPaystackBalanceLedger = () => api.get("/payments/paystack/balance/ledger");
+export const getPaystackTransactions = (params) => api.get("/payments/paystack/transactions", { params });
+export const getPaystackTransactionStats = (params) => api.get("/payments/paystack/transactions/stats", { params });
+
+// New Admin Earnings API Functions
+// These endpoints calculate: Admin Earnings = (Gross Amount × Vendor %) - (Gross Amount × Paystack Commission)
+export const getAdminEarnings = (params = {}) => api.get("/payments/admin-earnings", { params });
+export const getSuccessfulPaymentsCount = (params = {}) => api.get("/payments/successful-count", { params });

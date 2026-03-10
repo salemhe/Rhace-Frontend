@@ -13,8 +13,8 @@ const HotelInfo = ({
   activeTab,
   setActiveTab,
   id,
-  selectedRoom,
-  setSelectedRoom,
+  selectedRooms,
+  setSelectedRooms,
   rooms,
   setRooms,
 }) => {
@@ -64,8 +64,8 @@ const HotelInfo = ({
         {activeTab === "rooms" && (
           <Rooms
             setShow={setShow}
-            selectedRoom={selectedRoom}
-            setSelectedRoom={setSelectedRoom}
+            selectedRooms={selectedRooms}
+            setSelectedRooms={setSelectedRooms}
             rooms={rooms}
             setRooms={setRooms}
             id={id}
