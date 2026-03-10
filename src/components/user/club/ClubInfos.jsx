@@ -122,7 +122,7 @@ const ClubInfos = ({
           <div className="space-y-1">
             <p className="text-xs">Age Limit</p>
             <p className="font-semibold text-sm">
-            {ageLimit}+
+            {ageLimit}
             </p>
           </div>
         </div>

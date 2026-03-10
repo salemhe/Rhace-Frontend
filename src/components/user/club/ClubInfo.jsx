@@ -52,7 +52,7 @@ const ClubInfo = ({ data }) => {
             closingTime={data.closingTime}
             dressCode={data.dressCode}
             desc={data.businessDescription}
-            ageLimit={data?.ageLimit ?? ""}
+            ageLimit={data?.agePolicy ?? ""}
           />
         )}
         {activeTab === "reviews" && <RestaurantReviews restaurantId={data._id} ratings={data.rating} />}

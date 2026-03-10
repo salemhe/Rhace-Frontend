@@ -35,7 +35,7 @@ export function ReservationsProvider({
   const combos = comboItems.filter((item) => item.selected);
   const bottles = bottleItems.filter(item => item.quantity > 0);
   const vipExtras = vipExtraItems.filter((item) => item.selected);
-  const tableSelected = table.find(t => t.selected);
+  const tableSelected = table.filter(t => t.selected);
 
   const totalPrice = vendor
     ? bottles.reduce(
@@ -44,7 +44,7 @@ export function ReservationsProvider({
     ) +
     combos.reduce((total, item) => total + (item.setPrice || 0), 0) +
     vipExtras.reduce((total, item) => total + (item.price || 0), 0) +
-    (tableSelected?.price || 0)
+    tableSelected?.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0)
     : 0;
 
   console.log(totalPrice)
@@ -85,7 +85,10 @@ export function ReservationsProvider({
         totalAmount: partPay ? totalPrice / 2 : totalPrice,
         vendor: vendor?._id,
         businessName: vendor?.businessName,
-        table: tableSelected?._id,
+        table: tableSelected?.map((item) => ({
+          _id: item._id,
+          quantity: item.quantity || 1,
+        })),
         location: vendor?.address,
         image: vendor?.profileImages?.[0],
       };
