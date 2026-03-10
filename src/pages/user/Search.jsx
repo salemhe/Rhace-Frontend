@@ -619,7 +619,7 @@ const SearchPage = () => {
     <div className="min-h-screen mt-24 bg-gray-50">
       <UserHeader />
 
-      <div className="z-999 relative bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
+      <div className="z-40 relative bg-white/95 backdrop-blur-md border-b border-gray-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
 
           <div className="flex items-center gap-1.5 mb-2.5 overflow-x-auto scrollbar-hide pb-px">

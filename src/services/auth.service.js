@@ -2,9 +2,9 @@ import api from "@/lib/axios";
 class AuthService {
   async login(email, password) {
     const res = await api.post("/users/auth/login", { email, password });
-    const { token } = res.data;
+    const { accessToken } = res.data;
 
-    localStorage.setItem("token", token);
+    localStorage.setItem("token", accessToken);
     return res.data;
   }
 

@@ -407,7 +407,7 @@ const STATUS = {
 const normaliseStatus = (s) => {
   if (!s) return "Pending";
   const t = s.toLowerCase().trim();
-  if (t === "paid") return "Paid";
+  if (t === "success") return "Paid";
   if (t === "failed" || t === "fail") return "Failed";
   return "Pending";
 };
@@ -427,31 +427,31 @@ const MethodIcon = ({ method }) => {
 const DUMMY_PAYMENTS = [
   {
     _id: "1", reference: "TXN-20240101-001", status: "Paid",
-    amountPaid: 15000, paymentMethod: "Card",
+    amount: 15000, paymentMethod: "Card",
     date: "2024-01-15T10:30:00Z", createdAt: "2024-01-15T10:30:00Z",
     vendor: { businessName: "Zen Spa & Wellness", vendorType: "Spa", address: "12 Victoria Island, Lagos", profileImages: ["https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=800"] },
   },
   {
     _id: "2", reference: "TXN-20240102-002", status: "Pending",
-    amountPaid: 8500, paymentMethod: "Bank Transfer",
+    amount: 8500, paymentMethod: "Bank Transfer",
     date: "2024-01-20T14:00:00Z", createdAt: "2024-01-20T14:00:00Z",
     vendor: { businessName: "FitLife Gym", vendorType: "Gym", address: "5 Lekki Phase 1, Lagos", profileImages: ["https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800"] },
   },
   {
     _id: "3", reference: "TXN-20240103-003", status: "Failed",
-    amountPaid: 22000, paymentMethod: "Card",
+    amount: 22000, paymentMethod: "Card",
     date: "2024-02-01T09:15:00Z", createdAt: "2024-02-01T09:15:00Z",
     vendor: { businessName: "Gourmet Kitchen", vendorType: "Restaurant", address: "8 Adeola Odeku, Victoria Island", profileImages: ["https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800"] },
   },
   {
     _id: "4", reference: "TXN-20240104-004", status: "Paid",
-    amountPaid: 5000, paymentMethod: "Wallet",
+    amount: 5000, paymentMethod: "Wallet",
     date: "2024-02-10T16:45:00Z", createdAt: "2024-02-10T16:45:00Z",
     vendor: { businessName: "Urban Barbers", vendorType: "Salon", address: "3 Awolowo Road, Ikoyi", profileImages: ["https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800"] },
   },
   {
     _id: "5", reference: "TXN-20240105-005", status: "Paid",
-    amountPaid: 31500, paymentMethod: "Card",
+    amount: 31500, paymentMethod: "Card",
     date: "2024-02-18T11:00:00Z", createdAt: "2024-02-18T11:00:00Z",
     vendor: { businessName: "Luxe Hotel & Suites", vendorType: "Hotel", address: "22 Ozumba Mbadiwe, Lagos", profileImages: ["https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800"] },
   },
@@ -541,7 +541,7 @@ function TxRow({ payment, onClick, index }) {
       {/* Right */}
       <div className="flex flex-col items-end gap-1 flex-shrink-0">
         <span className="text-[14px] font-bold text-gray-900 tabular-nums">
-          {fmt(payment.amountPaid)}
+          {fmt(payment.amount)}
         </span>
         <span className={`flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${s.bg} ${s.text}`}>
           <Icon className="w-2.5 h-2.5" />
@@ -687,7 +687,7 @@ function DetailDrawer({ payment, onClose }) {
             <div>
               <p className="text-[11px] font-bold uppercase tracking-widest text-gray-400 mb-1">Amount</p>
               <p className="text-[32px] font-extrabold text-gray-900 leading-none tracking-tight">
-                {fmt(payment.amountPaid)}
+                {fmt(payment.amount)}
               </p>
             </div>
             <span className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border mt-1 ${s.bg} ${s.text} ${s.border}`}>
@@ -751,7 +751,7 @@ const PaymentsHistory = () => {
   const totalSpent = useMemo(() => {
     return payments
       .filter((p) => normaliseStatus(p.status) === "Paid")
-      .reduce((sum, p) => sum + p.amountPaid, 0);
+      .reduce((sum, p) => sum + p.amount, 0);
   }, [payments]);
 
   const counts = useMemo(() => ({
@@ -763,7 +763,7 @@ const PaymentsHistory = () => {
   const chartData = useMemo(() => {
     return payments.slice().reverse().map((p) => ({
       date: fmtDate(p.date),
-      amountPaid: p.amountPaid,
+      amountPaid: p.amount,
     }));
   }, [payments]);
 
