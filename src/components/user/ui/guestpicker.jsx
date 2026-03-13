@@ -21,35 +21,77 @@ const GUEST_CONFIG = {
 
 export function GuestPicker({
   value,
+  maxAdults,
+  maxChildren,
+  maxInfants,
   onChange,
   className,
+  maxGuests,
   chevron,
   edit,
 }) {
   const [open, setOpen] = useState(false);
+
   const [counts, setCounts] = useState({
     adults: 1,
     children: 0,
     infants: 0,
   });
 
+  const totalGuests = (c) => c.adults + c.children + c.infants;
+
+  const isDisabled = (type, val, current = counts) => {
+    if (type === "adults") {
+      return maxAdults !== undefined && val >= maxAdults;
+    }
+
+    if (type === "children") {
+      return maxChildren !== undefined && val >= maxChildren;
+    }
+
+    if (type === "infants") {
+      if (maxInfants !== undefined) {
+        return val >= maxInfants;
+      }
+
+      // fallback rule: infants share adults + children capacity
+      const totalWithoutInfants = current.adults + current.children;
+      const maxWithoutInfants =
+        (maxAdults ?? Infinity) + (maxChildren ?? Infinity);
+
+      return totalWithoutInfants + val >= maxWithoutInfants;
+    }
+
+    return false;
+  };
+
   const inc = (type) => {
     setCounts((c) => {
-      const next = { ...c, [type]: c[type] + 1 };
-      onChange?.((next.adults + next.children + next.infants).toLocaleString());
-      return next;
-    });
-  };
-  const dec = (type) => {
-    setCounts((c) => {
-      const min = GUEST_CONFIG[type].min;
-      const nextVal = Math.max(c[type] - 1, min);
-      const next = { ...c, [type]: nextVal };
-      onChange?.((next.adults + next.children + next.infants).toLocaleString());
+      const val = c[type];
+
+      // hard stop if limit reached
+      if (isDisabled(type, val, c)) return c;
+
+      const next = { ...c, [type]: val + 1 };
+
+      onChange?.(totalGuests(next).toLocaleString());
+
       return next;
     });
   };
 
+  const dec = (type) => {
+    setCounts((c) => {
+      const min = GUEST_CONFIG[type].min;
+      const nextVal = Math.max(c[type] - 1, min);
+
+      const next = { ...c, [type]: nextVal };
+
+      onChange?.(totalGuests(next).toLocaleString());
+
+      return next;
+    });
+  };
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -62,7 +104,7 @@ export function GuestPicker({
         >
           <div className="flex flex-col gap-2">
             <Label htmlFor="date" className="text-black text-xs">
-              Guest
+              Guest { `( max ${maxGuests})` }
             </Label>
             {value ? `${value} ${Number(value) > 1 ? 'Guests' : 'Guest'}` : "Number of guests"}
           </div>
@@ -97,8 +139,9 @@ export function GuestPicker({
                   </span>
                 </div>
                 <button
-                  onClick={() => inc(type)}
-                  className="p-1 border rounded-full"
+                  onClick={() => {inc(type)}}
+                  className={`p-1 border rounded-full disabled:opacity-40`}
+                  disabled={isDisabled(type, val)}
                 >
                   <FiPlus className="w-4 h-4 text-gray-600" />
                 </button>

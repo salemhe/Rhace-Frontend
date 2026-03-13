@@ -64,6 +64,8 @@ export default function ReservationSummary() {
     return [];
   };
 
+  console.log(booking)
+
   useEffect(() => {
     const requestParam = searchParams.get("specialRequest");
     if (requestParam) {
@@ -117,7 +119,6 @@ export default function ReservationSummary() {
         });
 
         const selections = await Promise.all(roomPromises);
-        console.log("Room selections:", selections);
         setRoomSelections(selections);
       }
     } catch (error) {
@@ -137,6 +138,8 @@ export default function ReservationSummary() {
     } else {
       const res = await handleSubmit();
       if (res > 0) {
+
+        console.log("Room selections:",booking, res);
         setPopupOpen(true);
       }
     }

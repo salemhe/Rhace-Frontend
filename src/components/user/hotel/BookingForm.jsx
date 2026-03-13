@@ -162,7 +162,6 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
       setIsLoading(false);
     }
   };
-
   return (
     <div
       className="p-4 rounded-2xl bg-[#ffffff] border border-[#E5E7EB]"
@@ -187,6 +186,7 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
                 room.pricePerNight - room.pricePerNight * (room.discount / 100);
               const roomTotal = discountedPrice * (room.quantity || 1) * nights;
 
+console.log(room.adultsCapacity, room)
               return (
                 <div
                   key={room._id}
@@ -271,6 +271,9 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
                         value={room.guests || 1}
                         onChange={(value) => updateRoomGuests(room._id, value)}
                         className="bg-white"
+                        maxAdults={room.adultsCapacity}
+                        maxChildren={room.childrenCapacity}
+                        maxGuests={room.adultsCapacity + room.childrenCapacity}
                       />
                     </div>
                   </div>
@@ -325,6 +328,7 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
           )}
         </Button>
       </form>
+     
     </div>
   );
 };
