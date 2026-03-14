@@ -10,7 +10,7 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
 
-  const displayAmount = payLater ? 1000 : booking.totalAmount;
+  const displayAmount = payLater ? 1000 : booking?.totalAmount;
   console.log(booking);
   const handlePayClick = async () => {
     if (isLoading) return;
@@ -101,7 +101,7 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
             <div className="flex justify-between items-center mb-1">
               <span className="text-xs text-gray-600">Total Amount</span>
               <span className="text-xl font-semibold text-[#0A6C6D]">
-                ₦{displayAmount.toLocaleString()}
+                ₦{displayAmount?.toLocaleString()}
               </span>
             </div>
           </div>
@@ -191,7 +191,7 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
                   <span>Processing...</span>
                 </div>
               ) : (
-                `Pay ₦${displayAmount.toLocaleString()}`
+                `Pay ₦${displayAmount?.toLocaleString() || 0}`
               )}
             </Button>
           </div>

@@ -47,7 +47,7 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
   const getTotalRooms = () => {
     if (!selectedRooms || selectedRooms.length === 0) return 0;
     return selectedRooms.reduce(
-      (total, room) => total + (room.quantity || 1),
+      (total, room) => total + Number(room.quantity || 1),
       0,
     );
   };
@@ -56,6 +56,15 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
   const getTotalNights = () => {
     if (!selectedRooms || selectedRooms.length === 0) return 1;
     return Math.max(...selectedRooms.map((room) => calculateNights(room)));
+  };
+
+  // Calculate total guests across all rooms
+  const getTotalGuests = () => {
+    if (!selectedRooms || selectedRooms.length === 0) return 0;
+    return selectedRooms.reduce(
+      (total, room) => total + Number(room.guests || 1),
+      0,
+    );
   };
 
   // Remove room from selection
@@ -133,7 +142,7 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
       }
     }
 
-    // Build room data with all details
+    // Build room data with all **capacity details** for Summary GuestPicker limits
     const roomData = selectedRooms.map((room) => ({
       roomName: room.name,
       roomId: room._id,
@@ -142,6 +151,14 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
       checkOutDate: room.checkOutDate,
       guests: room.guests || 1,
       nights: calculateNights(room),
+      maxAdults: room.adultsCapacity || 1,
+      maxChildren: room.childrenCapacity || 0,
+      // ✅ Add these so ReservationSummary has fallback data if API fetch fails
+      pricePerNight: room.pricePerNight,
+      discount: room.discount || 0,
+      totalUnits: room.totalUnits || 10,
+      adultsCapacity: room.adultsCapacity || 2,
+      childrenCapacity: room.childrenCapacity || 2,
     }));
 
     const params = new URLSearchParams({
@@ -186,7 +203,7 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
                 room.pricePerNight - room.pricePerNight * (room.discount / 100);
               const roomTotal = discountedPrice * (room.quantity || 1) * nights;
 
-console.log(room.adultsCapacity, room)
+              console.log(room.adultsCapacity, room);
               return (
                 <div
                   key={room._id}
@@ -291,7 +308,8 @@ console.log(room.adultsCapacity, room)
           <div className="bg-[#E7F0F0] rounded-lg p-3">
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">
-                Total for {getTotalRooms()} room(s), {getTotalNights()} night
+                Total for {getTotalRooms()} room(s), {getTotalGuests()}{" "}
+                guest(s), {getTotalNights()} night
                 {getTotalNights() !== 1 ? "s" : ""}
               </span>
               <span className="text-lg font-bold text-[#0A6C6D]">
@@ -328,7 +346,6 @@ console.log(room.adultsCapacity, room)
           )}
         </Button>
       </form>
-     
     </div>
   );
 };

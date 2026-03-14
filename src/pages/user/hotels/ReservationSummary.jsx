@@ -6,7 +6,7 @@ import { useReservations } from "@/contexts/hotel/ReservationContext";
 import { hotelService } from "@/services/hotel.service";
 import { userService } from "@/services/user.service";
 import { useIsMobile } from "@/utils/helper";
-import { ArrowLeft, MapPin, Star, X, Minus, Plus } from "lucide-react";
+import { ArrowLeft, MapPin, Minus, Plus, Star, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router";
 import ReservationHeader from "../../../components/user/hotel/ReservationHeader";
@@ -64,7 +64,7 @@ export default function ReservationSummary() {
     return [];
   };
 
-  console.log(booking)
+  console.log(booking);
 
   useEffect(() => {
     const requestParam = searchParams.get("specialRequest");
@@ -76,43 +76,60 @@ export default function ReservationSummary() {
   const fetchVendorAndRooms = async () => {
     try {
       setLoading(true);
-      
-      // Fetch vendor
+
       const response = await userService.getVendor("hotel", id);
-      console.log("Vendor response:", response);
       setVendor(response.data[0]);
-      
-      // Load room selections from URL
+
       const roomsData = parseRoomsFromUrl();
-      console.log("Rooms data from URL:", roomsData);
-      
+
       if (roomsData.length > 0) {
-        // Fetch full room details for each selected room
         const roomPromises = roomsData.map(async (roomData) => {
           try {
-            const roomResponse = await hotelService.getRoomType(id, roomData.roomId);
-            console.log("Room response:", roomResponse);
+            const roomResponse = await hotelService.getRoomType(
+              id,
+              roomData.roomId,
+            );
+
+            console.log(
+              "Raw room response shape:",
+              JSON.stringify(roomResponse, null, 2),
+            );
+            // ✅ Unwrap the actual room object from the response
+            const room = roomResponse?.data || roomResponse;
+
             return {
-              room: roomResponse,
+              room,
               quantity: roomData.quantity || 1,
-              checkInDate: roomData.checkInDate ? new Date(roomData.checkInDate) : null,
-              checkOutDate: roomData.checkOutDate ? new Date(roomData.checkOutDate) : null,
+              checkInDate: roomData.checkInDate
+                ? new Date(roomData.checkInDate)
+                : null,
+              checkOutDate: roomData.checkOutDate
+                ? new Date(roomData.checkOutDate)
+                : null,
               guests: roomData.guests || 1,
+              maxAdults: room.maxAdults,
+              maxChildren: room.maxChildren,
             };
           } catch (error) {
             console.error("Error fetching room:", error);
-            // Return with minimal data if fetch fails
+            // ✅ Fallback uses data passed in URL so name/price aren't lost
             return {
               room: {
                 _id: roomData.roomId,
-                name: 'Room',
-                pricePerNight: 0,
-                discount: 0,
-                totalUnits: 1,
+                name: roomData.roomName, // ← from URL
+                pricePerNight: roomData.pricePerNight || 0,
+                discount: roomData.discount || 0,
+                totalUnits: roomData.totalUnits || 10,
+                maxAdults: roomData.maxAdults || 2,
+                maxChildren: roomData.maxChildren || 2,
               },
               quantity: roomData.quantity || 1,
-              checkInDate: roomData.checkInDate ? new Date(roomData.checkInDate) : null,
-              checkOutDate: roomData.checkOutDate ? new Date(roomData.checkOutDate) : null,
+              checkInDate: roomData.checkInDate
+                ? new Date(roomData.checkInDate)
+                : null,
+              checkOutDate: roomData.checkOutDate
+                ? new Date(roomData.checkOutDate)
+                : null,
               guests: roomData.guests || 1,
             };
           }
@@ -127,19 +144,16 @@ export default function ReservationSummary() {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchVendorAndRooms();
   }, []);
-
   const handleContinue = async () => {
     if (next === false) {
       showNext(true);
     } else {
       const res = await handleSubmit();
       if (res > 0) {
-
-        console.log("Room selections:",booking, res);
+        console.log("Room selections:", booking, res);
         setPopupOpen(true);
       }
     }
@@ -154,7 +168,7 @@ export default function ReservationSummary() {
 
   // Update quantity for a room
   const handleUpdateQuantity = (roomId, delta) => {
-    const selection = roomSelections.find(s => s.room._id === roomId);
+    const selection = roomSelections.find((s) => s.room._id === roomId);
     if (selection) {
       const currentQty = selection.quantity || 1;
       const maxQty = selection.room.totalUnits || 10;
@@ -180,9 +194,9 @@ export default function ReservationSummary() {
   // Calculate total nights (max of all rooms)
   const getTotalNights = () => {
     if (roomSelections.length === 0) return 1;
-    return Math.max(...roomSelections.map(s => calculateNightsForRoom(s)));
+    return Math.max(...roomSelections.map((s) => calculateNightsForRoom(s)));
   };
-
+console.log(roomSelections)
   return (
     <div className="min-h-screen mb-[65px] md:mt-0 bg-gray-50">
       <ReservationHeader title="Reservation Details" index={1} />
@@ -250,7 +264,7 @@ export default function ReservationSummary() {
             </div>
           </div>
         )}
-        
+
         <div className="grid grid-cols-1 md:grid-cols-7 gap-6">
           {showBookingDetails && (
             <div className="space-y-6 md:col-span-4">
@@ -259,26 +273,41 @@ export default function ReservationSummary() {
                 <div className=" divide-y">
                   <div className="flex p-4 justify-between items-center">
                     <h3 className="text-lg font-semibold">
-                      Room Summary ({getTotalRooms()} rooms, {getTotalGuests()} guests)
+                      Room Summary ({getTotalRooms()} rooms, {getTotalGuests()}{" "}
+                      guests)
                     </h3>
                   </div>
                   <div className="space-y-4 p-4">
                     {roomSelections && roomSelections.length > 0 ? (
                       roomSelections.map((selection) => {
-                        const { room, quantity = 1, checkInDate, checkOutDate, guests = 1 } = selection;
+                        const {
+                          room,
+                          quantity = 1,
+                          checkInDate,
+                          checkOutDate,
+                          guests = 1,
+                        } = selection;
                         const nights = calculateNightsForRoom(selection);
-                        const discountedPrice = room.pricePerNight - (room.pricePerNight * (room.discount / 100));
+                        console.log(room)
+                        const discountedPrice =
+                          room.pricePerNight -
+                          room.pricePerNight * (room.discount / 100);
                         const roomTotal = discountedPrice * quantity * nights;
-                        
+                        console.log(selection);
                         return (
-                          <div key={room._id} className="border-b pb-4 last:border-0">
+                          <div
+                            key={room._id}
+                            className="border-b pb-4 last:border-0"
+                          >
                             <div className="flex justify-between items-start mb-3">
                               <div className="flex-1">
                                 <p className="text-sm font-medium text-gray-900">
-                                  {room.name || 'Room'}
+                                  {room.name || "Room"}
                                 </p>
                                 <p className="text-xs text-gray-500">
-                                  {formatPrice(discountedPrice)}/night × {quantity} room × {nights} night{nights !== 1 ? 's' : ''}
+                                  {formatPrice(discountedPrice)}/night ×{" "}
+                                  {quantity} room × {nights} night
+                                  {nights !== 1 ? "s" : ""}
                                 </p>
                               </div>
                               <button
@@ -288,14 +317,20 @@ export default function ReservationSummary() {
                                 <X className="w-4 h-4" />
                               </button>
                             </div>
-                            
+
                             {/* Individual dates and guests for each room */}
                             <div className="grid grid-cols-2 gap-2 mb-3">
                               <div>
                                 <DatePicker
                                   title="Check In Date"
                                   value={checkInDate}
-                                  onChange={(date) => handleUpdateDates(room._id, 'checkInDate', date)}
+                                  onChange={(date) =>
+                                    handleUpdateDates(
+                                      room._id,
+                                      "checkInDate",
+                                      date,
+                                    )
+                                  }
                                   className="bg-white "
                                   edit
                                 />
@@ -304,46 +339,67 @@ export default function ReservationSummary() {
                                 <DatePicker
                                   title="Check Out Date"
                                   value={checkOutDate}
-                                  onChange={(date) => handleUpdateDates(room._id, 'checkOutDate', date)}
+                                  onChange={(date) =>
+                                    handleUpdateDates(
+                                      room._id,
+                                      "checkOutDate",
+                                      date,
+                                    )
+                                  }
                                   className="bg-white "
                                   edit
                                 />
                               </div>
                             </div>
-                            
+
                             <div className="flex items-center gap-2 justify-between">
                               <div className="flex w-full items-center gap-2">
                                 <GuestPicker
                                   value={guests}
-                                  onChange={(value) => handleUpdateGuests(room._id, value)}
+                                  onChange={(value) =>
+                                    handleUpdateGuests(room._id, value)
+                                  }
                                   className="bg-white "
+                                  maxAdults={room.maxAdults}
+                                  maxChildren={room.maxChildren}
+                                  maxGuests={
+                                    room.maxAdults + room.maxCapacity
+                                  }
                                   edit
                                 />
                               </div>
                               <div className="flex items-center w-full  justify-between">
-                                <span className="text-sm text-gray-500">Quantity:</span>
+                                <span className="text-sm text-gray-500">
+                                  Quantity:
+                                </span>
                                 <div className="flex items-center gap-2">
                                   <button
-                                  onClick={() => handleUpdateQuantity(room._id, -1)}
-                                  className="sm:w-8 sm:h-8 w-5 h-5 rounded-full border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
-                                  disabled={quantity <= 1}
-                                >
-                                  <Minus className="w-3 h-3" />
-                                </button>
-                                <span className="sm:w-8 w-5 text-center text-sm font-medium">
-                                  {quantity}
-                                </span>
-                                <button
-                                  onClick={() => handleUpdateQuantity(room._id, 1)}
-                                  className="sm:w-8 sm:h-8 w-5 h-5 rounded-full border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
-                                  disabled={quantity >= (room.totalUnits || 10)}
-                                >
-                                  <Plus className="w-3 h-3" />
-                                </button>
+                                    onClick={() =>
+                                      handleUpdateQuantity(room._id, -1)
+                                    }
+                                    className="sm:w-8 sm:h-8 w-5 h-5 rounded-full border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                                    disabled={quantity <= 1}
+                                  >
+                                    <Minus className="w-3 h-3" />
+                                  </button>
+                                  <span className="sm:w-8 w-5 text-center text-sm font-medium">
+                                    {quantity}
+                                  </span>
+                                  <button
+                                    onClick={() =>
+                                      handleUpdateQuantity(room._id, 1)
+                                    }
+                                    className="sm:w-8 sm:h-8 w-5 h-5 rounded-full border flex items-center justify-center hover:bg-gray-100 disabled:opacity-50"
+                                    disabled={
+                                      quantity >= (room.totalUnits || 10)
+                                    }
+                                  >
+                                    <Plus className="w-3 h-3" />
+                                  </button>
                                 </div>
                               </div>
                             </div>
-                            
+
                             <div className="mt-2 text-right">
                               <span className="text-sm font-semibold text-[#0A6C6D]">
                                 {formatPrice(roomTotal)}
@@ -355,7 +411,7 @@ export default function ReservationSummary() {
                     ) : (
                       <p className="text-sm text-gray-500">No rooms selected</p>
                     )}
-                    
+
                     <div className="flex items-center justify-between">
                       <div className="text-sm text-[#0A6C6D] underline">
                         Free cancellation until 24h before check-in
@@ -364,7 +420,7 @@ export default function ReservationSummary() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mb-6 hidden md:block space-y-6">
                 <div className="relative">
                   <Label
@@ -388,7 +444,7 @@ export default function ReservationSummary() {
               </div>
             </div>
           )}
-          
+
           {showPaymentStep && (
             <div className="md:col-span-3 space-y-6">
               <div className="mb-6 md:hidden space-y-6">
@@ -412,7 +468,7 @@ export default function ReservationSummary() {
                   </p>
                 </div>
               </div>
-              
+
               <div className="rounded-2xl bg-white border">
                 <div className="divide-y">
                   <div className="flex p-4">
@@ -464,7 +520,9 @@ export default function ReservationSummary() {
                               Pay part now, rest later
                             </h3>
                             <p className="text-xs">
-                              Pay {formatPrice(calculateTotalPrice() / 2)} now, and {formatPrice(calculateTotalPrice() / 2)} on arrival. No extra fees
+                              Pay {formatPrice(calculateTotalPrice() / 2)} now,
+                              and {formatPrice(calculateTotalPrice() / 2)} on
+                              arrival. No extra fees
                             </p>
                           </div>
                           <svg
@@ -493,36 +551,48 @@ export default function ReservationSummary() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="rounded-2xl bg-white border mb-16 p-4">
                 <h3 className="text-lg font-semibold">Your Total</h3>
                 <div className=" divide-y">
                   <div className="pb-3 space-y-2 text-sm">
                     <p className="text-[#111827]">Price Details</p>
-                    {roomSelections && roomSelections.map((selection) => {
-                      const { room, quantity = 1 } = selection;
-                      const nights = calculateNightsForRoom(selection);
-                      const discountedPrice = room.pricePerNight - (room.pricePerNight * (room.discount / 100));
-                      const roomTotal = discountedPrice * quantity * nights;
-                      
-                      return (
-                        <div key={room._id} className="flex items-center justify-between">
-                          <p className="gap-2 flex items-center">
-                            <span className="text-sm text-[#111827]">
-                              {room.name || 'Room'} x{quantity} night{quantity > 1 ? 's' : ''}
-                            </span>
-                          </p>
-                          <p className="text-[#111827]">
-                            {formatPrice(roomTotal)}
-                          </p>
-                        </div>
-                      );
-                    })}
+                    {roomSelections &&
+                      roomSelections.map((selection) => {
+                        const { room, quantity = 1 } = selection;
+                        const nights = calculateNightsForRoom(selection);
+                        const discountedPrice =
+                          room.pricePerNight -
+                          room.pricePerNight * (room.discount / 100);
+                        const roomTotal = discountedPrice * quantity * nights;
+
+                        return (
+                          <div
+                            key={room._id}
+                            className="flex items-center justify-between"
+                          >
+                            <p className="gap-2 flex items-center">
+                              <span className="text-sm text-[#111827]">
+                                {room.name || "Room"} x{quantity} night
+                                {quantity > 1 ? "s" : ""}
+                              </span>
+                            </p>
+                            <p className="text-[#111827]">
+                              {formatPrice(roomTotal)}
+                            </p>
+                          </div>
+                        );
+                      })}
                   </div>
                   <div className="mt-3 flex items-center justify-between text-lg text-[#111827]">
-                    <p>Sub Total ({getTotalNights()} night{getTotalNights() > 1 ? 's' : ''})</p>
+                    <p>
+                      Sub Total ({getTotalNights()} night
+                      {getTotalNights() > 1 ? "s" : ""})
+                    </p>
                     <p className="font-semibold text-lg text-[#111827]">
-                      {partPay ? formatPrice(calculateTotalPrice() / 2) : formatPrice(calculateTotalPrice())}
+                      {partPay
+                        ? formatPrice(calculateTotalPrice() / 2)
+                        : formatPrice(calculateTotalPrice())}
                     </p>
                   </div>
                 </div>
@@ -534,10 +604,11 @@ export default function ReservationSummary() {
         <div className="w-full fixed bottom-0 left-0 bg-white border-t border-[#E5E7EB]">
           <div
             className={`
-            ${next === false
+            ${
+              next === false
                 ? "flex flex-col sm:flex-row justify-end  sm:justify-between gap-2 items-end"
                 : "flex flex-col sm:flex-row justify-between gap-2 items-center max-w-4xl mx-auto "
-              }  sm:justify-between p-4`}
+            }  sm:justify-between p-4`}
           >
             <Button
               onClick={() => navigate(-1)}
@@ -563,12 +634,8 @@ export default function ReservationSummary() {
         </div>
       </div>
       {popupOpen && (
-        <PaymentPage
-          booking={booking}
-          setPopupOpen={setPopupOpen}
-        />
+        <PaymentPage booking={booking} setPopupOpen={setPopupOpen} />
       )}
     </div>
   );
 }
-

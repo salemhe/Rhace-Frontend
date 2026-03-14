@@ -53,7 +53,7 @@ export function ReservationsProvider({ children }) {
   // Calculate total rooms
   const getTotalRooms = () => {
     return roomSelections.reduce(
-      (total, roomSelection) => total + (roomSelection.quantity || 1),
+      (total, roomSelection) => total + Number(roomSelection.quantity || 1),
       0,
     );
   };
@@ -61,7 +61,7 @@ export function ReservationsProvider({ children }) {
   // Calculate total guests across all rooms
   const getTotalGuests = () => {
     return roomSelections.reduce(
-      (total, roomSelection) => total + (roomSelection.guests || 1),
+      (total, roomSelection) => total + Number(roomSelection.guests || 1),
       0,
     );
   };
