@@ -347,6 +347,7 @@
 
 import Header from "@/components/user/Header";
 import PaymentPage from "@/components/user/ui/Payment";
+import { hotelService } from "@/services/hotel.service";
 import { paymentService } from "@/services/payment.service";
 import {
   ArrowLeft,
@@ -362,6 +363,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 
 // ─── Status config ────────────────────────────────────────────────────────────
@@ -904,6 +906,20 @@ const PaymentsHistory = () => {
     fetchPayments();
   }, []);
 
+   useEffect(() => {
+      const fetchRoomTypesData = async () => {
+        try {
+          const res = await hotelService.getpayment();
+       console.log(res)
+        } catch (error) {
+          console.error(error);
+          toast.error(error?.response?.data?.message || "Failed to fetch rooms");
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchRoomTypesData();
+    }, []);
   const grouped = useMemo(
     () => groupByDate(filteredPayments),
     [filteredPayments],

@@ -58,6 +58,7 @@ const Header = ({ onClick = () => {}, activeTab = null }) => {
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
+
   const navItems = [
     { name: "Home", href: "/" },
     // { name: "Restaurants", href: "/userDashboard/search" },
@@ -84,6 +85,7 @@ const Header = ({ onClick = () => {}, activeTab = null }) => {
         setLoading(true);
         if (user.isAuthenticated) {
           setProfile(user.user);
+            console.log(profile)
         }
       } catch (error) {
         console.log(error);

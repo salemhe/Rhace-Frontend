@@ -6,6 +6,27 @@ class UserService {
     return response.data;
   }
 
+  /**
+   * Update the authenticated user's profile picture
+   * @param {File} file
+   */
+  async updateProfilePicture(file) {
+    if (!file) {
+      throw new Error("Image file is required");
+    }
+
+    const formData = new FormData();
+    formData.append("profilePic", file);
+
+    const response = await api.put("/users/profile/picture", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+
+    return response.data;
+  }
+
   // Add to favorites - FIXED: removed trailing slash and added error handling
   async addToFavorites(vendorId, vendorType = "restaurant") {
     try {

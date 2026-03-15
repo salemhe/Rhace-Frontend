@@ -40,11 +40,8 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !original._retry) {
       original._retry = true;
       try {
-        const { data } = await axios.post(
-          `${import.meta.env.VITE_API_BASE_URL}auth/refresh`,
-          {},
-          { withCredentials: true },
-        );
+        // Use the same baseURL as the api instance and ensure the path is correct
+        const { data } = await api.post("/auth/refresh", {}, { withCredentials: true });
         localStorage.setItem("token", data.accessToken);
         original.headers.Authorization = `Bearer ${data.accessToken}`;
         return api(original);
