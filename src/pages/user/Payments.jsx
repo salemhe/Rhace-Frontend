@@ -832,8 +832,8 @@ function DetailDrawer({ payment, onClose, setPopopen }) {
             {s.label === "Pending" && (
               <button
                 onClick={() => {
-                  setPopopen(true);
-                  onClose();
+                  setPopopen();
+                  // onClose();
                 }}
                 className="px-2 flex items-center justify-center gap-2 border border-gray-100 bg-gray-50 hover:bg-gray-100 text-gray-500 py-3.5 rounded-2xl font-bold text-sm transition-all"
               >
@@ -854,8 +854,8 @@ const PaymentsHistory = () => {
   const [filterStatus, setFilterStatus] = useState("All");
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
- 
 
+  const [paymentForCheckout, setPaymentForCheckout] = useState(null);
   const [popopen, setPopopen] = useState(false);
   const navigate = useNavigate();
 
@@ -906,25 +906,25 @@ const PaymentsHistory = () => {
     fetchPayments();
   }, []);
 
-   useEffect(() => {
-      const fetchRoomTypesData = async () => {
-        try {
-          const res = await hotelService.getpayment();
-       console.log(res)
-        } catch (error) {
-          console.error(error);
-          toast.error(error?.response?.data?.message || "Failed to fetch rooms");
-        } finally {
-          setIsLoading(false);
-        }
-      };
-      fetchRoomTypesData();
-    }, []);
+  useEffect(() => {
+    const fetchRoomTypesData = async () => {
+      try {
+        const res = await hotelService.getpayment();
+        console.log(res);
+      } catch (error) {
+        console.error(error);
+        toast.error(error?.response?.data?.message || "Failed to fetch rooms");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchRoomTypesData();
+  }, []);
   const grouped = useMemo(
     () => groupByDate(filteredPayments),
     [filteredPayments],
   );
- console.log(grouped)
+  console.log(selectedPayment);
   return (
     <>
       <style>{`
@@ -1039,14 +1039,34 @@ const PaymentsHistory = () => {
         <DetailDrawer
           payment={selectedPayment}
           onClose={() => setSelectedPayment(null)}
-          setPopopen={setPopopen}
+          setPopopen={() =>{
+            setPopopen(true) 
+  setPaymentForCheckout(selectedPayment)}
+}
         />
       )}
-      {popopen && (
-        <PaymentPage booking={selectedPayment} setPopupOpen={setPopopen} />
-      )}
+      {popopen && paymentForCheckout && (
+  <PaymentPage
+    booking={paymentBookingAdapter(paymentForCheckout)}
+    setPopupOpen={setPopopen}
+  />
+)}
     </>
   );
 };
 
 export default PaymentsHistory;
+
+const paymentBookingAdapter = (p) => ({
+  vendor: p?.metadata?.vendorId || p?.vendor?._id,
+  reservationType: p?.metadata?.reservationType,
+  location: p?.metadata?.location,
+  customerName: p?.metadata?.customerName || p?.customerName,
+  customerEmail: p?.metadata?.customerEmail || p?.email,
+  customerPhone: p?.metadata?.customerPhone,
+  amount: p?.amount,
+  totalAmount: p?.amount,
+  resId: p?.booking,
+  partPaid: p?.partPaid,
+  payLater: p?.payLater,
+});

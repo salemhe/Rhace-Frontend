@@ -9,8 +9,9 @@ import { toast } from "react-toastify";
 export default function PaymentPage({ booking, setPopupOpen, payLater }) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
-
-  const displayAmount = payLater ? 1000 : booking?.totalAmount;
+  const displayAmount = payLater
+    ? 1000
+    : (booking?.totalAmount ?? booking?.amount ?? 0);
   console.log(booking);
   const handlePayClick = async () => {
     if (isLoading) return;

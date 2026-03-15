@@ -14,12 +14,14 @@ class UserService {
     if (!file) {
       throw new Error("Image file is required");
     }
-
+const token = localStorage.getItem("token")
     const formData = new FormData();
     formData.append("profilePic", file);
 
     const response = await api.put("/users/profile/picture", formData, {
       headers: {
+
+    "Authorization": `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
       },
     });
