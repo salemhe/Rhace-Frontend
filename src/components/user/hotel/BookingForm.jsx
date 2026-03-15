@@ -47,7 +47,7 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
   const getTotalRooms = () => {
     if (!selectedRooms || selectedRooms.length === 0) return 0;
     return selectedRooms.reduce(
-      (total, room) => total + (room.quantity || 1),
+      (total, room) => total + Number(room.quantity || 1),
       0,
     );
   };
@@ -56,6 +56,15 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
   const getTotalNights = () => {
     if (!selectedRooms || selectedRooms.length === 0) return 1;
     return Math.max(...selectedRooms.map((room) => calculateNights(room)));
+  };
+
+  // Calculate total guests across all rooms
+  const getTotalGuests = () => {
+    if (!selectedRooms || selectedRooms.length === 0) return 0;
+    return selectedRooms.reduce(
+      (total, room) => total + Number(room.guests || 1),
+      0,
+    );
   };
 
   // Remove room from selection
@@ -67,20 +76,42 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
   };
 
   // Update quantity for a room
-  const updateQuantity = (roomId, delta) => {
-    const updated = selectedRooms.map((room) => {
-      if (room._id === roomId) {
-        const newQty = Math.max(
-          1,
-          Math.min((room.quantity || 1) + delta, room.totalUnits),
-        );
-        return { ...room, quantity: newQty };
+const updateQuantity = (roomId, delta) => {
+  const updated = selectedRooms.map((room) => {
+    if (room._id === roomId) {
+      const newQty = Math.max(1, Math.min((room.quantity || 1) + delta, room.totalUnits));
+
+      const newMaxAdults = (room.adultsCapacity || 1) * newQty;
+      const newMaxChildren = (room.childrenCapacity || 0) * newQty;
+      const newMaxGuests = newMaxAdults + newMaxChildren;
+
+      const updates = { ...room, quantity: newQty };
+
+      // Clamp guests to new max
+      if ((room.guests || 1) > newMaxGuests) {
+        updates.guests = newMaxGuests;
       }
-      return room;
-    });
-    setSelectedRooms(updated);
-    localStorage.setItem("selectedRooms", JSON.stringify(updated));
-  };
+
+      // Clamp breakdown too
+      if (room.guestBreakdown) {
+        const clampedAdults = Math.min(room.guestBreakdown.adults || 1, newMaxAdults);
+        const clampedChildren = Math.min(room.guestBreakdown.children || 0, newMaxChildren);
+        updates.guestBreakdown = {
+          ...room.guestBreakdown,
+          adults: clampedAdults,
+          children: clampedChildren,
+        };
+        updates.guests = clampedAdults + clampedChildren + (room.guestBreakdown.infants || 0);
+      }
+
+      return updates;
+    }
+    return room;
+  });
+
+  setSelectedRooms(updated);
+  localStorage.setItem("selectedRooms", JSON.stringify(updated));
+};
 
   // Update dates for a specific room
   const updateRoomDates = (roomId, field, value) => {
@@ -95,10 +126,11 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
   };
 
   // Update guests for a specific room
-  const updateRoomGuests = (roomId, value) => {
+  const updateRoomGuests = (roomId, value, breakdown) => {
+    // ← add breakdown
     const updated = selectedRooms.map((room) => {
       if (room._id === roomId) {
-        return { ...room, guests: value };
+        return { ...room, guests: value, guestBreakdown: breakdown }; // ← store it
       }
       return room;
     });
@@ -133,7 +165,7 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
       }
     }
 
-    // Build room data with all details
+    // Build room data with all **capacity details** for Summary GuestPicker limits
     const roomData = selectedRooms.map((room) => ({
       roomName: room.name,
       roomId: room._id,
@@ -142,6 +174,15 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
       checkOutDate: room.checkOutDate,
       guests: room.guests || 1,
       nights: calculateNights(room),
+      maxAdults: room.adultsCapacity || 1,
+      maxChildren: room.childrenCapacity || 0,
+          guestBreakdown: room.guestBreakdown || { adults: room.guests || 1, children: 0, infants: 0 },  // ← ADD
+      // ✅ Add these so ReservationSummary has fallback data if API fetch fails
+      pricePerNight: room.pricePerNight,
+      discount: room.discount || 0,
+      totalUnits: room.totalUnits || 10,
+      adultsCapacity: room.adultsCapacity || 2,
+      childrenCapacity: room.childrenCapacity || 2,
     }));
 
     const params = new URLSearchParams({
@@ -186,7 +227,12 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
               const discountedPrice =
                 room.pricePerNight - room.pricePerNight * (room.discount / 100);
               const roomTotal = discountedPrice * (room.quantity || 1) * nights;
+              const quantity = room.quantity || 1;
 
+              const maxAdults = room.adultsCapacity * quantity;
+              const maxChildren = room.childrenCapacity * quantity;
+              const maxGuests = maxAdults + maxChildren;
+              console.log(room.adultsCapacity, room);
               return (
                 <div
                   key={room._id}
@@ -269,8 +315,15 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
                     <div>
                       <GuestPicker
                         value={room.guests || 1}
-                        onChange={(value) => updateRoomGuests(room._id, value)}
+                        breakdown={room.guestBreakdown} // ← ADD
+                        onChange={
+                          (value, breakdown) =>
+                            updateRoomGuests(room._id, value, breakdown) // ← forward breakdown
+                        }
                         className="bg-white"
+                        maxAdults={maxAdults}
+                        maxChildren={maxChildren}
+                        maxGuests={maxGuests}
                       />
                     </div>
                   </div>
@@ -288,7 +341,8 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
           <div className="bg-[#E7F0F0] rounded-lg p-3">
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">
-                Total for {getTotalRooms()} room(s), {getTotalNights()} night
+                Total for {getTotalRooms()} room(s), {getTotalGuests()}{" "}
+                guest(s), {getTotalNights()} night
                 {getTotalNights() !== 1 ? "s" : ""}
               </span>
               <span className="text-lg font-bold text-[#0A6C6D]">
