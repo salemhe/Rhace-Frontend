@@ -93,7 +93,21 @@ const token = localStorage.getItem("token")
       throw error;
     }
   }
+ /**
+   * Update the authenticated user's profile picture
+   * @param {File} file
+   */
+  async updateProfilePicture(file) {
+    if (!file) {
+      throw new Error("Image file is required");
+    }
+    const formData = new FormData();
+    formData.append("profilePic", file);
 
+    const response = await api.put("/users/profile/picture", formData);
+
+    return response.data;
+  }
   async getVendor(type, id) {
     const res = await api.get(`/vendors?type=${type}&id=${id ? id : ""}`);
     return res.data;
