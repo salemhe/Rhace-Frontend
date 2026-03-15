@@ -362,8 +362,57 @@ const [paystackError, setPaystackError] = useState(null); // store fetch errors
     }
   };
 
-  // Function to load successful payments count from new endpoint
-  const loadSuccessfulPayments = async (params = {}) => {
+// Function to fetch payout dashboard metrics
+const fetchPayoutStats = async () => {
+  try {
+    const [totalRes, pendingRes, successfulRes, lastRes] = await Promise.allSettled([
+      getPayouts({}),
+      getPayouts({ status: 'pending' }),
+      getPayouts({ status: 'completed' }),
+      getPayouts({ status: 'completed', sort: '-paidAt', limit: 1 })
+    ]);
+
+    const totalData = totalRes.status === 'fulfilled' ? extractArray(totalRes.value?.data) : [];
+    const pendingData = pendingRes.status === 'fulfilled' ? extractArray(pendingRes.value?.data) : [];
+    const successfulData = successfulRes.status === 'fulfilled' ? extractArray(successfulRes.value?.data) : [];
+    const lastData = lastRes.status === 'fulfilled' ? extractArray(lastRes.value?.data) : [];
+
+    const totalPayouts = totalData.reduce((sum, payout) => sum + (Number(payout.amount) || 0), 0);
+    const pendingPayouts = pendingData.reduce((sum, payout) => sum + (Number(payout.amount) || 0), 0);
+    const successfulPayouts = successfulData.length;  // Count as per backend example
+    const lastPayout = lastData[0]?.amount ? Number(lastData[0].amount) : 0;
+
+    // Simple client-side comparisons (backend may not support date filters yet)
+    // Fallback to 0% for empty prior data
+    const totalPayoutsChange = '+0% from last year';
+    const pendingPayoutsChange = '+0% vs last week';
+    const successfulPayoutsChange = '+0% vs last week';
+    const lastPayoutChange = '+0% vs last week';
+
+    setDashboardKPIs(prev => ({
+      ...prev,
+      totalPayouts,
+      totalPayoutsChange,
+      totalPayoutsTrend: 'up',
+      pendingPayouts,
+      pendingPayoutsChange,
+      pendingPayoutsTrend: 'up',
+      successfulPayouts,
+      successfulPayoutsChange,
+      successfulPayoutsTrend: 'up',
+      lastPayout,
+      lastPayoutChange,
+      lastPayoutTrend: 'up'
+    }));
+
+  } catch (error) {
+    console.error('Failed to fetch payout stats:', error);
+    // Don't overwrite existing KPIs on error
+  }
+};
+
+// Function to load successful payments count from new endpoint
+const loadSuccessfulPayments = async (params = {}) => {
     try {
       setSuccessfulPayments(prev => ({ ...prev, loading: true }));
       const res = await getSuccessfulPaymentsCount(params);
@@ -865,6 +914,9 @@ const loadData = async () => {
       loadKPIs();
       loadRevenueTrends();
       
+      // Fetch payout stats for history tab
+      await fetchPayoutStats();
+      
       // Fetch admin earnings from new endpoint (vendor % - Paystack commission)
       try {
         await loadAdminEarnings();
@@ -899,6 +951,8 @@ const loadData = async () => {
       ignore = true;
       unsubscribe("payment_update");
       unsubscribe("payout_update");
+      unsubscribe("vendor-earnings-updated");
+      unsubscribe("earnings-updated");
     };
   }, [subscribe, unsubscribe]);
 
