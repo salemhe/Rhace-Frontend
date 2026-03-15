@@ -60,12 +60,12 @@ class AuthService {
   async googleLogin(code) {
     const res = await api.post("/users/auth/login/google", {
       code,
-    })
-    const { token } = res.data;
+    });
+    const { accessToken } = res.data;
 
-    localStorage.setItem("token", token);
+    localStorage.setItem("token", accessToken);
     return res.data;
-  } 
+  }
 
   async googleRegister(code) {
     const res = await api.post("/users/auth/register/google", {
