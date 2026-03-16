@@ -212,7 +212,7 @@ const VendorDashboard = () => {
   };
 
   useEffect(() => {
-    const fetchSummary = async () => {
+const fetchSummary = async () => {
       try {
         setLoading(true);
         const res = await reservationService.getSummary()
@@ -220,12 +220,24 @@ const VendorDashboard = () => {
         setReservationStats(res.data);
       } catch (error) {
         console.error('Error fetching summary data:', error);
+        // Fallback data for dashboard
+        setReservationStats({
+          todayStats: [
+            { details: 0, change: 0 },
+            { details: 0, change: 0 },
+            { details: 0, change: 0 },
+            { details: 0, change: 0 }
+          ],
+          todaysReservations: [],
+          customerFrequency: { new: 0, returning: 0 }
+        });
       } finally {
         setLoading(false);
       }
     }
     fetchSummary();
   }, [])
+
 
   if (loading) {
     return (
@@ -258,7 +270,9 @@ const VendorDashboard = () => {
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Welcome Back, {capitalize(vendor.businessName)}!</h1>
+
+<h1 className="text-3xl font-bold text-gray-900">Welcome Back, {capitalize(vendor.businessName || 'Vendor')}!</h1>
+
               <p className="text-gray-600 mt-1">Here's what is happening today.</p>
             </div>
             {/* <div>
@@ -392,7 +406,7 @@ const VendorDashboard = () => {
                     <div key={index} className="flex-1 flex flex-col items-center justify-end h-full group">
                       <div className="w-full flex flex-col justify-end relative" style={{ height: '100%' }}>
                         <div
-                          className="w-16 mx-auto bg-gradient-to-t from-teal-600 to-teal-400 rounded-t transition-all duration-300 hover:from-teal-700 hover:to-teal-500 cursor-pointer"
+                          className="w-16 mx-auto bg-linear-to-t from-teal-600 to-teal-400 rounded-t transition-all duration-300 hover:from-teal-700 hover:to-teal-500 cursor-pointer"
                           style={{ height: `${(item.value / maxValue) * 100}%` }}
                           title={`${item.value} reservations`}
                         ></div>

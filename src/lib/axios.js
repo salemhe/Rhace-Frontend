@@ -18,7 +18,7 @@ api.interceptors.request.use((config) => {
     localStorage.getItem("admin-token") ||
     localStorage.getItem("admin_token");
 
-  console.log("API baseURL:", import.meta.env.VITE_API_BASE_URL);
+  console.log("🌐 Axios REQUEST:", config.method?.toUpperCase(), config.url, "Token:", token ? token.substring(0,20)+'...' : 'MISSING');
 
   if (token) {
     // Avoid double Bearer prefix
@@ -32,30 +32,38 @@ api.interceptors.request.use((config) => {
 });
 
 // Response interceptor to handle 401 errors
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      // Clear authentication data on 401
-      localStorage.removeItem("token");
-      localStorage.removeItem("auth_token");
-      localStorage.removeItem("vendor-token");
-      localStorage.removeItem("vendor_token");
-
-      // If we're in a browser environment, redirect to appropriate login
-      if (typeof window !== 'undefined') {
-        const currentPath = window.location.pathname;
-        if (currentPath.startsWith('/dashboard/admin')) {
-          window.location.href = '/auth/admin/login';
-        } else if (currentPath.startsWith('/dashboard/')) {
-          window.location.href = '/auth/vendor/login';
-        } else {
-          window.location.href = '/auth/user/login';
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      const originalRequest = error.config;
+      if (error.response?.status === 401 && !originalRequest._retry) {
+        // Whitelist vendor-safe endpoints - NO auto-logout
+        const safeVendorPaths = ['/vendors/profile', '/vendors/', '/dashboard/', '/bookings'];
+        const isSafePath = safeVendorPaths.some(path => 
+          originalRequest.url?.includes(path)
+        );
+        
+        console.log('401 on:', originalRequest.url, '- Safe?', isSafePath);
+        
+        if (!isSafePath) {
+          // Clear tokens only for non-safe paths
+          localStorage.removeItem("token");
+          
+          if (typeof window !== 'undefined') {
+            const currentPath = window.location.pathname;
+            console.log('401 logout from path:', currentPath);
+            if (currentPath.startsWith('/dashboard/admin')) {
+              window.location.href = '/auth/admin/login';
+            } else {
+              window.location.href = '/auth/vendor/login';
+            }
+          }
         }
+        // Mark as retried to avoid infinite loops
+        originalRequest._retry = true;
       }
+      return Promise.reject(error);
     }
-    return Promise.reject(error);
-  }
-);
+  );
 
 export default api;

@@ -47,12 +47,37 @@ const Login = () => {
         navigate("/admin/dashboard");
       } else {
         user = await authService.vendorLogin(formData.email, formData.password);
-        dispatch(setVendor(user?.vendor));
+        console.log('Login response:', user);
+        
+        // Fetch full profile to check onboarding status (may fail if token is invalid or request errors)
+        const profile = await authService.getVendorProfile().catch((err) => {
+          console.warn("Failed to fetch vendor profile, falling back to login response:", err);
+          return null;
+        });
+
+// Merge profile + login response, ensure complete data
+        const vendorData = {
+          ...(user.vendor ?? user),
+          ...(profile ?? {}),
+        };
+
+        // Ensure ALL required fields - robust defaults
+        vendorData.vendorType = vendorData.vendorType || 'restaurant';
+        vendorData.isOnboarded = vendorData.isOnboarded !== false; // true unless explicitly false
+        vendorData.businessName = vendorData.businessName || user?.businessName || 'Vendor';
+        vendorData._id = vendorData._id || user?._id;
+
+        console.log('💾 Login vendorData DISPATCHED:', vendorData);
+
+        console.log('Final vendorData for dispatch:', vendorData);
+        dispatch(setVendor(vendorData));
         toast.success("Welcome back!");
-        if (!user.vendor.isOnboarded) {
-          navigate("/auth/vendor/onboarding")
+        
+        const dashboardPath = `/dashboard/${vendorData.vendorType}`;
+        if (!vendorData.isOnboarded) {
+          navigate("/auth/vendor/onboarding");
         } else {
-          navigate(redirectTo === "/dashboard" ? `/dashboard/${user.vendor.vendorType}` : "/dashboard");
+          navigate(redirectTo === "/dashboard" ? dashboardPath : dashboardPath);
         }
       }
     } catch (err) {

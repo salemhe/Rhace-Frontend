@@ -40,7 +40,9 @@ import HotelReservation from "./pages/user/hotels/ReservationSummary";
 import BookingsPage from "./pages/user/Bookings";
 import SearchContent from "./pages/user/Search";
 import Favorites from "./pages/user/Favourites";
+
 import AboutRhace from "./pages/user/About";
+
 import ContactRhace from "./pages/user/Contact";
 import HelpCenterRhace from "./pages/user/HelpCenter";
 import NotFound from "./pages/user/NotFound";
@@ -213,8 +215,10 @@ function App() {
               ))}
             </Route>
 
+
             {/* Vendor */}
             <Route path="vendor">
+              <Route index element={<VendorLogin />} />
               {authRoutes.vendor.map((route) => (
                 <Route
                   key={route.path}
@@ -223,6 +227,7 @@ function App() {
                 />
               ))}
             </Route>
+
 
             {/* Admin */}
             <Route path="admin">

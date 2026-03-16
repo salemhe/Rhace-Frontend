@@ -101,9 +101,9 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden lg:flex lg:flex-shrink-0">
-        <div className="flex flex-col w-64 bg-emerald-950 text-white">
-          {/* Logo */}
+        <div className="hidden lg:flex lg:shrink-0">
+          <div className="flex flex-col w-64 bg-emerald-950 text-white">
+            {/* Logo */}
           <div className="flex items-center h-16 px-4">
             <div className="flex items-center">
               <img

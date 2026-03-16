@@ -131,12 +131,13 @@ const PaymentDashboard = () => {
       header: "Customer Name",
       cell: ({ row }) => {
         const user = row.original
+        const customerName = user.customer_name || ''
         return (
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarFallback>{user.customer_name.split(" ").map((i) => (i.slice(0, 1).toUpperCase()))}</AvatarFallback>
+              <AvatarFallback>{(customerName || '').split(" ").map((i) => (i.slice(0, 1).toUpperCase())).slice(0,2).join('') || 'UN'}</AvatarFallback>
             </Avatar>
-            <span className='text-[#111827] font-medium text-sm'>{user.customer_name}</span>
+            <span className='text-[#111827] font-medium text-sm'>{customerName}</span>
           </div>
         )
       },
@@ -145,7 +146,7 @@ const PaymentDashboard = () => {
       accessorKey: "paymentMethod",
       header: "Payment Method",
       cell: ({ row }) => (
-        <span className='text-[#111827] font-medium text-sm'>{row.getValue("paymentMethod").split("_").join(" ").toUpperCase()}</span>
+        <span className='text-[#111827] font-medium text-sm'>{ (row.getValue("paymentMethod") || '').split("_").join(" ").toUpperCase() }</span>
       ),
     },
     {
@@ -154,9 +155,16 @@ const PaymentDashboard = () => {
       filterFn: (row, columnId, value) => {
         return value === "" || row.getValue(columnId) === value
       },
-      cell: ({ row }) => <div className={`${row.getValue("status") === "Paid" ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
-        <div className={`${row.getValue("status") === "Paid" ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full bg-[#37703F]`} />
-        {row.getValue("status")}</div>
+      cell: ({ row }) => {
+        const status = row.getValue("status") || 'Unknown';
+        const isPaid = status === "Paid";
+        return (
+          <div className={`${isPaid ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
+            <div className={`${isPaid ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full`} />
+            {status}
+          </div>
+        );
+      },
     },
     {
       id: "actions",
@@ -289,12 +297,9 @@ const PaymentDashboard = () => {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const { customer_name } = row.original
-
+      const customerName = row.original.customer_name || ''
       const search = filterValue.toLowerCase()
-      return (
-        customer_name.toLowerCase().includes(search)
-      )
+      return customerName.toLowerCase().includes(search)
     },
     state: {
       sorting,
@@ -323,21 +328,21 @@ const PaymentDashboard = () => {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}`} change={stats.earnings.yearChange} icon={<Calendar />} color="blue" />
-              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+              <div className='h-3/5 w-px bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
               <StatCard title="Earnings this Week" value={`₦${stats.earnings.thisWeek.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}`} change={stats.earnings.weekChange} icon={<CardPay />} color="green" />
-              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+              <div className='h-3/5 w-px bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
               <StatCard title="Completed Payments" value={`₦${stats.payments.completed.thisWeek.toLocaleString('en-US', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2
               })}`} change={stats.payments.completed.change} icon={<Cash2 className="text-[#CD16C3]" />} color="purple" />
-              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+              <div className='h-3/5 w-px bg-[#E5E7EB]' />
             </div>
             <div className='flex w-full'>
               <StatCard title="Pending Payments" value={`₦${stats.payments.pending.thisWeek.toLocaleString('en-US', {

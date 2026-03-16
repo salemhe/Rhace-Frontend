@@ -522,14 +522,14 @@ const StaffManagementSystem = () => {
                                              <div className="text-center">Delete</div>
                                           </div>
 
-                                          {Object.entries(permissions.modules).map(([module, perms]) => (
-                                             <div key={module} className="px-4 py-3 grid grid-cols-5 items-center border-t border-gray-200 ">
+{Object.entries(permissions.modules).map(([module, perms]) => (
+                                             <div key={`${module}-${Math.random()}`} className="px-4 py-3 grid grid-cols-5 items-center border-t border-gray-200 ">
                                                 <div className="flex items-center gap-2 text-sm">
                                                    {module}
                                                    <span className="w-4 h-4 bg-gray-200 rounded-full flex items-center justify-center text-xs"></span>
                                                 </div>
                                                 {['view', 'create', 'edit', 'delete'].map(perm => (
-                                                   <div key={perm} className="flex justify-center">
+                                                   <div key={`${module}-${perm}`} className="flex justify-center">
                                                       <input
                                                          type="checkbox"
                                                          checked={perms[perm]}

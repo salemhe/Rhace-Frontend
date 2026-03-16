@@ -1,5 +1,5 @@
 import DashboardLayout from '@/components/layout/DashboardLayout'
-import React, { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import DashboardButton from '@/components/dashboard/ui/DashboardButton'
 import { Add, Calendar, CardPay, Cash2, CheckCircle, Copy, Export, Eye, Eye2, EyeClose, Filter2, Group3, Pencil, Phone, Printer, XCircle } from '@/components/dashboard/ui/svg';
 import { StatCard } from '@/components/dashboard/stats/mainStats';
@@ -42,6 +42,7 @@ import { useNavigate } from 'react-router';
 import { useSelector } from 'react-redux';
 import { toast } from 'sonner';
 import { userService } from '@/services/user.service';
+import { useWebSocket } from '@/contexts/WebSocketContext';
 // import { formatCustomDate } from '@/utils/formatDate';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import UniversalLoader from '@/components/user/ui/LogoLoader';
@@ -75,6 +76,30 @@ const ReservationDashboard = () => {
     details: {}
   });
 
+  const fetchReservations = useCallback(async () => {
+    if (!vendor?._id) return;
+    try {
+      const res = await userService.fetchReservations({ vendorId: vendor._id });
+      setData(res.data || []);
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to load reservations');
+      setData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [vendor?._id]);
+
+  const fetchStats = useCallback(async () => {
+    try {
+      const res = await userService.fetchReservationsStats();
+      setStats(res.data || {});
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to load stats');
+      setStats({});
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const columns = [
     {
@@ -246,92 +271,44 @@ const ReservationDashboard = () => {
   })
 
 
-  const socketRef = useRef(null);
-  const reconnectTimeout = useRef(null);
+  const { subscribe, unsubscribe } = useWebSocket();
 
   useEffect(() => {
     if (!vendor?._id) return;
 
-    const connect = () => {
-      const socket = new WebSocket(`wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`);
-      socketRef.current = socket;
-
-      socket.onopen = () => {
-        console.log('✅ WebSocket connected');
-      };
-
-      socket.onmessage = (event) => {
-        try {
-          const message = JSON.parse(event.data);
-          console.log('📩 Message from server:', message);
-
-          if (message.type === 'new_reservation') {
-            toast.success(`🆕 New reservation from ${message.data.customerName}`);
-            setData((prev) => [...prev, message.data]);
-          }
-        } catch (error) {
-          console.error('❌ Failed to parse message:', error);
-        }
-      };
-
-      socket.onerror = (err) => {
-        console.error('⚠️ WebSocket error:', err);
-      };
-
-      socket.onclose = (e) => {
-        console.warn(`🔌 WebSocket closed (code: ${e.code})`);
-        socketRef.current = null;
-
-        // Try reconnecting after delay
-        if (e.code !== 1000) {
-          reconnectTimeout.current = setTimeout(() => {
-            console.log('🔁 Reconnecting WebSocket...');
-            connect();
-          }, 3000); // 3 seconds
-        }
-      };
+    const handleNewReservation = (payload) => {
+      toast.success(`🆕 New reservation: ${payload.customerName}`);
+      // Refetch data
+      fetchReservations();
     };
 
-    connect();
+    const handleReservationUpdate = (payload) => {
+      toast.info(`Reservation updated: ${payload._id?.slice(0,8) || 'ID'}`);
+      // Refetch data/stats
+      fetchReservations();
+      fetchStats();
+    };
+
+    subscribe('reservation-created', handleNewReservation);
+    subscribe('reservation-updated', handleReservationUpdate);
+    subscribe('reservation-counters-updated', () => fetchStats());
 
     return () => {
-      if (socketRef.current) {
-        socketRef.current.close(1000, 'Component unmounted');
-        socketRef.current = null;
-      }
-      if (reconnectTimeout.current) {
-        clearTimeout(reconnectTimeout.current);
-      }
+      unsubscribe('reservation-created');
+      unsubscribe('reservation-updated');
+      unsubscribe('reservation-counters-updated');
     };
+  }, [vendor?._id, subscribe, unsubscribe]);
+
+  // Load data on mount/vendor change
+  useEffect(() => {
+    if (vendor?._id) {
+      fetchReservations();
+      fetchStats();
+    }
   }, [vendor?._id]);
 
-
-  useEffect(() => {
-    const fetchReservations = async () => {
-      try {
-        const res = await userService.fetchReservations({ vendorId: vendor._id })
-        setData(res.data)
-      } catch (error) {
-        console.error(error)
-        toast.error(error.response.data.message)
-      } finally {
-        setIsLoading(false)
-      }
-    }
-    const fetchStats = async () => {
-      try {
-        const res = await userService.fetchReservationsStats()
-        setStats(res.data)
-      } catch (error) {
-        console.error(error)
-        toast.error(error.response.data.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchReservations()
-    fetchStats()
-  }, [])
+  // WebSocket effect is already handled above; duplicate removed.
 
 
   if (isLoading || loading) {
@@ -352,16 +329,16 @@ const ReservationDashboard = () => {
         {!hideTab &&
           <div className='hidden md:grid grid-cols-4 border rounded-2xl'>
             <div className='flex h-full items-center'>
-              <StatCard title="Reservations made today" value={stats.totalReservations.count} change={stats.totalReservations.change} icon={<Calendar />} color="blue" />
-              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+<StatCard title="Reservations made today" value={stats?.totalReservations?.count || 0} change={stats?.totalReservations?.change || 0} icon={<Calendar />} color="blue" />
+              <div className='h-3/5 w-px bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
               <StatCard title="Prepaid Reservations" value={stats.prepaidReservations.count} change={stats.prepaidReservations.change} icon={<CardPay />} color="green" />
-              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+              <div className='h-3/5 w-px bg-[#E5E7EB]' />
             </div>
             <div className='flex h-full items-center'>
               <StatCard title="Expected Guests Today" value={stats.expectedGuests.count} change={stats.expectedGuests.change} icon={<Group3 />} color="purple" />
-              <div className='h-3/5 w-[1px] bg-[#E5E7EB]' />
+              <div className='h-3/5 w-px bg-[#E5E7EB]' />
             </div>
             {/* <div className='flex h-full items-center w-full'> */}
             <StatCard title="Pending Payments" value={(stats.pendingPayments.count).toLocaleString('en-US', {
@@ -674,7 +651,7 @@ const ReservationDashboard = () => {
               <div className="bg-[#E7F0F0] border border-[#B3D1D2] rounded-2xl p-4 mb-8">
                 <div className="space-y-3">
                   <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+                    <Mail className="w-5 h-5 text-[#0A6C6D] mt-0.5 shrink-0" />
                     <p className="text-sm">
                       You will receive a confirmation email with your reservation
                       details
@@ -682,7 +659,7 @@ const ReservationDashboard = () => {
                   </div>
 
                   <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+                    <Clock className="w-5 h-5 text-[#0A6C6D] mt-0.5 shrink-0" />
                     <p className="text-sm">Please, arrive 10 mins early</p>
                   </div>
                 </div>

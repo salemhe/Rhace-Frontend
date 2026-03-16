@@ -493,10 +493,10 @@ const MenuDashboard = () => {
                   <div className='relative items-center flex flex-1'>
                     <Search className='absolute left-2 text-[#606368] size-5' />
                     <Input
-                      placeholder="Search by guest name or ID"
-                      value={(table.getColumn("name")?.getFilterValue()) ?? ""}
+                      placeholder="Search menus..."
+                      value={(table.getColumn("menu_name")?.getFilterValue()) ?? ""}
                       onChange={(event) =>
-                        table.getColumn("name")?.setFilterValue(event.target.value)
+                        table.getColumn("menu_name")?.setFilterValue(event.target.value)
                       }
                       className="max-w-sm pl-10 border-[#DAE9E9] "
                     />

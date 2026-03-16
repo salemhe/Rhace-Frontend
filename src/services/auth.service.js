@@ -23,10 +23,27 @@ class AuthService {
     return res.data;
   }
 
-  async vendorLogin(email, password) {
+async vendorLogin(email, password) {
+    console.log('🔑 vendorLogin request:', { email });
     const res = await api.post("/vendors/auth/login", { email, password });
-    const { token } = res.data;
+    console.log('🔑 vendorLogin FULL response:', res.data);
+    
+    // Handle various token locations
+    let token = res.data.accessToken || 
+                res.data.token || 
+                res.data.data?.token || 
+                res.data.vendor?.token ||
+                res.data.auth?.token;
+    
+    console.log('🔑 Extracted token:', token ? 'VALID' : 'MISSING', token?.substring(0,20) + '...');
+    
+    if (!token || token === 'undefined') {
+      throw new Error('No valid token in login response');
+    }
+    
     localStorage.setItem("token", token);
+    localStorage.setItem("token_debug", token.substring(0,20)); // temp debug
+    console.log('💾 Token saved to localStorage');
     return res.data;
   }
 
@@ -102,16 +119,32 @@ class AuthService {
     return res.data;
   }
 
-  async adminLogin(email, password) {
+async adminLogin(email, password) {
+    console.log('🔑 adminLogin request');
     const res = await api.post("/admin/login", { email, password });
-    const { token } = res.data;
+    console.log('🔑 adminLogin response:', res.data);
+    
+    let token = res.data.accessToken || res.data.token;
+    if (!token) throw new Error('No admin token');
+    
     localStorage.setItem("token", token);
     return res.data;
   }
 
-  async adminRegister(adminData) {
+async adminRegister(adminData) {
     const res = await api.post("/auth/register-admin", adminData);
     return res.data;
+  }
+
+async getVendorProfile() {
+    try {
+      const res = await api.get("/vendors/profile");
+      console.log('Vendor profile fetched:', res.data);
+      return res.data;
+    } catch (error) {
+      console.error('Failed to fetch vendor profile:', error.response?.data || error.message);
+      throw error; // Don't fallback - let ProtectedRoute handle auth failure
+    }
   }
 }
 

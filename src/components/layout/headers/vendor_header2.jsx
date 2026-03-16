@@ -24,7 +24,7 @@ const Header2 = ({ title }) => {
                         </a>
                     </div>
                 </div>
-                <div className='h-2/5 w-[1px] bg-accent hidden md:flex ' />
+                <div className='h-2/5 w-px bg-accent hidden md:flex ' />
                 <div className='flex gap-3 items-center'>
                     <button
                         onClick={() => navigate(-1)}
