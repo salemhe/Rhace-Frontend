@@ -18,7 +18,7 @@ const VendorDashboard = () => {
   const [revenueFilter, setRevenueFilter] = useState('Weekly');
   const [sourceFilter, setSourceFilter] = useState('Weekly');
   const [counters, setCounters] = useState(null);
-  const [todaysReservations, setTodaysReservations] = useState([]);
+const [todaysReservations, setTodaysReservations] = useState([]); // Initialize as array
   const [bookingTrends, setBookingTrends] = useState([]);
   const [customerFrequency, setCustomerFrequency] = useState(null);
   const [revenueByCategory, setRevenueByCategory] = useState(null);
@@ -26,8 +26,13 @@ const VendorDashboard = () => {
   const [loading, setLoading] = useState(true);
   const vendor = useSelector((state) => state.auth.vendor);
 
-  // Update current time every minute
+  // Fetch dashboard data when vendor is ready
   useEffect(() => {
+    if (!vendor?._id) {
+      setLoading(false);
+      return;
+    }
+
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
@@ -61,7 +66,7 @@ const VendorDashboard = () => {
     };
 
     fetchDashboardData();
-  }, []);
+  }, [vendor?._id]);
 
   // Stats data
   const stats = [
@@ -230,7 +235,7 @@ const VendorDashboard = () => {
                 </a>
               </div>
               <div className="p-5 space-y-3">
-                {todaysReservations.length > 0 ? todaysReservations.slice(0, 5).map((reservation) => (
+{Array.isArray(todaysReservations) && todaysReservations.length > 0 ? todaysReservations.slice(0, 5).map((reservation) => (
                   <div key={reservation._id} className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-lg transition-colors">
                     <div className="flex items-center flex-1">
                       <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">

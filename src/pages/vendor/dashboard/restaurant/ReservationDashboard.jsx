@@ -258,13 +258,13 @@ const ReservationDashboard = () => {
       socketRef.current = socket;
 
       socket.onopen = () => {
-        console.log('✅ WebSocket connected');
+        // WebSocket connected
       };
 
       socket.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data);
-          console.log('📩 Message from server:', message);
+          // Message from server
 
           if (message.type === 'new_reservation') {
             toast.success(`🆕 New reservation from ${message.data.customerName}`);
@@ -286,7 +286,6 @@ const ReservationDashboard = () => {
         // Try reconnecting after delay
         if (e.code !== 1000) {
           reconnectTimeout.current = setTimeout(() => {
-            console.log('🔁 Reconnecting WebSocket...');
             connect();
           }, 3000); // 3 seconds
         }

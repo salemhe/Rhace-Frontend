@@ -206,7 +206,6 @@ const PaymentDashboard = () => {
         const res = await paymentService.getPayments();
         setData(res);
       } catch (error) {
-        console.error(error);
         toast.error(error.response?.message || "Failed to fetch payments");
       } finally {
         setLoading(prev => ({ ...prev, data: false }));
@@ -232,7 +231,6 @@ const PaymentDashboard = () => {
         const res = await paymentService.getPaymentInfo();
         setInfo(res);
       } catch (error) {
-        console.error(error);
         toast.error(error.response?.message || "Failed to fetch payment info");
       } finally {
         setLoading(prev => ({ ...prev, info: false }));
