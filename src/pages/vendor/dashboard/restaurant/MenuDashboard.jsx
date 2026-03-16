@@ -494,9 +494,9 @@ const MenuDashboard = () => {
                     <Search className='absolute left-2 text-[#606368] size-5' />
                     <Input
                       placeholder="Search by guest name or ID"
-                      value={(table.getColumn("name")?.getFilterValue()) ?? ""}
+                      value={(table.getColumn("menu_name")?.getFilterValue()) ?? ""}
                       onChange={(event) =>
-                        table.getColumn("name")?.setFilterValue(event.target.value)
+                        table.getColumn("menu_name")?.setFilterValue(event.target.value)
                       }
                       className="max-w-sm pl-10 border-[#DAE9E9] "
                     />
@@ -624,51 +624,72 @@ const MenuDashboard = () => {
                 </div>
               </TabsContent>
               <TabsContent value="grid">
-                <div className='grid md:grid-cols-3 gap-6 lg:grid-cols-4'>
+                <div className='grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'>
                   {data && data.map((item, i) => (
-                    <div key={i} className='p-1 bg-white border rounded-xl h-full'>
-                      <div className='relative rounded-xl h-[178px] overflow-hidden'>
-                        <img src={item.coverImage} alt={item.name || "N/A"} className='size-full object-cover hover:scale-105 transition-transform duration-200' />
+                    <div key={i} className='group bg-gradient-to-br from-white to-gray-50 border border-gray-100 rounded-2xl shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all duration-300 h-full overflow-hidden'>
+                      <div className='relative p-1'>
+                        <div className='relative rounded-xl h-[200px] overflow-hidden bg-gradient-to-br from-blue-50 to-indigo-50'>
+                          <img src={item.coverImage} alt={item.name || "N/A"} className='size-full object-cover group-hover:scale-110 transition-transform duration-500' />
+                          <div className='absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500'></div>
+                          <div className='absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300'>
+                            <button className='bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white hover:shadow-xl transition-all duration-200'>
+                              <Eye className='w-5 h-5 text-gray-700' />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                      <div className='p-2'>
-                        {activeCategory === "All Menu Items" ? (
-                          <div className='space-y-2'>
-                            <div className='flex justify-between w-full'>
-                              <span>{item.name}</span>
-                              <button onClick={() => setShowPopup({
-                                details: item,
-                                display: true,
-                                item: true
-                              })} className='text-xs underline text-[#0A6C6D]'>View Menu</button>
-                            </div>
-                            <div className='text-sm'>
-                              {item.description}
-                            </div>
+                      <div className='p-5'>
+                        <div className='flex items-start justify-between mb-3'>
+                          <div className='space-y-1'>
+                            <h3 className='font-bold text-xl text-gray-900 leading-tight line-clamp-1 group-hover:text-indigo-600 transition-colors'>{item.name}</h3>
+                            {activeCategory === "All Menu Items" && item.category && (
+                              <span className='inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800'>{item.category}</span>
+                            )}
                           </div>
-                        ) : (
-                          <div className='space-y-2'>
-                            <div className='flex justify-between w-full'>
-                              <span>{item.name}</span>
-                              <button onClick={() => setShowPopup({
-                                details: item,
-                                display: true,
-                              })} className='text-xs underline text-[#0A6C6D]'>View Menu</button>
-                            </div>
-                            <div className='text-sm'>
-                              <span>Menu Item:</span>{" "} {item.menuType.join(", ")}
-                            </div>
-                            <div className='flex items-center justify-between w-full'>
-                              <span>{item.items.length} {item.items.length > 0 ? "items" : "item"}</span>
-                              <span>Updated {item.date} ago</span>
-                            </div>
+                          <div className='text-right'>
+                            <div className='text-2xl font-bold text-emerald-600'>₦{item.price?.toLocaleString()}</div>
                           </div>
-                        )}
-                        <div className='flex w-full justify-between'>
-                          <span>₦{item.price.toLocaleString()}</span>
-                          <button onClick={() => setShowPopup({
-                            details: item,
-                            display: true,
-                          })} className='flex gap-2 items-center text-[#0A6C6D]'><ArrowsRight /> view details</button>
+                        </div>
+                        <div className='space-y-3 mb-4'>
+                          {activeCategory === "All Menu Items" ? (
+                            <>
+                              <p className='text-sm text-gray-600 line-clamp-2'>{item.description}</p>
+                              {item.tags && item.tags.slice(0, 2).map((tag, idx) => (
+                                <span key={idx} className='inline-flex items-center px-2.5 py-1 rounded-full text-xs bg-gray-100 text-gray-700 border'>#{tag}</span>
+                              ))}
+                            </>
+                          ) : (
+                            <>
+                              <div className='flex flex-wrap gap-1'>
+                                {item.menuType?.slice(0, 2).map((type, idx) => (
+                                  <span key={idx} className='px-2.5 py-1 bg-emerald-100 text-emerald-800 text-xs rounded-full font-medium'>{type}</span>
+                                ))}
+                              </div>
+                              <div className='text-sm text-gray-600 flex items-center gap-2'>
+                                <span className='font-semibold text-emerald-600'>{item.items?.length || 0}</span>
+                                items
+                              </div>
+                            </>
+                          )}
+                        </div>
+                        <div className='flex items-center gap-2 pt-3 border-t border-gray-100'>
+                          <button 
+                            onClick={() => setShowPopup({
+                              details: item,
+                              display: true,
+                              item: activeCategory === "All Menu Items"
+                            })} 
+                            className='flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-3 px-4 rounded-xl text-sm font-semibold shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center gap-2'
+                          >
+                            <Eye className='w-4 h-4' />
+                            View Details
+                          </button>
+                          <button 
+                            onClick={() => navigate(activeCategory === "All Menu Items" ? "/dashboard/restaurant/menu/item/new" : "/dashboard/restaurant/menu/new")}
+                            className='p-3 bg-emerald-100 hover:bg-emerald-200 text-emerald-700 rounded-xl shadow-md hover:shadow-lg transition-all duration-300'
+                          >
+                            <Add className='w-5 h-5' />
+                          </button>
                         </div>
                       </div>
                     </div>
