@@ -29,6 +29,8 @@ export function GuestPicker({
   maxGuests,
   chevron,
   edit,
+   hideChildren, // ← new
+  hideInfants,
 }) {
   const [open, setOpen] = useState(false);
 
@@ -120,7 +122,13 @@ const inc = (type) => {
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-72 mt-2 overflow-auto">
-        {Object.keys(GUEST_CONFIG).map((type) => {
+        {Object.keys(GUEST_CONFIG)
+  .filter((type) => {
+    if (type === "children" && hideChildren) return false;
+    if (type === "infants" && hideInfants) return false;
+    return true;
+  })
+  .map((type) => {
           const { label, subtitle, min } = GUEST_CONFIG[type];
           const val = counts[type];
           return (

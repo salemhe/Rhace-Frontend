@@ -674,7 +674,7 @@ export default function ReservationSummary() {
                       value={getSelectedTablesText()} 
                       onChange={(value) => handleTable(value)} 
                     />
-                    <GuestPicker edit value={guestCount} onChange={setGuestCount} />
+                    <GuestPicker hideChildren hideInfants value={guestCount} onChange={setGuestCount} />
                   </div>
                 </div>
               </div>

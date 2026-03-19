@@ -58,7 +58,7 @@ const BookingForm = ({ id, tables, loading }) => {
                 <TimePicker title="Time" value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
             </div>
             <TablePicker chevron loading={loading} tables={tables} value={table.name} onChange={(value) => handleTable(value)} />
-            <GuestPicker chevron value={guests} onChange={setGuests} />
+            <GuestPicker chevron value={guests} onChange={setGuests} hideChildren hideInfants />
             <Button
                 type="submit"
                 disabled={!date || !time || isLoading || !table}
