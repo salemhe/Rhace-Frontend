@@ -112,7 +112,6 @@ const CreateMenu = () => {
         if (step <= 1) {
             if (step === 1) {
                 if (activeTab === "new") {
-                    console.log(newItem);
                     if (
                         newItem.name &&
                         newItem.category.length > 0 &&
