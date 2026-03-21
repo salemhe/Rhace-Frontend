@@ -11,17 +11,17 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
   const navigate = useNavigate();
 
   // Load selected rooms from localStorage on mount
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("selectedRooms");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (JSON.stringify(parsed) !== JSON.stringify(selectedRooms)) {
-          setSelectedRooms(parsed);
-        }
-      }
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (typeof window !== "undefined") {
+  //     const stored = localStorage.getItem("selectedRooms");
+  //     if (stored) {
+  //       const parsed = JSON.parse(stored);
+  //       if (JSON.stringify(parsed) !== JSON.stringify(selectedRooms)) {
+  //         setSelectedRooms(parsed);
+  //       }
+  //     }
+  //   }
+  // }, []);
 
   // Calculate total nights for a room
   const calculateNights = (room) => {
@@ -72,8 +72,11 @@ const HotelBookingForm = ({ id, selectedRooms, setSelectedRooms }) => {
     const newSelection = selectedRooms.filter((r) => r._id !== roomId);
     setSelectedRooms(newSelection);
     localStorage.setItem("selectedRooms", JSON.stringify(newSelection));
-    toast.info("Room removed from selection");
+    // toast.info("Room removed from selection");
   };
+ useEffect(() => {
+    removeRoom()
+  }, []);
 
   // Update quantity for a room
 const updateQuantity = (roomId, delta) => {

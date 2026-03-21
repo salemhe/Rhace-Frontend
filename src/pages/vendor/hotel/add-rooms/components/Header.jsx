@@ -81,7 +81,7 @@ function Header({title}) {
     e.preventDefault()
     try {
       // await AuthService.logout()
-      navigate("/vendor-login")
+      navigate("/auth/vendor/login")
     } catch (error) {
       console.error("Failed to logout:", error)
     }

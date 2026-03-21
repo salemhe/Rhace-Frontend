@@ -219,3 +219,76 @@ export {
   DropdownMenuSubTrigger,
   DropdownMenuSubContent,
 }
+
+
+import { useState } from "react";
+import { IoClose } from "react-icons/io5";
+
+export default function ConfirmReservation({ onConfirm, open,  setOpen }) {
+  
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    try {
+      setLoading(true);
+      await onConfirm();
+    } finally {
+      setLoading(false);
+      setOpen(false);
+    }
+  };
+
+  return (
+    <>
+
+      {/* Modal */}
+      {open && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/40 z-50">
+          <div className="bg-white rounded-2xl shadow-lg w-[420px] ">
+            
+            {!loading ? (
+              <div className="">
+              <div className=" p-6">
+                 <div className="flex justify-between">
+                   <h2 className="text-lg font-semibold text-gray-800 mb-3">
+                  Confirm Reservation
+                </h2>
+               <span 
+                    onClick={() => setOpen(false)}>
+                 <IoClose className="size-6" />
+               </span>
+                 </div>
+                <p className="text-gray-500 mb-10">
+                  Are you sure you want to confirm this reservation?
+                </p>
+              </div>
+
+                <div className="flex p-6 bg-gray-100 rounded-b-2xl w-full  gap-3">
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="px-4 w-[50%] py-2 rounded-lg border border-gray-300 text-gray-600 hover:bg-gray-100"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={handleConfirm}
+                    className="px-4 py-2  w-[50%] rounded-lg bg-teal-600 text-white hover:bg-teal-700"
+                  >
+                    Yes, Confirm
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-4 py-4">
+                <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin"></div>
+                <p className="text-teal-600 font-medium">Confirming...</p>
+              </div>
+            )}
+
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

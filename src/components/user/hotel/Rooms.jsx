@@ -59,9 +59,10 @@ const Rooms = ({ setSelectedRooms, setShow, rooms }) => {
     setSelectedRooms(roomsData);
     localStorage.setItem('selectedRooms', JSON.stringify(roomsData));
   };
-
-  const filteredRooms = rooms.filter((r) => r.category === activeTab.value);
-
+  const filteredRooms = rooms.filter((r) => {
+  const category = r.category || r.roomCategory;
+  return category?.toLowerCase() === activeTab.value.toLowerCase();
+});
   // Handle quantity change for a room
   const handleQuantityChange = (roomId, delta) => {
     setQuantities(prev => {
@@ -262,7 +263,7 @@ const Rooms = ({ setSelectedRooms, setShow, rooms }) => {
 
     return list;
   };
-
+console.log(filteredRooms)
   if (!rooms) return <UniversalLoader type="room-cards" size={100} />;
 
   return (
@@ -347,6 +348,7 @@ const Rooms = ({ setSelectedRooms, setShow, rooms }) => {
                     </h3>
                     <p className="text-xs sm:text-sm text-[#606368] mb-4">
                       {capitalize(room.description)}
+                      {room.roomCategory}
                     </p>
 
                     {/* Amenities Grid */}

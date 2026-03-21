@@ -405,6 +405,7 @@ export default function AccountSettings() {
   const [profile, setProfile] = useState(null);
   const user = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -434,7 +435,7 @@ export default function AccountSettings() {
         ? { msg: "Passwords match ✓", type: "success" }
         : { msg: "Passwords do not match", type: "error" };
 
-  const savePw = () => {
+  const savePw = async ()  => {
     if (!currentPw) return showToast("Please enter your current password.");
     if (newPw.length < 8)
       return setPwHint({
@@ -443,6 +444,18 @@ export default function AccountSettings() {
       });
     if (newPw !== confirmPw)
       return setPwHint({ msg: "Passwords do not match.", type: "error" });
+    try{
+     const res = await userService.updatePassword({
+      currentPassword: currentPw,
+      newPassword: newPw
+     });
+     if(res.status === 200)[
+      toast.success(res.data.message || "Password Change succesful")
+     ]
+    } catch (error) {
+      console.error(error)
+      toast.error(error || "Password Change Failed")
+    }
     showToast("Password updated successfully.");
     setCurrentPw("");
     setNewPw("");

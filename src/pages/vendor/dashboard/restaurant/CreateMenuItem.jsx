@@ -154,7 +154,6 @@ const CreateMenu = () => {
         const fetchMenus = async () => {
             try {
                 const res = await menuService.getMenus(vendor._id)
-                console.log(res)
                 setMenus(res.menus)
             } finally {
                 setIsLoading(false)

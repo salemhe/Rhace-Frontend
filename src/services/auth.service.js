@@ -24,10 +24,22 @@ class AuthService {
   }
 
   async vendorLogin(email, password) {
-    const res = await api.post("/vendors/auth/login", { email, password });
-    const { token } = res.data;
-    localStorage.setItem("token", token);
-    return res.data;
+    console.log('vendorLogin called with:', { email });
+    try {
+      const res = await api.post("/vendors/auth/login", { email, password });
+      console.log('vendorLogin response:', res.data);
+      const token = res.data.accessToken || res.data.token;
+      if (!token) {
+        console.error('No token in response:', res.data);
+        throw new Error('Login response missing token');
+      }
+      localStorage.setItem("vendor_token", token);
+      console.log('vendor_token stored:', token ? token.slice(0,20) + '...' : 'null');
+      return res.data;
+    } catch (err) {
+      console.log('vendorLogin error:', err.response?.status, err.response?.data);
+      throw err;
+    }
   }
 
   async vendorUpdate(formData) {
@@ -109,6 +121,15 @@ class AuthService {
     return res.data;
   }
 
+  async vendorRefresh() {
+    const res = await api.post("/vendors/auth/refresh");
+    const token = res.data.accessToken || res.data.token;
+    if (token) {
+      localStorage.setItem("vendor_token", token);
+    }
+    return res.data;
+  }
+
   async adminRegister(adminData) {
     const res = await api.post("/auth/register-admin", adminData);
     return res.data;
@@ -116,3 +137,4 @@ class AuthService {
 }
 
 export const authService = new AuthService();
+
