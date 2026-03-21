@@ -1094,6 +1094,7 @@ export default function ReservationDetails({
                 edit 
                 value={guestCount} 
                 onChange={setGuestCount} 
+                hideChildren hideInfants
                 />
             </div>
           </div>

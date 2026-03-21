@@ -185,7 +185,7 @@ const ClubDashboard = () => {
 
           {/* Stats Grid */}
           <div className="grid grid-cols-1 bg-white md:grid-cols-2 lg:grid-cols-4 gap-4 rounded-lg border border-gray-200">
-            {reservationStats.todayStats.map((stat, index) => {
+            {reservationStats?.todayStats?.map((stat, index) => {
               const Icon = statsConfig[index].icon;
               return (
                 <div key={index} className="flex justify-between p-5">
@@ -239,8 +239,8 @@ const ClubDashboard = () => {
                 </a>
               </div>
               <div className="p-5 space-y-3">
-                {reservationStats.todaysReservations.length > 0 ? (
-                  reservationStats.todaysReservations.map((reservation) => (
+                {reservationStats?.todaysReservations?.length > 0 ? (
+                  reservationStats?.todaysReservations?.map((reservation) => (
                     <div
                       key={reservation._id}
                       className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-lg transition-colors"
@@ -359,8 +359,8 @@ const ClubDashboard = () => {
 
               <div className="p-5 flex flex-col items-center">
                 {(() => {
-                  const newCustomers = reservationStats.customerFrequency.new || 0;
-                  const returningCustomers = reservationStats.customerFrequency.returning || 0;
+                  const newCustomers = reservationStats?.customerFrequency?.new || 0;
+                  const returningCustomers = reservationStats?.customerFrequency?.returning || 0;
                   const total = newCustomers + returningCustomers;
 
                   const newPercentage = total > 0 ? ((newCustomers / total) * 100).toFixed(1) : 0;
@@ -440,7 +440,7 @@ const ClubDashboard = () => {
                 </button>
               </div>
               <div className="p-5">
-                {reservationStats.clubDrinksBreakdown && reservationStats.clubDrinksBreakdown.length > 0 ? (
+                {reservationStats?.clubDrinksBreakdown && reservationStats?.clubDrinksBreakdown?.length > 0 ? (
                   <>
                     <div className="mb-4">
                       <p className="text-2xl font-bold text-gray-900">
@@ -492,29 +492,29 @@ const ClubDashboard = () => {
                 </button>
               </div>
               <div className="p-5">
-                {reservationStats.clubCombosBreakdown && reservationStats.clubCombosBreakdown.length > 0 ? (
+                {reservationStats?.clubCombosBreakdown && reservationStats?.clubCombosBreakdown?.length > 0 ? (
                   <>
                     <div className="mb-4">
                       <p className="text-2xl font-bold text-gray-900">
-                        {reservationStats.clubCombosBreakdown.reduce((sum, item) => sum + item.quantity, 0)}
+                        {reservationStats?.clubCombosBreakdown.reduce((sum, item) => sum + item.quantity, 0)}
                       </p>
                       <p className="text-sm text-gray-600">Total Orders</p>
                     </div>
 
                     <div className="space-y-3">
-                      {reservationStats.clubCombosBreakdown
+                      {reservationStats?.clubCombosBreakdown
                         .sort((a, b) => b.quantity - a.quantity)
                         .slice(0, 5)
                         .map((item, index) => {
                           const colors = ['bg-purple-600', 'bg-pink-500', 'bg-indigo-500', 'bg-orange-500', 'bg-cyan-500'];
-                          const total = reservationStats.clubCombosBreakdown.reduce((sum, c) => sum + c.quantity, 0);
+                          const total = reservationStats?.clubCombosBreakdown.reduce((sum, c) => sum + c.quantity, 0);
                           const percentage = total > 0 ? ((item.quantity / total) * 100).toFixed(1) : 0;
                           
                           return (
                             <div key={index} className="flex items-center justify-between text-sm hover:bg-gray-50 p-2 rounded transition-colors">
                               <div className="flex items-center flex-1 min-w-0">
-                                <div className={`w-3 h-3 rounded-sm ${colors[index % colors.length]} mr-2 flex-shrink-0`}></div>
-                                <span className="text-gray-900 font-medium truncate">{item.comboName}</span>
+                                <div className={`w-3 h-3 rounded-sm ${colors[index % colors?.length]} mr-2 flex-shrink-0`}></div>
+                                <span className="text-gray-900 font-medium truncate">{item?.comboName}</span>
                               </div>
                               <div className="flex items-center gap-3 ml-4">
                                 <span className="text-gray-600">{percentage}%</span>

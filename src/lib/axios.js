@@ -30,7 +30,7 @@ api.interceptors.response.use(
       localStorage.removeItem('token');
       localStorage.removeItem('vendor_token');
       localStorage.removeItem('persist:root');
-      window.location.href = '/login'; // Redirect to login
+      window.location.href = '/auth/user/login'; // Redirect to login
     }
     return Promise.reject(error);
   }

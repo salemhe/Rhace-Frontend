@@ -3,6 +3,7 @@ import { logout } from "@/redux/slices/authSlice";
 import { capitalize } from "@/utils/helper";
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { userService } from "@/services/user.service";
 
 const FONT_URL =
   "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap";
@@ -298,7 +299,13 @@ function SignOutModal({ visible, onCancel, onConfirm }) {
 }
 
 /* ── Avatar Editor ── */
-function AvatarEditor({ avatar, name, onAvatarChange, uploadRef }) {
+function AvatarEditor({
+  avatar,
+  firstName,
+  lastName,
+  onAvatarChange,
+  uploadRef,
+}) {
   const fileInputRef = useRef(null);
   // expose trigger to parent
   useEffect(() => {
@@ -306,17 +313,21 @@ function AvatarEditor({ avatar, name, onAvatarChange, uploadRef }) {
   }, [uploadRef]);
   const [dragging, setDragging] = useState(false);
 
-  const initials = name
-    .split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase()
-    .slice(0, 2);
+  // const initials = name
+  //   .split(" ")
+  //   .map((n) => n[0])
+  //   .join("")
+  //   .toUpperCase()
+  //   .slice(0, 2);
 
   const handleFile = (file) => {
     if (!file || !file.type.startsWith("image/")) return;
     const reader = new FileReader();
-    reader.onload = (e) => onAvatarChange(e.target.result);
+    reader.onload = (e) =>
+      onAvatarChange({
+        preview: e.target.result,
+        file,
+      });
     reader.readAsDataURL(file);
   };
 
@@ -345,8 +356,8 @@ function AvatarEditor({ avatar, name, onAvatarChange, uploadRef }) {
             className="h-full w-full rounded-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center rounded-full bg-teal-600  text-3xl text-white">
-            {initials}
+          <div className="flex h-full w-full uppercase items-center justify-center rounded-full bg-teal-600  text-3xl text-white">
+            {firstName[0]} {lastName[0]}
           </div>
         )}
 
@@ -380,6 +391,7 @@ function AvatarEditor({ avatar, name, onAvatarChange, uploadRef }) {
 ══════════════════════════════════════════════════════════ */
 export default function AccountSettings() {
   const [avatar, setAvatar] = useState(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const uploadRef = useRef(null);
   const [currentPw, setCurrentPw] = useState("");
   const [newPw, setNewPw] = useState("");
@@ -391,26 +403,26 @@ export default function AccountSettings() {
   const [toast, setToast] = useState({ visible: false, msg: "" });
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
   const user = useSelector((state) => state.auth);
   const dispatch = useDispatch();
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        setLoading(true);
         if (user.isAuthenticated) {
           setProfile(user.user);
+          if (user.user?.profilePic) {
+            setAvatar(user.user.profilePic);
+          }
         }
       } catch (error) {
         console.log(error);
-      } finally {
-        setLoading(false);
       }
     };
 
     fetchUserData();
-  }, []);
-
+  }, [user.isAuthenticated, user.user]);
+  console.log(profile);
   const showToast = (msg) => {
     setToast({ visible: true, msg });
     setTimeout(() => setToast({ visible: false, msg: "" }), 3200);
@@ -423,7 +435,7 @@ export default function AccountSettings() {
         ? { msg: "Passwords match ✓", type: "success" }
         : { msg: "Passwords do not match", type: "error" };
 
-  const savePw = () => {
+  const savePw = async ()  => {
     if (!currentPw) return showToast("Please enter your current password.");
     if (newPw.length < 8)
       return setPwHint({
@@ -432,6 +444,18 @@ export default function AccountSettings() {
       });
     if (newPw !== confirmPw)
       return setPwHint({ msg: "Passwords do not match.", type: "error" });
+    try{
+     const res = await userService.updatePassword({
+      currentPassword: currentPw,
+      newPassword: newPw
+     });
+     if(res.status === 200)[
+      toast.success(res.data.message || "Password Change succesful")
+     ]
+    } catch (error) {
+      console.error(error)
+      toast.error(error || "Password Change Failed")
+    }
     showToast("Password updated successfully.");
     setCurrentPw("");
     setNewPw("");
@@ -439,10 +463,45 @@ export default function AccountSettings() {
     setPwHint({ msg: "", type: "muted" });
   };
 
-  const handleAvatarChange = (src) => {
-    setAvatar(src);
-    if (src) showToast("Profile picture updated.");
-    else showToast("Profile picture removed.");
+  const handleAvatarChange = async (payload) => {
+    // Handle remove
+    if (!payload) {
+      setAvatar(null);
+      try {
+        setAvatarUploading(true);
+        // Optional: backend may also support removing picture (not specified)
+        // For now, just clear locally and show toast.
+        showToast("Profile picture removed.");
+      } finally {
+        setAvatarUploading(false);
+      }
+      return;
+    }
+
+    const { preview, file } = payload;
+    if (!file) return;
+
+    // Optimistic preview
+    setAvatar(preview);
+
+    try {
+      setAvatarUploading(true);
+      const res = await userService.updateProfilePicture(file);
+
+      if (res?.profilePic) {
+        setAvatar(res.profilePic);
+        setProfile((prev) =>
+          prev ? { ...prev, profilePic: res.profilePic } : prev,
+        );
+      }
+
+      showToast("Profile picture updated successfully.");
+    } catch (error) {
+      console.error("Failed to update profile picture", error);
+      showToast("Failed to update profile picture. Please try again.");
+    } finally {
+      setAvatarUploading(false);
+    }
   };
 
   const handleSignOut = () => {
@@ -523,7 +582,9 @@ export default function AccountSettings() {
                 <div className="-mt-10 mb-4 flex justify-center">
                   <AvatarEditor
                     avatar={avatar}
-                    name={`${profile.firstName} ${profile.lastName}`}
+                    // name={`${profile.firstName} ${profile.lastName}`}
+                    firstName={profile?.firstName  ?? "--"}
+                    lastName={profile?.lastName  ?? "--"}
                     onAvatarChange={handleAvatarChange}
                     uploadRef={uploadRef}
                   />
@@ -532,11 +593,11 @@ export default function AccountSettings() {
                 {/* User info */}
                 <div className="text-center">
                   <div className="shrink-0 text-xl font-normal text-slate-800">
-                    {capitalize(profile.firstName)}{" "}
-                    {capitalize(profile.lastName)}
+                    {capitalize(profile?.firstName)}{" "}
+                    {capitalize(profile?.lastName)}
                   </div>
                   <div className="mt-1 text-[12px] text-slate-400">
-                    {profile.email}
+                    {/* {profile.email} */}
                   </div>
                   {/* <div className="mt-3 inline-block rounded-full border border-teal-100 bg-teal-50 px-4 py-1 text-[10px] uppercase tracking-widest text-teal-600">
                     Gold Member
@@ -546,11 +607,12 @@ export default function AccountSettings() {
                 {/* Upload / Remove buttons */}
                 <div className="mt-4 flex justify-center gap-2">
                   <button
-                    onClick={() => uploadRef.current?.()}
-                    className="flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-teal-600 transition-colors hover:bg-teal-100"
+                    onClick={() => !avatarUploading && uploadRef.current?.()}
+                    className="flex items-center gap-1.5 rounded-lg border border-teal-200 bg-teal-50 px-3 py-1.5 text-[10px] font-medium uppercase tracking-widest text-teal-600 transition-colors hover:bg-teal-100 disabled:opacity-60 disabled:cursor-not-allowed"
+                    disabled={avatarUploading}
                   >
                     <Icon d={icons.upload} size={11} />
-                    Upload Photo
+                    {avatarUploading ? "Uploading..." : "Upload Photo"}
                   </button>
                   {avatar && (
                     <button
@@ -659,3 +721,5 @@ export default function AccountSettings() {
     </>
   );
 }
+
+ 

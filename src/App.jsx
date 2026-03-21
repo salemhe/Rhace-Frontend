@@ -213,7 +213,7 @@ function App() {
         {/* Main Layout */}
         <Route element={<Layout />}>
           {/* Home / Info Pages */}
-          <Route path="/" element={<UserLandingPage />} />
+          <Route path="/" element={<ReservationHomePage />} />
           <Route path="/about" element={<AboutRhace />} />
           <Route path="/contact" element={<ContactRhace />} />
           <Route path="/faq" element={<HelpCenterRhace />} />
