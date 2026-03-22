@@ -206,7 +206,6 @@ const updateQuantity = (roomId, delta) => {
       setIsLoading(false);
     }
   };
-
   return (
     <div
       className="p-4 rounded-2xl bg-[#ffffff] border border-[#E5E7EB]"

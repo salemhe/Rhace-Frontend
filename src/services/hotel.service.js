@@ -82,6 +82,11 @@ class HotelService {
     const res = await api.get(`/hotels/${hotelId}/roomtypes`);
     return res.data;
   }
+  async getpayment() {
+    const res = await api.get(`/payments`);
+    return res.data;
+  }
+
 
   /**
    * Get a single room type by id for a hotel
