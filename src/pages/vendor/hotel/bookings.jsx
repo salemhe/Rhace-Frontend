@@ -58,7 +58,7 @@ import { toast } from "react-toastify";
 
 const normalizePaymentStatus = (status = "") => {
   const s = status.toLowerCase();
-  if (s === "paid") return "Fully Paid";
+  if (s === "paid" || s === "success") return "Fully Paid";
   if (s === "part paid") return "Part Paid";
   if (s.includes("not paid")) return "Unpaid";
   return "Unpaid";

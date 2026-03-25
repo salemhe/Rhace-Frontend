@@ -13,7 +13,9 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import { RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AreaChart, ResponsiveContainer, Tooltip } from "recharts";
 
@@ -57,7 +59,7 @@ const STATUS = {
 const normaliseStatus = (s) => {
   if (!s) return "Pending";
   const t = s.toLowerCase().trim();
-  if (t === "success") return "Paid";
+  if (t === "success" || t === "paid") return "Paid";
   if (t === "failed" || t === "fail") return "Failed";
   return "Pending";
 };
@@ -105,7 +107,7 @@ const groupByDate = (payments) => {
 function SkeletonRow() {
   return (
     <div className="flex items-center gap-3.5 px-4 py-3.5 animate-pulse">
-      <div className="w-11 h-11 rounded-2xl bg-gray-100 flex-shrink-0" />
+      <div className="w-11 h-11 rounded-2xl bg-gray-100 shrink-0" />
       <div className="flex-1 space-y-2">
         <div className="h-3.5 w-32 bg-gray-100 rounded-full" />
         <div className="h-2.5 w-20 bg-gray-100 rounded-full" />
@@ -130,7 +132,7 @@ function TxRow({ payment, onClick, index }) {
       style={{ animationDelay: `${index * 35}ms` }}
     >
       {/* Avatar */}
-      <div className="relative flex-shrink-0">
+      <div className="relative shrink-0">
         <div className="w-11 h-11 rounded-2xl overflow-hidden ring-1 ring-black/5">
           <img
             src={payment.vendor.profileImages[0]}
@@ -167,7 +169,7 @@ function TxRow({ payment, onClick, index }) {
       </div>
 
       {/* Right */}
-      <div className="flex flex-col items-end gap-1 flex-shrink-0">
+      <div className="flex flex-col items-end gap-1 shrink-0">
         <span className="text-[14px] font-bold text-gray-900 tabular-nums">
           {fmt(payment.amount)}
         </span>
@@ -294,11 +296,11 @@ function DetailDrawer({ payment, onClose, openCheckout }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-100 flex items-end sm:items-center justify-center bg-black/40 backdrop-blur-sm"
       onClick={onClose}
     >
       <div
-        className="bg-white w-full sm:max-w-sm rounded-t-[2rem] sm:rounded-[2rem] overflow-hidden shadow-2xl max-h-[88vh] flex flex-col"
+        className="bg-white w-full sm:max-w-sm rounded-t-4xl sm:rounded-[2rem] overflow-hidden shadow-2xl max-h-[88vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
         style={{
           animation: "drawerUp 0.35s cubic-bezier(.32,1.25,.64,1) forwards",
@@ -316,7 +318,7 @@ function DetailDrawer({ payment, onClose, openCheckout }) {
             alt={payment.vendor.businessName}
             className="w-full h-full object-cover"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="absolute inset-0 bg-linear-to-t from-black/70 to-transparent" />
           <button
             onClick={onClose}
             className="absolute top-3 right-3 w-8 h-8 flex items-center justify-center bg-black/30 hover:bg-black/50 backdrop-blur-sm rounded-full text-white transition-all"
@@ -416,6 +418,7 @@ const PaymentsHistory = () => {
   const [paymentForCheckout, setPaymentForCheckout] = useState(null);
   const [popopen, setPopopen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const navigate = useNavigate();
 
   // ── All backend logic preserved unchanged ──
@@ -447,23 +450,35 @@ const PaymentsHistory = () => {
       .slice()
       .reverse()
       .map((p) => ({
-        date: fmtDate(p.date),
+        date: fmtDate(p.createdAt),
         amountPaid: p.amount,
       }));
   }, [payments]);
 
-  useEffect(() => {
-    const fetchPayments = async () => {
-      try {
-        const result = await paymentService.getPayments();
-        setPayments(result);
-        setIsLoading(false);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    fetchPayments();
+  const fetchPayments = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const result = await paymentService.getPayments();
+      setPayments(result);
+    } catch (error) {
+      console.error('Payments fetch failed:', error);
+//     toast.error('Failed to refresh payments');
+    } finally {
+      setIsRefreshing(false);
+      setIsLoading(false);
+    }
   }, []);
+
+  // Polling + WebSocket
+  useEffect(() => {
+    fetchPayments(); // Initial load
+
+    const interval = setInterval(fetchPayments, 30000); // 30s poll
+
+    return () => {
+      clearInterval(interval);
+    };
+  }, [fetchPayments]);
 
   const grouped = useMemo(
     () => groupByDate(filteredPayments),
@@ -500,14 +515,22 @@ const PaymentsHistory = () => {
             >
               <ArrowLeft className="w-4 h-4 text-2xl" />
             </button>
-            <div>
+            <div className="flex-1">
               <h1 className="text-[20px] font-bold text-gray-900 leading-tight">
                 Payment History
               </h1>
               <p className="text-[12px] text-gray-400 leading-tight">
-                Your lifestyle transactions
+                Your lifestyle transactions {isRefreshing && '(refreshing...)'}
               </p>
             </div>
+            <button
+              onClick={fetchPayments}
+              disabled={isRefreshing}
+              className="w-9 h-9 flex items-center justify-center text-gray-500 hover:text-[#0A6C6D] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              title="Refresh payments"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            </button>
           </div>
 
           {/* ── Summary ── */}
