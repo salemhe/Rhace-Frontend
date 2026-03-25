@@ -187,11 +187,11 @@ const VenueCard = ({ vendor, activeType }) => {
       <div className="relative h-36 sm:h-44 overflow-hidden bg-gray-100 shrink-0">
         {photo
           ? <img src={photo} alt={vendor.businessName} loading="lazy" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-          : <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+          : <div className="w-full h-full flex items-center justify-center bg-linear-to-br from-gray-100 to-gray-200">
             <span className="text-4xl font-black text-gray-300 select-none">{vendor.businessName?.[0]?.toUpperCase() || "?"}</span>
           </div>
         }
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-linear-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
         <span className={`absolute top-2 left-2 ${cfg.bg} text-white text-[10px] font-bold px-2 py-0.5 rounded-full`}>{cfg.singular}</span>
         {type === "hotel" && vendor.starRating > 0
           ? <span className="absolute bottom-2 left-2 bg-black/50 backdrop-blur-sm text-amber-300 text-[10px] font-semibold px-1.5 py-0.5 rounded">{"★".repeat(vendor.starRating)}</span>
@@ -246,7 +246,7 @@ const VenueCard = ({ vendor, activeType }) => {
           <span className="line-clamp-1">{vendor.address || "Location not set"}</span>
         </div>
         <button onClick={e => { e.stopPropagation(); navigate(`/${cfg.path}/${vendor._id}`); }}
-          className="w-full mt-1 py-1.5 sm:py-2 rounded-lg text-white text-[11px] sm:text-xs font-semibold bg-gradient-to-b from-[#0A6C6D] to-[#08577C] hover:opacity-90 transition-opacity">
+          className="w-full mt-1 py-1.5 sm:py-2 rounded-lg text-white text-[11px] sm:text-xs font-semibold bg-linear-to-b from-[#0A6C6D] to-[#08577C] hover:opacity-90 transition-opacity">
           {type === "restaurant" ? "Reserve Table" : "Book Now"}
         </button>
       </div>
@@ -658,7 +658,7 @@ const SearchPage = () => {
               </div>
 
               {showDropdown && (
-                <div className="absolute left-0 right-0 top-full bg-white border-2 border-[#0A6C6D] border-t-0 rounded-b-xl shadow-2xl z-[999] max-h-80 sm:max-h-96 overflow-y-auto">
+                <div className="absolute left-0 right-0 top-full bg-white border-2 border-[#0A6C6D] border-t-0 rounded-b-xl shadow-2xl z-999 max-h-80 sm:max-h-96 overflow-y-auto">
                   {showRecent && (
                     <div>
                       <div className="flex items-center justify-between px-3 sm:px-4 pt-2.5 pb-1">
@@ -832,7 +832,7 @@ const SearchPage = () => {
                 <button key={type} onClick={() => { updateFilter("type", type); setTimeout(() => inputRef.current?.focus(), 50); }}
                   className="group relative h-32 sm:h-40 overflow-hidden rounded-lg text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg">
                   <img src={cfg.image} alt={label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/10" />
+                  <div className="absolute inset-0 bg-linear-to-t from-black/70 via-black/25 to-black/10" />
                   <div className="absolute inset-0 flex flex-col justify-between p-3 sm:p-3.5">
                     <div className="w-7 h-7 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                       <figure className="w-3.5 h-3.5 flex items-center">{icon}</figure>
