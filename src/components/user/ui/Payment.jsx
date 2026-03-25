@@ -3,12 +3,25 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import paystackLogo from "@/public/images/paystack.svg";
 import { paymentService } from "@/services/payment.service";
 import { AlertTriangle, Lock, Shield } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 export default function PaymentPage({ booking, setPopupOpen, payLater }) {
   const [isLoading, setIsLoading] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState(null);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const paymentMethods = [
+    {
+      name: "Paystack",
+      logo: paystackLogo,
+      description: "Secure payment with cards, bank transfer, or USSD",
+    },
+  ];
+
+  useEffect(() => {
+    setSelectedPayment(paymentMethods[0]);
+  }, [paymentMethods]);
   const displayAmount = payLater
     ? 1000
     : (booking?.totalAmount ?? booking?.amount ?? 0);
@@ -18,26 +31,14 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
 
     setIsLoading(true);
 
-    console.log(booking);
     try {
-      const roomsPayload = 
-      // booking.rooms?.map((room) => (
-        {
-        roomId: booking.rooms[0].room || booking.rooms[0].roomId,
-        checkInDate: booking.rooms[0].checkInDate,
-        checkOutDate: booking.rooms[0].checkOutDate,
-        guests: booking.rooms[0].guests,
-        specialRequest: booking.rooms[0].specialRequest,
-      }
-    // ));
-
       const res = await paymentService.initializePayment({
         vendorId: booking.vendor,
         reservationType: booking.reservationType,
         location: booking.location,
         customerName: booking.customerName,
         customerEmail: booking.customerEmail,
-        customerPhone: booking.customerPhone,
+        customerPhone: `${booking.customerPhone || ''}`,
         amount: displayAmount,
         payLater,
         partPaid: booking.partPaid,
@@ -57,11 +58,11 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
           specialRequest: booking.specialRequest,
         }),
         ...(booking.reservationType === "hotel" && {
-           roomId: booking.rooms[0].room || booking.rooms[0].roomId || booking.roomId,
-        checkInDate: booking.rooms[0].checkInDate || booking.checkInDate,
-        checkOutDate: booking.rooms[0].checkOutDate || booking.checkOutDate,
-        guests: booking.rooms[0].guests || booking.guests,
-        specialRequest: booking.rooms[0].specialRequest || booking.specialRequest,
+          roomId: booking.roomId || booking.rooms?.[0]?.room || booking.rooms?.[0]?.roomId,
+          checkInDate: booking.checkInDate || booking.rooms?.[0]?.checkInDate,
+          checkOutDate: booking.checkOutDate || booking.rooms?.[0]?.checkOutDate,
+          guests: booking.guests || booking.rooms?.[0]?.guests,
+          specialRequest: booking.specialRequest || booking.rooms?.[0]?.specialRequest,
         }),
         ...(booking.reservationType === "club" && {
           date: booking.date,
@@ -75,7 +76,15 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
           table: booking.table,
         }),
       });
-      window.location.href = res.data.authorization_url;
+      // const reference = res.data.reference || res.data.reference;
+      toast.success('Redirecting to Paystack...');
+      
+      // Brief delay then redirect
+      setTimeout(() => {
+        window.location.href = res.data.authorization_url;
+      }, 800);
+      
+      // Note: Full verification happens at /paystack/callback
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || "Failed to initialize payment";
@@ -83,14 +92,6 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
       setIsLoading(false);
     }
   };
-
-  const paymentMethods = [
-    {
-      name: "Paystack",
-      logo: paystackLogo,
-      description: "Secure payment with cards, bank transfer, or USSD",
-    },
-  ];
 
   return (
     <div className="min-h-screen fixed top-0 left-0 w-full flex items-center justify-center z-50 bg-black/60 px-2 md:px-4 py-4">

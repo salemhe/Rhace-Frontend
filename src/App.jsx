@@ -96,6 +96,7 @@ import MenuPage from "./pages/user/restaurant/Menu";
 import VendornHomePage from "./pages/vendor/landingPage/page";
 import Terms from "./pages/user/Terms";
 import PrivacyPolicy from "./pages/user/Privacy";
+import PaystackCallback from "./components/PaystackCallback";
 // import PrivacyPolicy from "./pages/user/PrivacyPolicy";
 
 // Route Arrays
@@ -361,6 +362,9 @@ function App() {
             </Route>
           </Route>
 
+          {/* Paystack Callback */}
+          <Route path="/paystack/callback" element={<PaystackCallback />} />
+          
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Route>
