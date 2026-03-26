@@ -1042,7 +1042,7 @@ const ClubReservationTable = () => {
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
                                   <span
-                                    className="relative flex cursor-default items-center gap-2 rounded-sm  py-1.5"
+                                    className="relative flex cursor-pointer items-center gap-2 rounded-sm  py-1.5"
                                     onClick={() => {
                                       setOpen(true);
                                       setResID(reservation._id,)

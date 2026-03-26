@@ -18,16 +18,20 @@ import {
   Calendar,
   CardPay,
   Cash2,
+  CheckCircle,
   Export,
   Eye,
   EyeClose,
   Filter2,
+  XCircle,
 } from "@/components/dashboard/ui/svg";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
+import ConfirmReservation, {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -45,10 +49,10 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-  MoreHorizontal,
-  Search,
   CheckCircle2,
+  MoreHorizontal,
   ScanLine,
+  Search,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -74,71 +78,9 @@ const getPaymentStatusColor = (status) => {
   }
 };
 
-// Returns true if the booking's check-in date is today or in the past
-const isCheckInReached = (checkInDate) => {
-  if (!checkInDate) return false;
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const cin = new Date(checkInDate);
-  cin.setHours(0, 0, 0, 0);
-  return cin <= today;
-};
-
-// ─── Arrival confirmation cell ────────────────────────────────────────────────
-  function ArrivalCell({ booking, confirmingIds, onConfirm }) {
-  const isArrived =
-    (booking.reservationStatus || booking.status || "").toLowerCase() === "arrived";
-
-  const isLoading = confirmingIds.has(booking._id);
-  const canConfirm = isCheckInReached(booking.checkInDate);
-
-  // Already confirmed (persisted on backend) — green badge
-  if (isArrived) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-        <CheckCircle2 className="w-3.5 h-3.5" />
-        Arrived
-      </span>
-    );
-  }
-
-  // Check-in date hasn't come yet — nothing actionable
-  if (!canConfirm) {
-    return (
-      <span className="text-xs text-gray-400 italic">Awaiting check-in</span>
-    );
-  }
-
-  // Ready to confirm — show button (with spinner while API call is in flight)
-  return (
-    <button
-      onClick={() => onConfirm(booking)}
-      disabled={isLoading}
-      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-teal-50 text-teal-700 border border-teal-200 hover:bg-teal-100 hover:border-teal-300 transition-all duration-150 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed"
-    >
-      {isLoading ? (
-        <>
-          <svg className="w-3.5 h-3.5 animate-spin" viewBox="0 0 24 24" fill="none">
-            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-          </svg>
-          Confirming…
-        </>
-      ) : (
-        <>
-          <ScanLine className="w-3.5 h-3.5" />
-          Confirm Arrival
-        </>
-      )}
-    </button>
-  );
-}
-
 // ─── BookingManagement ────────────────────────────────────────────────────────
 const BookingManagement = () => {
   const [activeTab, setActiveTab] = useState("All");
-  // eslint-disable-next-line no-empty-pattern
-  const [] = useState([]);
   const vendor = useSelector((state) => state.auth.vendor);
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -155,111 +97,107 @@ const BookingManagement = () => {
   const [selectedRoomType, setSelectedRoomType] = useState("all");
   const [hideTab, setHideTab] = useState(false);
 
+  // ── Mark as Completed dialog state ─────────────────────────────────────────
+  const [open, setOpen] = useState(false);
+  // Store the full booking object so handleConfirmArrival has everything it needs
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
   // ── Arrival confirmation state ───────────────────────────────────────────────
-  // Tracks which booking IDs are currently being confirmed (loading spinner)
   const [confirmingIds, setConfirmingIds] = useState(new Set());
 
   // ── Confirm arrival handler ──────────────────────────────────────────────────
-  // Calls backend to persist the confirmation so it survives page refresh.
-  // ⚙️  SWAP the endpoint/field below to match your actual API:
-  //     - URL:   PATCH /api/reservations/:bookingId
-  //     - Body:  { reservationStatus: "arrived" }
- const handleConfirmArrival = useCallback(async (booking) => {
-  const bookingId = booking._id;
-  if (confirmingIds.has(bookingId)) return;
+  // Errors are re-thrown after toasting so ConfirmReservation's try/finally
+  // keeps the loader spinner visible for the full duration of the API call.
+  const handleConfirmArrival = useCallback(async (booking) => {
 
-  setConfirmingIds((prev) => new Set(prev).add(bookingId));
+    const bookingId = booking._id;
+    if (confirmingIds.has(bookingId)) return;
 
-  try {
-    // Generate resId if missing (hotels use client-side UUID, backend may not store)
-    const resId = booking.resId || booking._id;  // Try booking.resId first, fallback _id if undefined
-    
-    // Improved paymentRef extraction + status check
-    const normalizeStatus = (status) => (status || '').toLowerCase();
-    const paymentStatus = normalizeStatus(booking.paymentStatus);
-    const isPaid = paymentStatus.includes('paid') || paymentStatus.includes('success');
-    
-    let paymentRef = null;
-    if (isPaid) {
-      paymentRef = booking.paymentRef ?? 
-                   booking.reference ?? 
-                   booking.payment_ref ?? 
-                   booking.payment?.id ?? 
-                   booking.paymentId ?? 
-                   booking.payment?._id;
+    setConfirmingIds((prev) => new Set(prev).add(bookingId));
+
+    try {
+      const resId = booking.resId || booking._id;
+
+      const normalizeStatus = (status) => (status || "").toLowerCase();
+      const paymentStatus = normalizeStatus(booking.paymentStatus);
+      const isPaid = paymentStatus.includes("paid") || paymentStatus.includes("success");
+
+      let paymentRef = null;
+      if (isPaid) {
+        paymentRef =
+          booking.paymentRef ??
+          booking.reference ??
+          booking.payment_ref ??
+          booking.payment?.id ??
+          booking.paymentId ??
+          booking.payment?._id;
+      }
+
+      console.log("🔍 Confirm attempt:", {
+        bookingId,
+        resId,
+        paymentRef,
+        paymentStatus: booking.paymentStatus,
+        isPaid,
+        availableKeys: Object.keys(booking).filter((k) =>
+          k.includes("pay") || k.includes("ref") || k.includes("resId") || k.includes("payment")
+        ),
+      });
+
+      if (!isPaid) {
+        throw new Error("Cannot confirm arrival: Payment not completed");
+      }
+
+      await userService.updateReservationStatus({
+        reservationId: bookingId,
+        vendorId: vendor?._id,
+        resId,
+        paymentRef,
+      });
+
+      setBookings((prev) =>
+        prev.map((b) =>
+          b._id === bookingId ? { ...b, reservationStatus: "arrived" } : b
+        )
+      );
+      toast.success("✅ Arrival confirmed!");
+    } catch (err) {
+      const msg = err?.response?.data?.message || err?.message || "";
+      if (msg.includes("Missing") && msg.includes("data"))
+        toast.error("Backend missing payment data. Admin: Add .populate('payment') to /bookings endpoint.");
+      else if (msg.includes("Missing required fields"))
+        toast.error("Missing resId or paymentId — check booking data.");
+      else if (msg.includes("resId"))
+        toast.error(`resId mismatch: ${err?.response?.data?.providedResId || msg}`);
+      else if (msg.includes("paymentId") || msg.includes("payment"))
+        toast.error(`Payment issue: ${msg}. Backend needs payment population.`);
+      else if (msg.includes("Payment must be successful"))
+        toast.error("Payment incomplete.");
+      else if (msg.includes("hotelReservation"))
+        toast.error("Use hotel-specific flow.");
+      else
+        toast.error(msg || "Failed to confirm arrival.");
+     
+    } finally {
+      setConfirmingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(bookingId);
+        return next;
+      });
     }
-    
-    console.log('🔍 Confirm attempt:', {
-      bookingId,
-      resId, 
-      paymentRef,
-      paymentStatus: booking.paymentStatus,
-      isPaid,
-      availableKeys: Object.keys(booking).filter(k => k.includes('pay') || k.includes('ref') || k.includes('resId') || k.includes('payment'))
-    });
-
-    // Prevent confirm if unpaid (defensive)
-    if (!isPaid) {
-      toast.error('Cannot confirm arrival: Payment not completed');
-      return;
-    }
-    
-    await userService.updateReservationStatus({
-      reservationId: bookingId,
-      vendorId: vendor?._id,
-      resId,
-      paymentRef
-    });
-
-    setBookings((prev) =>
-      prev.map((b) =>
-        b._id === bookingId ? { ...b, reservationStatus: "arrived" } : b
-      )
-    );
-    toast.success("✅ Arrival confirmed!");
-  } catch (err) {
-    console.error("Failed to confirm arrival:", err);
-
-    // Surface specific backend error messages
-    const msg = err?.response?.data?.message || "";
-    if (msg.includes("Missing") && msg.includes("data")) {
-      toast.error("Backend missing payment data. Admin: Add .populate('payment') to /bookings endpoint.");
-    } else if (msg.includes("Missing required fields"))
-      toast.error("Missing resId or paymentId — check booking data.");
-    else if (msg.includes("resId"))
-      toast.error(`resId mismatch: ${err?.response?.data?.providedResId || msg}`);
-    else if (msg.includes("paymentId") || msg.includes("payment"))
-      toast.error(`Payment issue: ${msg}. Backend needs payment population.`);
-    else if (msg.includes("Payment must be successful"))
-      toast.error("Payment incomplete.");
-    else if (msg.includes("hotelReservation"))
-      toast.error("Use hotel-specific flow.");
-    else
-      toast.error(msg || "Failed to confirm arrival.");
-  } finally {
-    setConfirmingIds((prev) => {
-      const next = new Set(prev);
-      next.delete(bookingId);
-      return next;
-    });
-  }
-}, [confirmingIds, vendor?._id]);
+  }, [confirmingIds, vendor?._id]);
 
   // ── QR scan confirmation ────────────────────────────────────────────────────
-  // When your QR URL (e.g. /confirm-arrival?bookingId=xxx) starts working,
-  // add this useEffect in a dedicated route/page and call handleConfirmArrival(bookingId).
-  // For now, we check on mount if the URL has a bookingId param (handy for testing):
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const qrBookingId = params.get("bookingId");
     if (qrBookingId) {
-      handleConfirmArrival(qrBookingId);
-      // Clean the URL so it doesn't re-trigger on refresh
+      handleConfirmArrival({ _id: qrBookingId });
       window.history.replaceState({}, "", window.location.pathname);
     }
   }, [handleConfirmArrival]);
 
-  // ── Columns — defined inside component to access arrivedBookings + handler ──
+  // ── Columns ──────────────────────────────────────────────────────────────────
   const columns = useMemo(() => [
     {
       id: "select",
@@ -361,30 +299,34 @@ const BookingManagement = () => {
         );
       },
     },
-    // ── NEW: Arrival confirmation column ──────────────────────────────────────
-    {
-      id: "arrival",
-      header: "Arrival",
-      cell: ({ row }) => (
-        <ArrivalCell
-          booking={row.original}
-          confirmingIds={confirmingIds}
-          onConfirm={handleConfirmArrival}
-        />
-      ),
-    },
     {
       id: "actions",
       enableHiding: false,
       cell: ({ row }) => {
         const booking = row.original;
         return (
-          <button
-            className="text-gray-400 hover:text-gray-600"
-            onClick={() => console.log("View booking:", booking._id)}
-          >
-            <MoreHorizontal size={16} />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedBooking(booking);
+                  setOpen(true);
+                }}
+              >
+                <CheckCircle /> Mark as Completed
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="text-[#EF4444]">
+                <XCircle /> Cancel Booking
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },
@@ -439,12 +381,6 @@ const BookingManagement = () => {
             toast.success(`🆕 New reservation from ${message.data.customerName}`);
             setBookings((prev) => [message.data, ...prev]);
           }
-          // ── QR scan confirmation via WebSocket ──────────────────────────────
-          // If your backend emits a "arrival_confirmed" event when QR is scanned,
-          // uncomment this to handle it in real time:
-          // if (message.type === "arrival_confirmed") {
-          //   handleConfirmArrival(message.data.bookingId);
-          // }
         } catch (error) {
           console.error("❌ Failed to parse message:", error);
         }
@@ -550,11 +486,9 @@ const BookingManagement = () => {
     });
   }, [bookings, searchTerm, activeTab, selectedPaymentStatus, selectedRoomType, selectedDate]);
 
-  // ── Confirmed count — reads directly from backend status ────────────────────
-  // Since we now persist to backend, this stays accurate after refresh
   const confirmedCount = useMemo(() => {
     return bookings.filter((b) =>
-      ["confirmed", "arrived"].includes(
+      ["confirmed", "completed"].includes(
         (b.reservationStatus || b.status || "").toLowerCase()
       )
     ).length;
@@ -574,7 +508,6 @@ const BookingManagement = () => {
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedBookings = data.slice(startIndex, startIndex + itemsPerPage);
-
 
   const table = useReactTable({
     data: paginatedBookings,
@@ -638,7 +571,6 @@ const BookingManagement = () => {
               </div>
               <div className="w-px bg-gray-200 my-4" />
               <div className="flex-1">
-                {/* Confirmed = backend confirmed + vendor-confirmed arrivals */}
                 <StatCard
                   title="Confirmed"
                   value={confirmedCount}
@@ -885,6 +817,17 @@ const BookingManagement = () => {
           </div>
         </div>
       )}
+
+      {/* Mark as Completed confirmation dialog — uses original handleConfirmArrival logic */}
+      <ConfirmReservation
+        onConfirm={async() => {
+          if (selectedBooking) {
+            handleConfirmArrival(selectedBooking);
+          }
+        }}
+        setOpen={setOpen}
+        open={open}
+      />
     </DashboardLayout>
   );
 };
