@@ -1,9 +1,10 @@
 import { logout } from "@/redux/slices/authSlice";
 import { Menu, Search, X } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ClubList, HotelList, RestaurantList } from "./SideMenuList";
 import logo from "@/public/images/Rhace-09.png";
+import { useEffect, useState } from "react";
 
 // Hook to get current menu configuration
 const useMenuConfig = (businessType) => {
@@ -43,7 +44,20 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
   const { menuItems, bottomItems } = useMenuConfig(type);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const vendor = useSelector((state) => state.auth.vendor);
+    const [profile, setProfile] = useState(null);
+  useEffect(() => {
+    try {
+      if (vendor) {
+        setProfile(vendor);
+      } else {
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error(error);
+      setProfile(null);
+    }
+  }, [vendor]);
   const handleItemClick = (item) => {
     if (item.label === "Logout") {
       console.log("Sidebar: logging out");
@@ -67,10 +81,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
 
   const getBusinessName = () => {
     return type === "hotel"
-      ? "Hotel 1 - HQ"
+      ? "Hotel "
       : type === "restaurant"
-        ? "Restaurant 1 - HQ"
-        : "Club 1 - HQ";
+        ? "Restaurant "
+        : "Club ";
   };
 
   return (
@@ -92,7 +106,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
           {/* Business selector */}
           <div className="px-4 py-3 border-b border-teal-700">
             <div className="bg-slate-300 text-gray-900 px-3 py-2 rounded text-sm">
-              {getBusinessName()}
+              {profile?.businessName ?? 'Vendor'} - {getBusinessName()}
             </div>
           </div>
 
@@ -189,7 +203,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
         {/* Business selector */}
         <div className="px-4 py-3 border-b border-teal-700">
           <div className="bg-teal-700 px-3 py-2 rounded text-sm">
-            {getBusinessName()}
+             {profile?.businessName ?? 'Vendor'}
           </div>
         </div>
 
