@@ -320,10 +320,10 @@ export default function ReservationSummary() {
                         const quantity = selection.quantity || 1;
                         const roomTotal = discountedPrice * quantity * nights;
                         console.log(guests);
-                        const maxAdults = room.maxAdults * quantity;
-                        const maxChildren = room.maxChildren * quantity;
+                        const maxAdults = room.adultsCapacity * quantity;
+                        const maxChildren = room.childrenCapacity * quantity;
                         const maxGuests = maxAdults + maxChildren;
-                        console.log(selection);
+                        console.log(room);
                         return (
                           <div
                             key={room._id}
