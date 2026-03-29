@@ -59,6 +59,7 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
         }),
         ...(booking.reservationType === "hotel" && {
           roomId: booking.roomId || booking.rooms?.[0]?.room || booking.rooms?.[0]?.roomId,
+          quantity: booking.quantity || booking.rooms?.[0]?.quantity,
           checkInDate: booking.checkInDate || booking.rooms?.[0]?.checkInDate,
           checkOutDate: booking.checkOutDate || booking.rooms?.[0]?.checkOutDate,
           guests: booking.guests || booking.rooms?.[0]?.guests,

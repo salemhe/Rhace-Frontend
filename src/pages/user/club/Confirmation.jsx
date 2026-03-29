@@ -204,7 +204,7 @@ export default function ConfirmPage() {
                                 <div htmlFor="date" className="text-black text-xs">
                                     Table
                                 </div>
-                                {data.table.name}
+                                {data.tables[0].tableType.name}
                             </div>
                             <Edit3 className="size-5" />
                         </div>
@@ -250,18 +250,21 @@ export default function ConfirmPage() {
                                 </div>
                             </div>
                         ))}
-                        <div
-                            className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
-                        >
-                            <div className="flex justify-between items-center">
-                                <p className="text-sm text-[#111827]">{data.table.name}</p>
+                        {data.tables.map((item, i) => (
+                            <div
+                                key={i}
+                                className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
+                            >
+                                <div className="flex justify-between items-center">
+                                    <p className="text-sm text-[#111827]">{item.tableType.name}</p>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <p className="text-sm text-[#111827]">
+                                        ₦{item.tableType.price.toLocaleString()}
+                                    </p>
+                                </div>
                             </div>
-                            <div className="flex justify-end items-center">
-                                <p className="text-sm text-[#111827]">
-                                    ₦{data.table.price.toLocaleString()}
-                                </p>
-                            </div>
-                        </div>
+                        ))}
                         {data.drinks.map((item, i) => (
                             <div
                                 key={i}

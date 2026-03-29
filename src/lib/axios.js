@@ -2,10 +2,24 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  withCredentials: true,
+  withCredentials: true, // Important for refresh token cookie if you're using httpOnly cookies
 });
 
-// Request interceptor to add auth token
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token') || localStorage.getItem('vendor_token');
@@ -14,48 +28,80 @@ api.interceptors.request.use(
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle 401 errors (logout)
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401 && !original._retry) {
-      original._retry = true;
+    const originalRequest = error.config;
+
+    // Handle 401 Unauthorized
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Wait for the refresh to complete
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        }).catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
-        // Use the same baseURL as the api instance and ensure the path is correct
-        const { data } = await api.post("/auth/refresh", {}, { withCredentials: true });
-        localStorage.setItem("token", data.accessToken);
-        original.headers.Authorization = `Bearer ${data.accessToken}`;
-        return api(original);
-      } catch {
+        // Call refresh endpoint
+        const { data } = await api.post("/auth/refresh", {}, {
+          withCredentials: true,
+        });
+
+        const newToken = data.accessToken || data.token;
+
+        if (!newToken) {
+          throw new Error("No access token returned");
+        }
+
+        // Save new token
+        localStorage.setItem("token", newToken);
+
+        // Update all pending requests
+        processQueue(null, newToken);
+
+        // Retry original request with new token
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (refreshError) {
+        processQueue(refreshError, null);
+
+        // Clear everything on refresh failure (token expired or invalid)
         localStorage.removeItem("token");
-        localStorage.removeItem("auth_token");
-        localStorage.removeItem("vendor-token");
         localStorage.removeItem("vendor_token");
+        localStorage.removeItem("auth_token");
+
+        // Clear Redux state - we'll dispatch this from components or use a listener
         if (typeof window !== "undefined") {
           const currentPath = window.location.pathname;
+
           if (currentPath.startsWith("/dashboard/admin")) {
             window.location.href = "/auth/admin/login";
           } else if (currentPath.startsWith("/dashboard/")) {
             window.location.href = "/auth/vendor/login";
+          } else {
+            window.location.href = "/auth/login"; // fallback
           }
         }
-      }
 
-      return new Promise((resolve) => {
-        subscribeTokenRefresh((token) => {
-          original.headers.Authorization = `Bearer ${token}`;
-          resolve(api(original));
-        });
-      });
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
     }
+
     return Promise.reject(error);
   }
 );
 
 export default api;
-

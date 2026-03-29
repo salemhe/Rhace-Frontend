@@ -13,42 +13,6 @@ const DashboardLayout = ({ children, section, settings }) => {
   const navigate = useNavigate();
   const vendor = useSelector(state => state.auth.vendor);
 
-  // Refresh token on window focus
-  const handleFocus = useCallback(async () => {
-    try {
-      await authService.vendorRefresh();
-    } catch (error) {
-      console.error('Focus refresh failed:', error);
-    }
-  }, []);
-
-  // Auto-refresh token every 10 minutes
-  useEffect(() => {
-    if (!vendor?._id) return;
-
-    const refreshInterval = setInterval(async () => {
-      try {
-        console.log('DashboardLayout: Auto-refreshing vendor token...');
-        const data = await authService.vendorRefresh();
-        // Update Redux if vendor data returned (optional backend vendor refresh)
-        if (data.vendor) {
-          dispatch(setVendor(data.vendor));
-        }
-        console.log('Token refreshed successfully');
-      } catch (error) {
-        console.error('Token refresh failed:', error);
-        // Don't logout automatically - let axios handle
-      }
-    }, 10 * 60 * 1000); // 10 minutes
-
-    window.addEventListener('focus', handleFocus);
-
-    return () => {
-      clearInterval(refreshInterval);
-      window.removeEventListener('focus', handleFocus);
-    };
-  }, [vendor?._id, dispatch]);
-
   return (
     <ErrorBoundary>
       <div className="flex h-dvh">
