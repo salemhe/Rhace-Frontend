@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input"
 import { useState } from "react"
 import logo from "../../../public/images/Rhace-11.png";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { authService } from "@/services/auth.service";
 import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router";

@@ -6,7 +6,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Eye, EyeOff, Loader2, Lock } from "lucide-react";
 import HeroImage from "@/components/auth/HeroImage";
 import { authService } from "@/services/auth.service";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useNavigate, useSearchParams } from "react-router";
 import logo from "../../../public/images/Rhace-11.png";
 

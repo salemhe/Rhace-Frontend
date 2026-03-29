@@ -1,13 +1,14 @@
 import React from "react";
 import { Heart, Share2Icon } from "lucide-react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Button } from "@/components/ui/button";
+import { FavoriteButton3 } from "./favoritebutton";
 
-const SaveCopy = ({ id }) => {
+const SaveCopy = ({ id, type, vendor }) => {
   const handleCopy = () => {
     navigator.clipboard
       .writeText(
-        `https://rhace-frontend.vercel.app/restaurants/${id}`
+        `https://rhace-frontend.vercel.app/${type}/${id}`
       )
       .then(() => toast.success("Link copied to clipboard!"))
       .catch(() => {
@@ -20,10 +21,7 @@ const SaveCopy = ({ id }) => {
         <Share2Icon />
         Share
       </Button>
-      <Button variant="outline" className="rounded-xl cursor-pointer">
-        <Heart />
-        Save
-      </Button>
+      <FavoriteButton3 vendor={vendor} />
     </div>
   );
 };

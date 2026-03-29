@@ -49,6 +49,11 @@ export const AdminList = {
       path: "/dashboard/admin/settings",
       icon: SettingsIcon,
     },
+    {
+      label: "Logout",
+      path: "#logout",
+      icon: LogoutIcon,
+    },
   ],
 };
 

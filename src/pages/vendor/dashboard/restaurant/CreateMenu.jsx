@@ -18,7 +18,7 @@ import { Check, CheckCircle, DownloadCloud, Loader2, Plus, Trash2, Upload, X } f
 import React, { useCallback, useEffect, useState } from 'react'
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 
 const CreateMenu = () => {
     const [step, setStep] = useState(0);
@@ -112,7 +112,6 @@ const CreateMenu = () => {
         if (step <= 1) {
             if (step === 1) {
                 if (activeTab === "new") {
-                    console.log(newItem);
                     if (
                         newItem.name &&
                         newItem.category.length > 0 &&

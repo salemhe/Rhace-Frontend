@@ -14,7 +14,7 @@ import {
   useReactTable,
   // VisibilityState,
 } from "@tanstack/react-table"
-import { ArrowUpDown, Check, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal, MoreVertical, Search, XIcon } from "lucide-react"
+import { ArrowUpDown, Check, ChevronDown, ChevronLeft, ChevronRight, EllipsisVertical, MoreHorizontal, MoreVertical, Search, XIcon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -41,17 +41,17 @@ import {
 import DashboardButton from '@/components/dashboard/ui/DashboardButton';
 import FinancialDashboard from '@/components/dashboard/FinancialDashboard';
 import { paymentService } from '@/services/payment.service';
-import { toast } from 'sonner';
+import { toast } from 'react-toastify';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useSelector } from 'react-redux';
 import { useWebSocket } from '@/contexts/WebSocketContext';
+import { formatDate } from '@/utils/formatDate';
 
 const PaymentDashboard = () => {
   const [hideTab, setHideTab] = useState(false);
   const [sorting, setSorting] = useState([])
-  const [columnFilters, setColumnFilters] = useState(
-    []
-  )
+  const [columnFilters, setColumnFilters] = useState([])
+  const [activeTab, setActiveTab] = useState("Overview")
   const [columnVisibility, setColumnVisibility] = useState({})
   const [rowSelection, setRowSelection] = useState({})
   const [statusFilter, setStatusFilter] = useState("")
@@ -81,7 +81,6 @@ const PaymentDashboard = () => {
       }
     }
   });
-  const [trend, setTrends] = useState({ "trends": [], "totalEarnings": 0, "percentChange": 0 });
   const [info, setInfo] = useState({
     "bankCode": "N/A",
     "accountNumber": "N/A",
@@ -109,7 +108,7 @@ const PaymentDashboard = () => {
       cell: ({ row }) => {
         const user = row.original
         return (
-          <span className='text-[#111827] font-medium text-sm'>{user.date}</span>
+          <span className='text-[#111827] font-medium text-sm'>{formatDate(user.createdAt)}</span>
         )
       },
       filterFn: (row, columnId, value) => {
@@ -117,7 +116,7 @@ const PaymentDashboard = () => {
       },
     },
     {
-      accessorKey: "trxn_id",
+      accessorKey: "Transaction ID",
       header: "Transaction ID",
       cell: ({ row }) => {
         const user = row.original
@@ -127,7 +126,7 @@ const PaymentDashboard = () => {
       },
     },
     {
-      accessorKey: "customer_name",
+      accessorKey: "customer name",
       header: "Customer Name",
       cell: ({ row }) => {
         const user = row.original
@@ -135,19 +134,36 @@ const PaymentDashboard = () => {
         return (
           <div className="flex items-center gap-3">
             <Avatar>
-              <AvatarFallback>{(customerName || '').split(" ").map((i) => (i.slice(0, 1).toUpperCase())).slice(0,2).join('') || 'UN'}</AvatarFallback>
+              <AvatarFallback>{user.customerName.split(" ").map((i) => (i.slice(0, 1).toUpperCase()))}</AvatarFallback>
             </Avatar>
-            <span className='text-[#111827] font-medium text-sm'>{customerName}</span>
+            <span className='text-[#111827] font-medium text-sm'>{user.customerName}</span>
           </div>
         )
       },
     },
     {
-      accessorKey: "paymentMethod",
+      accessorKey: "payment Method",
       header: "Payment Method",
-      cell: ({ row }) => (
-        <span className='text-[#111827] font-medium text-sm'>{ (row.getValue("paymentMethod") || '').split("_").join(" ").toUpperCase() }</span>
-      ),
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <span className='text-[#111827] font-medium text-sm'>
+            {user.paymentMethod && user.paymentMethod.split("_").join(" ").toUpperCase()}
+          </span>
+        )
+      },
+    },
+    {
+      accessorKey: "amount",
+      header: "Amount",
+      cell: ({ row }) => {
+        const user = row.original
+        return (
+          <span className='text-[#111827] font-medium text-sm'>
+            {"\u20A6"}{user.amountPaid.toLocaleString()}
+          </span>
+        )
+      },
     },
     {
       accessorKey: "status",
@@ -155,23 +171,14 @@ const PaymentDashboard = () => {
       filterFn: (row, columnId, value) => {
         return value === "" || row.getValue(columnId) === value
       },
-      cell: ({ row }) => {
-        const status = row.getValue("status") || 'Unknown';
-        const isPaid = status === "Paid";
-        return (
-          <div className={`${isPaid ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
-            <div className={`${isPaid ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full`} />
-            {status}
-          </div>
-        );
-      },
+      cell: ({ row }) => <div className={`${row.getValue("status") === "success" ? "bg-[#D1FAE5] border-[#B8FFC2] text-[#37703F]" : "text-[#EF4444] border-[#FAE48A] bg-[#FCE6E6]"} flex border py-1.5 px-3 items-center gap-2 rounded-full w-fit`}>
+        <div className={`${row.getValue("status") === "success" ? "bg-[#37703F]" : "bg-[#EF4444]"} size-2 rounded-full bg-[#37703F]`} />
+        {row.getValue("status")}</div>
     },
     {
       id: "actions",
       enableHiding: false,
-      cell: ({ row }) => {
-        // const payment = row.original
-
+      cell: () => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -181,20 +188,8 @@ const PaymentDashboard = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {/* <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem> */}
-              <DropdownMenuItem><Eye2 /> View Reservation</DropdownMenuItem>
-              <DropdownMenuItem><Pencil /> Edit Reservation</DropdownMenuItem>
-              <DropdownMenuItem><Phone /> Contact Customer</DropdownMenuItem>
+              <DropdownMenuItem><Eye2 /> View Details</DropdownMenuItem>
               <DropdownMenuItem><Printer /> Print Receipt</DropdownMenuItem>
-              <DropdownMenuItem><CheckCircle /> Mark as Completed</DropdownMenuItem>
-              <DropdownMenuItem><CheckCircle /> Mark as No-Show</DropdownMenuItem>
-              <DropdownMenuItem><Copy /> Dupllicate Reservation</DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-[#EF4444]"><XCircle /> Cancel Reservation</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         )
@@ -212,7 +207,6 @@ const PaymentDashboard = () => {
         const res = await paymentService.getPayments();
         setData(res);
       } catch (error) {
-        console.error(error);
         toast.error(error.response?.message || "Failed to fetch payments");
       } finally {
         setLoading(prev => ({ ...prev, data: false }));
@@ -232,26 +226,12 @@ const PaymentDashboard = () => {
       }
     };
 
-    const fetchTrends = async () => {
-      try {
-        setLoading(prev => ({ ...prev, trend: true }));
-        const res = await paymentService.getTrends();
-        setTrends(res);
-      } catch (error) {
-        console.error(error);
-        toast.error(error.response?.message || "Failed to fetch payment trends");
-      } finally {
-        setLoading(prev => ({ ...prev, trend: false }));
-      }
-    };
-
     const fetchPaymentInfo = async () => {
       try {
         setLoading(prev => ({ ...prev, info: true }));
         const res = await paymentService.getPaymentInfo();
         setInfo(res);
       } catch (error) {
-        console.error(error);
         toast.error(error.response?.message || "Failed to fetch payment info");
       } finally {
         setLoading(prev => ({ ...prev, info: false }));
@@ -260,7 +240,6 @@ const PaymentDashboard = () => {
 
     fetchPayments();
     fetchPaymentStats();
-    fetchTrends();
     fetchPaymentInfo();
   };
 
@@ -297,9 +276,12 @@ const PaymentDashboard = () => {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      const customerName = row.original.customer_name || ''
+      const { customerName } = row.original
+
       const search = filterValue.toLowerCase()
-      return customerName.toLowerCase().includes(search)
+      return (
+        customerName.toLowerCase().includes(search)
+      )
     },
     state: {
       sorting,
@@ -312,49 +294,66 @@ const PaymentDashboard = () => {
 
 
   return (
-    <DashboardLayout type={vendor.vendorType} section="Payments $ Earnings">
-      <div className='md:p-6 md:mb-12 space-y-6'>
-        <div className='md:flex hidden justify-between items-center'>
-          <h2 className='text-[#111827] font-semibold'>Payments & Earnings</h2>
-          <div className='flex gap-6'>
+    <DashboardLayout type={vendor.vendorType} section="Payments & Earnings">
+      <div className='md:p-6 mb-14 space-y-4 md:space-y-6 py-2'>
+        <div className='flex justify-between py-1 px-2 items-center'>
+          <h2 className='text-[#111827] text-lg md:text-base font-semibold'>Payments & Earnings</h2>
+          <button className='md:hidden p-2'>
+            <EllipsisVertical />
+          </button>
+          <div className='md:flex hidden gap-6'>
             <DashboardButton onClick={() => setHideTab(!hideTab)} variant="secondary" text={hideTab ? "View Tabs" : "Hide tabs"} icon={hideTab ? <Eye /> : <EyeClose />} />
             <DashboardButton variant="secondary" text="Export" icon={<Export />} />
           </div>
         </div>
-        {!hideTab && !loading.stats &&
-          <div className='hidden md:grid grid-cols-4 border w-full rounded-2xl'>
-            <div className='flex h-full items-center'>
-              <StatCard title="Total Earnings" value={`₦${stats.earnings.thisYear.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`} change={stats.earnings.yearChange} icon={<Calendar />} color="blue" />
-              <div className='h-3/5 w-px bg-[#E5E7EB]' />
-            </div>
-            <div className='flex h-full items-center'>
-              <StatCard title="Earnings this Week" value={`₦${stats.earnings.thisWeek.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`} change={stats.earnings.weekChange} icon={<CardPay />} color="green" />
-              <div className='h-3/5 w-px bg-[#E5E7EB]' />
-            </div>
-            <div className='flex h-full items-center'>
-              <StatCard title="Completed Payments" value={`₦${stats.payments.completed.thisWeek.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`} change={stats.payments.completed.change} icon={<Cash2 className="text-[#CD16C3]" />} color="purple" />
-              <div className='h-3/5 w-px bg-[#E5E7EB]' />
-            </div>
-            <div className='flex w-full'>
-              <StatCard title="Pending Payments" value={`₦${stats.payments.pending.thisWeek.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-              })}`} change={stats.payments.pending.change} icon={<Cash2 className="text-[#E1B505]" />} color="orange" />
-            </div>
-          </div>
-        }
-        <FinancialDashboard info={info} trend={trend} />
-        <div>
-          <div className="w-full border rounded-2xl">
+        <div className='flex px-2 md:hidden'>
+          {["Overview", "Transaction History"].map((item) => (
+            <button onClick={() => setActiveTab(item)} className={`p-2 text-xs rounded-md border ${activeTab === item ? "border-[#B3D1D2] bg-[#E7F0F0] text-[#111827]" : "border-transparent text-[#606368]"}`}>
+              {item}
+            </button>
+          ))}
+        </div>
+        {activeTab === "Overview" && (
+          <>
+            {!hideTab && !loading.stats &&
+              <div className='px-2'>
+                <div className='grid md:grid-cols-2 md:py-4 divide-y md:divide-x md:divide-y-0 border w-full bg-white rounded-2xl'>
+                  <div className='grid grid-cols-2 divide-x py-4 md:py-0'>
+                    <div className='flex h-full items-center'>
+                      <StatCard title="Total Earnings" className="py-0" value={`₦${stats.earnings.thisYear.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}`} change={stats.earnings.yearChange} icon={<Calendar />} color="blue" />
+                    </div>
+                    <div className='flex h-full items-center'>
+                      <StatCard title="Earnings this Week" className="py-0" value={`₦${stats.earnings.thisWeek.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}`} change={stats.earnings.weekChange} icon={<CardPay />} color="green" />
+                    </div>
+                  </div>
+                  <div className='grid grid-cols-2 divide-x py-4 md:py-0'>
+                    <div className='flex h-full items-center'>
+                      <StatCard title="Completed Payments" className="py-0" value={`₦${stats.payments.completed.thisWeek.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}`} change={stats.payments.completed.change} icon={<Cash2 className="text-[#CD16C3]" />} color="purple" />
+                    </div>
+                    <div className='flex w-full'>
+                      <StatCard title="Pending Payments" className="py-0" value={`₦${stats.payments.pending.thisWeek.toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                      })}`} change={stats.payments.pending.change} icon={<Cash2 className="text-[#E1B505]" />} color="orange" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+            <FinancialDashboard info={info} />
+          </>
+        )}
+        <div className='hidden md:block px-2'>
+          <div className="w-full border bg-white rounded-2xl">
             <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between p-4">
               <h2 className='flex flex-1 items-center'>
                 Transaction History
@@ -512,6 +511,39 @@ const PaymentDashboard = () => {
             </div>
           </div>
         </div>
+        {activeTab === "Transaction History" && (
+          <div className='divide-y md:hidden w-full'>
+            {data.length > 0 ? data.map((item, i) => (
+              <div key={i} className='py-4 px-2 flex gap-2 justify-between items-center bg-white border'>
+                <div className='flex gap-3 justify-between w-full items-center'>
+                  <div className='flex gap-2 items-center'>
+                    <Avatar className="border border-[#60A5FA]">
+                      <AvatarFallback>{item.customerName.split(" ").map((i) => (i.slice(0, 1).toUpperCase()))}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className='text-xs text-[#606368]'>ID: {item._id.slice(0, 8)}</p>
+                      <p className='text-[#111827] text-sm'>{item.customerName}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <p className='capitalize text-[#606368] text-xs'>{item.paymentMethod && item.paymentMethod.split("_").join(" ")}</p>
+                    <p className='text-[#111827] text-sm'>{"\u20A6"}{item.amountPaid.toLocaleString()}</p>
+                  </div>
+                  <p className='text-[#606368] text-sm'>
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </p>
+                </div>
+                <button className='text-[#111827] text-6'>
+                  <EllipsisVertical />
+                </button>
+              </div>
+            )) : (
+              <div>
+
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   )

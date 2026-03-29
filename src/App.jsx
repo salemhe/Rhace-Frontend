@@ -1,40 +1,41 @@
-import { Routes, Route } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 
 // Layouts
-import Layout from "./pages/layouts/Layout";
-import ReservationLayout from "./pages/layouts/ReservationLayout";
+import AdminLayout from "./components/layout/AdminLayout";
 import ClubReservationLayout from "./pages/layouts/ClubReservationLayout";
 import HotelReservationLayout from "./pages/layouts/HotelReservationLayout";
-import AdminLayout from "./components/layout/AdminLayout";
+import Layout from "./pages/layouts/Layout";
+import ReservationLayout from "./pages/layouts/ReservationLayout";
 
 // User Auth
-import Login from "./pages/auth/UserAuth/Login";
-import Signup from "./pages/auth/UserAuth/Signup";
 import ForgotPassword from "./pages/auth/UserAuth/ForgotPassword";
-import ResetPassword from "./pages/auth/UserAuth/ResetPassword";
+import Login from "./pages/auth/UserAuth/Login";
 import Otp from "./pages/auth/UserAuth/Otp";
+import ResetPassword from "./pages/auth/UserAuth/ResetPassword";
+import Signup from "./pages/auth/UserAuth/Signup";
 
 // Vendor Auth
-import VendorLogin from "./pages/auth/VendorAuth/Login";
-import VendorSignup from "./pages/auth/VendorAuth/Signup";
 import VendorForgotPassword from "./pages/auth/VendorAuth/ForgotPassword";
-import VendorResetPassword from "./pages/auth/VendorAuth/ResetPassword";
-import VendorOtp from "./pages/auth/VendorAuth/Otp";
+import VendorLogin from "./pages/auth/VendorAuth/Login";
 import Onboard from "./pages/auth/VendorAuth/Onboard";
+import VendorOtp from "./pages/auth/VendorAuth/Otp";
+import VendorResetPassword from "./pages/auth/VendorAuth/ResetPassword";
+import VendorSignup from "./pages/auth/VendorAuth/Signup";
 
 // Admin Auth
 import AdminLogin from "./pages/auth/AdminAuth/Login";
 
 // User Pages
-import ReservationHomePage from "./pages/user/ReservationHomePage";
-import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
-import Reservation from "./pages/user/restaurant/Reservation";
-import PrePaymentPage from "./pages/user/restaurant/PrePayment";
-import CompletedPage from "./pages/user/restaurant/Completed";
-import ConfirmPage from "./pages/user/restaurant/Confirmation";
+import AboutRhace from "./pages/user/About";
+import BookingsPage from "./pages/user/Bookings";
 import ClubPage from "./pages/user/club/ClubPage";
+import ClubConfirmPage from "./pages/user/club/Confirmation";
 import ClubReservation from "./pages/user/club/Reservation";
+import ContactRhace from "./pages/user/Contact";
+import Favorites from "./pages/user/Favourites";
+import HelpCenterRhace from "./pages/user/HelpCenter";
+import HotelConfirmPage from "./pages/user/hotels/Confirmation";
 import HotelsPage from "./pages/user/hotels/HotelsPage";
 import HotelReservation from "./pages/user/hotels/ReservationSummary";
 import BookingsPage from "./pages/user/Bookings";
@@ -46,53 +47,65 @@ import AboutRhace from "./pages/user/About";
 import ContactRhace from "./pages/user/Contact";
 import HelpCenterRhace from "./pages/user/HelpCenter";
 import NotFound from "./pages/user/NotFound";
+import ReservationHomePage from "./pages/user/ReservationHomePage";
+import CompletedPage from "./pages/user/restaurant/Completed";
+import ConfirmPage from "./pages/user/restaurant/Confirmation";
+import PrePaymentPage from "./pages/user/restaurant/PrePayment";
+import Reservation from "./pages/user/restaurant/Reservation";
+import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
+import SearchContent from "./pages/user/Search";
 
 // Vendor Dashboard
 import VendorDashboard from "./pages/vendor/dashboard/Dashboard";
 import PaymentDashboard from "./pages/vendor/dashboard/PaymentDashboard";
-import ReservationDashboard from "./pages/vendor/dashboard/restaurant/ReservationDashboard";
-import MenuDashboard from "./pages/vendor/dashboard/restaurant/MenuDashboard";
-import CreateReservation from "./pages/vendor/dashboard/restaurant/CreateReservation";
 import CreateMenu from "./pages/vendor/dashboard/restaurant/CreateMenu";
 import CreateMenuItem from "./pages/vendor/dashboard/restaurant/CreateMenuItem";
+import CreateReservation from "./pages/vendor/dashboard/restaurant/CreateReservation";
+import MenuDashboard from "./pages/vendor/dashboard/restaurant/MenuDashboard";
+import ReservationDashboard from "./pages/vendor/dashboard/restaurant/ReservationDashboard";
 import StaffManagementSystem from "./pages/vendor/dashboard/StaffManagement";
 
 // Vendor - Club
 import BottleServiceManager from "./pages/vendor/club/AddBottleSet";
-import { DrinksTable } from "./pages/vendor/club/DrinksTable";
 import ClubDashboard from "./pages/vendor/club/Dashboard";
+import { DrinksTable } from "./pages/vendor/club/DrinksTable";
 import ClubReservationTable from "./pages/vendor/club/reservations";
 import ClubSettings from "./pages/vendor/club/Settings";
 
 // Vendor - Hotel
 import AddRooms from "./pages/vendor/hotel/add-rooms/page";
 import BookingManagement from "./pages/vendor/hotel/bookings";
-import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
 import HotelDashboard from "./pages/vendor/hotel/Dashboard";
+import RoomsManagement from "./pages/vendor/hotel/rooms-management/page";
 import HotelSettings from "./pages/vendor/hotel/Settings";
 
 // Vendor - Settings
-import Settings from "./pages/vendor/settings/settings";
 import RestaurantSettings from "./pages/vendor/dashboard/restaurant/Settings";
 
 // Admin Dashboard
 import AdminDashboard from "./pages/admin/Dashboard";
-import AdminVendors from "./pages/admin/Vendors";
-import AdminUsers from "./pages/admin/Users";
-import AdminReservations from "./pages/admin/Reservations";
 import AdminPayments from "./pages/admin/Payments";
 import AdminReports from "./pages/admin/Reports";
+import AdminReservations from "./pages/admin/Reservations";
 import AdminSettings from "./pages/admin/Settings";
+import AdminUsers from "./pages/admin/Users";
+import AdminVendors from "./pages/admin/Vendors";
 
 // Route Protection
-import ProtectedRoute from "./components/ProtectedRoutes";
-import UserProtectedRoute from "./components/UserProtectedRoute";
-import VendornHomePage from "./pages/vendor/landingPage/page";
 import AdminProtectedRoute from "./components/AdminProtectedRoute";
 import ErrorBoundary from "./components/ErrorBoundary";
+import ProtectedRoute from "./components/ProtectedRoutes";
+import UserProtectedRoute from "./components/UserProtectedRoute";
+import AccountSettings from "./pages/user/account";
 import BookingDetails from "./pages/user/BookingDetails";
-import Payments from "./pages/admin/Payments";
+import UserLandingPage from "./pages/user/landingPage";
 import PaymentsHistory from "./pages/user/Payments";
+import MenuPage from "./pages/user/restaurant/Menu";
+import VendornHomePage from "./pages/vendor/landingPage/page";
+import Terms from "./pages/user/Terms";
+import PrivacyPolicy from "./pages/user/Privacy";
+import PaystackCallback from "./components/PaystackCallback";
+// import PrivacyPolicy from "./pages/user/PrivacyPolicy";
 
 // Route Arrays
 const authRoutes = {
@@ -110,9 +123,7 @@ const authRoutes = {
     { path: "reset-password", element: <VendorResetPassword /> },
     { path: "otp", element: <VendorOtp /> },
   ],
-  admin: [
-    { path: "login", element: <AdminLogin /> },
-  ],
+  admin: [{ path: "login", element: <AdminLogin /> }],
 };
 
 const restaurantRoutes = [
@@ -130,9 +141,13 @@ const clubRoutes = [{ path: "/clubs/:id", element: <ClubPage /> }];
 
 const clubReservationRoutes = [
   { path: "/clubs/:id/reservations", element: <ClubReservation /> },
+  { path: "/clubs/confirmation/:id", element: <ClubConfirmPage /> },
 ];
 
-const hotelRoutes = [{ path: "/hotels/:id", element: <HotelsPage /> }];
+const hotelRoutes = [
+  { path: "/hotels/:id", element: <HotelsPage /> },
+  { path: "/hotels/confirmation/:id", element: <HotelConfirmPage /> },
+];
 
 const hotelReservationRoutes = [
   { path: "/hotels/:id/reservations", element: <HotelReservation /> },
@@ -143,12 +158,23 @@ const userGeneralRoutes = [
   { path: "/search", element: <SearchContent /> },
   { path: "/favorites", element: <Favorites /> },
   { path: "/bookings/:id", element: <BookingDetails /> },
-  { path: "/payments", element: <PaymentsHistory />}
+  { path: "/payments", element: <PaymentsHistory /> },
+  { path: "account-settings", element: <AccountSettings /> },
+  { path: "/book-reservation", element: <ReservationHomePage /> },
+  { path: "/terms", element: <Terms /> },
+  { path: "/privacy-policy", element: <PrivacyPolicy /> },
 ];
 
 const adminDashboardRoutes = [
   { path: "", element: <AdminDashboard /> },
-  { path: "vendors", element: <ErrorBoundary><AdminVendors /></ErrorBoundary> },
+  {
+    path: "vendors",
+    element: (
+      <ErrorBoundary>
+        <AdminVendors />
+      </ErrorBoundary>
+    ),
+  },
   { path: "users", element: <AdminUsers /> },
   { path: "reservations", element: <AdminReservations /> },
   { path: "payments", element: <AdminPayments /> },
@@ -200,6 +226,8 @@ function App() {
           <Route path="/about" element={<AboutRhace />} />
           <Route path="/contact" element={<ContactRhace />} />
           <Route path="/faq" element={<HelpCenterRhace />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/partner" element={<VendornHomePage />} />
 
           {/* Authentication Routes */}
@@ -232,11 +260,16 @@ function App() {
             {/* Admin */}
             <Route path="admin">
               {authRoutes.admin.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
           </Route>
 
+          <Route path="/menus/:id" element={<MenuPage />} />
           {/* Restaurants */}
           {restaurantRoutes.map((route) => (
             <Route key={route.path} path={route.path} element={route.element} />
@@ -303,15 +336,27 @@ function App() {
                   element={route.element}
                 />
               ))}
-            {dashboardRestaurantRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
-            {hotelVendorRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
-            {clubVendorRoutes.map((route) => (
-              <Route key={route.path} path={route.path} element={route.element} />
-            ))}
+              {dashboardRestaurantRoutes.map((route) => (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
+              {hotelVendorRoutes.map((route) => (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
+              {clubVendorRoutes.map((route) => (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
+              ))}
             </Route>
           </Route>
 
@@ -319,11 +364,18 @@ function App() {
           <Route element={<AdminProtectedRoute />}>
             <Route path="/dashboard/admin" element={<AdminLayout />}>
               {adminDashboardRoutes.map((route) => (
-                <Route key={route.path} path={route.path} element={route.element} />
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={route.element}
+                />
               ))}
             </Route>
           </Route>
 
+          {/* Paystack Callback */}
+          <Route path="/paystack/callback" element={<PaystackCallback />} />
+          
           {/* 404 */}
           <Route path="*" element={<NotFound />} />
         </Route>

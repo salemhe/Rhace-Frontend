@@ -37,7 +37,7 @@ const MenuItemCard = ({ type, name, price }) => {
                 <h3 className="font-bold text-gray-800 text-sm">{name}</h3>
             </div>
             <p className="font-semibold text-gray-900 mt-4">
-                #{price.toLocaleString()}
+                ₦{price.toLocaleString()}
             </p>
         </div>
     );
@@ -126,7 +126,7 @@ export default function RestaurantMenu({ id }) {
                             price={item.price}
                         />
                     )) : (
-                        <div>Sorry, no available Menu for this Category</div>
+                        <div className="text-xs text-gray-500">Sorry, no available Menu for this Category</div>
                     )}
                 </div>
 

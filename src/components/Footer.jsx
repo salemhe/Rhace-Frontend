@@ -1,5 +1,5 @@
-import { motion } from "framer-motion";
 import logoWhite from "@/public/images/Rhace-09.png";
+import { motion } from "framer-motion";
 
 export default function Footer() {
   return (
@@ -22,7 +22,7 @@ export default function Footer() {
         "
           style={{ letterSpacing: "0.1em" }}
         >
-          <div className="flex items-center w-[40rem] sm:w-full justify-center">
+          <div className="flex items-center w-160 sm:w-full justify-center">
             <img
               src={logoWhite}
               alt="Rhace Logo"
@@ -92,7 +92,7 @@ export default function Footer() {
                       transition={{ duration: 0.2 }}
                     >
                       <a
-                        href={href === "home" ? `/` : href}
+                        href={href === "home" ? `/` : `/${href}`}
                         className="hover:text-teal-400 transition-colors"
                       >
                         {link}
@@ -114,14 +114,18 @@ export default function Footer() {
         >
           <p className="text-gray-400">© 2025 Rhace. All rights reserved.</p>
           <div className="flex gap-6">
-            {["Privacy", "Terms", "Cookies"].map((item, index) => (
+            {[
+              { name: "Privacy", href: "/privacy-policy" },
+              { name: "Terms", href: "/terms" },
+              { name: "Cookies", href: "#" },
+            ].map((item, index) => (
               <motion.a
                 key={index}
-                href="#"
+                href={item.href}
                 className="hover:text-teal-400 transition-colors"
                 whileHover={{ y: -2 }}
               >
-                {item}
+                {item.name}
               </motion.a>
             ))}
           </div>

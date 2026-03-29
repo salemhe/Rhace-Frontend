@@ -4,7 +4,7 @@ import { useNavigate, useParams } from "react-router";
 // import { RestaurantBooking } from "@/lib/api";
 import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
 
 export default function CompletedPage() {
@@ -28,7 +28,7 @@ export default function CompletedPage() {
       }
     }
     fetchReservation()
-  }, [])
+  }, [id])
 
   if (isLoading) {
     return <UniversalLoader fullscreen />
@@ -170,7 +170,7 @@ export default function CompletedPage() {
         <div className="bg-[#E7F0F0] border border-[#B3D1D2] rounded-2xl p-4 mb-8">
           <div className="space-y-3">
             <div className="flex items-start gap-3">
-              <Mail className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+              <Mail className="w-5 h-5 text-[#0A6C6D] mt-0.5 shrink-0" />
               <p className="text-sm">
                 You will receive a confirmation email with your reservation
                 details
@@ -178,7 +178,7 @@ export default function CompletedPage() {
             </div>
 
             <div className="flex items-start gap-3">
-              <Clock className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+              <Clock className="w-5 h-5 text-[#0A6C6D] mt-0.5 shrink-0" />
               <p className="text-sm">Please, arrive 10 mins early</p>
             </div>
           </div>
@@ -188,7 +188,7 @@ export default function CompletedPage() {
         <div className="flex flex-col md:flex-row w-full gap-3">
           <form
             action={async () => {
-              navigate(`/restaurants/pre-payment/${id}`);
+              navigate(`/restaurants/confirmation/${id}`);
             }}
             className="flex-1"
           >

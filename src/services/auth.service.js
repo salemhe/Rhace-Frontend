@@ -2,9 +2,9 @@ import api from "@/lib/axios";
 class AuthService {
   async login(email, password) {
     const res = await api.post("/users/auth/login", { email, password });
-    const { token } = res.data;
+    const { accessToken } = res.data;
 
-    localStorage.setItem("token", token);
+    localStorage.setItem("token", accessToken);
     return res.data;
   }
 
@@ -23,28 +23,23 @@ class AuthService {
     return res.data;
   }
 
-async vendorLogin(email, password) {
-    console.log('🔑 vendorLogin request:', { email });
-    const res = await api.post("/vendors/auth/login", { email, password });
-    console.log('🔑 vendorLogin FULL response:', res.data);
-    
-    // Handle various token locations
-    let token = res.data.accessToken || 
-                res.data.token || 
-                res.data.data?.token || 
-                res.data.vendor?.token ||
-                res.data.auth?.token;
-    
-    console.log('🔑 Extracted token:', token ? 'VALID' : 'MISSING', token?.substring(0,20) + '...');
-    
-    if (!token || token === 'undefined') {
-      throw new Error('No valid token in login response');
+  async vendorLogin(email, password) {
+    console.log('vendorLogin called with:', { email });
+    try {
+      const res = await api.post("/vendors/auth/login", { email, password });
+      console.log('vendorLogin response:', res.data);
+      const token = res.data.accessToken || res.data.token;
+      if (!token) {
+        console.error('No token in response:', res.data);
+        throw new Error('Login response missing token');
+      }
+      localStorage.setItem("vendor_token", token);
+      console.log('vendor_token stored:', token ? token.slice(0,20) + '...' : 'null');
+      return res.data;
+    } catch (err) {
+      console.log('vendorLogin error:', err.response?.status, err.response?.data);
+      throw err;
     }
-    
-    localStorage.setItem("token", token);
-    localStorage.setItem("token_debug", token.substring(0,20)); // temp debug
-    console.log('💾 Token saved to localStorage');
-    return res.data;
   }
 
   async vendorUpdate(formData) {
@@ -77,12 +72,12 @@ async vendorLogin(email, password) {
   async googleLogin(code) {
     const res = await api.post("/users/auth/login/google", {
       code,
-    })
-    const { token } = res.data;
+    });
+    const { accessToken } = res.data;
 
-    localStorage.setItem("token", token);
+    localStorage.setItem("token", accessToken);
     return res.data;
-  } 
+  }
 
   async googleRegister(code) {
     const res = await api.post("/users/auth/register/google", {
@@ -131,7 +126,16 @@ async adminLogin(email, password) {
     return res.data;
   }
 
-async adminRegister(adminData) {
+  async vendorRefresh() {
+    const res = await api.post("/vendors/auth/refresh");
+    const token = res.data.accessToken || res.data.token;
+    if (token) {
+      localStorage.setItem("vendor_token", token);
+    }
+    return res.data;
+  }
+
+  async adminRegister(adminData) {
     const res = await api.post("/auth/register-admin", adminData);
     return res.data;
   }

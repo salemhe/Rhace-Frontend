@@ -1,69 +1,61 @@
-import axios from "axios";
+import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
+  withCredentials: true,
+});
+
+// Request interceptor to add auth token
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token') || localStorage.getItem('vendor_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
   },
-});
-
-// Optional: attach a token if you’re using JWT
-api.interceptors.request.use((config) => {
-  // Try multiple token keys to support different auth flows
-  let token =
-    localStorage.getItem("token") ||
-    localStorage.getItem("auth_token") ||
-    localStorage.getItem("vendor-token") ||
-    localStorage.getItem("vendor_token") ||
-    localStorage.getItem("admin-token") ||
-    localStorage.getItem("admin_token");
-
-  console.log("🌐 Axios REQUEST:", config.method?.toUpperCase(), config.url, "Token:", token ? token.substring(0,20)+'...' : 'MISSING');
-
-  if (token) {
-    // Avoid double Bearer prefix
-    const hasBearer = /^Bearer\s+/i.test(token);
-    const value = hasBearer ? token : `Bearer ${token}`;
-    if (!config.headers) config.headers = {};
-    config.headers.Authorization = value;
-    config.headers.Accept = config.headers.Accept || "application/json";
+  (error) => {
+    return Promise.reject(error);
   }
-  return config;
-});
+);
 
-// Response interceptor to handle 401 errors
-  api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-      const originalRequest = error.config;
-      if (error.response?.status === 401 && !originalRequest._retry) {
-        // Whitelist vendor-safe endpoints - NO auto-logout
-        const safeVendorPaths = ['/vendors/profile', '/vendors/', '/dashboard/', '/bookings'];
-        const isSafePath = safeVendorPaths.some(path => 
-          originalRequest.url?.includes(path)
-        );
-        
-        console.log('401 on:', originalRequest.url, '- Safe?', isSafePath);
-        
-        if (!isSafePath) {
-          // Clear tokens only for non-safe paths
-          localStorage.removeItem("token");
-          
-          if (typeof window !== 'undefined') {
-            const currentPath = window.location.pathname;
-            console.log('401 logout from path:', currentPath);
-            if (currentPath.startsWith('/dashboard/admin')) {
-              window.location.href = '/auth/admin/login';
-            } else {
-              window.location.href = '/auth/vendor/login';
-            }
+// Response interceptor to handle 401 errors (logout)
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
+      try {
+        // Use the same baseURL as the api instance and ensure the path is correct
+        const { data } = await api.post("/auth/refresh", {}, { withCredentials: true });
+        localStorage.setItem("token", data.accessToken);
+        original.headers.Authorization = `Bearer ${data.accessToken}`;
+        return api(original);
+      } catch {
+        localStorage.removeItem("token");
+        localStorage.removeItem("auth_token");
+        localStorage.removeItem("vendor-token");
+        localStorage.removeItem("vendor_token");
+        if (typeof window !== "undefined") {
+          const currentPath = window.location.pathname;
+          if (currentPath.startsWith("/dashboard/admin")) {
+            window.location.href = "/auth/admin/login";
+          } else if (currentPath.startsWith("/dashboard/")) {
+            window.location.href = "/auth/vendor/login";
           }
         }
         // Mark as retried to avoid infinite loops
         originalRequest._retry = true;
       }
-      return Promise.reject(error);
+
+      return new Promise((resolve) => {
+        subscribeTokenRefresh((token) => {
+          original.headers.Authorization = `Bearer ${token}`;
+          resolve(api(original));
+        });
+      });
     }
-  );
+  });
 
 export default api;
+

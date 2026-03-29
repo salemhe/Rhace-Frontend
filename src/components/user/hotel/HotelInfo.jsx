@@ -13,12 +13,15 @@ const HotelInfo = ({
   activeTab,
   setActiveTab,
   id,
-  selectedRoom, setSelectedRoom,
+  selectedRooms,
+  setSelectedRooms,
+  rooms,
+  setRooms,
 }) => {
   const tabs = [
     {
-      name: "Property Details",
-      tab: "property_details",
+      name: "Details",
+      tab: "details",
     },
     {
       name: "Rooms",
@@ -34,7 +37,6 @@ const HotelInfo = ({
     },
   ];
 
-
   return (
     <div>
       <div className="border-[#E5E7EB] border-b  overflow-auto w-full">
@@ -44,8 +46,9 @@ const HotelInfo = ({
               key={i}
               onClick={() => setActiveTab(tab.tab)}
               className={`p-3 w-max cursor-pointer font-semibold ${
-                activeTab === tab.tab ?
-                "border-b-2 text-[#0A6C6D] border-[#0A6C6D]" : "text-[#606368]"
+                activeTab === tab.tab
+                  ? "border-b-2 text-[#0A6C6D] border-[#0A6C6D]"
+                  : "text-[#606368]"
               }`}
             >
               {tab.name}
@@ -53,10 +56,21 @@ const HotelInfo = ({
           ))}
         </div>
       </div>
-      <div className="mt-8 px-4 md:px-0">
-        {activeTab === "property_details" && <HotelOverview desc={data.businessDescription} />}
+      <div className="mt-4 px-4 md:px-0">
+        {activeTab === "details" && (
+          <HotelOverview desc={data.businessDescription} />
+        )}
         {activeTab === "policies" && <Policies data={data.policies} />}
-        {activeTab === "rooms" && <Rooms setShow={setShow} selectedRoom={selectedRoom} setSelectedRoom={setSelectedRoom} id={id} />}
+        {activeTab === "rooms" && (
+          <Rooms
+            setShow={setShow}
+            selectedRooms={selectedRooms}
+            setSelectedRooms={setSelectedRooms}
+            rooms={rooms}
+            setRooms={setRooms}
+            id={id}
+          />
+        )}
         {activeTab === "reviews" && <RestaurantReviews restaurantId={id} />}
       </div>
     </div>

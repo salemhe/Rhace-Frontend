@@ -1,27 +1,17 @@
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
-import { reservationService } from "@/services/reservation.service";
-import { formatDate } from "@/utils/formatDate";
-import { capitalize } from "@/utils/helper";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
-import {
-  Calendar,
-  Users,
-  DollarSign,
-  User,
-  Clock,
-  X,
-  ChevronRight,
-  ExternalLink,
-} from "lucide-react";
 import {
   BookingsIcon,
   GuestsIcon,
   PendingPaymentIcon,
   PrepaidIcon,
 } from "@/public/icons/icons";
-import { cn } from "@/lib/utils";
+import { reservationService } from "@/services/reservation.service";
+import { formatDate } from "@/utils/formatDate";
+import { capitalize } from "@/utils/helper";
+import { ChevronRight, Clock, ExternalLink, User, X } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 const HotelDashboard = () => {
   const [showAlert, setShowAlert] = useState(true);
@@ -75,7 +65,7 @@ const HotelDashboard = () => {
   const getHotelReservations = () => {
     if (!reservationStats?.todaysReservations) return [];
     return reservationStats.todaysReservations.filter(
-      (reservation) => reservation.reservationType === "hotelReservation"
+      (reservation) => reservation.reservationType === "hotelReservation",
     );
   };
 
@@ -85,11 +75,11 @@ const HotelDashboard = () => {
 
     const totalReservations = hotelReservations.length;
     const prepaidReservations = hotelReservations.filter(
-      (r) => r.paymentStatus === "Paid"
+      (r) => r.paymentStatus === "Paid",
     ).length;
     const totalGuests = hotelReservations.reduce(
       (sum, r) => sum + (r.guests || 0),
-      0
+      0,
     );
     const pendingPayments = hotelReservations
       .filter((r) => r.paymentStatus !== "Paid")
@@ -286,15 +276,15 @@ const HotelDashboard = () => {
       </DashboardLayout>
     );
   }
-
+console.log(reservationStats)
   if (!reservationStats) {
     return (
       <DashboardLayout
         type={vendor.vendorType}
         section="dashboard"
         settings={false}
-      >
-        <UniversalLoader fullscreen />
+      >   <div className="min-h-screen flex items-center justify-center">
+        <UniversalLoader  /></div>
       </DashboardLayout>
     );
   }
@@ -439,8 +429,8 @@ const HotelDashboard = () => {
                               reservation.reservationStatus === "Upcoming"
                                 ? "bg-teal-50 text-teal-700"
                                 : reservation.reservationStatus === "Completed"
-                                ? "bg-green-50 text-green-700"
-                                : "bg-gray-50 text-gray-700"
+                                  ? "bg-green-50 text-green-700"
+                                  : "bg-gray-50 text-gray-700"
                             }`}
                           >
                             {reservation.reservationStatus}
@@ -569,7 +559,7 @@ const HotelDashboard = () => {
                   const newPaths = generateDonutPath(newCustomers, total);
                   const returningPaths = generateDonutPath(
                     returningCustomers,
-                    total
+                    total,
                   );
 
                   return (

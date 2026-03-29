@@ -7,7 +7,7 @@ import { Building2, Clock, DollarSign, Globe, Phone, Tag } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BusinessLogo } from "../settings/part/BusinessInfo";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { authService } from "@/services/auth.service";
 import { setVendor } from "@/redux/slices/authSlice"
 

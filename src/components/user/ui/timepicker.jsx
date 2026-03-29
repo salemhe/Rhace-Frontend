@@ -8,12 +8,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { ChevronDown } from "lucide-react";
+import { Edit3 } from "@/public/icons/icons";
 
 export function TimePicker({
   value,
   onChange,
   className,
+  chevron,
+  edit,
   slot,
+  title = "Available Time",
 }) {
   const [open, setOpen] = useState(false);
   const [slots] = useState(slot || [
@@ -31,14 +36,18 @@ export function TimePicker({
           <Button
             variant="outline"
             className={cn(
-              "w-full justify-start text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] flex-col items-start rounded-xl px-6 min-w-[150px] flex h-[60px]",
+              "w-full justify-between text-left font-normal bg-[#F9FAFB] border border-[#E5E7EB] items-center rounded-xl px-6! min-w-[150px] flex h-[60px]",
               !value && "text-muted-foreground", className
             )}
           >
-            <Label htmlFor="date" className="text-black">
-              Available Time
-            </Label>
-            {value ? value : "Select time"}
+            <div className="gap-2 flex flex-col">
+              <Label htmlFor="date" className="text-black text-xs">
+                {title}
+              </Label>
+              {value ? value : "Select time"}
+            </div>
+            {chevron && <ChevronDown className="size-5" />}
+            {edit && <Edit3 className="size-5" />}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-98 overflow-auto">

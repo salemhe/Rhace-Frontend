@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useReservations } from "@/contexts/restaurant/ReservationContext";
 import ReservationHeader from "./ReservationHeader";
 import { TimePicker } from "../ui/timepicker";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
 import DatePicker from "../ui/datepicker";
 import { GuestPicker } from "../ui/guestpicker";
@@ -89,7 +89,7 @@ export default function ReservationDetails({
   }
 
   return (
-    <div className="min-h-screen mb-[65px] mt-[20px] md:mt-0 bg-gray-50">
+    <div className="min-h-screen mb-[65px] md:mt-0 bg-gray-50">
       <ReservationHeader title="Reservation Details" index={1} />
       <div className="md:hidden flex items-center gap-3 px-4 py-3 ">
         <button onClick={() => navigate(`/restaurants/${id}`)}>
@@ -119,7 +119,7 @@ export default function ReservationDetails({
       <div className="max-w-4xl mx-auto  px-4 py-5 md:py-15 space-y-6">
         <div className="max-w-[500px]">
           <div className="flex gap-4">
-            <div className="relative size-[64px] md:w-32 md:h-24 rounded-2xl overflow-hidden flex-shrink-0">
+            <div className="relative size-16 md:w-32 md:h-24 rounded-2xl overflow-hidden shrink-0">
               <img
                 src={vendor?.profileImages?.[0] || "/hero-bg.png"}
                 alt="Restaurant interior"
@@ -154,8 +154,8 @@ export default function ReservationDetails({
               <h3 className="text-lg font-semibold">Reservation Details</h3>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4">
-              <DatePicker value={date} onChange={setDate} />
-              <TimePicker value={time} onChange={setTime} 
+              <DatePicker value={date} onChange={setDate} edit/>
+              <TimePicker value={time} onChange={setTime} edit
                               slot={[
                   '09:00 AM','09:30 AM',
                   '10:00 AM','10:30 AM',
@@ -171,7 +171,7 @@ export default function ReservationDetails({
                   '08:00 PM','08:30 PM',
                 ]}
               />
-              <GuestPicker value={guestCount} onChange={setGuestCount} />
+              <GuestPicker value={guestCount} onChange={setGuestCount} edit/>
             </div>
           </div>
         </div>
@@ -267,13 +267,13 @@ export default function ReservationDetails({
           <Button
             onClick={() => navigate(-1)}
             variant="ghost"
-            className="md:flex items-center hover:bg-transparent text-[#0A6C6D] hover:text-[#0A6C6D] cursor-pointer gap-2 hidden"
+            className="md:flex items-center h-10 hover:bg-transparent text-[#0A6C6D] hover:text-[#0A6C6D] cursor-pointer gap-2 hidden"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to Restaurant Page
           </Button>
           <Button
-            className="bg-teal-600 hover:bg-teal-700 px-8 w-full max-w-xs rounded-xl cursor-pointer"
+            className="bg-[#0A6C6D] hover:bg-[#0A6C6D]/80 px-8 py-6 md:py-0 w-full md:max-w-xs h-10 rounded-xl cursor-pointer"
             onClick={handleContinue}
             disabled={!date || !seatingPreference || !guestCount || !time}
           >

@@ -1,10 +1,11 @@
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import Header from "@/components/user/Header";
+import { useFavorites } from "@/hooks/favorites";
 import { Heart } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { FaStar } from "react-icons/fa6";
-import { FiHeart, FiMapPin } from "react-icons/fi";
+import { FiHeart } from "react-icons/fi";
 
 // Enhanced dummy data with multiple images
 const restaurantsData = [
@@ -284,6 +285,29 @@ const Favorites: React.FC = () => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
     useCarouselLogic();
 
+  const { favorites, loading, fetchFavorites, toggleFavorite, isFavorite } =
+    useFavorites();
+  const [filteredFavorites, setFilteredFavorites] = useState([]);
+
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
+
+  const hotel = favorites.filter((fav) => fav.vendorType === "hotel");
+  const restaurant = favorites.filter((fav) => fav.vendorType === "restaurant");
+  const club = favorites.filter((fav) => fav.vendorType === "club");
+  
+  // Filter favorites by type
+  useEffect(() => {
+    if (favorites.length > 0) {
+      const filtered = (activeTab === "restaurants") ? restaurant :
+        (activeTab === "clubs") ? club :
+        (activeTab === "hotels") && hotel;
+      setFilteredFavorites(filtered);
+    } else {
+      setFilteredFavorites([]);
+    }
+  }, [favorites, activeTab]);
   const getCurrentData = () => {
     switch (activeTab) {
       case "restaurants":
@@ -297,7 +321,7 @@ const Favorites: React.FC = () => {
     }
   };
 
-  const venues = getCurrentData();
+  const venues = filteredFavorites;
 
   const getCategories = (venue) => {
     if (activeTab === "restaurants" || activeTab === "hotels") {
@@ -329,6 +353,36 @@ const Favorites: React.FC = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <div className="mt-24 mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="flex  mt-28 flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-2 sm:px-0 gap-6 m-6">
+            {Array.from({ length: 4 }).map((_, index) => (
+              <div
+                key={index}
+                className="rounded-2xl bg-white shadow-md  snap-start min-w-[185px] sm:min-w-0 w-[185px] sm:w-auto h-auto sm:h-full flex flex-col sm:rounded-2xl overflow-hidden transition-all duration-300"
+              >
+                <div className="h-30 sm:h-44 w-full bg-gray-200 animate-pulse"></div>
+                <div className="p-4 space-y-4">
+                  <div className="h-5 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="flex gap-2">
+                    <div className="h-5 w-16 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="h-5 w-14 bg-gray-200 rounded-full animate-pulse"></div>
+                    <div className="h-5 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+                  </div>
+                  <div className="h-4 w-5/6 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-11 w-full bg-gray-200 rounded-full animate-pulse"></div>
+                </div>
+              </div>
+            ))}
+            ;
+          </div>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -348,7 +402,7 @@ const Favorites: React.FC = () => {
               >
                 Restaurants
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {restaurantsData.length}
+                  {restaurant.length}
                 </span>
               </button>
               <button
@@ -361,7 +415,7 @@ const Favorites: React.FC = () => {
               >
                 Clubs
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {clubsData.length}
+                  {club.length}
                 </span>
               </button>
               <button
@@ -374,7 +428,7 @@ const Favorites: React.FC = () => {
               >
                 Hotels
                 <span className="ml-2 py-0.5 px-2 rounded-full bg-gray-100 text-xs">
-                  {hotelsData.length}
+                  {hotel.length}
                 </span>
               </button>
             </nav>
@@ -397,11 +451,11 @@ const Favorites: React.FC = () => {
         ) : (
           <div className="flex flex-nowrap sm:grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2 sm:gap-6 overflow-x-auto sm:overflow-x-visible scrollbar-hide sm:scrollbar-default pb-4 sm:pb-0 -mx-4 sm:mx-0 px-4 sm:px-0">
             {venues.map((venue) => {
-              const images = getImagesForVenue(venue);
-              const venueId = venue._id;
+              const images = getImagesForVenue(venue.vendor);
+              const venueId = venue.vendor._id;
               const currentIndex = currentIndices[venueId] || 0;
-              const multipleImages = hasMultipleImages(venue);
-              const categories = getCategories(venue);
+              const multipleImages = hasMultipleImages(venue.vendor);
+              const categories = getCategories(venue.vendor);
 
               return (
                 <div
@@ -424,7 +478,7 @@ const Favorites: React.FC = () => {
                         <img
                           key={index}
                           src={image}
-                          alt={`${venue.businessName} - Image ${index + 1}`}
+                          alt={`${venue.vendor.businessName} - Image ${index + 1}`}
                           className={`absolute size-full object-cover transition-all duration-500 ease-in-out ${
                             index === currentIndex
                               ? "opacity-100 scale-100"
@@ -443,16 +497,16 @@ const Favorites: React.FC = () => {
                       <div className="absolute inset-0 bg-gradient-to-t from-black/10 via-transparent to-transparent pointer-events-none" />
                     </div>
 
-                    {(venue.badge || venue.offer) && (
+                    {(venue.vendor.badge || venue.vendor.offer) && (
                       <span className="absolute top-4 left-4 bg-gray-100/95 backdrop-blur-sm px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-medium text-gray-800 rounded-full shadow-lg transition-all duration-300 hover:bg-white whitespace-nowrap">
-                        {venue.badge || venue.offer}
+                        {venue.vendor.badge || venue.vendor.offer}
                       </span>
                     )}
 
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        console.log("Toggle favorite:", venueId);
+                        toggleFavorite(venue._id);
                       }}
                       className="absolute top-4 right-4 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 hover:text-red-400 drop-shadow-md"
                     >
@@ -486,10 +540,10 @@ const Favorites: React.FC = () => {
                         <div className="flex items-center">
                           <FaStar className="text-yellow-500 mr-1 text-sm sm:text-base" />
                           <span className="text-sm font-semibold text-gray-900">
-                            {venue.rating?.toFixed(1)}
+                            {venue.vendor.rating?.toFixed(1)}
                           </span>
                           <span className="text-xs sm:text-sm text-gray-500 ml-1">
-                            ({venue.reviews?.toLocaleString() || 0} reviews)
+                            ({venue.vendor.reviews?.toLocaleString() || 0} reviews)
                           </span>
                         </div>
                       </div>
@@ -522,12 +576,12 @@ const Favorites: React.FC = () => {
                       <div className="flex  mt- items-center gap-1 sm:text-sm text-xs  text-gray-500 ">
                         {/* <FiMapPin /> */}
                         <p className="line-clamp-1 ">
-                          <span>{venue.address}</span>
+                          <span>{venue.vendor.address}</span>
                         </p>
                       </div>
 
                       {(activeTab === "clubs" || activeTab === "hotels") &&
-                        venue.priceRange && (
+                        venue.vendor.priceRange && (
                           <div className="flex justify-start text-xl mt-4 text-black items-center gap-1">
                             {activeTab === "clubs" && (
                               <div className="text-zinc-00 text-sm font-bold leading-none">
@@ -535,7 +589,7 @@ const Favorites: React.FC = () => {
                               </div>
                             )}
                             <div className=" text-sm font-bold leading-none">
-                              ₦{venue.priceRange}
+                              ₦{venue.vendor.priceRange}
                             </div>
                             {activeTab === "hotels" && (
                               <div className="text-zinc-00 text-xs font-normal leading-none">

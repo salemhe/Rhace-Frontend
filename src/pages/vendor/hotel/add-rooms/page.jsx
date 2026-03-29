@@ -27,7 +27,9 @@ export default function AddRooms () {
         childrenCapacity: 2,
         totalAvailableRooms: 2,
         amenities: ['Wi-Fi', 'TV', 'AC'],
-        images: []
+        images: [],
+        category: 'Standard',
+        discount: 0,
       }
     ],
     bookingPolicy: {}
@@ -59,7 +61,9 @@ export default function AddRooms () {
       childrenCapacity: 2,
       totalAvailableRooms: 2,
       amenities: ['Wi-Fi', 'TV', 'AC'],
-      images: []
+      images: [],
+      category: 'Standard',
+      discount: 0
     };
 
     setCompleteFormData(prev => ({
@@ -202,6 +206,8 @@ export default function AddRooms () {
           childrenCapacity: room.childrenCapacity,
           amenities: room.amenities,
           images: processedImages,
+          category: room.category,
+          discount: room.discount,
           // include booking policy from the unified form data
           bookingPolicy: completeFormData.bookingPolicy,
           totalUnits: room.totalAvailableRooms,

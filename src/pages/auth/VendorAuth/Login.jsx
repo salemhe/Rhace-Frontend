@@ -8,7 +8,7 @@ import HeroImage from '../../../components/auth/HeroImage'
 import { authService } from "@/services/auth.service"
 import { useDispatch } from "react-redux"
 import { useNavigate, useSearchParams } from "react-router"
-import { toast } from "sonner"
+import { toast } from "react-toastify"
 import { setVendor, setAdmin } from "@/redux/slices/authSlice"
 import logo from "../../../public/images/Rhace-11.png"
 
@@ -33,6 +33,7 @@ const Login = () => {
   const redirectTo = searchParams.get("redirect") || "/dashboard";
 
   const handleLogin = async () => {
+    console.log('handleLogin clicked, formData:', formData);
     try {
       if (!formValidation()) {
         return
@@ -47,30 +48,8 @@ const Login = () => {
         navigate("/admin/dashboard");
       } else {
         user = await authService.vendorLogin(formData.email, formData.password);
-        console.log('Login response:', user);
-        
-        // Fetch full profile to check onboarding status (may fail if token is invalid or request errors)
-        const profile = await authService.getVendorProfile().catch((err) => {
-          console.warn("Failed to fetch vendor profile, falling back to login response:", err);
-          return null;
-        });
-
-// Merge profile + login response, ensure complete data
-        const vendorData = {
-          ...(user.vendor ?? user),
-          ...(profile ?? {}),
-        };
-
-        // Ensure ALL required fields - robust defaults
-        vendorData.vendorType = vendorData.vendorType || 'restaurant';
-        vendorData.isOnboarded = vendorData.isOnboarded !== false; // true unless explicitly false
-        vendorData.businessName = vendorData.businessName || user?.businessName || 'Vendor';
-        vendorData._id = vendorData._id || user?._id;
-
-        console.log('💾 Login vendorData DISPATCHED:', vendorData);
-
-        console.log('Final vendorData for dispatch:', vendorData);
-        dispatch(setVendor(vendorData));
+        dispatch(setVendor(user?.vendor));
+        localStorage.setItem('vendorId', user?.vendor?._id || user?.vendor?.id);
         toast.success("Welcome back!");
         
         const dashboardPath = `/dashboard/${vendorData.vendorType}`;
@@ -81,7 +60,8 @@ const Login = () => {
         }
       }
     } catch (err) {
-      toast.error(err.response?.data.message);
+      console.log('Login error:', err.response || err);
+      toast.error(err.response?.data?.message || err.message || 'Login failed');
       if (err.response?.data?.message === "Please verify your email with the OTP sent to your inbox.") {
         navigate(`/auth/vendor/otp?email=${formData.email}`)
       }

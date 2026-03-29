@@ -4,202 +4,159 @@ import UniversalLoader from '@/components/user/ui/LogoLoader';
 import { reservationService } from '@/services/reservation.service';
 import { formatDate, formatTime } from '@/utils/formatDate';
 import { capitalize } from '@/utils/helper';
-import { ChevronRight, Clock, ExternalLink, User, X } from 'lucide-react';
+import { ChevronRight, Clock, ExternalLink, ListX, User, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { StatCard } from '@/components/dashboard/stats/mainStats';
+import { Calendar, CardPay, Cash2, Group3 } from '@/components/dashboard/ui/svg';
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
 
 const VendorDashboard = () => {
-  const [showAlert, setShowAlert] = useState(true);
+  // const [showAlert, setShowAlert] = useState(true);
   const [timeFilter, setTimeFilter] = useState('Weekly');
   const [revenueFilter, setRevenueFilter] = useState('Weekly');
   const [sourceFilter, setSourceFilter] = useState('Weekly');
-  const [currentTime, setCurrentTime] = useState(new Date());
-  const [reservationStats, setReservationStats] = useState(null);
+  const [counters, setCounters] = useState(null);
+const [todaysReservations, setTodaysReservations] = useState([]); // Initialize as array
+  const [bookingTrends, setBookingTrends] = useState([]);
+  const [customerFrequency, setCustomerFrequency] = useState(null);
+  const [revenueByCategory, setRevenueByCategory] = useState(null);
+  const [reservationSources, setReservationSources] = useState(null);
   const [loading, setLoading] = useState(true);
   const vendor = useSelector((state) => state.auth.vendor);
 
-  // Update current time every minute
+  // Fetch dashboard data when vendor is ready
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
+    if (!vendor?._id) {
+      setLoading(false);
+      return;
+    }
+
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const [
+          countersRes,
+          todaysReservationsRes,
+          bookingTrendsRes,
+          customerFrequencyRes,
+          revenueByCategoryRes,
+          reservationSourcesRes,
+        ] = await Promise.all([
+          reservationService.getReservationCounters(),
+          reservationService.getTodaysReservations(),
+          reservationService.getBookingTrends(),
+          reservationService.getCustomerFrequency(),
+          reservationService.getRevenueByCategory(),
+          reservationService.getReservationSources(),
+        ]);
+
+        setCounters(countersRes);
+        setTodaysReservations(todaysReservationsRes);
+        setBookingTrends(bookingTrendsRes);
+        setCustomerFrequency(customerFrequencyRes);
+        setRevenueByCategory(revenueByCategoryRes);
+        setReservationSources(reservationSourcesRes);
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, [vendor?._id]);
 
   // Stats data
-  const [stats, setStats] = useState([
+  const stats = [
     {
       title: 'Reservations made today',
-      value: 32,
-      change: 12,
-      changeType: 'positive',
+      value: counters?.reservationsToday || 0,
+      change: counters?.reservationsTodayChange || 0,
+      changeType: (counters?.reservationsTodayChange || 0) >= 0 ? 'positive' : 'negative',
       icon: BookingsIcon,
-      iconColors: "#60A5FA",
+      iconColors: '#60A5FA',
       bgColor: 'bg-blue-50',
-      iconColor: 'text-blue-600'
+      iconColor: 'text-blue-600',
     },
     {
       title: 'Prepaid Reservations',
-      value: 16,
-      change: 8,
-      changeType: 'positive',
+      value: counters?.prepaidReservations || 0,
+      change: counters?.prepaidReservationsChange || 0,
+      changeType: (counters?.prepaidReservationsChange || 0) >= 0 ? 'positive' : 'negative',
       icon: PrepaidIcon,
-      iconColors: "#06CD02",
+      iconColors: '#06CD02',
       bgColor: 'bg-green-50',
-      iconColor: 'text-green-600'
+      iconColor: 'text-green-600',
     },
     {
       title: 'Expected Guests Today',
-      value: 80,
-      change: 8,
-      changeType: 'positive',
+      value: counters?.expectedGuestsToday || 0,
+      change: counters?.expectedGuestsTodayChange || 0,
+      changeType: (counters?.expectedGuestsTodayChange || 0) >= 0 ? 'positive' : 'negative',
       icon: GuestsIcon,
       bgColor: 'bg-purple-50',
-      iconColor: 'text-purple-600'
+      iconColor: 'text-purple-600',
     },
     {
       title: 'Pending Payments',
-      value: 2546.00,
-      change: 5,
-      changeType: 'negative',
+      value: counters?.pendingPayments || 0,
+      change: counters?.pendingPaymentsChange || 0,
+      changeType: (counters?.pendingPaymentsChange || 0) >= 0 ? 'positive' : 'negative',
       icon: PendingPaymentIcon,
       bgColor: 'bg-yellow-50',
-      iconColor: 'text-yellow-600'
-    }
-  ]);
-
-  // Reservations data
-  const [reservations, setReservations] = useState([
-    { id: 1, name: 'Emily Johnson', reservationId: '#12345', date: 'June 5, 2025', time: '7:30 pm', guests: 4, status: 'Upcoming', statusColor: 'bg-teal-50 text-teal-700', minutesUntil: 45 },
-    { id: 2, name: 'Michael Chen', reservationId: '#12346', date: 'June 5, 2025', time: '8:00 pm', guests: 2, status: 'Upcoming', statusColor: 'bg-teal-50 text-teal-700', minutesUntil: 75 },
-    { id: 3, name: 'Sarah Williams', reservationId: '#12347', date: 'June 5, 2025', time: '7:15 pm', guests: 6, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 28 },
-    { id: 4, name: 'David Brown', reservationId: '#12348', date: 'June 5, 2025', time: '7:20 pm', guests: 3, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 18 },
-    { id: 5, name: 'Jessica Martinez', reservationId: '#12349', date: 'June 5, 2025', time: '7:10 pm', guests: 5, status: 'In 30 mins', statusColor: 'bg-yellow-50 text-yellow-700', minutesUntil: 8 }
-  ]);
+      iconColor: 'text-yellow-600',
+    },
+  ];
 
   // Chart data based on filter
-  const getChartData = () => {
-    if (timeFilter === 'Weekly') {
-      return [
-        { day: 'Mon', value: 25 },
-        { day: 'Tues', value: 50 },
-        { day: 'Wed', value: 45 },
-        { day: 'Thurs', value: 30 },
-        { day: 'Fri', value: 75 },
-        { day: 'Sat', value: 85 },
-        { day: 'Sun', value: 80 }
-      ];
-    } else {
-      return [
-        { day: 'Week 1', value: 180 },
-        { day: 'Week 2', value: 220 },
-        { day: 'Week 3', value: 195 },
-        { day: 'Week 4', value: 240 }
-      ];
-    }
-  };
+  const currentBookingTrends = (timeFilter === 'Weekly' ? bookingTrends?.weekly : bookingTrends?.monthly) || [];
 
-  const chartData = getChartData();
-  const maxValue = Math.max(...chartData.map(d => d.value));
+  const chartData = currentBookingTrends.map(item => ({
+    day: item.day || item.week, // Assuming 'day' for weekly, 'week' for monthly
+    this: item.value || 0, // Assuming 'value' is the current period's data
+    last: item.previousValue || 0 // Assuming 'previousValue' exists for comparison, default to 0 if not
+  }));
+
+  // Calculate maxValue for the chart (considering both 'this' and 'last' values)
+  const maxValue = Math.max(
+    ...chartData.flatMap(item => [item.this || 0, item.last || 0]),
+    0
+  );
+  
+  // Calculate booking trends percentage change
+  const thisTotalBookings = chartData.reduce((sum, item) => sum + (item.this || 0), 0);
+  const lastTotalBookings = chartData.reduce((sum, item) => sum + (item.last || 0), 0);
+  const bookingTrendsChange = lastTotalBookings > 0 
+    ? (((thisTotalBookings - lastTotalBookings) / lastTotalBookings) * 100).toFixed(0)
+    : 0;
+  
+  const chartConfig = {
+    this: {
+      label: "This week",
+      color: "#60A5FA",
+    },
+    last: {
+      label: "Last week",
+      color: "#0A6C6D",
+    },
+  }
 
   // Revenue data based on filter
-  const getRevenueData = () => {
-    if (revenueFilter === 'Weekly') {
-      return {
-        total: 220500,
-        change: 8,
-        items: [
-          { category: 'Main Dish', percentage: 50, amount: 110000, color: 'bg-teal-600' },
-          { category: 'Drinks', percentage: 22.7, amount: 50000, color: 'bg-red-500' },
-          { category: 'Starters', percentage: 13.6, amount: 30000, color: 'bg-yellow-400' },
-          { category: 'Desserts', percentage: 9.3, amount: 20500, color: 'bg-purple-500' },
-          { category: 'Sides', percentage: 4.7, amount: 10000, color: 'bg-teal-300' }
-        ]
-      };
-    } else {
-      return {
-        total: 952000,
-        change: 12,
-        items: [
-          { category: 'Main Dish', percentage: 48, amount: 456960, color: 'bg-teal-600' },
-          { category: 'Drinks', percentage: 24, amount: 228480, color: 'bg-red-500' },
-          { category: 'Starters', percentage: 15, amount: 142800, color: 'bg-yellow-400' },
-          { category: 'Desserts', percentage: 8, amount: 76160, color: 'bg-purple-500' },
-          { category: 'Sides', percentage: 5, amount: 47600, color: 'bg-teal-300' }
-        ]
-      };
-    }
-  };
-
-  const revenueData = getRevenueData();
-
-  // Customer frequency based on filter
-  const getCustomerData = () => {
-    if (timeFilter === 'Weekly') {
-      return { total: 100, new: 45, returning: 55 };
-    } else {
-      return { total: 430, new: 180, returning: 250 };
-    }
-  };
-
-  const customerData = getCustomerData();
-
-  // Reservation source based on filter
-  const getSourceData = () => {
-    if (sourceFilter === 'Weekly') {
-      return {
-        total: 100,
-        sources: [
-          { name: '50 websites', value: 50, color: 'bg-teal-600' },
-          { name: '30 mobile', value: 30, color: 'bg-yellow-400' },
-          { name: '20 walk-in', value: 20, color: 'bg-blue-400' }
-        ]
-      };
-    } else {
-      return {
-        total: 430,
-        sources: [
-          { name: '220 websites', value: 51, color: 'bg-teal-600' },
-          { name: '130 mobile', value: 30, color: 'bg-yellow-400' },
-          { name: '80 walk-in', value: 19, color: 'bg-blue-400' }
-        ]
-      };
-    }
-  };
-
-  const sourceData = getSourceData();
-
-  // Calculate upcoming reservations count
-  const upcomingCount = reservations.filter(r => r.minutesUntil <= 30).length;
-
-  // Simulate new reservation
-  const addNewReservation = () => {
-    const names = ['John Doe', 'Jane Smith', 'Robert Taylor', 'Lisa Anderson', 'Tom Wilson'];
-    const randomName = names[Math.floor(Math.random() * names.length)];
-    const randomGuests = Math.floor(Math.random() * 6) + 2;
-    const newId = Math.max(...reservations.map(r => r.id)) + 1;
-
-    const newReservation = {
-      id: newId,
-      name: randomName,
-      reservationId: `#${12345 + newId}`,
-      date: 'June 5, 2025',
-      time: '9:00 pm',
-      guests: randomGuests,
-      status: 'Upcoming',
-      statusColor: 'bg-teal-50 text-teal-700',
-      minutesUntil: 120
+  const revenueData =
+    (revenueFilter === 'Weekly' ? revenueByCategory?.weekly : revenueByCategory?.monthly) || {
+      total: 0,
+      change: 0,
+      items: [],
     };
 
-    setReservations([newReservation, ...reservations.slice(0, 4)]);
-
-    // Update stats
-    setStats(prevStats => prevStats.map((stat, idx) => {
-      if (idx === 0) return { ...stat, value: stat.value + 1 };
-      if (idx === 2) return { ...stat, value: stat.value + randomGuests };
-      return stat;
-    }));
-  };
+  // Reservation source based on filter
+  const sourceData =
+    (sourceFilter === 'Weekly' ? reservationSources?.weekly : reservationSources?.monthly) || {
+      total: 0,
+      sources: [],
+    };
 
   // Generate donut chart path
   const generateDonutPath = (percentage, offset = 0) => {
@@ -211,34 +168,6 @@ const VendorDashboard = () => {
     return { dashArray, dashOffset, circumference };
   };
 
-  useEffect(() => {
-const fetchSummary = async () => {
-      try {
-        setLoading(true);
-        const res = await reservationService.getSummary()
-        console.log('Summary Data:', res);
-        setReservationStats(res.data);
-      } catch (error) {
-        console.error('Error fetching summary data:', error);
-        // Fallback data for dashboard
-        setReservationStats({
-          todayStats: [
-            { details: 0, change: 0 },
-            { details: 0, change: 0 },
-            { details: 0, change: 0 },
-            { details: 0, change: 0 }
-          ],
-          todaysReservations: [],
-          customerFrequency: { new: 0, returning: 0 }
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSummary();
-  }, [])
-
-
   if (loading) {
     return (
       <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
@@ -249,24 +178,8 @@ const fetchSummary = async () => {
 
   return (
     <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
-      <div className="min-h-screen bg-gray-50 p-6">
-
+      <div className="min-h-screen mb-14 bg-gray-50 p-6">
         <div className="max-w-7xl mx-auto space-y-6">
-          {/* Alert Banner */}
-          {showAlert && upcomingCount > 0 && (
-            <div className="bg-yellow-50 border-l-3 border-yellow-200 rounded-lg p-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <Clock className="w-5 h-5 text-yellow-600 mr-3" />
-                <p className="text-yellow-800 text-sm font-medium">
-                  {upcomingCount} Reservation{upcomingCount > 1 ? 's' : ''} commencing in the next 30 minutes
-                </p>
-              </div>
-              <button onClick={() => setShowAlert(false)} className="text-yellow-600 hover:text-yellow-800">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-
           {/* Header */}
           <div className="flex items-center justify-between">
             <div>
@@ -275,51 +188,41 @@ const fetchSummary = async () => {
 
               <p className="text-gray-600 mt-1">Here's what is happening today.</p>
             </div>
-            {/* <div>
-            <button onClick={addNewReservation} className="px-3 py-2 bg-teal-600 text-white rounded-md text-sm hover:bg-teal-700">Simulate Reservation</button>
-          </div> */}
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 bg-white md:grid-cols-2 lg:grid-cols-4 gap-4  rounded-lg border border-gray-200 ">
-            {reservationStats.todayStats.map((stat, index) => {
-              const Icon = stats[index].icon; // ✅ Extract the component
-              return (
-                <div key={index} className="flex justify-between p-5">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">{stats[index].title}</p>
-                    <p className="text-3xl font-bold text-gray-900 mb-2">
-                      {index === 3
-                        ? `₦${stat.details.toLocaleString('en-US', {
+          <div className="grid grid-cols-1 bg-white md:grid-cols-2 lg:grid-cols-4 gap-4 rounded-lg border border-gray-200">
+            {stats.map((stat, index) => (
+              <div key={index} className="flex justify-between p-5">
+                <div>
+                  <p className="text-sm text-gray-600 mb-1">{stat.title}</p>
+                  <p className="text-3xl font-bold text-gray-900 mb-2">
+                    {index === 3
+                      ? `₦${stat.value.toLocaleString('en-US', {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}`
-                        : stat.details}
-                    </p>
-                    <p
-                      className={`text-sm flex items-center ${stat.change >= 0 ? 'text-green-600' : 'text-red-600'
-                        }`}
-                    >
-                      <span className="mr-1">{stat.change >= 0 ? '↑' : '↓'}</span>
-                      {stat.change}% vs last week
-                    </p>
-                  </div>
+                      : stat.value}
+                  </p>
+                  <p
+                    className={`text-xs flex items-center ${
+                      stat.changeType === 'positive' ? 'text-green-600' : 'text-red-600'
+                    }`}
+                  >
+                    <span className="mr-1">{stat.changeType === 'positive' ? '↑' : '↓'}</span>
+                    {Math.abs(stat.change)}% vs last week
+                  </p>
+                </div>
 
-                  <div className="flex items-start justify-between mb-3">
-                    <div
-                      className={`w-12 h-12 ${stats[index].bgColor} rounded-lg flex items-center justify-center`}
-                    >
-                      {/* ✅ Correct component usage */}
-                      <Icon
-                        className={`w-6 h-6 ${stats[index].iconColor}`}
-                        colors={stats[index].iconColors}
-                      />
-                    </div>
+                <div className="flex items-start justify-between mb-3">
+                  <div
+                    className={`w-12 h-12 ${stat.bgColor} rounded-lg flex items-center justify-center`}
+                  >
+                    <stat.icon className={`w-6 h-6 ${stat.iconColor}`} colors={stat.iconColors} />
                   </div>
                 </div>
-              );
-            })}
-
+              </div>
+            ))}
           </div>
 
           {/* Main Content Grid */}
@@ -334,7 +237,7 @@ const fetchSummary = async () => {
                 </a>
               </div>
               <div className="p-5 space-y-3">
-                {reservationStats.todaysReservations.slice(0, 5).map((reservation) => (
+{Array.isArray(todaysReservations) && todaysReservations.length > 0 ? todaysReservations.slice(0, 5).map((reservation) => (
                   <div key={reservation._id} className="flex items-center justify-between hover:bg-gray-50 p-2 rounded-lg transition-colors">
                     <div className="flex items-center flex-1">
                       <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center mr-3">
@@ -360,12 +263,19 @@ const fetchSummary = async () => {
                       </div>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <div className='w-full h-[336px] flex items-center justify-center'>
+                    <div className='flex items-center flex-col'>
+                      <ListX className='size-6' />
+                      <p>No Reservations for today</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Reservations Trends */}
-            <div className="bg-white rounded-lg border border-gray-200">
+            <div className="bg-white rounded-lg border w-full hidden md:block border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-lg font-semibold text-gray-900">Reservations Trends</h3>
                 <div className="flex items-center gap-3">
@@ -383,7 +293,7 @@ const fetchSummary = async () => {
                   </select>
                 </div>
               </div>
-              <div className="p-5">
+              <div className="p-5 w-full">
                 <div className="flex items-center gap-6 mb-6">
                   <div className="flex items-center">
                     <div className="w-3 h-3 bg-teal-600 rounded-full mr-2"></div>
@@ -394,26 +304,39 @@ const fetchSummary = async () => {
                     <span className="text-sm text-gray-600">Last {timeFilter.toLowerCase().slice(0, -2)}</span>
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900 mb-1">{chartData.reduce((sum, item) => sum + item.value, 0)}</p>
-                <p className="text-sm text-green-600 mb-6 flex items-center">
-                  <span className="mr-1">↑</span>
-                  8% vs last {timeFilter.toLowerCase().slice(0, -2)}
+                <p className="text-3xl font-bold text-gray-900 mb-1">{thisTotalBookings}</p>
+                <p className={`text-sm mb-6 flex items-center ${bookingTrendsChange >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  <span className="mr-1">{bookingTrendsChange >= 0 ? '↑' : '↓'}</span>
+                  {Math.abs(bookingTrendsChange)}% vs last {timeFilter.toLowerCase().slice(0, -2)}
                 </p>
 
                 {/* Bar Chart */}
-                <div className="flex items-end justify-between h-40 gap-2">
-                  {chartData.map((item, index) => (
-                    <div key={index} className="flex-1 flex flex-col items-center justify-end h-full group">
-                      <div className="w-full flex flex-col justify-end relative" style={{ height: '100%' }}>
-                        <div
-                          className="w-16 mx-auto bg-linear-to-t from-teal-600 to-teal-400 rounded-t transition-all duration-300 hover:from-teal-700 hover:to-teal-500 cursor-pointer"
-                          style={{ height: `${(item.value / maxValue) * 100}%` }}
-                          title={`${item.value} reservations`}
-                        ></div>
-                      </div>
-                      <span className="text-xs text-gray-600 mt-2">{item.day}</span>
-                    </div>
-                  ))}
+                <div className="">
+                  <ChartContainer config={chartConfig}>
+                    <BarChart accessibilityLayer data={chartData}>
+                      <CartesianGrid vertical={false} />
+                      <XAxis
+                        dataKey="day"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                        tickFormatter={(value) => value.slice(0, 3)}
+                      />
+                      <ChartTooltip content={<ChartTooltipContent hideLabel />} />
+                      <Bar
+                        dataKey="last"
+                        stackId="a"
+                        fill="#0A6C6D"
+                        radius={[0, 0, 0, 0]}
+                      />
+                      <Bar
+                        dataKey="this"
+                        stackId="a"
+                        fill="#60A5FA"
+                        radius={[10, 10, 0, 0]}
+                      />
+                    </BarChart>
+                  </ChartContainer>
                 </div>
               </div>
             </div>
@@ -445,8 +368,8 @@ const fetchSummary = async () => {
               <div className="p-5 flex flex-col items-center">
                 {(() => {
                   // 🧮 Compute totals and percentages
-                  const newCustomers = reservationStats.customerFrequency.new || 0;
-                  const returningCustomers = reservationStats.customerFrequency.returning || 0;
+                  const newCustomers = customerFrequency?.new || 0;
+                  const returningCustomers = customerFrequency?.returning || 0;
                   const total = newCustomers + returningCustomers;
 
                   const newPercentage =
@@ -467,8 +390,8 @@ const fetchSummary = async () => {
                             fill="none"
                             stroke="#14b8a6"
                             strokeWidth="24"
-                            strokeDasharray={`${generateDonutPath(newCustomers, total).dashArray
-                              } ${generateDonutPath(newCustomers, total).circumference}`}
+                            strokeDasharray={`${generateDonutPath(newPercentage, total).dashArray
+                              } ${generateDonutPath(newPercentage, total).circumference}`}
                           />
 
                           {/* Returning Customers Segment */}
@@ -479,9 +402,9 @@ const fetchSummary = async () => {
                             fill="none"
                             stroke="#fbbf24"
                             strokeWidth="24"
-                            strokeDasharray={`${generateDonutPath(returningCustomers, total).dashArray
-                              } ${generateDonutPath(returningCustomers, total).circumference}`}
-                            strokeDashoffset={`${generateDonutPath(newCustomers, total).dashOffset
+                            strokeDasharray={`${generateDonutPath(returningPercentage, total).dashArray
+                              } ${generateDonutPath(returningPercentage, total).circumference}`}
+                            strokeDashoffset={`${-generateDonutPath(newPercentage, total).dashArray
                               }`}
                           />
                         </svg>
@@ -512,9 +435,7 @@ const fetchSummary = async () => {
                         <div className="flex items-center gap-3">
                           <div className="flex items-center">
                             <div className="w-3 h-3 bg-yellow-400 rounded-full mr-2"></div>
-                            <span className="text-sm text-gray-600">
-                              {returningPercentage}%
-                            </span>
+                            <span className="text-sm text-gray-600">{returningPercentage}%</span>
                           </div>
                           <span className="text-sm text-gray-900 font-medium">
                             Returning Customers
@@ -527,57 +448,41 @@ const fetchSummary = async () => {
               </div>
             </div>
 
-
-            {/* Revenue (Menu Category) */}
+            {/* Revenue by Category */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Revenue (Menu Category)</h3>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={revenueFilter}
-                    onChange={(e) => setRevenueFilter(e.target.value)}
-                    className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white cursor-pointer"
-                  >
-                    <option>Weekly</option>
-                    <option>Monthly</option>
-                  </select>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <ExternalLink className="w-4 h-4" />
-                  </button>
-                </div>
+                <h3 className="text-base font-semibold text-gray-900">Revenue by Category</h3>
+                <select
+                  value={revenueFilter}
+                  onChange={(e) => setRevenueFilter(e.target.value)}
+                  className="text-sm border border-gray-300 rounded-md px-2 py-1 bg-white cursor-pointer"
+                >
+                  <option>Weekly</option>
+                  <option>Monthly</option>
+                </select>
               </div>
               <div className="p-5">
-                <div className="mb-4">
-                  <p className="text-2xl font-bold text-gray-900">#{revenueData.total.toLocaleString()}</p>
-                  <p className="text-sm text-green-600 flex items-center">
-                    <span className="mr-1">↑</span>
-                    {revenueData.change}% vs last {revenueFilter.toLowerCase().slice(0, -2)}
-                  </p>
-                </div>
-
-                {/* Color Bar */}
-                <div className="flex h-3 rounded-full overflow-hidden mb-4">
+                <p className="text-2xl font-bold text-gray-900 mb-1">
+                  ₦{revenueData.total.toLocaleString()}
+                </p>
+                <p className="text-xs text-green-600 mb-4 flex items-center">
+                  <span className="mr-1">↑</span>
+                  {revenueData.change}% vs last {revenueFilter.toLowerCase().slice(0, -2)}
+                </p>
+                <div className="space-y-3">
                   {revenueData.items.map((item, index) => (
-                    <div
-                      key={index}
-                      className={`${item.color} transition-all duration-300 hover:opacity-80 cursor-pointer`}
-                      style={{ width: `${item.percentage}%` }}
-                      title={`${item.category}: ₦${item.amount.toLocaleString()}`}
-                    />
-                  ))}
-                </div>
-
-                {/* Legend */}
-                <div className="space-y-2">
-                  {revenueData.items.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between text-sm hover:bg-gray-50 p-1 rounded transition-colors">
-                      <div className="flex items-center">
-                        <div className={`w-3 h-3 rounded-sm ${item.color} mr-2`}></div>
-                        <span className="text-gray-900 font-medium">{item.category}</span>
+                    <div key={index}>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-sm text-gray-600">{item.name}</span>
+                        <span className="text-sm font-medium text-gray-900">
+                          ₦{item.amount.toLocaleString()}
+                        </span>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-gray-900 font-medium">{item.percentage}%</span>
-                        <span className="text-gray-500">(₦{item.amount.toLocaleString()})</span>
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-teal-600 h-2 rounded-full"
+                          style={{ width: `${item.percentage}%` }}
+                        ></div>
                       </div>
                     </div>
                   ))}
@@ -585,7 +490,7 @@ const fetchSummary = async () => {
               </div>
             </div>
 
-            {/* Reservation Source */}
+            {/* Reservation Source - Updated to match the donut chart style */}
             <div className="bg-white rounded-lg border border-gray-200">
               <div className="p-5 border-b border-gray-200 flex items-center justify-between">
                 <h3 className="text-base font-semibold text-gray-900">Reservation Source</h3>
@@ -607,8 +512,8 @@ const fetchSummary = async () => {
                 <div className="relative w-48 h-48 mb-4">
                   <svg className="w-full h-full -rotate-90">
                     {sourceData.sources.map((source, index) => {
-                      const offset = sourceData.sources.slice(0, index).reduce((sum, s) => sum + s.value, 0);
-                      const paths = generateDonutPath(source.value, offset);
+                      const offset = sourceData.sources.slice(0, index).reduce((sum, s) => sum + s.percentage, 0);
+                      const paths = generateDonutPath(source.percentage, offset);
                       const colors = ['#14b8a6', '#fbbf24', '#60a5fa'];
 
                       return (
@@ -632,15 +537,18 @@ const fetchSummary = async () => {
                   </div>
                 </div>
                 <div className="space-y-2 w-full">
-                  {sourceData.sources.map((source, index) => (
-                    <div key={index} className="flex items-center justify-between hover:bg-gray-50 p-1 rounded transition-colors">
-                      <div className="flex items-center">
-                        <div className={`w-3 h-3 ${source.color} rounded-full mr-2`}></div>
-                        <span className="text-sm text-gray-900 font-medium">{source.name}</span>
+                  {sourceData.sources.map((source, index) => {
+                    const colors = ['bg-teal-600', 'bg-yellow-400', 'bg-blue-400'];
+                    return (
+                      <div key={index} className="flex items-center justify-between hover:bg-gray-50 p-1 rounded transition-colors">
+                        <div className="flex items-center">
+                          <div className={`w-3 h-3 ${colors[index]} rounded-full mr-2`}></div>
+                          <span className="text-sm text-gray-900 font-medium">{source.name}</span>
+                        </div>
+                        <span className="text-sm text-gray-600">{source.percentage}%</span>
                       </div>
-                      <span className="text-sm text-gray-600">{source.value}%</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>

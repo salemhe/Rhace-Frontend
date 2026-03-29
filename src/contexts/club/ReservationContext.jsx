@@ -1,9 +1,6 @@
-"use client";
-
-import { userService } from "@/services/user.service";
 import { createContext, useContext, useState } from "react";
 import { useSelector } from "react-redux";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 
 const ReservationContext = createContext(
   undefined
@@ -27,23 +24,34 @@ export function ReservationsProvider({
   const [proposedPayment, setProposedPayment] = useState(0)
   const [booking, setBooking] = useState(null);
   const [partPay, setPartPay] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [comboLoading, setComboLoading] = useState(true);
+  const [bottlesLoading, setBottlesLoading] = useState(true);
+  const [tableLoading, setTableLoading] = useState(true);
   const user = useSelector((state) => state.auth.user);
 
   const occasions = ["Birthday", "Casual", "Business", "Anniversary", "Other"];
 
   const combos = comboItems.filter((item) => item.selected);
-  const bottles = bottleItems.filter((item) => item.selected);
+  const bottles = bottleItems.filter(item => item.quantity > 0);
   const vipExtras = vipExtraItems.filter((item) => item.selected);
-  const tableSelected = table.find(t => t.selected);
+  const tableSelected = table.filter(t => t.selected);
 
-  const totalPrice = vendor ? bottles.reduce(
-    (total, item) => total + (item.price || 0) * (item.quantity || 1),
-    0
-  ) +
+  const totalPrice = vendor
+    ? bottles.reduce(
+      (total, item) => total + (item.price || 0) * (item.quantity || 1),
+      0
+    ) +
     combos.reduce((total, item) => total + (item.setPrice || 0), 0) +
     vipExtras.reduce((total, item) => total + (item.price || 0), 0) +
-    tableSelected?.price +
-    (vendor.priceRange * parseInt(guestCount, 10)) : 0
+    tableSelected?.reduce((total, item) => total + (item.price || 0) * (item.quantity || 1), 0)
+    : 0;
+
+  console.log(totalPrice)
+  const generateId = () => {
+    return Date.now().toString(36).substring(0, 8).toUpperCase();
+  };
+
 
   const handleSubmit = async () => {
     try {
@@ -55,10 +63,9 @@ export function ReservationsProvider({
       const parsedGuestCount = parseInt(guestCount, 10);
       if (!vendor) return;
 
-      const selectedDrinks = bottles.filter(item => item.quantity > 0);
-
 
       const reservationData = {
+        resId: generateId(),
         reservationType: "club",
         customerName: `${user.firstName} ${user.lastName}`.trim(),
         customerEmail: user.email,
@@ -68,27 +75,29 @@ export function ReservationsProvider({
         guests: parsedGuestCount,
         specialRequest,
         combos: combos.map((item) => item._id),
-        drinks: selectedDrinks.map((item) => ({
+        drinks: bottles.map((item) => ({
           drink: item._id,
           quantity: item.quantity || 1,
         })),
         vipExtras: vipExtras.filter((item) => item.selected),
         proposedPayment,
         partPaid: partPay,
-        totalAmount: partPay ? totalPrice/2 : totalPrice,
+        totalAmount: partPay ? totalPrice / 2 : totalPrice,
         vendor: vendor?._id,
         businessName: vendor?.businessName,
-        table: tableSelected?._id,
+        table: tableSelected?.map((item) => ({
+          _id: item._id,
+          quantity: item.quantity || 1,
+        })),
         location: vendor?.address,
         image: vendor?.profileImages?.[0],
       };
-      console.log("Reservation Data to be sent:", reservationData);
-      const res = await userService.createReservation(reservationData);
 
-      const reservationResponse = res.data;
-      console.log("Reservation Response:", reservationResponse);
-      toast.success("Reservation submitted successfully!");
-      setBooking(reservationResponse);
+      // const res = await userService.createReservation(reservationData);
+      const resDatas = JSON.parse(localStorage.getItem('resData') || '[]');
+      localStorage.setItem('resData', JSON.stringify([...resDatas, reservationData]));
+      setBooking(reservationData);
+      toast.success("Reservation added successfully!");
       return true;
     } catch (error) {
       console.error("Error submitting reservation:", error);
@@ -97,7 +106,8 @@ export function ReservationsProvider({
       setIsLoading(false);
     }
   };
-  // Simulate fetching menu items
+      
+
 
   return (
     <ReservationContext.Provider
@@ -132,7 +142,16 @@ export function ReservationsProvider({
         proposedPayment,
         booking,
         setPartPay,
-        partPay
+        partPay,
+        tableSelected,
+        setLoading,
+        setComboLoading,
+        setBottlesLoading,
+        setTableLoading,
+        loading,
+        comboLoading,
+        bottlesLoading,
+        tableLoading,
       }}
     >
       {children}

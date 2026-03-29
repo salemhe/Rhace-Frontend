@@ -19,58 +19,73 @@ const RoomCard = ({ room, onViewDetails }) => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden border border-[#E5E7EB] ">
-      <div className="relative h-48 overflow-hidden bg-gray-200 rounded-lg mx-1 mt-1">
-        {room.images && room.images.length > 0 ? (
-          <img
-            src={room.images[0]}
-            alt={room.roomNumber}
-            className="w-full h-full object-cover transition-transform hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
-            No Image
-          </div>
-        )}
-        {/* <div className="absolute top-2 right-2">
-          <span className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full ${getStatusColor(room.isAvailable, room.maintenanceStatus)}`}>
-            {getStatusText(room.isAvailable, room.maintenanceStatus)}
-          </span>
-        </div> */}
+  <div className="bg-white rounded-2xl border border-[#CDEAE6] shadow-sm p-2.5">
+
+    {/* Image */}
+    <div className="h-45 rounded-xl overflow-hidden bg-gray-200">
+      {room.images && room.images.length > 0 ? (
+        <img
+          src={room.images[0]}
+          alt={room.name}
+          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+        />
+      ) : (
+        <div className="w-full h-full flex items-center justify-center text-gray-400">
+          No Image
+        </div>
+      )}
+    </div>
+
+    {/* Content */}
+    <div className="pt-4">
+
+      {/* Title Row */}
+      <div className="flex justify-between items-start">
+        <h3 className="text-mb font-normal text-[#111827]">
+          {room.name}
+        </h3>
+
+        <button
+          onClick={() => onViewDetails(room)}
+          className="text-sm text-teal-700 hover:text-teal-700 font-sm underline"
+        >
+          View Details
+        </button>
       </div>
 
-      <div className="p-4">
-        <div className="flex justify-between items-start mb-2">
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">{room.name}</h3>
-            <p className="text-sm text-gray-500">
-              Total Capacity: {room.adultsCapacity + room.childrenCapacity}{" "}
-              guests
-            </p>
-            <p className="text-sm text-gray-500">
-              Total Units: {room.totalUnits}{" "}
-            </p>
-          </div>
-        </div>
+      {/* Description */}
+       <p className="text-[13px] text-black leading-snug mt-2">
+           {room.description
+             ? room.description.length > 72
+             ? room.description.slice(0, 72) + "…"
+               : room.description
+             : `Sleeps ${(room.adultsCapacity || 0) + (room.childrenCapacity || 0)} guests · ${room.totalUnits ?? "–"} unit${room.totalUnits !== 1 ? "s" : ""} available`}
+         </p>
+      <p className="text-sm text-black mt-2 leading-relaxed">
+        Capacity: <span className="font-bold">{room.adultsCapacity + room.childrenCapacity}</span> guests, {" "}
+        <span className="font-bold">{room.totalUnits} </span>units available
+      </p>
 
-        <div className="flex justify-between items-center pt-2">
-          <div className="text-left">
-            <p className="text-xl font-bold text-[#111827]">
-              ₦{room.pricePerNight.toLocaleString()}
-            </p>
-          </div>
-          <button
-            onClick={() => onViewDetails(room)}
-            className="text-teal-600 items-center justify-center hover:text-teal-700 text-sm font-medium flex gap-2 "
-          >
-            <FaAnglesRight /> <p>View Details</p>
-          </button>
+      {/* Bottom Row (Price + Arrow link) */}
+      <div className="flex justify-between items-center mt-4">
+        <p className="text-normal font-normal text-[#111827]">
+          ₦{room.pricePerNight.toLocaleString()}
+          <span className="text-xs font-normal text-gray-400 ml-1">/ night</span>
+        </p>
 
-          {/*  */}
-        </div>
+        <button
+          onClick={() => onViewDetails(room)}
+          className="flex items-center gap-2 text-teal-600 hover:text-teal-700 text-sm font-medium"
+        >
+          <FaAnglesRight />
+          <span>View details</span>
+        </button>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default RoomCard;
+
+

@@ -1,10 +1,24 @@
 import api from "@/lib/axios";
 
+const extractArray = (p) => {
+  if (Array.isArray(p)) return p;
+  const candidates = [
+    p?.data, p?.items, p?.results, p?.docs, p?.rows, p?.vendors, p?.users, p?.reservations, p?.list,
+    p?.data?.data, p?.data?.items, p?.data?.results, p?.data?.docs, p?.data?.rows, p?.data?.vendors, p?.data?.users, p?.data?.reservations,
+  ];
+  for (const c of candidates) if (Array.isArray(c)) return c;
+  return [];
+};
+
 export const getDashboardKPIs = () => api.get("/dashboard/kpis");
 export const getRecentTransactions = () => api.get("/dashboard/recent-transactions");
-export const getRevenueTrends = () => api.get("/dashboard/revenue-trends");
+export const getRevenueTrends = (params = {}) => api.get("/dashboard/revenue-trends", { params });
 export const getTodaysReservations = () => api.get("/dashboard/todays-reservations");
 export const getTopVendors = () => api.get("/dashboard/top-vendors");
+
+// New function for top performing vendors - uses the correct endpoint
+export const getTopVendorEarnings = (params = {}) => api.get("/payments/vendors-earnings", { params });
+
 export const getVendorsEarnings = () => api.get("/dashboard/vendors-earnings");
 export const getUpcomingReservations = () => api.get("/dashboard/upcoming-reservations");
 export const getBookingTrends = () => api.get("/dashboard/booking-trends");
@@ -22,10 +36,20 @@ export const getVendors = (params) => api.get("/vendors", { params }).then(respo
   }
   return response;
 });
-export const getVendorById = (id) => api.get(`/vendors/${id}`);
+export const getVendorById = (id) => api.get(`/vendors/${id}`).then(response => {
+  if (response.data) {
+    if (response.data.message && typeof response.data.message === 'string') {
+      response.data.message = response.data.message.replace('Fetched undefined vendor Succesfully!', 'Vendor fetched successfully!');
+    } else if (typeof response.data === 'string') {
+      response.data = response.data.replace(/undefined vendor/g, 'vendor').replace(/Succesfully/g, 'successfully');
+    }
+  }
+  return response;
+});
 export const getVendorStats = () => api.get("/vendors/stats");
 export const approveVendor = (id, data) => api.patch(`/vendors/${id}/approval`, data);
 export const updateVendorStatus = (id, data) => api.patch(`/vendors/${id}/status`, data);
+export const updateVendor = (id, data) => api.put(`/vendors/${id}`, data);
 export const deleteVendor = (id) => api.delete(`/vendors/${id}`);
 export const updateVendorCommission = (id, data) => api.patch(`/vendors/${id}/commission`, data);
 export const bulkUpdateVendors = (data) => api.post("/vendors/bulk-update", data);
@@ -37,14 +61,47 @@ export const exportVendors = (params) => api.get("/vendors/export", { params, re
 export const getPublicVendors = () => api.get("/vendors/public");
 
 export const getReservations = (params) => {
-  console.log("Fetching reservations with params:", params);
   return api.get("/reservations", { params }).then(response => {
-    console.log("Full reservation response:", response);
     return response;
   }).catch(error => {
     console.error("Error fetching reservations:", error.response || error.message);
     throw error;
   });
+};
+
+export const getUserReservations = (userId, params = {}) => {
+  // Try to use user-specific endpoint first, fallback to filtering all reservations
+  return api.get(`/reservations/user/${userId}`, { params })
+    .then(response => {
+      // Check if response contains actual reservation data or just a welcome message
+      if (typeof response.data === 'string' && response.data.includes('Welcome to Rhace Backend API')) {
+        throw new Error('Endpoint not implemented');
+      }
+
+      return response;
+    })
+    .catch((error) => {
+      // Fallback: fetch all reservations and filter client-side
+      return api.get("/reservations", {
+        params: {
+          limit: 1000, // Reduced limit for better performance
+          ...params
+        }
+      }).then(response => {
+        // Filter reservations for this specific user
+        const allReservations = extractArray(response?.data) || [];
+
+        const userReservations = allReservations.filter(reservation => {
+          const resUserId = reservation.customerId || reservation.guest || reservation.userId || reservation.user?.id || reservation.user?._id || reservation.customer?.id || reservation.customer?.email;
+          return resUserId === userId;
+        });
+
+        return {
+          ...response,
+          data: userReservations
+        };
+      });
+    });
 };
 export const getReservationById = (id) => api.get(`/reservations/${id}`);
 export const updateReservationStatus = (id, data) => api.patch(`/reservations/${id}/status`, data);
@@ -95,3 +152,14 @@ export const getReportStatus = (id) => api.get(`/reports/${id}/status`);
 export const downloadReport = (id) => api.get(`/reports/${id}/download`, { responseType: 'blob', headers: { Accept: 'application/octet-stream' } });
 
 export const getPayments = (params) => api.get("/payments", { params });
+
+// Paystack API Functions - Direct integration
+export const getPaystackBalance = () => api.get("/payments/paystack/balance");
+export const getPaystackBalanceLedger = () => api.get("/payments/paystack/balance/ledger");
+export const getPaystackTransactions = (params) => api.get("/payments/paystack/transactions", { params });
+export const getPaystackTransactionStats = (params) => api.get("/payments/paystack/transactions/stats", { params });
+
+// New Admin Earnings API Functions
+// These endpoints calculate: Admin Earnings = (Gross Amount × Vendor %) - (Gross Amount × Paystack Commission)
+export const getAdminEarnings = (params = {}) => api.get("/payments/admin-earnings", { params });
+export const getSuccessfulPaymentsCount = (params = {}) => api.get("/payments/successful-count", { params });

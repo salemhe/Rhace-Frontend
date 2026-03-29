@@ -1,19 +1,18 @@
 import React, { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { Loader2 } from "lucide-react";
 import { useNavigate } from "react-router";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import DatePicker from "../ui/datepicker";
 import { TimePicker } from "../ui/timepicker";
 import { GuestPicker } from "../ui/guestpicker";
+import { TablePicker } from "../ui/tablepicker";
 
-const BookingForm = ({ id }) => {
+const BookingForm = ({ id, tables, loading }) => {
     const [date, setDate] = useState();
     const [time, setTime] = useState("");
-    const [request, setRequest] = useState("");
     const [guests, setGuests] = useState("1");
+    const [table, setTable] = useState("")
     const [isLoading, setIsLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -23,7 +22,7 @@ const BookingForm = ({ id }) => {
             date: date ? date.toISOString() : "",
             time,
             guests,
-            specialRequest: request,
+            table: table._id
         });
         setIsLoading(true);
         try {
@@ -47,27 +46,23 @@ const BookingForm = ({ id }) => {
         }
     };
 
+    const handleTable = (v) => {
+        console.log(v)
+        setTable(v)
+    }
+
     return (
         <form onSubmit={handleSubmit} className="space-y-6 mt-6">
             <div className="flex flex-col md:flex-row w-full gap-4">
-                <DatePicker value={date} onChange={setDate} />
-                <TimePicker value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
+                <DatePicker title="Date" value={date} onChange={setDate} />
+                <TimePicker title="Time" value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
             </div>
-            <GuestPicker value={guests} onChange={setGuests} />
-            <div className="flex flex-col gap-y-3">
-                <Label htmlFor="special-request">Special Request</Label>
-                <Textarea
-                    id="special-request"
-                    value={request}
-                    onChange={(e) => setRequest(e.target.value)}
-                    placeholder="e.g Birthday Celebration"
-                    className="resize-none h-[100px] font-normal bg-[#F9FAFB] border border-[#E5E7EB] rounded-xl"
-                />
-            </div>
+            <TablePicker chevron loading={loading} tables={tables} value={table.name} onChange={(value) => handleTable(value)} />
+            <GuestPicker chevron value={guests} onChange={setGuests} hideChildren hideInfants />
             <Button
                 type="submit"
-                disabled={!date || !time || isLoading}
-                className="w-full rounded-xl bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
+                disabled={!date || !time || isLoading || !table}
+                className="w-full rounded-xl h-10 py-6 bg-[#0A6C6D] hover:bg-[0A6C6D]/50"
             >
                 {isLoading ? (
                     <>

@@ -32,8 +32,9 @@ import {
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router";
-import { toast } from "sonner";
+import { toast } from "react-toastify";
 import { AddDrinkModal } from "./AddDrinkModal";
+import { AddTablesModal } from "./AddTablesModal";
 
 const normalizeStatus = (status = "") => {
   const s = status?.toLowerCase() || "";
@@ -48,6 +49,7 @@ const normalizeStatus = (status = "") => {
 
 export function DrinksTable() {
   const [drinks, setDrinks] = useState([]);
+  const [tables, setTables] = useState([]);
   const [bottleSets, setBottleSets] = useState([]);
   const [selectedTab, setSelectedTab] = useState("drinks");
   const [searchTerm, setSearchTerm] = useState("");
@@ -56,11 +58,12 @@ export function DrinksTable() {
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
+  const [showTablesModal, setShowTablesModal] = useState(false);
   const vendor = useSelector((state) => state.auth.vendor);
   const navigate = useNavigate();
 
   // Filter states
-  const [selectedDate, setSelectedDate] = useState("all");
+  // const [selectedDate, setSelectedDate] = useState("all");
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [hideTab, setHideTab] = useState(false);
@@ -127,6 +130,18 @@ export function DrinksTable() {
       setIsLoading(false);
     };
 
+    const fetchTables = async () => {
+      try {
+        setIsLoading(true);
+        const data = await clubService.getTables(vendor._id);
+        setTables(data.tables || []);
+      } catch (error) {
+        console.error("Error fetching tables:", error);
+        toast.error("Failed to fetch tables");
+      }
+      setIsLoading(false);
+    };
+
     const fetchBottleSets = async () => {
       try {
         const data = await clubService.getBottleSet(vendor._id);
@@ -138,28 +153,31 @@ export function DrinksTable() {
     };
 
     fetchDrinks();
+    fetchTables();
     fetchBottleSets();
   }, [vendor?._id]);
 
   // Calculate stats
   useEffect(() => {
     const totalDrinks = drinks.length;
+    const totalTables = tables.length;
     const totalSets = bottleSets.length;
-    const activeItems = [...drinks, ...bottleSets].filter(
+    const activeItems = [...drinks, ...bottleSets, ...tables].filter(
       (item) => normalizeStatus(item.status) === "Active"
     ).length;
-    const totalValue = [...drinks, ...bottleSets].reduce(
+    const totalValue = [...drinks, ...bottleSets, ...tables].reduce(
       (sum, item) => sum + (item.price || item.setPrice || 0),
       0
     );
 
     setStats({
       totalDrinks: { count: totalDrinks, change: 0 },
+      totalTables: { count: totalTables, change: 0 },
       totalSets: { count: totalSets, change: 0 },
       totalValue: { count: totalValue, change: 0 },
       activeItems: { count: activeItems, change: 0 },
     });
-  }, [drinks, bottleSets]);
+  }, [drinks, bottleSets, tables]);
 
   // Filter items based on selected tab and filters
   const filterItems = (items, isDrink = true) => {
@@ -186,9 +204,10 @@ export function DrinksTable() {
   };
 
   const filteredDrinks = filterItems(drinks, true);
+  const filteredTables = filterItems(tables, false);
   const filteredSets = filterItems(bottleSets, false);
 
-  const currentData = selectedTab === "drinks" ? filteredDrinks : filteredSets;
+  const currentData = selectedTab === "drinks" ? filteredDrinks : selectedTab === "sets" ? filteredSets : filteredTables;
   const data = currentData;
 
   // Update total items based on filtered data
@@ -239,21 +258,16 @@ export function DrinksTable() {
 
   return (
     <DashboardLayout type="club" section="drinks">
-      <div className="min-h-screen bg-gray-50 p-6 mb-12">
+      <div className="min-h-screen bg-gray-50 p-2 md:p-6 mb-12">
         <div className="max-w-7xl mx-auto">
-          <div className="md:flex hidden justify-between items-center mb-6">
-            <h2 className="text-[#111827] font-semibold">Drinks Management</h2>
-            <div className="flex gap-6">
+          <div className="md:flex justify-between items-center mb-6">
+            <h2 className="text-[#111827] font-semibold mb-2">Drinks Management</h2>
+            <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-2 md:gap-6">
               <DashboardButton
                 onClick={() => setHideTab(!hideTab)}
                 variant="secondary"
                 text={hideTab ? "Open tabs" : "Hide tabs"}
                 icon={hideTab ? <Eye /> : <EyeClose />}
-              />
-              <DashboardButton
-                variant="secondary"
-                text="Export"
-                icon={<Export />}
               />
               <button
                 onClick={() => navigate("/dashboard/club/add-drinks")}
@@ -269,11 +283,18 @@ export function DrinksTable() {
                 <Plus size={18} />
                 <span>Add New Drink</span>
               </button>
+              <button
+                onClick={() => setShowTablesModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-teal-700 text-white rounded-lg hover:bg-teal-800 transition-colors"
+              >
+                <Plus size={18} />
+                <span>Add New Table</span>
+              </button>
             </div>
           </div>
 
           {!hideTab && (
-            <div className="flex mb-8 rounded-lg bg-white border border-gray-200">
+            <div className="grid sm:grid-cols-2 divide-neutral-600 divide lg:grid-cols-4 mb-8 rounded-lg bg-white border border-gray-200">
               <div className="flex-1">
                 <StatCard
                   title="Total Drinks"
@@ -282,9 +303,9 @@ export function DrinksTable() {
                   color="blue"
                   IconColor="#60A5FA"
                   icon={<Calendar />}
+                  side
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Bottle Sets"
@@ -295,7 +316,6 @@ export function DrinksTable() {
                   icon={<CardPay />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Active Items"
@@ -306,7 +326,6 @@ export function DrinksTable() {
                   icon={<Group3 />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Total Value"
@@ -327,21 +346,20 @@ export function DrinksTable() {
           <div className="bg-white rounded-lg border border-gray-200">
             <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between py-4 px-4 border-b border-gray-200">
               <div className="flex flex-1 items-center">
-                {["drinks", "sets", "packages"].map((tab) => (
+                {["drinks", "sets", "tables"].map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setSelectedTab(tab)}
-                    className={`px-4 py-2 text-sm font-medium transition-colors ${
-                      selectedTab === tab
-                        ? "text-gray-900 border-b-2 border-gray-900"
-                        : "text-gray-500 hover:text-gray-700"
-                    }`}
+                    className={`px-4 py-2 text-sm font-medium transition-colors ${selectedTab === tab
+                      ? "text-gray-900 border-b-2 border-gray-900"
+                      : "text-gray-500 hover:text-gray-700"
+                      }`}
                   >
                     {tab === "drinks"
                       ? "Drinks"
                       : tab === "sets"
-                      ? "Drinks Sets"
-                      : "Party Packages"}
+                        ? "Drinks Sets"
+                        : "Tables"}
                   </button>
                 ))}
               </div>
@@ -351,7 +369,7 @@ export function DrinksTable() {
                   <Input
                     type="text"
                     placeholder={
-                      selectedTab === "drinks" ? "Search drinks" : "Search sets"
+                      selectedTab === "drinks" ? "Search drinks" : selectedTab === "tables" ? "Search tables" : "Search sets"
                     }
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -374,21 +392,19 @@ export function DrinksTable() {
                       <div className="p-2">
                         <button
                           onClick={() => setSelectedStatus("all")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "all"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "all"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           All Status
                         </button>
                         <button
                           onClick={() => setSelectedStatus("Active")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "Active"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "Active"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           <span className="inline-flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-green-500"></span>
@@ -397,11 +413,10 @@ export function DrinksTable() {
                         </button>
                         <button
                           onClick={() => setSelectedStatus("Inactive")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "Inactive"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "Inactive"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           <span className="inline-flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-gray-500"></span>
@@ -410,11 +425,10 @@ export function DrinksTable() {
                         </button>
                         <button
                           onClick={() => setSelectedStatus("Out of Stock")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "Out of Stock"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "Out of Stock"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           <span className="inline-flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-red-500"></span>
@@ -423,11 +437,10 @@ export function DrinksTable() {
                         </button>
                         <button
                           onClick={() => setSelectedStatus("Low Stock")}
-                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                            selectedStatus === "Low Stock"
-                              ? "bg-gray-100 font-medium"
-                              : ""
-                          }`}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedStatus === "Low Stock"
+                            ? "bg-gray-100 font-medium"
+                            : ""
+                            }`}
                         >
                           <span className="inline-flex items-center gap-2">
                             <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
@@ -458,11 +471,10 @@ export function DrinksTable() {
                             <button
                               key={cat.value}
                               onClick={() => setSelectedCategory(cat.value)}
-                              className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${
-                                selectedCategory === cat.value
-                                  ? "bg-gray-100 font-medium"
-                                  : ""
-                              }`}
+                              className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedCategory === cat.value
+                                ? "bg-gray-100 font-medium"
+                                : ""
+                                }`}
                             >
                               {cat.label}
                             </button>
@@ -533,9 +545,11 @@ export function DrinksTable() {
                 <table className="w-full">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Image
-                      </th>
+                      {selectedTab !== "tables" && (
+                        <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Image
+                        </th>
+                      )}
                       <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Name
                       </th>
@@ -557,26 +571,30 @@ export function DrinksTable() {
                           Quantity
                         </th>
                       )}
+                      {selectedTab !== "drinks" && (
+                        <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          AddOns
+                        </th>
+                      )}
                       {selectedTab === "sets" && (
                         <>
-                          <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            AddOns
-                          </th>
                           <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Drinks
                           </th>
                         </>
                       )}
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
+                      {selectedTab !== "tables" && (
+                        <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Status
+                        </th>
+                      )}
                       <th className="w-12 px-4 py-3"></th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedItems.map((item) => (
                       <tr key={item._id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4">
+                        {selectedTab !== "tables" && (<td className="px-4 py-4">
                           <img
                             src={
                               selectedTab === "drinks"
@@ -586,7 +604,7 @@ export function DrinksTable() {
                             alt={item.name}
                             className="w-12 h-12 rounded-lg object-cover"
                           />
-                        </td>
+                        </td>)}
                         <td className="px-4 py-4">
                           <div className="flex items-center gap-3">
                             <div>
@@ -617,25 +635,28 @@ export function DrinksTable() {
                             {item.quantity || 0}
                           </td>
                         )}
+                        {selectedTab !== "drinks" && (
+
+                          <td className="px-4 py-4 text-sm text-gray-900">
+                            <div className="flex flex-wrap gap-1 items-center">
+                              {item.addOns?.slice(0, 2).map((addOn, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-2 py-1 bg-gray-100 rounded text-xs"
+                                >
+                                  {addOn}
+                                </span>
+                              ))}
+                              {item.addOns?.length > 2 && (
+                                <span className="text-xs text-gray-500">
+                                  +{item.addOns.length - 2} more
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                        )}
                         {selectedTab === "sets" && (
                           <>
-                            <td className="px-4 py-4 text-sm text-gray-900">
-                              <div className="flex flex-wrap gap-1">
-                                {item.addOns?.slice(0, 2).map((addOn, idx) => (
-                                  <span
-                                    key={idx}
-                                    className="px-2 py-1 bg-gray-100 rounded text-xs"
-                                  >
-                                    {addOn}
-                                  </span>
-                                ))}
-                                {item.addOns?.length > 2 && (
-                                  <span className="text-xs text-gray-500">
-                                    +{item.addOns.length - 2} more
-                                  </span>
-                                )}
-                              </div>
-                            </td>
                             <td className="px-4 py-4 text-sm text-gray-900">
                               {item.items?.reduce(
                                 (acc, i) => acc + (i.quantity || 0),
@@ -644,15 +665,17 @@ export function DrinksTable() {
                             </td>
                           </>
                         )}
-                        <td className="px-4 py-4">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                              item.status
-                            )}`}
-                          >
-                            {normalizeStatus(item.status)}
-                          </span>
-                        </td>
+                        {selectedTab === "sets" || selectedTab === "drinks" && (
+                          <td className="px-4 py-4">
+                            <span
+                              className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
+                                item.status
+                              )}`}
+                            >
+                              {normalizeStatus(item.status)}
+                            </span>
+                          </td>
+                        )}
                         <td className="px-4 py-4">
                           <button className="text-gray-400 hover:text-gray-600">
                             <MoreVertical size={16} />
@@ -687,15 +710,13 @@ export function DrinksTable() {
                   disabled={
                     page === "ellipsis-start" || page === "ellipsis-end"
                   }
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === page
-                      ? "bg-teal-600 text-white"
-                      : "bg-white text-gray-700 border border-gray-200"
-                  } ${
-                    page === "ellipsis-start" || page === "ellipsis-end"
+                  className={`px-3 py-1 rounded-md ${currentPage === page
+                    ? "bg-teal-600 text-white"
+                    : "bg-white text-gray-700 border border-gray-200"
+                    } ${page === "ellipsis-start" || page === "ellipsis-end"
                       ? "cursor-default"
                       : "hover:bg-gray-100"
-                  }`}
+                    }`}
                 >
                   {page === "ellipsis-start" || page === "ellipsis-end"
                     ? "…"
@@ -738,6 +759,25 @@ export function DrinksTable() {
             };
             fetchDrinks();
             setShowAddDrinkModal(false);
+          }}
+        />
+      )}
+
+      {showTablesModal && (
+        <AddTablesModal
+          onClose={() => setShowTablesModal(false)}
+          onSuccess={() => {
+            // Refresh drinks list
+            const fetchTables = async () => {
+              try {
+                const data = await clubService.getTables(vendor._id);
+                setTables(data.tables || []);
+              } catch (error) {
+                console.error("Error fetching tables:", error);
+              }
+            };
+            fetchTables();
+            setShowTablesModal(false);
           }}
         />
       )}

@@ -1,29 +1,28 @@
-import DashboardButton from "@/components/dashboard/ui/DashboardButton";
-import DashboardLayout from "@/components/layout/DashboardLayout";
-import NoDataFallback from "@/components/NoDataFallback";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { StatCard } from "@/components/dashboard/stats/mainStats";
-import { Users } from "lucide-react";
+import DashboardButton from "@/components/dashboard/ui/DashboardButton";
 import {
+  Add,
   Calendar,
   CardPay,
   Cash2,
+  CheckCircle,
+  Copy,
   Export,
   Eye,
+  Eye2,
   EyeClose,
   Filter2,
-  Add,
-  Eye2,
+  Group3,
   Pencil,
   Phone,
   Printer,
-  CheckCircle,
-  Copy,
   XCircle,
-  Group3,
 } from "@/components/dashboard/ui/svg";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import NoDataFallback from "@/components/NoDataFallback";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import {
+import ConfirmReservation, {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -31,24 +30,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import UniversalLoader from "@/components/user/ui/LogoLoader";
-import { userService } from "@/services/user.service";
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  MoreHorizontal,
-  MoreVertical,
-  Search,
-  XIcon,
-  Check,
-  Mail,
-  Clock,
-} from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
-import { toast } from "sonner";
-import { useNavigate } from "react-router";
 import {
   Table,
   TableBody,
@@ -57,6 +38,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import UniversalLoader from "@/components/user/ui/LogoLoader";
+import { userService } from "@/services/user.service";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Mail,
+  MoreVertical,
+  Search,
+} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
 
 const normalizePaymentStatus = (status = "") => {
   const s = status?.toLowerCase() || "";
@@ -133,10 +129,11 @@ const ClubReservationTable = () => {
     expectedGuests: { count: 0, change: 0 },
     pendingPayments: { count: 0, change: 0 },
   });
-
+  const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState("all");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("all");
   const [selectedTable, setSelectedTable] = useState("all");
+  const [resID, setResID] = useState()
 
   const [hideTab, setHideTab] = useState(false);
   const [showPopup, setShowPopup] = useState({
@@ -193,7 +190,7 @@ const ClubReservationTable = () => {
       setSelectedReservations([...selectedReservations, id]);
     } else {
       setSelectedReservations(
-        selectedReservations.filter((reservationId) => reservationId !== id)
+        selectedReservations.filter((reservationId) => reservationId !== id),
       );
     }
   };
@@ -206,7 +203,7 @@ const ClubReservationTable = () => {
 
     const connect = () => {
       const socket = new WebSocket(
-        `wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`
+        `wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`,
       );
       socketRef.current = socket;
 
@@ -221,7 +218,7 @@ const ClubReservationTable = () => {
 
           if (message.type === "new_reservation") {
             toast.success(
-              `🆕 New reservation from ${message.data.customerName}`
+              `🆕 New reservation from ${message.data.customerName}`,
             );
             setReservations((prev) => [...prev, message.data]);
           }
@@ -271,7 +268,7 @@ const ClubReservationTable = () => {
       } catch (error) {
         console.error(error);
         toast.error(
-          error.response?.data?.message || "Failed to fetch reservations"
+          error.response?.data?.message || "Failed to fetch reservations",
         );
       } finally {
         setIsLoading(false);
@@ -300,7 +297,7 @@ const ClubReservationTable = () => {
     const totalReservations = reservations.length;
 
     const prepaidReservations = reservations.filter(
-      (res) => normalizePaymentStatus(res.paymentStatus) === "Fully Paid"
+      (res) => normalizePaymentStatus(res.paymentStatus) === "Fully Paid",
     ).length;
 
     const todayReservations = reservations.filter((res) => {
@@ -311,14 +308,14 @@ const ClubReservationTable = () => {
 
     const expectedGuestsToday = todayReservations.reduce(
       (sum, res) => sum + (res.guests || 0),
-      0
+      0,
     );
 
     const pendingPayments = reservations
       .filter(
         (res) =>
           normalizePaymentStatus(res.paymentStatus) === "Unpaid" ||
-          normalizePaymentStatus(res.paymentStatus) === "Part Paid"
+          normalizePaymentStatus(res.paymentStatus) === "Part Paid",
       )
       .reduce((sum, res) => sum + (res.totalAmount || 0), 0);
 
@@ -428,7 +425,7 @@ const ClubReservationTable = () => {
     setTotalItems(filteredReservations.length);
     const maxPage = Math.max(
       1,
-      Math.ceil(filteredReservations.length / itemsPerPage)
+      Math.ceil(filteredReservations.length / itemsPerPage),
     );
     setCurrentPage((prev) => Math.min(prev, maxPage));
   }, [filteredReservations.length, itemsPerPage]);
@@ -448,7 +445,7 @@ const ClubReservationTable = () => {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedReservations = data.slice(
     startIndex,
-    startIndex + itemsPerPage
+    startIndex + itemsPerPage,
   );
 
   // Toggle selection for visible page items
@@ -456,11 +453,11 @@ const ClubReservationTable = () => {
     const pageIds = paginatedReservations.map((r) => r._id);
     if (checked) {
       setSelectedReservations((prev) =>
-        Array.from(new Set([...prev, ...pageIds]))
+        Array.from(new Set([...prev, ...pageIds])),
       );
     } else {
       setSelectedReservations((prev) =>
-        prev.filter((id) => !pageIds.includes(id))
+        prev.filter((id) => !pageIds.includes(id)),
       );
     }
   };
@@ -502,13 +499,13 @@ const ClubReservationTable = () => {
 
   return (
     <DashboardLayout type="club" section="Reservations">
-      <div className="min-h-screen bg-gray0 p-6 mb-12">
+      <div className="min-h-screen bg-gray0 p-2 md:p-6 mb-12">
         <div className="max-w-7xl mx-auto">
-          <div className="md:flex hidden justify-between items-center mb-6">
-            <h2 className="text-[#111827] font-semibold">
+          <div className="md:flex justify-between items-center mb-6">
+            <h2 className="text-[#111827] mb-2 font-semibold">
               Club Reservation Management
             </h2>
-            <div className="flex gap-6">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2 md:gap-6">
               <DashboardButton
                 onClick={() => setHideTab(!hideTab)}
                 variant="secondary"
@@ -529,7 +526,7 @@ const ClubReservationTable = () => {
             </div>
           </div>
           {!hideTab && (
-            <div className="flex mb-8 rounded-lg bg-white border border-gray-200">
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 mb-8 rounded-lg bg-white border border-gray-200">
               <div className="flex-1">
                 <StatCard
                   title="Total Reservations"
@@ -540,7 +537,6 @@ const ClubReservationTable = () => {
                   icon={<Calendar />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Prepaid Reservations"
@@ -551,7 +547,6 @@ const ClubReservationTable = () => {
                   icon={<CardPay />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Expected Guests Today"
@@ -562,7 +557,6 @@ const ClubReservationTable = () => {
                   icon={<Group3 />}
                 />
               </div>
-              <div className="w-px bg-gray-200 my-4"></div>
               <div className="flex-1">
                 <StatCard
                   title="Pending Payments"
@@ -571,7 +565,7 @@ const ClubReservationTable = () => {
                     {
                       minimumFractionDigits: 0,
                       maximumFractionDigits: 0,
-                    }
+                    },
                   )}`}
                   change={stats.pendingPayments.change}
                   color="orange"
@@ -784,8 +778,10 @@ const ClubReservationTable = () => {
                             <option value="all">All Tables</option>
                             {Array.from(
                               new Set(
-                                reservations.map((r) => r.table).filter(Boolean)
-                              )
+                                reservations
+                                  .map((r) => r.table)
+                                  .filter(Boolean),
+                              ),
                             ).map((table) => (
                               <option key={table} value={table}>
                                 {table}
@@ -849,7 +845,7 @@ const ClubReservationTable = () => {
                           checked={
                             paginatedReservations.length > 0 &&
                             paginatedReservations.every((r) =>
-                              selectedReservations.includes(r._id)
+                              selectedReservations.includes(r._id),
                             )
                           }
                           onChange={(e) =>
@@ -901,12 +897,12 @@ const ClubReservationTable = () => {
                             <input
                               type="checkbox"
                               checked={selectedReservations.includes(
-                                reservation._id
+                                reservation._id,
                               )}
                               onChange={(e) =>
                                 handleSelectReservation(
                                   reservation._id,
-                                  e.target.checked
+                                  e.target.checked,
                                 )
                               }
                               className="rounded border-gray-300 text-teal-600 focus:ring-teal-500"
@@ -978,18 +974,18 @@ const ClubReservationTable = () => {
                           <TableCell>
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(
-                                reservation.paymentStatus
+                                reservation.paymentStatus,
                               )}`}
                             >
                               {normalizePaymentStatus(
-                                reservation.paymentStatus
+                                reservation.paymentStatus,
                               )}
                             </span>
                           </TableCell>
                           <TableCell>
                             <span
                               className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getReservationStatusColor(
-                                reservation.reservationStatus
+                                reservation.reservationStatus,
                               )}`}
                             >
                               {(reservation.reservationStatus || "Pending")
@@ -1045,7 +1041,16 @@ const ClubReservationTable = () => {
                                   <Printer /> Print Receipt
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
-                                  <CheckCircle /> Mark as Completed
+                                  <span
+                                    className="relative flex cursor-pointer items-center gap-2 rounded-sm  py-1.5"
+                                    onClick={() => {
+                                      setOpen(true);
+                                      setResID(reservation._id,)
+                                      console.log(resID)
+                                    }}
+                                  >
+                                    <CheckCircle /> Mark as Completed
+                                  </span>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem>
                                   <CheckCircle /> Mark as No-Show
@@ -1053,7 +1058,7 @@ const ClubReservationTable = () => {
                                 <DropdownMenuItem
                                   onClick={() =>
                                     navigator.clipboard.writeText(
-                                      reservation.id
+                                      reservation.id,
                                     )
                                   }
                                 >
@@ -1184,7 +1189,7 @@ const ClubReservationTable = () => {
                               year: "numeric",
                               month: "long",
                               day: "numeric",
-                            }
+                            },
                           )
                         : "N/A"}{" "}
                       • {extractTime(showPopup.details.date)}
@@ -1219,7 +1224,7 @@ const ClubReservationTable = () => {
                     <div className="mt-1">
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getReservationStatusColor(
-                          showPopup.details.reservationStatus
+                          showPopup.details.reservationStatus,
                         )}`}
                       >
                         {(showPopup.details.reservationStatus || "Pending")
@@ -1346,11 +1351,11 @@ const ClubReservationTable = () => {
                     <div>
                       <span
                         className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(
-                          showPopup.details.paymentStatus
+                          showPopup.details.paymentStatus,
                         )}`}
                       >
                         {normalizePaymentStatus(
-                          showPopup.details.paymentStatus
+                          showPopup.details.paymentStatus,
                         )}
                       </span>
                     </div>
@@ -1400,7 +1405,7 @@ const ClubReservationTable = () => {
                       showPopup.details._id
                     ) {
                       navigator.clipboard.writeText(
-                        showPopup.details.bookingCode || showPopup.details._id
+                        showPopup.details.bookingCode || showPopup.details._id,
                       );
                       toast.success("Booking code copied to clipboard");
                     }
@@ -1414,6 +1419,37 @@ const ClubReservationTable = () => {
           </div>
         </div>
       )}
+      <ConfirmReservation
+        onConfirm={async () => {
+          if (!vendor?._id) {
+            toast.error("Vendor information missing. Please refresh the page.");
+            return;
+          }
+
+          try {
+            const res = await userService.updateReservationStatus({
+              reservationId: resID,
+              vendorId: vendor._id
+            });
+            
+            if (res.status === 200) {
+              toast.success("Reservation marked as complete!");
+              // Refresh reservations list
+              const freshRes = await userService.fetchReservations({
+                vendorId: vendor._id
+              });
+              setReservations(freshRes.data || []);
+            } else {
+              toast.error("Update failed");
+            }
+          } catch (error) {
+            console.error("Update failed:", error);
+            toast.error(error.response?.data?.message || "Failed to update reservation");
+          }
+        }}
+        setOpen={setOpen}
+        open={open}
+      />
     </DashboardLayout>
   );
 };

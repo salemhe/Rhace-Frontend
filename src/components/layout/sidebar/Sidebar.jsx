@@ -1,10 +1,10 @@
 import { logout } from "@/redux/slices/authSlice";
-import { X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Menu, Search, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ClubList, HotelList, RestaurantList } from "./SideMenuList";
 import logo from "@/public/images/Rhace-09.png";
+import { useEffect, useState } from "react";
 
 // Hook to get current menu configuration
 const useMenuConfig = (businessType) => {
@@ -14,10 +14,10 @@ const useMenuConfig = (businessType) => {
     return businessType === "hotel"
       ? HotelList
       : businessType === "restaurant"
-      ? RestaurantList
-      : businessType === "club"
-      ? ClubList
-      : ClubList;
+        ? RestaurantList
+        : businessType === "club"
+          ? ClubList
+          : ClubList;
   };
 
   const isActiveRoute = (itemPath) => {
@@ -40,42 +40,31 @@ const useMenuConfig = (businessType) => {
   return { menuItems, bottomItems, businessType };
 };
 
-const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
-  const { menuItems, bottomItems, businessType } = useMenuConfig(type);
-  const [loading, setLoading] = useState(false);
-  const vendor = useSelector((state) => state.auth);
-  const [profile, setProfile] = useState(null);
+const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
+  const { menuItems, bottomItems } = useMenuConfig(type);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchvendorData = async () => {
-      try {
-        setLoading(true);
-        if (vendor.isAuthenticated) {
-          setProfile(vendor.vendor);
-        } else {
-          setProfile(null);
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchvendorData();
-  }, [vendor]);
   const dispatch = useDispatch();
-
+  const vendor = useSelector((state) => state.auth.vendor);
+    const [profile, setProfile] = useState(null);
+  useEffect(() => {
+    try {
+      if (vendor) {
+        setProfile(vendor);
+      } else {
+        setProfile(null);
+      }
+    } catch (error) {
+      console.error(error);
+      setProfile(null);
+    }
+  }, [vendor]);
   const handleItemClick = (item) => {
-    // If the clicked item is Logout, dispatch logout first, clear local profile,
-    // then navigate to the login route and close the mobile sidebar.
     if (item.label === "Logout") {
       console.log("Sidebar: logging out");
       dispatch(logout());
       setTimeout(() => {
         navigate("/auth/vendor/login");
       }, 500);
-      setProfile(null);
       if (onNavigate) onNavigate(item.path);
       if (onClose && window.innerWidth < 1024) onClose();
       return;
@@ -92,10 +81,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
 
   const getBusinessName = () => {
     return type === "hotel"
-      ? "Hotel 1 - HQ"
+      ? "Hotel "
       : type === "restaurant"
-      ? "Restaurant 1 - HQ"
-      : "Club 1 - HQ";
+        ? "Restaurant "
+        : "Club ";
   };
 
   return (
@@ -117,7 +106,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
           {/* Business selector */}
           <div className="px-4 py-3 border-b border-teal-700">
             <div className="bg-slate-300 text-gray-900 px-3 py-2 rounded text-sm">
-              {getBusinessName()}
+              {profile?.businessName ?? 'Vendor'} - {getBusinessName()}
             </div>
           </div>
 
@@ -129,11 +118,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
                 onClick={() => {
                   handleItemClick(item);
                 }}
-                className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
-                  location.pathname === item.path
-                    ? "bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]"
-                    : "text-teal-100 hover:bg-teal-700 hover:text-white"
-                }`}
+                className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${location.pathname === item.path
+                  ? "bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]"
+                  : "text-teal-100 hover:bg-teal-700 hover:text-white"
+                  }`}
               >
                 <item.icon className="w-5 h-5" />
                 {item.label}
@@ -147,11 +135,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
               <button
                 key={item.label}
                 onClick={() => handleItemClick(item)}
-                className={`w-[90%] flex items-center pl-7 py-2 rounded-tr-[36px] rounded-br-[36px] text-left gap-3 transition-colors duration-200 ${
-                  item.active
-                    ? "bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]"
-                    : "text-teal-100 hover:bg-teal-700 hover:text-white"
-                }`}
+                className={`w-[90%] flex items-center pl-7 py-2 rounded-tr-[36px] rounded-br-[36px] text-left gap-3 transition-colors duration-200 ${item.active
+                  ? "bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]"
+                  : "text-teal-100 hover:bg-teal-700 hover:text-white"
+                  }`}
               >
                 <item.icon className="w-5 h-5 " />
                 {item.label}
@@ -161,11 +148,41 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
         </div>
       </div>
 
+      {/* Mobile Navbar */}
+      <div className="fixed md:hidden bottom-0 left-0 right-0 z-10 w-full bg-transparent py-4 px-2 flex gap-2 items-center">
+        <button className="p-4 bg-white rounded-full border">
+          <Search className="shrink-0 size-5" />
+        </button>
+        <nav className="flex items-center justify-between flex-1 gap-1 bg-white border rounded-full p-1">
+          {menuItems.map((item) => (
+            <button
+              key={item.label}
+              onClick={() => {
+                handleItemClick(item);
+              }}
+              className={`p-3 rounded-full ${location.pathname === item.path
+                ? "bg-teal-700 text-white"
+                : "text-[#606368] hover:bg-teal-700 hover:text-white"
+                }`}
+            >
+              <item.icon className="w-5 shrink-0 h-5" />
+            </button>
+          ))}
+            <button
+              onClick={() => {
+                
+              }}
+              className={`p-3 rounded-full text-[#606368] hover:bg-teal-700 hover:text-white`}
+            >
+              <Menu className="w-5 shrink-0 h-5" />
+            </button>
+        </nav>
+      </div>
+
       {/* Mobile Sidebar */}
       <div
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-teal-800 text-white transform transition-transform duration-300 ease-in-out lg:hidden ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-teal-800 text-white transform transition-transform duration-300 ease-in-out lg:hidden ${isOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         {/* Mobile Logo with close button */}
         <div className="flex items-center justify-between h-16 px-4 bg-teal-900">
@@ -186,7 +203,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
         {/* Business selector */}
         <div className="px-4 py-3 border-b border-teal-700">
           <div className="bg-teal-700 px-3 py-2 rounded text-sm">
-            {getBusinessName()}
+             {profile?.businessName ?? 'Vendor'}
           </div>
         </div>
 
@@ -196,11 +213,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
             <button
               key={item.label}
               onClick={() => handleItemClick(item)}
-              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
-                item.active
-                  ? "bg-teal-700 text-white"
-                  : "text-teal-100 hover:bg-teal-700 hover:text-white"
-              }`}
+              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${item.active
+                ? "bg-teal-700 text-white"
+                : "text-teal-100 hover:bg-teal-700 hover:text-white"
+                }`}
             >
               <item.icon className="w-5 h-5 mr-3" />
               {item.label}
@@ -214,11 +230,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type, settings, section }) => {
             <button
               key={item.label}
               onClick={() => handleItemClick(item)}
-              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${
-                item.active
-                  ? "bg-teal-700 text-white"
-                  : "text-teal-100 hover:bg-teal-700 hover:text-white"
-              }`}
+              className={`w-full flex items-center px-3 py-2 rounded-lg text-left transition-colors duration-200 ${item.active
+                ? "bg-teal-700 text-white"
+                : "text-teal-100 hover:bg-teal-700 hover:text-white"
+                }`}
             >
               <item.icon className="w-5 h-5 mr-3" />
               {item.label}

@@ -1,7 +1,8 @@
 import { useState } from "react";
-
 import { Building2, Calendar, Download, Edit, Eye, Home, MapPin, MoreVertical, Trash2, Users, X } from 'lucide-react';
 import { useNavigate } from "react-router";
+import { SvgIcon, SvgIcon2, SvgIcon3 } from "@/public/icons/icons";
+
 function BookingCard ({ booking, onEdit, onDelete }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const navigate = useNavigate();
@@ -15,23 +16,74 @@ function BookingCard ({ booking, onEdit, onDelete }) {
     });
   };
 
+  // const getStatusColor = (status) => {
+  //   switch (status) {
+  //     case 'paid':
+  //       return 'bg-green-100 text-green-800 border-green-200';
+  //     case 'not_paid':
+  //       return 'bg-amber-100 text-amber-800 border-amber-200';
+  //     case 'cancelled':
+  //       return 'bg-red-100 text-red-800 border-red-200';
+  //     case 'part_paid':
+  //       return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+  //     default:
+  //       return 'bg-gray-100 text-gray-800 border-gray-200';
+  //   }
+  // };
+
+// Temporary normalization added because backend paymentStatus values 
+// are not yet standardized (case/format mismatch).
+// Once backend aligns paymentStatus to consistent values 
+// like: 'paid', 'part_paid', 'not_paid', this logic can be simplified.
   const getStatusColor = (status) => {
-    switch (status) {
-      case 'Confirmed':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'Pending':
-        return 'bg-amber-100 text-amber-800 border-amber-200';
-      case 'Cancelled':
-        return 'bg-red-100 text-red-800 border-red-200';
-      case 'Completed':
-        return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
+  if (!status) return 'bg-gray-100 text-gray-800 border-gray-200';
+
+  const normalized = status.toLowerCase();
+
+  switch (normalized) {
+    case 'paid':
+      return 'bg-green-100 text-green-700 border-green-800';
+
+    case 'part_paid':
+    case 'part paid':
+    case 'partial':
+      return 'bg-yellow-100 text-yellow-700 border-yellow-800';
+
+    case 'not_paid':
+    case 'unpaid':
+      return 'bg-amber-100 text-amber-700 border-amber-800';
+
+    case 'cancelled':
+      return 'bg-red-100 text-red-700 border-red-800';
+
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
+
+  //Switch betweek proper Icons 
+  const getReservationIcon = (type) => {
+  if (!type) return <Home className="w-4 h-4 flex-shrink-0" />;
+
+  const normalized = type.toLowerCase();
+
+  if (normalized.includes('hotel')) {
+    return <SvgIcon2 className="w-4 h-4 flex-shrink-0 text-black" />;
+  }
+
+  if (normalized.includes('restaurant')) {
+    return <SvgIcon className="w-4 h-4 flex-shrink-0 text-black" />;
+  }
+
+  if (normalized.includes('club')) {
+    return <SvgIcon3 className="w-4 h-4 flex-shrink-0 text-black"  />;
+  }
+
+  return <Home className="w-4 h-4 flex-shrink-0" />;
+};
 
   const getButtonText = (status) => {
-    if (status === 'success' || status === 'Cancelled') {
+    if (status === 'success' || status === 'cancelled') {
       return 'Leave Review';
     }
     return 'View Details';
@@ -49,6 +101,20 @@ function BookingCard ({ booking, onEdit, onDelete }) {
       setShowDropdown(false);
     }
   };
+
+  //Capitalize Vendor type 
+  const formatReservationType = (type) => {
+  if (!type) return '';
+
+  const normalized = type.toLowerCase();
+
+  if (normalized.includes('hotel')) return 'Hotel';
+  if (normalized.includes('restaurant')) return 'Restaurant';
+  if (normalized.includes('club')) return 'Club';
+
+  return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+};
+
 
   return (
     <div className="bg-white rounded-xl relative shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200">
@@ -76,7 +142,11 @@ function BookingCard ({ booking, onEdit, onDelete }) {
               ) : (
                 <Home className="w-4 h-4 flex-shrink-0" />
               )}
-              <span className="text-sm">{booking.reservationType.split("R")[0]}</span>
+              {/* {getReservationIcon(booking.reservationType)} */}
+              <span className="text-sm">
+                {/* {booking.reservationType.split("R")[0]} */}
+                {formatReservationType(booking.reservationType)}
+              </span>
             </div>
 
             <div className="flex items-center gap-2 text-gray-700">
@@ -96,7 +166,7 @@ function BookingCard ({ booking, onEdit, onDelete }) {
             <div className="flex items-center gap-2 text-gray-700">
               <Users className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm">
-                {booking.guests} Guest{booking.guests > 1 ? 's' : ''}, {booking.room_info}
+                {booking.guests} Guest{booking.guests > 1 ? 's' : ''}, {booking.room_info} 
               </span>
             </div>
           </div>
@@ -109,11 +179,11 @@ function BookingCard ({ booking, onEdit, onDelete }) {
                 booking.paymentStatus
               )}`}
             >
-              {booking.paymentStatus}
+              {booking.paymentStatus.split("_").join(" ")}
             </span>
 
             <button
-              className="px-6 py-2 rounded-full text-sm font-medium transition-colors w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white"
+              className="px-6 py-3 rounded-full text-sm font-medium transition-colors w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white"
               onClick={() => {
                 navigate(`/bookings/${booking._id}`)
               }}
@@ -183,3 +253,7 @@ function BookingCard ({ booking, onEdit, onDelete }) {
 }
 
 export default BookingCard;
+
+
+
+  

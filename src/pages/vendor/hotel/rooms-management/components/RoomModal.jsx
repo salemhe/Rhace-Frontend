@@ -18,13 +18,25 @@ const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
     maintenanceStatus: room?.maintenanceStatus || 'available',
     existingImages: room?.images || [], // Keep track of existing images
     newImages: [], // Track new files to upload
+    category: room?.category || "",
+    discount: room?.discount || 0,
   });
 
   const [imagePreviews, setImagePreviews] = useState([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef(null);
 
-  const amenityOptions = ['WiFi', 'AC', 'TV', 'Mini Bar', 'Balcony', 'Room Service', 'Safe', 'Smart TV', 'Kitchenette'];
+  const amenityOptions = [
+    'Wi-Fi',
+    'TV',
+    'AC',
+    'Free Breakfast',
+    'Free Parking',
+    'City View',
+    'Mini Fridge',
+    'Workspace',
+    'Breakfast',
+  ];
   const featureOptions = ['Ocean View', 'Balcony', 'Living Area', 'Jacuzzi', 'Fireplace', 'Terrace', 'Garden View'];
 
   const vendor = useSelector((state) => state.auth);
@@ -69,6 +81,8 @@ const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
       maintenanceStatus: room?.maintenanceStatus || 'available',
       existingImages: room?.images || [],
       newImages: [],
+      category: room?.category || "",
+      discount: room?.discount || 0,
     });
     setImagePreviews([]);
   }, [room]);
@@ -86,7 +100,7 @@ const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
       ...prev,
       newImages: [...prev.newImages, ...files],
     }));
-    
+
     const newPreviews = files.map(file => URL.createObjectURL(file));
     setImagePreviews(prev => [...prev, ...newPreviews]);
   };
@@ -97,7 +111,7 @@ const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
       URL.revokeObjectURL(removed);
       return prev.filter((_, i) => i !== index);
     });
-    
+
     setFormData(prev => ({
       ...prev,
       newImages: prev.newImages.filter((_, i) => i !== index)
@@ -166,14 +180,16 @@ const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
         maintenanceStatus: formData.maintenanceStatus,
         images: allImages,
         totalUnits: formData.amenities.length,
+        category: formData.category,
+        discount: formData.discount,
       };
 
       console.log('Submitting payload:', payload, id);
 
       // Create or update room type
       let response;
-      
-        response = await hotelService.updateRoomType(hotelId, payload, id);
+
+      response = await hotelService.updateRoomType(hotelId, payload, id);
       // if (room && room._id) {
       //   // Update existing room
       // } else {
@@ -182,16 +198,16 @@ const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
       // }
 
       console.log('Room saved successfully:', response);
-      
+
       // Call onSave callback with response data
       if (onSave) {
         onSave(response);
       }
-      
+
       onClose();
     } catch (error) {
       console.error('Error saving room:', error);
-      
+
       // More detailed error logging
       if (error?.response) {
         console.error('Error response:', {
@@ -237,6 +253,21 @@ const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
             />
           </div>
 
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Category
+            </label>
+            <select
+              value={formData.category}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              {["Standard", "Deluxe", "Executive", "Suite", "Presidential Suite"].map((text) => (
+                <option value={text}>{text}</option>
+              ))}
+            </select>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -279,6 +310,21 @@ const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Discount
+            </label>
+            <select
+              value={formData.discount}
+              onChange={(e) => setFormData(prev => ({ ...prev, discount: Number(e.target.value) }))}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50].map((num) => (
+                <option value={num}>{num}%</option>
+              ))}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -405,7 +451,7 @@ const RoomModal = ({ isOpen, onClose, room, onSave, id }) => {
               onChange={handleImageChange}
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
             />
-            
+
             {/* Existing Images */}
             {formData.existingImages.length > 0 && (
               <div className="mt-3">

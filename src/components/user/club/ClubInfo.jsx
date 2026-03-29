@@ -8,13 +8,22 @@ const ClubInfo = ({ data }) => {
 
   const tabs = [
     {
-      name: "Club info",
+      name: "Info",
       tab: "info",
+    },
+    {
+      name: "Bookings",
+      tab: "bookings",
     },
     {
       name: "Reviews",
       tab: "reviews",
     },
+    {
+      name: "Upcoming events",
+      tab: "events",
+    },
+    
   ];
   return (
     <div>
@@ -43,7 +52,7 @@ const ClubInfo = ({ data }) => {
             closingTime={data.closingTime}
             dressCode={data.dressCode}
             desc={data.businessDescription}
-            ageLimit={data?.ageLimit ?? ""}
+            ageLimit={data?.agePolicy ?? ""}
           />
         )}
         {activeTab === "reviews" && <RestaurantReviews restaurantId={data._id} ratings={data.rating} />}

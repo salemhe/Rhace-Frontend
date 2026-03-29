@@ -12,18 +12,40 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { Home, Store, Calendar, CreditCard, Bell, Shield, ChevronLeft, ChevronRight, Save, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
 import { getSettings, updateSettings } from "@/services/admin.service";
-import { toast } from "sonner";
+import { useWebSocket } from "@/contexts/WebSocketContext";
+import { toast } from "react-toastify";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("overview");
   const [settings, setSettings] = useState({});
+  const [formData, setFormData] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const { subscribe, unsubscribe, sendMessage } = useWebSocket();
 
   useEffect(() => {
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    if (settings) {
+      setFormData(settings);
+    }
+  }, [settings]);
+
+  useEffect(() => {
+    const handleSettingsUpdate = (payload) => {
+      console.log("Settings update received:", payload);
+      fetchSettings(); // Refresh settings data in real-time
+    };
+
+    subscribe("settings_updated", handleSettingsUpdate);
+
+    return () => {
+      unsubscribe("settings_updated");
+    };
+  }, [subscribe, unsubscribe]);
 
   const fetchSettings = async () => {
     try {
@@ -32,20 +54,36 @@ export default function Settings() {
       setSettings(response.data || {});
       setError(null);
     } catch (err) {
-      setError("Failed to load settings");
-      toast.error("Failed to load settings");
+      if (err.response?.status === 403) {
+        setError("Access denied. Please ensure you are logged in as an admin.");
+        toast.error("Access denied. Admin privileges required.");
+      } else {
+        setError("Failed to load settings");
+        toast.error("Failed to load settings");
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
   const handleSaveSettings = async (tabData) => {
     try {
       setSaving(true);
-      await updateSettings({ ...settings, ...tabData });
-      setSettings({ ...settings, ...tabData });
+
+      const updatedSettings = { ...settings, ...formData, ...tabData };
+      await updateSettings(updatedSettings);
+      setSettings(updatedSettings);
+
+      // Emit WebSocket event for real-time updates
+      sendMessage("settings_updated", updatedSettings);
+
       toast.success("Settings saved successfully");
     } catch (err) {
+      console.error("Failed to save settings:", err);
       toast.error("Failed to save settings");
     } finally {
       setSaving(false);
@@ -100,7 +138,7 @@ export default function Settings() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <div className="space-y-2">
                 <Label htmlFor="platform-name">Platform Name*</Label>
-                <Input id="platform-name" defaultValue="Bookies" maxLength={50} />
+                <Input id="platform-name" value={formData['platform-name'] || 'Bookies'} onChange={(e) => handleInputChange('platform-name', e.target.value)} maxLength={50} />
                 <p className="text-xs text-muted-foreground">
                   This name appears on vendor onboarding screens and email templates.
                 </p>
@@ -108,7 +146,7 @@ export default function Settings() {
 
               <div className="space-y-2">
                 <Label htmlFor="currency">Default Currency*</Label>
-                <Select defaultValue="ngn">
+                <Select value={formData.currency || 'ngn'} onValueChange={(value) => handleInputChange('currency', value)}>
                   <SelectTrigger id="currency">
                     <SelectValue />
                   </SelectTrigger>
@@ -182,7 +220,10 @@ export default function Settings() {
 
             <div className="flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-6 border-t">
               <Button variant="outline">Reset to Default</Button>
-              <Button>Save Changes</Button>
+              <Button onClick={() => handleSaveSettings({ /* overview settings */ })} disabled={saving}>
+                <Save className="h-4 w-4 mr-2" />
+                {saving ? "Saving..." : "Save Changes"}
+              </Button>
             </div>
           </Card>
         </TabsContent>

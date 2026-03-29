@@ -14,11 +14,15 @@ import { useEffect, useState } from "react";
 import { userService } from "@/services/user.service";
 import StarRating from "@/components/ui/starrating";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
+import { clubService } from "@/services/club.service";
+import { toast } from "react-toastify";
 
 const ClubPage = () => {
     const { id } = useParams();
     // const club = ClubsData.data[0];
     const [isLoading, setIsLoading] = useState(true);
+    const [tables, setTables] = useState(null)
+    const [loading, setLoading] = useState(true);
     const [club, setClub] = useState(null);
 
     useEffect(() => {
@@ -32,10 +36,23 @@ const ClubPage = () => {
                 setIsLoading(false)
             }
         }
+        const fetchTables = async () => {
+            try {
+                const res = await clubService.getTables(id);
+                setTables(res.tables)
+                console.log(res)
+            } catch (error) {
+                console.error(error)
+                toast.error("Failed to Fetch Tables!")
+            } finally {
+                setLoading(false)
+            }
+        }
         fetchClub();
+        fetchTables();
     }, [])
 
-      if (isLoading) return <UniversalLoader fullscreen />
+      if (isLoading) return <UniversalLoader fullscreen type="vendor-page"/>
 
     return (
         <>
@@ -52,21 +69,22 @@ const ClubPage = () => {
                                     name={club.businessName}
                                 />
                                 <Images2
+                                    vendor={club}
                                     images={club?.profileImages ?? []}
                                     name={club.businessName}
                                 />
                                 <div className="space-y-2">
                                     <div className="flex flex-col md:flex-row md:justify-between md:items-cente w-full gap-4">
-                                        <div className="flex gap-2 items-center pt-2 md:pt-0 px-4 md:px-0">
-                                            <h1 className="text-2xl text-[#111827] font-semibold">
+                                        <div className="flex items-center justify-between md:justify-start w-full gap-4 px-4 md:px-0 pt-2 md:pt-0 md:mt-0">
+                                            <h1 className="text-2xl text-[#111827] font-semibold truncate max-w-[65%] md:max-w-none">
                                                 {club.businessName}{" "}
                                             </h1>{" "}
-                                            <span className="px-2 py-0.5 rounded-full border border-[#37703F] bg-[#D1FAE5] text-xs text-[#37703F]">
+                                            <span className="px-2 py-0.5 rounded-full border-2 border-[#37703F]  text-xs text-[#37703F]">
                                                 {" "}
                                                 {club.offer}
                                             </span>
                                         </div>
-                                        <SaveCopy id={id} />
+                                        <SaveCopy type="clubs" id={id} vendor={club} />
                                     </div>
                                     <div className="md:flex hidden gap-1 items-center text-xs">
                                         <StarRating size={16} rating={Number(club.rating)} readOnly />
@@ -85,7 +103,7 @@ const ClubPage = () => {
                             <h2 className="text-[#111827] font-semibold text-xl">
                                 Reserve your Table
                             </h2>
-                            <BookingForm id={id} />
+                            <BookingForm tables={tables} loading={loading} id={id} />
                         </div>
                         <div className="rounded-2xl bg-[#E7F0F0] border border-[#E5E7EB] p-1">
                             <MapComponent address={club.address} />
@@ -128,7 +146,7 @@ const ClubPage = () => {
                         </div>
                     </div>
                 </div>
-                <BookingPopup id={id} />
+                <BookingPopup loading={loading} tables={tables} id={id} />
             </main>
             <div className="hidden md:block">
                 <Footer />

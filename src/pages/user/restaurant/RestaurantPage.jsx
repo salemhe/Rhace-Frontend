@@ -61,14 +61,14 @@ const RestaurantsPage = () => {
         fetchRestaurant();
     }, [])
 
-      if (isLoading) return <UniversalLoader fullscreen />
+      if (isLoading) return <UniversalLoader fullscreen  type="vendor-page"/>
 
     return (
         <>
             <div className="hidden md:block">
                 <Header />
             </div>
-            <main className="mx-auto md:mt-[85px] mb-[160px] md:mb-[16px] md:py-8 max-w-7xl md:px-6 lg:px-8">
+            <main className="mx-auto md:mt-[85px] pb-20 md:mb-4 md:py-8 max-w-7xl md:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row gap-8 w-full">
                     <div className="w-full space-y-4 md:space-y-8">
                         <div className="col-span-2">
@@ -78,25 +78,26 @@ const RestaurantsPage = () => {
                                     name={restaurant.businessName}
                                 />
                                 <RestaurantImages2
+                                    vendor={restaurant}
                                     images={restaurant?.profileImages ?? []}
                                     name={restaurant.businessName}
                                 />
                                 <div className="space-y-2">
                                     <div className="flex flex-col md:flex-row md:justify-between md:items-cente w-full gap-4">
-                                        <div className="flex gap-2 items-center pt-2 md:pt-0 px-4 md:px-0">
+                                        <div className="flex justify-between items-center pt-2 md:pt-0 px-4 md:px-0">
                                             <h1 className="text-2xl text-[#111827] font-semibold">
                                                 {restaurant.businessName}{" "}
                                             </h1>{" "}
                                             <span className="px-2 py-0.5 rounded-full border border-[#37703F] bg-[#D1FAE5] text-xs text-[#37703F]">
                                                 {" "}
-                                                Opened
+                                                Open
                                             </span>
                                         </div>
-                                        <RestaurantSaveCopy id={id} />
+                                        <RestaurantSaveCopy type="restaurants" id={id} vendor={restaurant} />
                                     </div>
                                     <div className="md:flex hidden gap-1 items-center text-xs">
                                         <StarRating size={16} rating={Number(restaurant.rating)} readOnly />
-                                        <span className="font-semibold text-lg">{restaurant.rating}</span>
+                                        <span className="font-semibold">{restaurant.rating.toFixed(1)}</span>
                                         <span className="text-gray-600">({restaurant.reviews.toLocaleString()} reviews)</span>
                                     </div>
                                 </div>
