@@ -99,6 +99,20 @@ const ReservationDashboard = () => {
 
   const [open, setOpen] = useState(false);
   const [resID, setResID] = useState();
+  const reservationStatusOptions = (status) => {
+    switch (status) {
+      case "upcoming":
+        return "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]";
+      case "confirmed":
+        return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
+      case "canceled":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      case "no-show":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  }
 
   const columns = [
     {
@@ -216,9 +230,14 @@ const ReservationDashboard = () => {
       },
       cell: ({ row }) => (
         <div
-          className={`w-max ${row.getValue("reservationStatus") === "upcoming" ? "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]" : "text-[#EF4444] bg-[#FCE6E6] border-[#FAE48A]"} flex py-1.5 px-3 border rounded-full`}
+          className={`w-max 
+            ${reservationStatusOptions(row.getValue("reservationStatus"))} 
+              flex py-1.5 px-3 border rounded-full`}
         >
           {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}
+          {row.getValue("reservationStatus") === "confirmed" && "Confirmed"}
+          {row.getValue("reservationStatus") === "canceled" && "Canceled"}
+          {row.getValue("reservationStatus") === "no-show" && "No Show"}
         </div>
       ),
     },

@@ -17,8 +17,8 @@ const FinancialDashboard = ({ info }) => {
     const lastPaymentDate = 'May 31st, 2025';
     const accountHolder = info.accountName;
     const lastFourDigits = info.accountNumber;
-    const earningsValue = trend.totalEarnings.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-    const earningsChange = `${trend.percentChange}%`;
+    const earningsValue = trend.totalEarnings.toLocaleString('en-US');
+    const earningsChange = `${trend.percentChange.toFixed(2)}%`;
     const branches = ['Restaurant 1 - HQ'];
 
     const fetchTrends = async () => {
@@ -100,7 +100,6 @@ const FinancialDashboard = ({ info }) => {
                 </div>
                 {!loading ? (
                     <>
-
                         <div className="mb-4 flex gap-3">
                             <div>
 
@@ -136,32 +135,32 @@ const FinancialDashboard = ({ info }) => {
                                     tickLine={false}
                                     axisLine={false}
                                     tickMargin={8}
-                                    tickFormatter={(value) => value.slice(0, 5)}
+                                    tickFormatter={(value) => value.slice(0, 3)}
                                 />
                                 <ChartTooltip
                                     cursor={false}
                                     formatter={(value) => `₦${value.toLocaleString()}`}
                                 />
-                                <defs>
+                                {/* <defs>
                                     <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
                                         <stop
                                             offset="5%"
-                                            stopColor="#60A5FA"
+                                            stopColor="#319246"
                                             stopOpacity={0.8}
                                         />
                                         <stop
                                             offset="95%"
-                                            stopColor="4C98F1"
+                                            stopColor="	#52cc46"
                                             stopOpacity={0.1}
                                         />
                                     </linearGradient>
-                                </defs>
+                                </defs> */}
                                 <Area
                                     dataKey="earnings"
                                     type="linear"
-                                    fill="url(#fillDesktop)"
-                                    fillOpacity={0.4}
-                                    stroke="#60A5FA"
+                                    fill="#319246"
+                                    fillOpacity={0.8}
+                                    stroke="#75e444"
                                 />
                             </AreaChart>
                         </ChartContainer>

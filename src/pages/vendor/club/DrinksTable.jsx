@@ -25,6 +25,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  Edit,
   MoreVertical,
   Plus,
   Search,
@@ -59,6 +60,8 @@ export function DrinksTable() {
   const [totalItems, setTotalItems] = useState(0);
   const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
   const [showTablesModal, setShowTablesModal] = useState(false);
+  const [showTablesEditModal, setShowTablesEditModal] = useState(false);
+  const [initialTableData, setInitialTableData] = useState(null);
   const vendor = useSelector((state) => state.auth.vendor);
   const navigate = useNavigate();
 
@@ -677,8 +680,13 @@ export function DrinksTable() {
                           </td>
                         )}
                         <td className="px-4 py-4">
-                          <button className="text-gray-400 hover:text-gray-600">
-                            <MoreVertical size={16} />
+                          <button onClick={() => {
+                            if (selectedTab === "tables") {
+                              setInitialTableData(item);
+                              setShowTablesEditModal(true);
+                            }
+                          }} className="text-gray-400 hover:text-gray-600">
+                            <Edit size={16} />
                           </button>
                         </td>
                       </tr>
@@ -779,6 +787,26 @@ export function DrinksTable() {
             fetchTables();
             setShowTablesModal(false);
           }}
+        />
+      )}
+      {showTablesEditModal && (
+        <AddTablesModal
+          onClose={() => setShowTablesEditModal(false)}
+          onSuccess={() => {
+            // Refresh drinks list
+            const fetchTables = async () => {
+              try {
+                const data = await clubService.getTables(vendor._id);
+                setTables(data.tables || []);
+              } catch (error) {
+                console.error("Error fetching tables:", error);
+              }
+            };
+            fetchTables();
+            setShowTablesEditModal(false);
+          }}
+          initialData={initialTableData}
+          editMode={true}
         />
       )}
     </DashboardLayout>

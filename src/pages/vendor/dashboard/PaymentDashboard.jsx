@@ -197,7 +197,7 @@ const PaymentDashboard = () => {
   ]
 
 
-  const { subscribe, unsubscribe } = useWebSocket();
+  // const { subscribe, unsubscribe } = useWebSocket();
 
   const fetchData = () => {
     const fetchPayments = async () => {
@@ -249,16 +249,17 @@ const PaymentDashboard = () => {
       fetchData();
     };
 
-    subscribe("payment-updated", handlePaymentUpdate);
-    subscribe("payment-created", handlePaymentUpdate);
-    subscribe("payment-deleted", handlePaymentUpdate);
+    // subscribe("payment-updated", handlePaymentUpdate);
+    // subscribe("payment-created", handlePaymentUpdate);
+    // subscribe("payment-deleted", handlePaymentUpdate);
 
-    return () => {
-      unsubscribe("payment-updated");
-      unsubscribe("payment-created");
-      unsubscribe("payment-deleted");
-    };
-  }, [subscribe, unsubscribe]);
+    // return () => {
+    //   unsubscribe("payment-updated");
+    //   unsubscribe("payment-created");
+    //   unsubscribe("payment-deleted");
+    // };
+  }, []);
+  // }, [subscribe, unsubscribe]);
 
 
 

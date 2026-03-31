@@ -273,7 +273,7 @@ const BookingManagement = () => {
         const booking = row.original;
         return (
           <div className="text-sm text-gray-900">
-            {booking.room?.name || "N/A"}
+            {booking.rooms[0]?.roomId.name || "N/A"}
           </div>
         );
       },

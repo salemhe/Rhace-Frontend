@@ -23,9 +23,9 @@ export const logoutAsync = createAsyncThunk(
 
     // Navigate to respective login page
     if (userType === "user") {
-      window.location.href = "/login";
+      window.location.href = "/auth/users/login";
     } else if (userType === "vendor") {
-      window.location.href = "/vendor/login";
+      window.location.href = "/auth/vendor/login";
     }
   }
 );
