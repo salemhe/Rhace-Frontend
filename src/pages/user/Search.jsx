@@ -184,6 +184,7 @@ const searchSvc = {
 
     try {
       const fallbackParams = new URLSearchParams();
+      fallbackParams.set("q", q);
       fallbackParams.set("search", q);
       if (type) fallbackParams.set("type", type);
       if (location?.lat != null && location?.lng != null) {
