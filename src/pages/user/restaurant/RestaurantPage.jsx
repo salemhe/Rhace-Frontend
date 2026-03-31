@@ -14,10 +14,12 @@ import { userService } from "@/services/user.service";
 import StarRating from "@/components/ui/starrating";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
 import Footer from "@/components/Footer";
+import TableGrid from "@/components/TableGridRecommendations";
 
 const RestaurantsPage = () => {
     const { id } = useParams();
     const [isLoading, setIsLoading] = useState(true);
+    const [recommendations, setRecommendations] = useState([]);
     const [restaurant, setRestaurant] = useState({
         _id: "",
         businessName: "",
@@ -49,9 +51,9 @@ const RestaurantsPage = () => {
     useEffect(() => {
         const fetchRestaurant = async () => {
             try {
-                const res = await userService.getVendor("restaurant", id)
-                console.log(res)
-                setRestaurant(res.data[0])
+                const res = await userService.getVendor(id)
+                setRestaurant(res.data)
+                setRecommendations(res.recommendations)
             } catch (error) {
                 console.error(error)
             } finally {
@@ -61,7 +63,7 @@ const RestaurantsPage = () => {
         fetchRestaurant();
     }, [])
 
-      if (isLoading) return <UniversalLoader fullscreen  type="vendor-page"/>
+    if (isLoading) return <UniversalLoader fullscreen type="vendor-page" />
 
     return (
         <>
@@ -157,6 +159,9 @@ const RestaurantsPage = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+                <div className="mt-5">
+                    <TableGrid title="You might also like" data={recommendations} />
                 </div>
                 <BookingPopup id={id} />
             </main>

@@ -1,11 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "@/lib/axios";
+import { authService } from "@/services/auth.service";
 
 export const logoutAsync = createAsyncThunk(
   "auth/logoutAsync",
-  async (_, { dispatch }) => {
+  async (_, { dispatch, getState }) => {
+    const state = getState();
+    const userType = state.auth.user ? "user" : state.auth.vendor ? "vendor" : null;
+
     try {
-      await api.post("/auth/logout");
+      await authService.logout();
     } catch (err) {
       console.warn("Logout API call failed, clearing local state anyway");
     }
@@ -17,6 +20,13 @@ export const logoutAsync = createAsyncThunk(
 
     // Clear Redux state
     dispatch(authSlice.actions.logout());
+
+    // Navigate to respective login page
+    if (userType === "user") {
+      window.location.href = "/login";
+    } else if (userType === "vendor") {
+      window.location.href = "/vendor/login";
+    }
   }
 );
 

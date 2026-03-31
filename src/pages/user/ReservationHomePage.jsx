@@ -256,7 +256,7 @@ function ReservationHomePage() {
 
       {activeTab === "restaurants" && (
         <div className=" mt-16 sm:mt-[65px] mx-auto lg:px-8 py-8">
-          <TableGridFour title="Offers" type="offers" />
+          {/* <TableGridFour title="Offers" type="offers" /> */}
           <TableGrid title="Popular Restaurants" />
           <TableGrid title="Top-Rated Restaurants" type="top-rate" />
           <TableGrid title="Nearby Restaurants" type="nearby" />

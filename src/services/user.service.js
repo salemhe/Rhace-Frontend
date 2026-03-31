@@ -92,8 +92,13 @@ class UserService {
 
     return response.data;
   }
-  async getVendor(type, id) {
-    const res = await api.get(`/vendors?type=${type}&id=${id ? id : ""}`);
+  async getVendor(id) {
+    const res = await api.get(`/vendors/${id ? id : ""}`);
+    return res.data;
+  }
+
+  async getVendors(type, id) {
+    const res = await api.get(`/vendors?type=${type}&user=${id ? id : ""}`);
     return res.data;
   }
 

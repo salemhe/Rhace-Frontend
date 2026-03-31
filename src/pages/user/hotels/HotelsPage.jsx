@@ -15,12 +15,14 @@ import { Mail, MapPin, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router";
 import HotelInfo from "../../../components/user/hotel/HotelInfo";
+import { TableGridTwo } from "@/components/TableGridRecommendations";
 
 const HotelsPage = () => {
   const [activeTab, setActiveTab] = useState("details");
 
   const { id } = useParams();
   const [hotel, setHotel] = useState({});
+      const [recommendations, setRecommendations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [show, setShow] = useState(false);
   const [rooms, setRooms] = useState(null);
@@ -29,9 +31,10 @@ const HotelsPage = () => {
   useEffect(() => {
     const fetchHotel = async () => {
       try {
-        const res = await userService.getVendor("hotel", id);
+        const res = await userService.getVendor(id);
         console.log(res);
-        setHotel(res.data[0]);
+        setHotel(res.data);
+        setRecommendations(res.recommendations)
       } catch (error) {
         console.error(error);
       } finally {
@@ -183,6 +186,9 @@ const HotelsPage = () => {
               </div>
             </div>
           )}
+        </div>
+        <div className="mt-5">
+          <TableGridTwo title="You might also like" data={recommendations} />
         </div>
         <HotelBookingPopup
           activeTab={activeTab}

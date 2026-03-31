@@ -1,19 +1,16 @@
-import { Check, Mail, Clock, X, ArrowRightLeft } from "lucide-react";
+import { Check, Mail, Clock, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useNavigate, useParams, useSearchParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { paymentService } from "@/services/payment.service";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
-import Receipt from "@/components/Receipt";
 import Success from "@/public/images/success.gif";
 
 export default function ConfirmPage() {
     const navigate = useNavigate();
     const { id } = useParams();
-    const [searchParams] = useSearchParams();
 
-    const reference = searchParams.get('reference');
     const [state, setState] = useState({
         reservation: null,
         payment: null,
@@ -21,19 +18,8 @@ export default function ConfirmPage() {
         error: null
     });
 
-    // Check token before API calls
-    const checkAuthToken = () => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            toast.error('Session expired. Please log in again.');
-            navigate('/auth/user/login');
-            return false;
-        }
-        return true;
-    };
-
     useEffect(() => {
-        if (!id && !reference) {
+        if (!id) {
             setState(prev => ({
                 ...prev,
                 isLoading: false,
@@ -47,30 +33,15 @@ export default function ConfirmPage() {
         let pollCount = 0;
         const MAX_POLLS = 10;
 
-        const processPayment = async () => {
-            // First check auth
-            if (!checkAuthToken()) return;
-
+        const completeReservation = async () => {
             try {
-                toast.info('Finalizing your reservation...');
-
-                let result;
-                
-                // Prefer reference for full verification flow
-                if (reference) {
-                    // Verify payment first, then complete
-                    await paymentService.verifyPayment(reference);
-                    result = await paymentService.completeReservation(id);
-                } else {
-                    // Direct complete (fallback)
-                    result = await paymentService.completeReservation(id);
-                }
+                const result = await paymentService.completeReservation(id);
 
                 if (!isMounted) return;
 
                 setState({
                     reservation: result.reservation,
-                    payment: result.payment || state.payment,
+                    payment: result.payment,
                     isLoading: false,
                     error: null
                 });
@@ -85,23 +56,15 @@ export default function ConfirmPage() {
             } catch (err) {
                 if (!isMounted) return;
 
-                // Handle 401 token issues
-                if (err.response?.status === 401) {
-                    toast.error('Session expired. Redirecting to login...');
-                    localStorage.removeItem('token');
-                    navigate('/auth/user/login');
-                    return;
-                }
-
-                // Handle 404 polling
                 if (err.response?.status === 404 && pollCount < MAX_POLLS) {
                     pollCount++;
                     console.log(`Polling attempt ${pollCount}/${MAX_POLLS}...`);
-                    timeoutId = setTimeout(processPayment, 2000);
+
+                    timeoutId = setTimeout(completeReservation, 2000);
                     return;
                 }
 
-                const errorMessage = err.response?.data?.message || "Failed to confirm reservation. Please check Payments page.";
+                const errorMessage = err.response?.data?.message || "Failed to confirm reservation";
 
                 setState({
                     reservation: null,
@@ -113,13 +76,13 @@ export default function ConfirmPage() {
             }
         };
 
-        processPayment();
+        completeReservation();
 
         return () => {
             isMounted = false;
             if (timeoutId) clearTimeout(timeoutId);
         };
-    }, [id, reference, navigate]);
+    }, [id]);
 
     if (state.isLoading) {
         return (
@@ -136,40 +99,23 @@ export default function ConfirmPage() {
 
     if (state.error) {
         return (
-            <div className="min-h-screen bg-gradient-to-br from-rose-50 to-red-50 flex items-center justify-center px-4 py-12">
-                <div className="text-center max-w-lg w-full bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-red-100 p-12">
-                    <div className="w-24 h-24 bg-red-100 rounded-3xl mx-auto mb-8 flex items-center justify-center">
-                        <div className="w-16 h-16 bg-red-500 rounded-2xl flex items-center justify-center">
-                            <X className="w-8 h-8 text-white" />
+            <div className="min-h-screen bg-gray-50">
+                <div className="h-[90vh] w-full flex items-center justify-center px-4">
+                    <div className="text-center max-w-md">
+                        <div className="flex justify-center mb-4">
+                            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+                                <X className="w-8 h-8 text-red-500" />
+                            </div>
                         </div>
-                    </div>
-                    <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                        Reservation Failed
-                    </h2>
-                    <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                        {state.error}
-                    </p>
-                    <div className="space-y-4 max-w-md mx-auto">
+                        <h2 className="text-xl font-semibold text-gray-900 mb-2">
+                            Reservation Failed
+                        </h2>
+                        <p className="text-gray-600 mb-6">{state.error}</p>
                         <Button
-                            onClick={() => window.location.reload()}
-                            className="w-full h-14 bg-[#0A6C6D] hover:bg-teal-800 text-lg font-semibold rounded-2xl shadow-lg"
+                            onClick={() => navigate(0)}
+                            className="bg-[#0A6C6D] hover:bg-teal-800"
                         >
-                            🔄 Retry Payment
-                        </Button>
-                        <Button
-                            variant="outline"
-                            onClick={() => navigate('/payments')}
-                            className="w-full h-14 border-2 border-gray-300 text-lg rounded-2xl"
-                        >
-                            📋 View Payments
-                        </Button>
-                        <Button
-                            variant="ghost"
-                            onClick={() => navigate(`/paystack/callback?trxref=${id}`)}
-                            className="w-full h-14 text-[#0A6C6D] border-2 border-[#0A6C6D] hover:bg-[#0A6C6D]/5 rounded-2xl text-lg font-medium"
-                        >
-                            <ArrowRightLeft className="w-5 h-5 mr-2" />
-                            Process via Callback
+                            Retry
                         </Button>
                     </div>
                 </div>
@@ -177,11 +123,147 @@ export default function ConfirmPage() {
         );
     }
 
-    // Success - use unified Receipt
-    return <Receipt 
-        reservation={state.reservation} 
-        payment={state.payment}
-        type="hotel"
-    />;
-}
+    const { reservation: data } = state;
+    const rooms = data.rooms;
 
+    return (
+        <div className="min-h-screen bg-gray-50 px-4 py-6 md:px-6 md:py-8">
+            <div className="max-w-4xl mx-auto">
+                {/* Success Icon */}
+                <div className="flex justify-center relative mb-6">
+                    <div className="w-16 h-16 bg-[#37703F1A] rounded-full flex items-center justify-center">
+                        <img src={Success} alt="Success" className="absolute z-0" />
+                        <div className="w-12 h-12 bg-[#37703F] rounded-full z-10 flex items-center justify-center">
+                            <Check className="w-6 h-6 text-white" />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Main Heading */}
+                <div className="text-center mb-8">
+                    <h1 className="text-xl font-bold text-[#111827] mb-2">
+                        Your reservation is confirmed!
+                    </h1>
+                    <p className="text-[#6B7280] text-sm">
+                        {data.payLater
+                            ? "Your table is reserved. Pay the balance at the restaurant."
+                            : "Your payment is confirmed and your reservation is all set!"
+                        }
+                    </p>
+                </div>
+
+                {/* Reservation Details */}
+                <div className="bg-white rounded-2xl border border-gray-200 mb-6">
+                    <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                        Reservation Details
+                    </h2>
+
+                    <hr className="border-gray-200 mb-4" />
+
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 px-4 mb-4">
+                        <div>
+                            <p className="text-sm text-gray-600 mb-1">Check In Date</p>
+                            <p className="font-medium text-gray-900">
+                                {new Date(data.checkInDate).toLocaleDateString('en-NG', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                })}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600 mb-1">Check Out Date</p>
+                            <p className="font-medium text-gray-900">
+                                {new Date(data.checkInDate).toLocaleDateString('en-NG', {
+                                    year: 'numeric',
+                                    month: 'short',
+                                    day: 'numeric',
+                                })}
+                            </p>
+                        </div>
+                        <div>
+                            <p className="text-sm text-gray-600 mb-1">Guests Allowed</p>
+                            <p className="font-medium text-gray-900">{data.guests} Guests</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Payment Summary */}
+                <div className="rounded-2xl bg-white border border-gray-200 mb-6">
+                    <div className=" divide-y">
+                        <div className="flex p-4 justify-between items-center">
+                            <h3 className="text-lg font-semibold">Room Summary</h3>
+                        </div>
+                        <div className="space-y-4 p-4">
+                            {rooms.length > 0 && rooms.map((room, index) => (
+
+                                <div key={index} className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-gray-600">Room Name</p>
+                                        <p className="text-sm  line-clamp-1 font-medium text-gray-900">
+                                            Superion {room.roomId.category} {room.roomId.name}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-gray-600">Price per Night</p>
+                                        <p className="text-sm font-medium text-gray-900">
+                                            ₦
+                                            {(
+                                                room.roomId.pricePerNight -
+                                                room.roomId.pricePerNight * (room.roomId.discount / 100)
+                                            ).toLocaleString()}
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-gray-600">Bed Type</p>
+                                        <p className="text-sm font-medium text-gray-900">
+                                            {room.roomId.bedType} Bed
+                                        </p>
+                                    </div>
+                                    <div className="space-y-1">
+                                        <p className="text-xs text-gray-600">Guests Allowed</p>
+                                        <p className="text-sm font-medium text-gray-900">
+                                            {room.roomId.adultsCapacity}
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                            <div className="flex items-center justify-between">
+                                <div className="text-sm text-[#0A6C6D] underline">
+                                    Free cancellation until 24h before check-in
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Info Cards */}
+                <div className="bg-[#E7F0F0] border border-[#B3D1D2] rounded-2xl p-4 mb-8">
+                    <div className="space-y-3">
+                        <div className="flex items-start gap-3">
+                            <Mail className="w-5 h-5 text-[#0A6C6D] mt-0.5 shrink-0" />
+                            <p className="text-sm">
+                                You will receive a confirmation email with your reservation details
+                            </p>
+                        </div>
+
+                        <div className="flex items-start gap-3">
+                            <Clock className="w-5 h-5 text-[#0A6C6D] mt-0.5 shrink-0" />
+                            <p className="text-sm">Please arrive 10 minutes early</p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Action Button */}
+                <div className="flex flex-col md:flex-row w-full gap-3">
+                    <Button
+                        onClick={() => navigate('/bookings')}
+                        className="w-full h-10 text-sm font-medium rounded-xl px-6 bg-[#0A6C6D] hover:bg-teal-800"
+                    >
+                        View My Bookings
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}

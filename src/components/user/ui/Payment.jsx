@@ -58,8 +58,7 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
           specialRequest: booking.specialRequest,
         }),
         ...(booking.reservationType === "hotel" && {
-          roomId: booking.roomId || booking.rooms?.[0]?.room || booking.rooms?.[0]?.roomId,
-          quantity: booking.quantity || booking.rooms?.[0]?.quantity,
+          rooms: booking.rooms,
           checkInDate: booking.checkInDate || booking.rooms?.[0]?.checkInDate,
           checkOutDate: booking.checkOutDate || booking.rooms?.[0]?.checkOutDate,
           guests: booking.guests || booking.rooms?.[0]?.guests,
@@ -69,11 +68,8 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
           date: booking.date,
           time: booking.time,
           guests: booking.guests,
-          drinks: booking.drinks?.map((d) => ({
-            drink: d.drink,
-            quantity: d.quantity,
-          })),
-          combos: booking.combos?.map((c) => c),
+          drinks: booking.drinks,
+          combos: booking.combos,
           table: booking.table,
         }),
       });

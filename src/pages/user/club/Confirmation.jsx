@@ -204,7 +204,7 @@ export default function ConfirmPage() {
                                 <div htmlFor="date" className="text-black text-xs">
                                     Table
                                 </div>
-                                {data.tables[0].tableType.name}
+                                {data.tables.length > 0 ? data.tables[0].tableType.name : "N/A"} {data.tables.length > 0 ? `+${data.tables.length - 1} more` : ""}
                             </div>
                             <Edit3 className="size-5" />
                         </div>
@@ -250,7 +250,7 @@ export default function ConfirmPage() {
                                 </div>
                             </div>
                         ))}
-                        {data.tables.map((item, i) => (
+                        {data.tables.length > 0 && data.tables.map((item, i) => (
                             <div
                                 key={i}
                                 className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"

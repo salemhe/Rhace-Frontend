@@ -44,8 +44,8 @@ const Reservation = () => {
   const fetchVendor = async () => {
     try {
       setLoading(true);
-      const res = await userService.getVendor("club", id);
-      setVendor(res.data[0]);
+      const res = await userService.getVendor(id);
+      setVendor(res.data);
     } catch (error) {
       console.error("Error fetching vendor:", error);
     } finally {

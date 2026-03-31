@@ -9,6 +9,7 @@ import { logout } from "@/redux/slices/authSlice";
 import logoWhite from "@/public/images/Rhace-09.png";
 import logoBlack from "@/public/images/Rhace-11.png";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { authService } from "@/services/auth.service";
 
 const UserHeader = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -77,6 +78,8 @@ const UserHeader = () => {
     console.log("Attempting to logout");
     dispatch(logout());
     setProfile(null);
+    await authService.logout();
+    navigates("/auth/user/login");
   };
 
   // Navigate helper

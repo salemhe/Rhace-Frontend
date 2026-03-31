@@ -35,7 +35,7 @@ export function ReservationsProvider({
   const combos = comboItems.filter((item) => item.selected);
   const bottles = bottleItems.filter(item => item.quantity > 0);
   const vipExtras = vipExtraItems.filter((item) => item.selected);
-  const tableSelected = table.filter(t => t.selected);
+  const tableSelected = table.filter(t => t.quantity > 0);
 
   const totalPrice = vendor
     ? bottles.reduce(
@@ -159,6 +159,7 @@ export function ReservationsProvider({
   );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useReservations() {
   const context = useContext(ReservationContext);
   if (context === undefined) {
