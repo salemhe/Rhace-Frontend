@@ -165,7 +165,6 @@ const searchSvc = {
   suggestions: async (q, type, location) => {
     if (!q) return [];
     const params = new URLSearchParams();
-    params.set("q", q);
     params.set("search", q);
     if (type) params.set("type", type);
     if (location?.lat != null && location?.lng != null) {
@@ -184,7 +183,6 @@ const searchSvc = {
 
     try {
       const fallbackParams = new URLSearchParams();
-      fallbackParams.set("q", q);
       fallbackParams.set("search", q);
       if (type) fallbackParams.set("type", type);
       if (location?.lat != null && location?.lng != null) {
@@ -210,7 +208,10 @@ const searchSvc = {
       cleaned.latitude = String(location.lat);
       cleaned.longitude = String(location.lng);
     }
-    if (cleaned.q && !cleaned.search) cleaned.search = cleaned.q;
+    if (cleaned.q) {
+      cleaned.search = cleaned.q;
+      delete cleaned.q;
+    }
     return api.get(`/search?${new URLSearchParams(cleaned)}`).then(r => r.data);
   },
   trending: (type) =>
