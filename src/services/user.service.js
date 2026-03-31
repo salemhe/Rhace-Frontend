@@ -177,6 +177,18 @@ async updateReservationStatus({ reservationId, vendorId, resId, paymentRef }) {
     return res.data;
   }
 
+  /**
+   * Fetch full reservation details by ID (populated w/ vendor/room/menu etc)
+   * for Payments page drawer
+   */
+  async fetchFullReservation(bookingId) {
+    if (!bookingId) {
+      throw new Error("bookingId required");
+    }
+    const res = await api.get(`/bookings/${bookingId}`);
+    return res.data;
+  }
+
   async createReview(data) {
     const res = await api.post(`/reviews/create`, data);
     return res.data;

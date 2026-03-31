@@ -33,7 +33,7 @@ const Login = () => {
   const redirectTo = searchParams.get("redirect") || "/dashboard";
 
   const handleLogin = async () => {
-    console.log('handleLogin clicked, formData:', formData);
+
     try {
       if (!formValidation()) {
         return
@@ -58,7 +58,7 @@ const Login = () => {
         }
       }
     } catch (err) {
-      console.log('Login error:', err.response || err);
+
       toast.error(err.response?.data?.message || err.message || 'Login failed');
       if (err.response?.data?.message === "Please verify your email with the OTP sent to your inbox.") {
         navigate(`/auth/vendor/otp?email=${formData.email}`)

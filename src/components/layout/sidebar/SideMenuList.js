@@ -8,7 +8,10 @@ import  { UsersIcon,
   LogoutIcon,
   MenuIcon,
   PeopleIcon,
+  RhaceIcon,
 } from "../../../public/icons/icons";
+
+export { RhaceIcon };
 
 export const AdminList = {
   topItems: [

@@ -43,9 +43,9 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       <div className="hidden lg:flex lg:flex-shrink-0">
         <div className="flex flex-col w-64 bg-emerald-950 text-white">
           <div className="flex items-center h-16 px-4">
-            <div className="flex items-center">
-              <div className="w-6 h-6 bg-slate-300 rounded-full mr-3"></div>
-              <span className="text-xl font-bold">Rhace Admin</span>
+<div className="flex items-center">
+              <RhaceIcon className="w-6 h-6 mr-3" />
+              <span className="text-xl font-bold">rhace Admin</span>
             </div>
           </div>
 
@@ -94,7 +94,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between h-16 px-4 bg-teal-900">
           <div className="flex items-center">
             <RhaceIcon className="w-8 h-8 mr-3" />
-            <span className="text-xl font-bold">Rhace Admin</span>
+            <span className="text-xl font-bold">rhace Admin</span>
           </div>
           <button
             onClick={onClose}

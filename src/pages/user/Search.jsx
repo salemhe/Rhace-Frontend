@@ -11,6 +11,7 @@ import { SvgIcon, SvgIcon2, SvgIcon3 } from "@/public/icons/icons";
 import UserHeader from "@/components/layout/headers/user-header";
 import Footer from "@/components/Footer";
 import api from "@/lib/axios";
+import { useUserLocation } from "@/contexts/LocationContext.jsx";
 
 const TYPE_CONFIG = {
   restaurant: {
@@ -59,6 +60,8 @@ const C_GENRES = [["afrobeats", "Afrobeats"], ["amapiano", "Amapiano"], ["house"
 const C_PERFORMANCES = [["dj", "DJ"], ["live-band", "Live Band"], ["standup", "Stand-up"], ["karaoke", "Karaoke"], ["spoken-word", "Spoken Word"]];
 const C_DRESS_CODES = [["", "Any"], ["smart-casual", "Smart Casual"], ["formal", "Formal"], ["casual", "Casual"], ["none", "No Code"]];
 const C_AGE_POLICY = [["", "Any"], ["18+", "18+"], ["21+", "21+"], ["all-ages", "All Ages"]];
+const C_TIMES = [["", "Any time"], ["14:00", "2:00 PM"], ["15:00", "3:00 PM"], ["22:00", "10:00 PM"], ["01:00", "1:00 AM"]];
+const C_TABLE_TYPES = [["", "Any Table"], ["standard", "Standard"], ["vip", "VIP"], ["booth", "Booth"], ["outdoor", "Outdoor"]];
 
 const ARRAY_KEYS = ["cuisines", "dietaryOptions", "seatOptions", "occasionTags", "mealTimes", "amenities", "accessibilityFeatures", "musicGenres", "livePerformanceTypes"];
 const BOOL_KEYS = ["hasParking", "hasOutdoorSeating", "instantBook", "petFriendly", "hasVIPTables", "hasGuestlist", "hasOutdoorArea", "openNow"];
@@ -83,13 +86,14 @@ const DEFAULT_FILTERS = {
   cancellationPolicy: "", instantBook: "", petFriendly: "", accessibilityFeatures: [],
   venueType: "", musicGenres: [], livePerformanceTypes: [], dressCode: "",
   agePolicy: "", hasVIPTables: "", hasGuestlist: "", hasOutdoorArea: "",
-  entryFee: "", openNow: "",
+  entryFee: "", clubTime: "", tableType: "", openNow: "",
 };
 
 const TYPE_SPECIFIC_KEYS = [
   ...ARRAY_KEYS, ...BOOL_KEYS,
   "diningStyle", "reservationPolicy", "starRating", "propertyType", "mealPlan",
   "cancellationPolicy", "instantBook", "petFriendly", "venueType", "dressCode", "agePolicy", "entryFee",
+  "clubTime", "tableType",
 ];
 
 const getRecent = () => { try { return JSON.parse(localStorage.getItem(LS_RECENT)) || []; } catch { return []; } };
@@ -122,6 +126,8 @@ const filtersFromParams = (sp) => ({
   petFriendly: sp.get("petFriendly") || "",
   accessibilityFeatures: arrFromParam(sp, "accessibilityFeatures"),
   venueType: sp.get("venueType") || "",
+  clubTime: sp.get("clubTime") || "",
+  tableType: sp.get("tableType") || "",
   musicGenres: arrFromParam(sp, "musicGenres"),
   livePerformanceTypes: arrFromParam(sp, "livePerformanceTypes"),
   dressCode: sp.get("dressCode") || "",
@@ -133,15 +139,77 @@ const filtersFromParams = (sp) => ({
   openNow: sp.get("openNow") || "",
 });
 
+const normalizeSuggestion = (item, fallbackType) => {
+  if (!item) return null;
+  if (typeof item === "string") return {
+    _id: item,
+    businessName: item,
+    vendorType: fallbackType || "restaurant",
+    profileImages: [],
+    address: "",
+    rating: 0,
+    vendorTypeCategory: "",
+  };
+  return {
+    _id: item._id || item.id || item.businessName || item.name || item.title || item.value || item.query || "",
+    businessName: item.businessName || item.name || item.title || item.value || item.query || "",
+    vendorType: item.vendorType || item.type || fallbackType || "restaurant",
+    profileImages: item.profileImages || item.images || [],
+    address: item.address || item.location || "",
+    rating: item.rating || 0,
+    vendorTypeCategory: item.vendorTypeCategory || item.category || "",
+  };
+};
+
 const searchSvc = {
-  suggestions: (q, type) =>
-    api.get(`/search/suggestions?q=${encodeURIComponent(q)}${type ? `&type=${type}` : ""}`).then(r => r.data.suggestions || []),
-  search: (params) => {
+  suggestions: async (q, type, location) => {
+    if (!q) return [];
+    const params = new URLSearchParams();
+    params.set("q", q);
+    params.set("search", q);
+    if (type) params.set("type", type);
+    if (location?.lat != null && location?.lng != null) {
+      params.set("latitude", String(location.lat));
+      params.set("longitude", String(location.lng));
+    }
+
+    try {
+      const res = await api.get(`/search/suggestions?${params.toString()}`);
+      const raw = res.data?.suggestions || [];
+      const normalized = raw.map(item => normalizeSuggestion(item, type)).filter(Boolean);
+      if (normalized.length) return normalized;
+    } catch (err) {
+      // ignore and fallback to search endpoint
+    }
+
+    try {
+      const fallbackParams = new URLSearchParams();
+      fallbackParams.set("search", q);
+      if (type) fallbackParams.set("type", type);
+      if (location?.lat != null && location?.lng != null) {
+        fallbackParams.set("latitude", String(location.lat));
+        fallbackParams.set("longitude", String(location.lng));
+      }
+      fallbackParams.set("limit", "5");
+      const res = await api.get(`/search?${fallbackParams.toString()}`);
+      const data = res.data;
+      const items = Array.isArray(data) ? data : data?.data || [];
+      return (items || []).map(item => normalizeSuggestion(item, type)).filter(Boolean);
+    } catch (err) {
+      return [];
+    }
+  },
+  search: (params, location) => {
     const cleaned = {};
     Object.entries(params).forEach(([k, v]) => {
       if (Array.isArray(v)) { if (v.length) cleaned[k] = v.join(","); }
       else if (v !== "" && v != null) cleaned[k] = v;
     });
+    if (location?.lat != null && location?.lng != null) {
+      cleaned.latitude = String(location.lat);
+      cleaned.longitude = String(location.lng);
+    }
+    if (cleaned.q && !cleaned.search) cleaned.search = cleaned.q;
     return api.get(`/search?${new URLSearchParams(cleaned)}`).then(r => r.data);
   },
   trending: (type) =>
@@ -297,7 +365,7 @@ const Toggle = ({ cur, set, children }) => (
 
 const RestaurantFilters = ({ f, onChange }) => (
   <>
-    <div><T>Cuisine</T><div className="flex flex-wrap gap-1.5">{R_CUISINES.map(([val, label]) => <MultiPill key={val} val={val} cur={f.cuisines} set={v => onChange("cuisines", v)}>{label}</MultiPill>)}</div></div>
+    <div><T>Cuisine</T><p className="text-[11px] text-gray-500 mb-3">Filter restaurants by cuisine or any menu item in their menu.</p><div className="flex flex-wrap gap-1.5">{R_CUISINES.map(([val, label]) => <MultiPill key={val} val={val} cur={f.cuisines} set={v => onChange("cuisines", v)}>{label}</MultiPill>)}</div></div>
     <Hr />
     <div><T>Dietary Options</T><div className="flex flex-wrap gap-1.5">{R_DIETARY.map(([val, label]) => <MultiPill key={val} val={val} cur={f.dietaryOptions} set={v => onChange("dietaryOptions", v)}>{label}</MultiPill>)}</div></div>
     <Hr />
@@ -356,6 +424,10 @@ const ClubFilters = ({ f, onChange }) => (
     <div><T>Entry Fee</T><div className="flex flex-wrap gap-1.5">
       {[["", "Any"], ["0", "Free Entry"], ["paid", "Paid Entry"]].map(([val, label]) => <Pill key={val} val={val} cur={f.entryFee} set={v => onChange("entryFee", v)}>{label}</Pill>)}
     </div></div>
+    <Hr />
+    <div><T>Time Slot</T><div className="flex flex-wrap gap-1.5">{C_TIMES.map(([val, label]) => <Pill key={val} val={val} cur={f.clubTime} set={v => onChange("clubTime", v)}>{label}</Pill>)}</div></div>
+    <Hr />
+    <div><T>Table Type</T><div className="flex flex-wrap gap-1.5">{C_TABLE_TYPES.map(([val, label]) => <Pill key={val} val={val} cur={f.tableType} set={v => onChange("tableType", v)}>{label}</Pill>)}</div></div>
     <Hr />
     <div><T>Extras</T><div className="space-y-0.5">
       <Toggle cur={f.hasVIPTables} set={v => onChange("hasVIPTables", v)}>VIP Tables</Toggle>
@@ -447,6 +519,8 @@ const buildChips = (f, onChange) => {
   if (f.dressCode) chips.push({ key: "dressCode", label: f.dressCode, clear: () => onChange("dressCode", "") });
   if (f.agePolicy) chips.push({ key: "agePolicy", label: f.agePolicy, clear: () => onChange("agePolicy", "") });
   if (f.entryFee !== "") chips.push({ key: "entryFee", label: f.entryFee === "0" ? "Free Entry" : "Paid Entry", clear: () => onChange("entryFee", "") });
+  if (f.clubTime) chips.push({ key: "clubTime", label: f.clubTime.replace(/^0?/, "") + " Slot", clear: () => onChange("clubTime", "") });
+  if (f.tableType) chips.push({ key: "tableType", label: `${f.tableType.charAt(0).toUpperCase()}${f.tableType.slice(1)} Table`, clear: () => onChange("tableType", "") });
   BOOL_KEYS.forEach(k => {
     if (f[k] === "true") chips.push({ key: k, label: k.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase()), clear: () => onChange(k, "") });
   });
@@ -514,6 +588,7 @@ const SearchPage = () => {
   const [activeQuery, setActiveQuery] = useState(searchParams.get("q") || "");
   const [filters, setFilters] = useState(() => filtersFromParams(searchParams));
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const { location: userLocation, hasLocation } = useUserLocation();
 
   const debounceRef = useRef(null);
   const abortRef = useRef(null);
@@ -531,14 +606,14 @@ const SearchPage = () => {
     filters.sort !== "rating" ? 1 : null,
     filters.diningStyle, filters.reservationPolicy, filters.starRating, filters.propertyType,
     filters.mealPlan, filters.cancellationPolicy, filters.venueType, filters.dressCode,
-    filters.agePolicy, filters.entryFee !== "" ? 1 : null,
+    filters.agePolicy, filters.entryFee !== "" ? 1 : null, filters.clubTime, filters.tableType,
     ...ARRAY_KEYS.map(k => filters[k]?.length ? 1 : null),
     ...BOOL_KEYS.map(k => filters[k] === "true" ? 1 : null),
   ].filter(Boolean).length;
 
-  const showRecent = isFocused && inputValue.trim().length < 2 && recentSearches.length > 0;
-  const showTrending = isFocused && inputValue.trim().length < 2 && !showRecent;
-  const showSuggestions = isFocused && inputValue.trim().length >= 2;
+  const showRecent = isFocused && inputValue.trim().length === 0 && recentSearches.length > 0;
+  const showTrending = isFocused && inputValue.trim().length === 0 && !showRecent;
+  const showSuggestions = isFocused && inputValue.trim().length >= 1;
   const showDropdown = isFocused && (showRecent || showTrending || showSuggestions);
 
   useEffect(() => {
@@ -548,14 +623,14 @@ const SearchPage = () => {
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
-    if (inputValue.trim().length < 2) { setSuggestions([]); setIsSugLoading(false); return; }
+    if (inputValue.trim().length < 1) { setSuggestions([]); setIsSugLoading(false); return; }
     setIsSugLoading(true);
     debounceRef.current = setTimeout(() => {
-      searchSvc.suggestions(inputValue, filters.type || undefined)
+      searchSvc.suggestions(inputValue, filters.type || undefined, userLocation)
         .then(setSuggestions).catch(() => setSuggestions([])).finally(() => setIsSugLoading(false));
     }, DEBOUNCE_MS);
     return () => clearTimeout(debounceRef.current);
-  }, [inputValue, filters.type]);
+  }, [inputValue, filters.type, userLocation.lat, userLocation.lng]);
 
   useEffect(() => {
     const q = searchParams.get("q");
@@ -565,11 +640,11 @@ const SearchPage = () => {
     setIsLoading(true); setError(null);
     const parsed = filtersFromParams(searchParams);
     setFilters(parsed);
-    searchSvc.search({ q, page: searchParams.get("page") || "1", limit: "12", ...parsed })
+    searchSvc.search({ q, page: searchParams.get("page") || "1", limit: "12", ...parsed }, userLocation)
       .then(data => { setResults(data.data || []); setPagination(data.pagination || {}); setFacets(data.facets || {}); setActiveQuery(q); })
       .catch(err => { if (err?.name === "AbortError" || err?.code === "ERR_CANCELED") return; setError("Search failed. Please try again."); setResults([]); })
       .finally(() => setIsLoading(false));
-  }, [searchParams]);
+  }, [searchParams, userLocation.lat, userLocation.lng]);
 
   const submitSearch = useCallback((term) => {
     const q = (term !== undefined ? term : inputValue).trim();
@@ -642,7 +717,13 @@ const SearchPage = () => {
                 }`}>
                 <Search className="w-4 h-4 text-gray-400 shrink-0" />
                 <input ref={inputRef} type="text" autoComplete="off" spellCheck="false"
-                  placeholder={filters.type ? `Search ${TYPE_CONFIG[filters.type]?.label.toLowerCase()}...` : "Search hotels, restaurants, clubs, cuisines..."}
+                  placeholder={filters.type
+                    ? filters.type === "restaurant"
+                      ? "Search restaurants, cuisines or menu items..."
+                      : filters.type === "hotel"
+                        ? "Search hotels or locations..."
+                        : "Search clubs, times or table availability..."
+                    : "Search hotels, restaurants, clubs, cuisines, menu items..."}
                   value={inputValue}
                   onChange={e => setInputValue(e.target.value)}
                   onFocus={() => setIsFocused(true)}
