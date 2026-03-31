@@ -2,8 +2,8 @@ import { logout } from "@/redux/slices/authSlice";
 import { Menu, Search, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ClubList, HotelList, RestaurantList } from "./SideMenuList";
-import logo from "@/public/images/Rhace-09.png";
+import { ClubList, HotelList, RestaurantList, RhaceIcon } from "./SideMenuList";
+
 import { useEffect, useState } from "react";
 
 // Hook to get current menu configuration
@@ -95,11 +95,8 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
           {/* Logo */}
           <div className="flex items-center h-16 px-4">
             <div className="flex items-center">
-              <img
-                src={logo}
-                alt="Rhace Logo"
-                className="w-20 h-20 object-contain"
-              />
+<RhaceIcon className="w-10 h-10 mr-2" />
+              <span className="text-xl font-bold">rhace</span>
             </div>
           </div>
 
@@ -187,10 +184,8 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
         {/* Mobile Logo with close button */}
         <div className="flex items-center justify-between h-16 px-4 bg-teal-900">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
-              <div className="w-6 h-6 bg-teal-800 rounded-full"></div>
-            </div>
-            <span className="text-xl font-bold">Rhace</span>
+<RhaceIcon className="w-8 h-8 mr-3" />
+<span className="text-xl font-bold">rhace</span>
           </div>
           <button
             onClick={onClose}

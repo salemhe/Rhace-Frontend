@@ -11,6 +11,11 @@ class PaymentService {
     return res.data;
   }
 
+  async getKpis() {
+    const res = await api.get("/dashboard/kpis");
+    return res.data;
+  }
+
   async getTrends({ range }) {
     const res = await api.get(`/payments/earnings-trend?range=${range}`);
     return res.data;

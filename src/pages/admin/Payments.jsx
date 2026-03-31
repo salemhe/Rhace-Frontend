@@ -874,7 +874,19 @@ export default function Payments() {
   const handleAddAccount = () => { setTempAddDetails({ bankName: "", accountNumber: "", accountName: "" }); setAddDialogOpen(true); };
   const handleSaveAddAccount = () => { setBankDetails({ ...tempAddDetails }); setAddDialogOpen(false); localStorage.setItem("bankDetails", JSON.stringify(tempAddDetails)); };
   const handleCancelAdd = () => { setTempAddDetails({ bankName: "", accountNumber: "", accountName: "" }); setAddDialogOpen(false); };
-  const handleViewDetails = (vendor) => { setSelectedVendor(vendor); setDetailsModalOpen(true); };
+  // Status normalizer for vendors
+  const getVendorStatus = (rawStatus) => {
+    const status = (rawStatus || '').toLowerCase().trim();
+    if (!status) return 'Pending';
+    if (['paid', 'success'].includes(status)) return 'Paid';
+    if (['pending'].includes(status)) return 'Pending';
+    return rawStatus;
+  };
+
+  const handleViewDetails = (vendor) => { 
+    setSelectedVendor(vendor); 
+    setDetailsModalOpen(true); 
+  };
 
   const handlePeriodChange = async (value) => {
     setSelectedPeriod(value);
@@ -1329,7 +1341,17 @@ export default function Payments() {
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild><Button variant="ghost" size="icon"><MoreVertical className="h-4 w-4" /></Button></DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewDetails(vendor)}>View Details</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleViewDetails(vendor)}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => {
+                          setSelectedVendor(vendor);
+                          setTimeout(() => window.print(), 500);
+                        }}>
+                          <Printer className="mr-2 h-4 w-4" />
+                          Print Summary
+                        </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -1460,7 +1482,9 @@ export default function Payments() {
                 <div><Label className="text-sm font-medium">Last Payout Date</Label><p className="text-sm mt-1">{selectedVendor.lastPayout}</p></div>
                 <div>
                   <Label className="text-sm font-medium">Status</Label>
-                  <Badge variant={selectedVendor.status === "Paid" ? "default" : "secondary"} className="mt-1">{selectedVendor.status}</Badge>
+                  <Badge variant={getVendorStatus(selectedVendor.status) === "Paid" ? "default" : "secondary"} className="mt-1">
+                    {getVendorStatus(selectedVendor.status)}
+                  </Badge>
                 </div>
               </div>
               <div className="border-t pt-4">

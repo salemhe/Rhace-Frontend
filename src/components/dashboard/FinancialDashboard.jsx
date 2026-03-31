@@ -27,7 +27,7 @@ const FinancialDashboard = ({ info }) => {
             const res = await paymentService.getTrends({ range: time });
             setTrends(res);
         } catch (error) {
-            console.error(error);
+
             toast.error(error.response?.message || "Failed to fetch payment trends");
         } finally {
             setLoading(false);
@@ -42,6 +42,7 @@ const FinancialDashboard = ({ info }) => {
         date: item.label, // ← just use the label
         earnings: item.value
     }));
+
 
     console.log(trend.trends)
 
