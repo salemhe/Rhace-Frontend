@@ -7,18 +7,21 @@ const DashboardLayout = ({ children, type }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
 
-  return (
-    <div className="min-h-screen bg-slate-100">
-      <Sidebar
-        isOpen={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onNavigate={(path) => navigate(path)}
-        type={type}
-      />
+return (
+    <div className="h-screen flex bg-gray-50 overflow-hidden">
 
-      <div className="min-h-screen lg:pl-64">
+      <div className="hidden lg:flex lg:flex-shrink-0">
+        <Sidebar
+          isOpen={false}
+          onClose={() => {}}
+          onNavigate={(path) => navigate(path)}
+          type={type}
+        />
+      </div>
+
+      <div className="flex flex-1 flex-col w-full">
         <VendorHeader onMenuClick={() => setSidebarOpen(true)} />
-        <main className="px-4 py-4 lg:px-6 lg:py-6">
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
           {children}
         </main>
       </div>
@@ -29,7 +32,7 @@ const DashboardLayout = ({ children, type }) => {
           onClick={() => setSidebarOpen(false)}
         />
       )}
-    </div>
+  </div>
   );
 };
 
