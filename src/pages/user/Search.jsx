@@ -25,6 +25,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { FaStar } from "react-icons/fa6";
 import { FiMapPin } from "react-icons/fi";
 import { useNavigate, useSearchParams } from "react-router-dom";
+import { useUserLocation } from "@/contexts/LocationContext.jsx";
 
 import { UserProfileMenu } from "@/components/layout/headers/user-header";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -193,50 +194,13 @@ const H_ACCESSIBILITY = [
   ["visual-aids", "Visual Aids"],
 ];
 
-const C_VENUE_TYPES = [
-  ["", "Any"],
-  ["club", "Club"],
-  ["lounge", "Lounge"],
-  ["rooftop", "Rooftop"],
-  ["sports-bar", "Sports Bar"],
-  ["cocktail-bar", "Cocktail Bar"],
-  ["karaoke", "Karaoke"],
-  ["jazz-bar", "Jazz Bar"],
-  ["pool-bar", "Pool Bar"],
-];
-const C_GENRES = [
-  ["afrobeats", "Afrobeats"],
-  ["amapiano", "Amapiano"],
-  ["house", "House"],
-  ["rnb", "R&B"],
-  ["hiphop", "Hip-Hop"],
-  ["edm", "EDM"],
-  ["reggae", "Reggae"],
-  ["highlife", "Highlife"],
-  ["dancehall", "Dancehall"],
-  ["live-band", "Live Band"],
-  ["mixed", "Mixed"],
-];
-const C_PERFORMANCES = [
-  ["dj", "DJ"],
-  ["live-band", "Live Band"],
-  ["standup", "Stand-up"],
-  ["karaoke", "Karaoke"],
-  ["spoken-word", "Spoken Word"],
-];
-const C_DRESS_CODES = [
-  ["", "Any"],
-  ["smart-casual", "Smart Casual"],
-  ["formal", "Formal"],
-  ["casual", "Casual"],
-  ["none", "No Code"],
-];
-const C_AGE_POLICY = [
-  ["", "Any"],
-  ["18+", "18+"],
-  ["21+", "21+"],
-  ["all-ages", "All Ages"],
-];
+const C_VENUE_TYPES = [["", "Any"], ["club", "Club"], ["lounge", "Lounge"], ["rooftop", "Rooftop"], ["sports-bar", "Sports Bar"], ["cocktail-bar", "Cocktail Bar"], ["karaoke", "Karaoke"], ["jazz-bar", "Jazz Bar"], ["pool-bar", "Pool Bar"]];
+const C_GENRES = [["afrobeats", "Afrobeats"], ["amapiano", "Amapiano"], ["house", "House"], ["rnb", "R&B"], ["hiphop", "Hip-Hop"], ["edm", "EDM"], ["reggae", "Reggae"], ["highlife", "Highlife"], ["dancehall", "Dancehall"], ["live-band", "Live Band"], ["mixed", "Mixed"]];
+const C_PERFORMANCES = [["dj", "DJ"], ["live-band", "Live Band"], ["standup", "Stand-up"], ["karaoke", "Karaoke"], ["spoken-word", "Spoken Word"]];
+const C_DRESS_CODES = [["", "Any"], ["smart-casual", "Smart Casual"], ["formal", "Formal"], ["casual", "Casual"], ["none", "No Code"]];
+const C_AGE_POLICY = [["", "Any"], ["18+", "18+"], ["21+", "21+"], ["all-ages", "All Ages"]];
+const C_TIMES = [["", "Any time"], ["14:00", "2:00 PM"], ["15:00", "3:00 PM"], ["22:00", "10:00 PM"], ["01:00", "1:00 AM"]];
+const C_TABLE_TYPES = [["", "Any Table"], ["standard", "Standard"], ["vip", "VIP"], ["booth", "Booth"], ["outdoor", "Outdoor"]];
 
 const ARRAY_KEYS = [
   "cuisines",
@@ -273,56 +237,21 @@ const CHIP_LABEL_MAPS = {
 };
 
 const DEFAULT_FILTERS = {
-  type: "",
-  city: "",
-  minRating: "",
-  minPrice: "",
-  maxPrice: "",
-  sort: "rating",
-  cuisines: [],
-  dietaryOptions: [],
-  diningStyle: "",
-  seatOptions: [],
-  occasionTags: [],
-  mealTimes: [],
-  reservationPolicy: "",
-  hasParking: "",
-  hasOutdoorSeating: "",
-  starRating: "",
-  propertyType: "",
-  amenities: [],
-  mealPlan: "",
-  cancellationPolicy: "",
-  instantBook: "",
-  petFriendly: "",
-  accessibilityFeatures: [],
-  venueType: "",
-  musicGenres: [],
-  livePerformanceTypes: [],
-  dressCode: "",
-  agePolicy: "",
-  hasVIPTables: "",
-  hasGuestlist: "",
-  hasOutdoorArea: "",
-  entryFee: "",
-  openNow: "",
+  type: "", city: "", minRating: "", minPrice: "", maxPrice: "", sort: "rating",
+  cuisines: [], dietaryOptions: [], diningStyle: "", seatOptions: [], occasionTags: [],
+  mealTimes: [], reservationPolicy: "", hasParking: "", hasOutdoorSeating: "",
+  starRating: "", propertyType: "", amenities: [], mealPlan: "",
+  cancellationPolicy: "", instantBook: "", petFriendly: "", accessibilityFeatures: [],
+  venueType: "", musicGenres: [], livePerformanceTypes: [], dressCode: "",
+  agePolicy: "", hasVIPTables: "", hasGuestlist: "", hasOutdoorArea: "",
+  entryFee: "", clubTime: "", tableType: "", openNow: "",
 };
 
 const TYPE_SPECIFIC_KEYS = [
-  ...ARRAY_KEYS,
-  ...BOOL_KEYS,
-  "diningStyle",
-  "reservationPolicy",
-  "starRating",
-  "propertyType",
-  "mealPlan",
-  "cancellationPolicy",
-  "instantBook",
-  "petFriendly",
-  "venueType",
-  "dressCode",
-  "agePolicy",
-  "entryFee",
+  ...ARRAY_KEYS, ...BOOL_KEYS,
+  "diningStyle", "reservationPolicy", "starRating", "propertyType", "mealPlan",
+  "cancellationPolicy", "instantBook", "petFriendly", "venueType", "dressCode", "agePolicy", "entryFee",
+  "clubTime", "tableType",
 ];
 
 const getRecent = () => {
@@ -377,6 +306,8 @@ const filtersFromParams = (sp) => ({
   petFriendly: sp.get("petFriendly") || "",
   accessibilityFeatures: arrFromParam(sp, "accessibilityFeatures"),
   venueType: sp.get("venueType") || "",
+  clubTime: sp.get("clubTime") || "",
+  tableType: sp.get("tableType") || "",
   musicGenres: arrFromParam(sp, "musicGenres"),
   livePerformanceTypes: arrFromParam(sp, "livePerformanceTypes"),
   dressCode: sp.get("dressCode") || "",
@@ -388,23 +319,81 @@ const filtersFromParams = (sp) => ({
   openNow: sp.get("openNow") || "",
 });
 
+const normalizeSuggestion = (item, fallbackType) => {
+  if (!item) return null;
+  if (typeof item === "string") return {
+    _id: item,
+    businessName: item,
+    vendorType: fallbackType || "restaurant",
+    profileImages: [],
+    address: "",
+    rating: 0,
+    vendorTypeCategory: "",
+  };
+  return {
+    _id: item._id || item.id || item.businessName || item.name || item.title || item.value || item.query || "",
+    businessName: item.businessName || item.name || item.title || item.value || item.query || "",
+    vendorType: item.vendorType || item.type || fallbackType || "restaurant",
+    profileImages: item.profileImages || item.images || [],
+    address: item.address || item.location || "",
+    rating: item.rating || 0,
+    vendorTypeCategory: item.vendorTypeCategory || item.category || "",
+  };
+};
+
 const searchSvc = {
-  suggestions: (q, type) =>
-    api
-      .get(
-        `/search/suggestions?q=${encodeURIComponent(q)}${type ? `&type=${type}` : ""}`,
-      )
-      .then((r) => r.data.suggestions || []),
-  search: (params) => {
+  suggestions: async (q, type, location) => {
+    if (!q) return [];
+    const params = new URLSearchParams();
+    params.set("search", q);
+    if (type) params.set("type", type);
+    if (location?.lat != null && location?.lng != null) {
+      params.set("latitude", String(location.lat));
+      params.set("longitude", String(location.lng));
+    }
+
+    try {
+      const res = await api.get(`/search/suggestions?${params.toString()}`);
+      const raw = res.data?.suggestions || [];
+      const normalized = raw.map(item => normalizeSuggestion(item, type)).filter(Boolean);
+      if (normalized.length) return normalized;
+    } catch (err) {
+      // ignore and fallback to search endpoint
+    }
+
+    try {
+      const fallbackParams = new URLSearchParams();
+      fallbackParams.set("search", q);
+      if (type) fallbackParams.set("type", type);
+      if (location?.lat != null && location?.lng != null) {
+        fallbackParams.set("latitude", String(location.lat));
+        fallbackParams.set("longitude", String(location.lng));
+      }
+      fallbackParams.set("limit", "5");
+      const res = await api.get(`/search?${fallbackParams.toString()}`);
+      const data = res.data;
+      const items = Array.isArray(data) ? data : data?.data || [];
+      return (items || []).map(item => normalizeSuggestion(item, type)).filter(Boolean);
+    } catch (err) {
+      return [];
+    }
+  },
+  search: (params, location) => {
     const cleaned = {};
     Object.entries(params).forEach(([k, v]) => {
       if (Array.isArray(v)) {
         if (v.length) cleaned[k] = v.join(",");
       } else if (v !== "" && v != null) cleaned[k] = v;
     });
-    return api
-      .get(`/search?${new URLSearchParams(cleaned)}`)
-      .then((r) => r.data);
+    if (location?.lat != null && location?.lng != null) {
+      cleaned.latitude = String(location.lat);
+      cleaned.longitude = String(location.lng);
+    }
+    if (cleaned.q) {
+      cleaned.search = cleaned.q;
+      delete cleaned.q;
+    }
+    return api.get(`/search?${new URLSearchParams(cleaned)}`).then(r => r.data);
   },
   trending: (type) =>
     api
@@ -675,21 +664,7 @@ const Toggle = ({ cur, set, children }) => (
 
 const RestaurantFilters = ({ f, onChange }) => (
   <>
-    <div>
-      <T>Cuisine</T>
-      <div className="flex flex-wrap gap-1.5">
-        {R_CUISINES.map(([val, label]) => (
-          <MultiPill
-            key={val}
-            val={val}
-            cur={f.cuisines}
-            set={(v) => onChange("cuisines", v)}
-          >
-            {label}
-          </MultiPill>
-        ))}
-      </div>
-    </div>
+    <div><T>Cuisine</T><p className="text-[11px] text-gray-500 mb-3">Filter restaurants by cuisine or any menu item in their menu.</p><div className="flex flex-wrap gap-1.5">{R_CUISINES.map(([val, label]) => <MultiPill key={val} val={val} cur={f.cuisines} set={v => onChange("cuisines", v)}>{label}</MultiPill>)}</div></div>
     <Hr />
     <div>
       <T>Dietary Options</T>
@@ -1024,26 +999,16 @@ const ClubFilters = ({ f, onChange }) => (
       </div>
     </div>
     <Hr />
-    <div>
-      <T>Extras</T>
-      <div className="space-y-0.5">
-        <Toggle cur={f.hasVIPTables} set={(v) => onChange("hasVIPTables", v)}>
-          VIP Tables
-        </Toggle>
-        <Toggle cur={f.hasGuestlist} set={(v) => onChange("hasGuestlist", v)}>
-          Guestlist Available
-        </Toggle>
-        <Toggle
-          cur={f.hasOutdoorArea}
-          set={(v) => onChange("hasOutdoorArea", v)}
-        >
-          Outdoor Area
-        </Toggle>
-        <Toggle cur={f.openNow} set={(v) => onChange("openNow", v)}>
-          Open Now
-        </Toggle>
-      </div>
-    </div>
+    <div><T>Time Slot</T><div className="flex flex-wrap gap-1.5">{C_TIMES.map(([val, label]) => <Pill key={val} val={val} cur={f.clubTime} set={v => onChange("clubTime", v)}>{label}</Pill>)}</div></div>
+    <Hr />
+    <div><T>Table Type</T><div className="flex flex-wrap gap-1.5">{C_TABLE_TYPES.map(([val, label]) => <Pill key={val} val={val} cur={f.tableType} set={v => onChange("tableType", v)}>{label}</Pill>)}</div></div>
+    <Hr />
+    <div><T>Extras</T><div className="space-y-0.5">
+      <Toggle cur={f.hasVIPTables} set={v => onChange("hasVIPTables", v)}>VIP Tables</Toggle>
+      <Toggle cur={f.hasGuestlist} set={v => onChange("hasGuestlist", v)}>Guestlist Available</Toggle>
+      <Toggle cur={f.hasOutdoorArea} set={v => onChange("hasOutdoorArea", v)}>Outdoor Area</Toggle>
+      <Toggle cur={f.openNow} set={v => onChange("openNow", v)}>Open Now</Toggle>
+    </div></div>
   </>
 );
 
@@ -1217,110 +1182,25 @@ const FilterPanel = ({
 
 const buildChips = (f, onChange) => {
   const chips = [];
-  if (f.type)
-    chips.push({
-      key: "type",
-      label: TYPE_CONFIG[f.type]?.label,
-      clear: () => onChange("type", ""),
-    });
-  if (f.city)
-    chips.push({
-      key: "city",
-      label: `📍 ${f.city}`,
-      clear: () => onChange("city", ""),
-    });
-  if (f.minRating)
-    chips.push({
-      key: "minRating",
-      label: `${f.minRating}+ ⭐`,
-      clear: () => onChange("minRating", ""),
-    });
-  if (f.minPrice)
-    chips.push({
-      key: "price",
-      label: PRICE_LABELS[f.minPrice] || "₦",
-      clear: () => {
-        onChange("minPrice", "");
-        onChange("maxPrice", "");
-      },
-    });
-  if (f.sort !== "rating")
-    chips.push({
-      key: "sort",
-      label: { price_asc: "Price ↑", price_desc: "Price ↓", newest: "Newest" }[
-        f.sort
-      ],
-      clear: () => onChange("sort", "rating"),
-    });
-  if (f.diningStyle)
-    chips.push({
-      key: "diningStyle",
-      label: f.diningStyle,
-      clear: () => onChange("diningStyle", ""),
-    });
-  if (f.reservationPolicy)
-    chips.push({
-      key: "reservationPolicy",
-      label: f.reservationPolicy,
-      clear: () => onChange("reservationPolicy", ""),
-    });
-  if (f.starRating)
-    chips.push({
-      key: "starRating",
-      label: "★".repeat(Number(f.starRating)),
-      clear: () => onChange("starRating", ""),
-    });
-  if (f.propertyType)
-    chips.push({
-      key: "propertyType",
-      label: f.propertyType,
-      clear: () => onChange("propertyType", ""),
-    });
-  if (f.mealPlan)
-    chips.push({
-      key: "mealPlan",
-      label: f.mealPlan,
-      clear: () => onChange("mealPlan", ""),
-    });
-  if (f.cancellationPolicy)
-    chips.push({
-      key: "cancellationPolicy",
-      label: f.cancellationPolicy,
-      clear: () => onChange("cancellationPolicy", ""),
-    });
-  if (f.venueType)
-    chips.push({
-      key: "venueType",
-      label: f.venueType,
-      clear: () => onChange("venueType", ""),
-    });
-  if (f.dressCode)
-    chips.push({
-      key: "dressCode",
-      label: f.dressCode,
-      clear: () => onChange("dressCode", ""),
-    });
-  if (f.agePolicy)
-    chips.push({
-      key: "agePolicy",
-      label: f.agePolicy,
-      clear: () => onChange("agePolicy", ""),
-    });
-  if (f.entryFee !== "")
-    chips.push({
-      key: "entryFee",
-      label: f.entryFee === "0" ? "Free Entry" : "Paid Entry",
-      clear: () => onChange("entryFee", ""),
-    });
-  BOOL_KEYS.forEach((k) => {
-    if (f[k] === "true")
-      chips.push({
-        key: k,
-        label: k
-          .replace(/([A-Z])/g, " $1")
-          .replace(/^./, (s) => s.toUpperCase()),
-        clear: () => onChange(k, ""),
-      });
+  if (f.type) chips.push({ key: "type", label: TYPE_CONFIG[f.type]?.label, clear: () => onChange("type", "") });
+  if (f.city) chips.push({ key: "city", label: `📍 ${f.city}`, clear: () => onChange("city", "") });
+  if (f.minRating) chips.push({ key: "minRating", label: `${f.minRating}+ ⭐`, clear: () => onChange("minRating", "") });
+  if (f.minPrice) chips.push({ key: "price", label: PRICE_LABELS[f.minPrice] || "₦", clear: () => { onChange("minPrice", ""); onChange("maxPrice", ""); } });
+  if (f.sort !== "rating") chips.push({ key: "sort", label: { price_asc: "Price ↑", price_desc: "Price ↓", newest: "Newest" }[f.sort], clear: () => onChange("sort", "rating") });
+  if (f.diningStyle) chips.push({ key: "diningStyle", label: f.diningStyle, clear: () => onChange("diningStyle", "") });
+  if (f.reservationPolicy) chips.push({ key: "reservationPolicy", label: f.reservationPolicy, clear: () => onChange("reservationPolicy", "") });
+  if (f.starRating) chips.push({ key: "starRating", label: "★".repeat(Number(f.starRating)), clear: () => onChange("starRating", "") });
+  if (f.propertyType) chips.push({ key: "propertyType", label: f.propertyType, clear: () => onChange("propertyType", "") });
+  if (f.mealPlan) chips.push({ key: "mealPlan", label: f.mealPlan, clear: () => onChange("mealPlan", "") });
+  if (f.cancellationPolicy) chips.push({ key: "cancellationPolicy", label: f.cancellationPolicy, clear: () => onChange("cancellationPolicy", "") });
+  if (f.venueType) chips.push({ key: "venueType", label: f.venueType, clear: () => onChange("venueType", "") });
+  if (f.dressCode) chips.push({ key: "dressCode", label: f.dressCode, clear: () => onChange("dressCode", "") });
+  if (f.agePolicy) chips.push({ key: "agePolicy", label: f.agePolicy, clear: () => onChange("agePolicy", "") });
+  if (f.entryFee !== "") chips.push({ key: "entryFee", label: f.entryFee === "0" ? "Free Entry" : "Paid Entry", clear: () => onChange("entryFee", "") });
+  if (f.clubTime) chips.push({ key: "clubTime", label: f.clubTime.replace(/^0?/, "") + " Slot", clear: () => onChange("clubTime", "") });
+  if (f.tableType) chips.push({ key: "tableType", label: `${f.tableType.charAt(0).toUpperCase()}${f.tableType.slice(1)} Table`, clear: () => onChange("tableType", "") });
+  BOOL_KEYS.forEach(k => {
+    if (f[k] === "true") chips.push({ key: k, label: k.replace(/([A-Z])/g, " $1").replace(/^./, s => s.toUpperCase()), clear: () => onChange(k, "") });
   });
   ARRAY_KEYS.forEach((k) => {
     (f[k] || []).forEach((v) =>
@@ -1453,6 +1333,7 @@ const SearchPage = () => {
   const [activeQuery, setActiveQuery] = useState(searchParams.get("q") || "");
   const [filters, setFilters] = useState(() => filtersFromParams(searchParams));
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const { location: userLocation, hasLocation } = useUserLocation();
 
   const debounceRef = useRef(null);
   const abortRef = useRef(null);
@@ -1471,26 +1352,17 @@ const SearchPage = () => {
     filters.minRating,
     filters.minPrice,
     filters.sort !== "rating" ? 1 : null,
-    filters.diningStyle,
-    filters.reservationPolicy,
-    filters.starRating,
-    filters.propertyType,
-    filters.mealPlan,
-    filters.cancellationPolicy,
-    filters.venueType,
-    filters.dressCode,
-    filters.agePolicy,
-    filters.entryFee !== "" ? 1 : null,
-    ...ARRAY_KEYS.map((k) => (filters[k]?.length ? 1 : null)),
-    ...BOOL_KEYS.map((k) => (filters[k] === "true" ? 1 : null)),
+    filters.diningStyle, filters.reservationPolicy, filters.starRating, filters.propertyType,
+    filters.mealPlan, filters.cancellationPolicy, filters.venueType, filters.dressCode,
+    filters.agePolicy, filters.entryFee !== "" ? 1 : null, filters.clubTime, filters.tableType,
+    ...ARRAY_KEYS.map(k => filters[k]?.length ? 1 : null),
+    ...BOOL_KEYS.map(k => filters[k] === "true" ? 1 : null),
   ].filter(Boolean).length;
 
-  const showRecent =
-    isFocused && inputValue.trim().length < 2 && recentSearches.length > 0;
-  const showTrending = isFocused && inputValue.trim().length < 2 && !showRecent;
-  const showSuggestions = isFocused && inputValue.trim().length >= 2;
-  const showDropdown =
-    isFocused && (showRecent || showTrending || showSuggestions);
+  const showRecent = isFocused && inputValue.trim().length === 0 && recentSearches.length > 0;
+  const showTrending = isFocused && inputValue.trim().length === 0 && !showRecent;
+  const showSuggestions = isFocused && inputValue.trim().length >= 1;
+  const showDropdown = isFocused && (showRecent || showTrending || showSuggestions);
 
   useEffect(() => {
     setIsTrendLoading(true);
@@ -1503,21 +1375,14 @@ const SearchPage = () => {
 
   useEffect(() => {
     clearTimeout(debounceRef.current);
-    if (inputValue.trim().length < 2) {
-      setSuggestions([]);
-      setIsSugLoading(false);
-      return;
-    }
+    if (inputValue.trim().length < 1) { setSuggestions([]); setIsSugLoading(false); return; }
     setIsSugLoading(true);
     debounceRef.current = setTimeout(() => {
-      searchSvc
-        .suggestions(inputValue, filters.type || undefined)
-        .then(setSuggestions)
-        .catch(() => setSuggestions([]))
-        .finally(() => setIsSugLoading(false));
+      searchSvc.suggestions(inputValue, filters.type || undefined, userLocation)
+        .then(setSuggestions).catch(() => setSuggestions([])).finally(() => setIsSugLoading(false));
     }, DEBOUNCE_MS);
     return () => clearTimeout(debounceRef.current);
-  }, [inputValue, filters.type]);
+  }, [inputValue, filters.type, userLocation.lat, userLocation.lng]);
 
   useEffect(() => {
     const q = searchParams.get("q");
@@ -1532,26 +1397,11 @@ const SearchPage = () => {
     setError(null);
     const parsed = filtersFromParams(searchParams);
     setFilters(parsed);
-    searchSvc
-      .search({
-        q,
-        page: searchParams.get("page") || "1",
-        limit: "12",
-        ...parsed,
-      })
-      .then((data) => {
-        setResults(data.data || []);
-        setPagination(data.pagination || {});
-        setFacets(data.facets || {});
-        setActiveQuery(q);
-      })
-      .catch((err) => {
-        if (err?.name === "AbortError" || err?.code === "ERR_CANCELED") return;
-        setError("Search failed. Please try again.");
-        setResults([]);
-      })
+    searchSvc.search({ q, page: searchParams.get("page") || "1", limit: "12", ...parsed }, userLocation)
+      .then(data => { setResults(data.data || []); setPagination(data.pagination || {}); setFacets(data.facets || {}); setActiveQuery(q); })
+      .catch(err => { if (err?.name === "AbortError" || err?.code === "ERR_CANCELED") return; setError("Search failed. Please try again."); setResults([]); })
       .finally(() => setIsLoading(false));
-  }, [searchParams]);
+  }, [searchParams, userLocation.lat, userLocation.lng]);
 
   const submitSearch = useCallback(
     (term) => {

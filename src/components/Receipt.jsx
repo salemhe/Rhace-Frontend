@@ -23,17 +23,22 @@ const Receipt = ({
     onClose?.();
   };
 
+  const handlePrintReceipt = () => {
+    window.print();
+    toast.success('Print dialog opened - Receipt ready to print');
+  };
+
   const handleDownloadReceipt = () => {
     // Future: Generate PDF or copy to clipboard
     navigator.clipboard.writeText(JSON.stringify({ reservation, payment }, null, 2));
-    alert('Reservation details copied to clipboard!');
+    toast.success('Receipt details copied to clipboard!');
   };
 
   if (!reservation) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8 md:px-6">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-8 md:px-6 print:bg-white print:shadow-none print:backdrop-blur-none">
+      <div className="max-w-4xl mx-auto print:max-w-[8.5in] print:mx-0"> 
         {/* Success Header */}
         <div className="text-center mb-12">
           <div className="flex justify-center relative mb-8">
@@ -180,14 +185,22 @@ const Receipt = ({
 
           <div className="bg-white/90 backdrop-blur-sm p-8 rounded-3xl border border-gray-200 shadow-xl">
             <h3 className="font-semibold text-lg mb-6">Need Help?</h3>
-            <div className="space-y-4">
+            <div className="space-y-4 print:hidden">
+              <Button 
+                onClick={handlePrintReceipt}
+                variant="outline" 
+                className="w-full justify-start h-12 border-2 border-gray-200 hover:border-gray-300"
+              >
+                <Printer className="w-4 h-4 mr-2" />
+                🖨️ Print Receipt
+              </Button>
               <Button 
                 onClick={handleDownloadReceipt}
                 variant="outline" 
                 className="w-full justify-start h-12 border-2 border-gray-200 hover:border-gray-300"
               >
                 <Download className="w-4 h-4 mr-2" />
-                Download Receipt
+                Copy Details
               </Button>
               <Button 
                 onClick={handleViewBookings}
