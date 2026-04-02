@@ -1,9 +1,9 @@
-import { logout } from "@/redux/slices/authSlice";
+import { logoutAsync } from "@/redux/slices/authSlice";
 import { Menu, Search, X } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ClubList, HotelList, RestaurantList, RhaceIcon } from "./SideMenuList";
-
+import logo from "@/public/images/Rhace-09.png";
 import { useEffect, useState } from "react";
 
 // Hook to get current menu configuration
@@ -45,7 +45,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const vendor = useSelector((state) => state.auth.vendor);
-    const [profile, setProfile] = useState(null);
+  const [profile, setProfile] = useState(null);
   useEffect(() => {
     try {
       if (vendor) {
@@ -61,10 +61,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
   const handleItemClick = (item) => {
     if (item.label === "Logout") {
       console.log("Sidebar: logging out");
-      dispatch(logout());
-      setTimeout(() => {
-        navigate("/auth/vendor/login");
-      }, 500);
+      dispatch(logoutAsync());
+      // setTimeout(() => {
+      //   navigate("/auth/vendor/login");
+      // }, 500);
       if (onNavigate) onNavigate(item.path);
       if (onClose && window.innerWidth < 1024) onClose();
       return;
@@ -95,8 +95,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
           {/* Logo */}
           <div className="flex items-center h-16 px-4">
             <div className="flex items-center">
-<RhaceIcon className="w-10 h-10 mr-2" />
-              <span className="text-xl font-bold">rhace</span>
+              <img src={logo} alt="Rhace Logo" className="w-20 h-20 object-contain" />
             </div>
           </div>
 
@@ -165,14 +164,14 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
               <item.icon className="w-5 shrink-0 h-5" />
             </button>
           ))}
-            <button
-              onClick={() => {
-                
-              }}
-              className={`p-3 rounded-full text-[#606368] hover:bg-teal-700 hover:text-white`}
-            >
-              <Menu className="w-5 shrink-0 h-5" />
-            </button>
+          <button
+            onClick={() => {
+
+            }}
+            className={`p-3 rounded-full text-[#606368] hover:bg-teal-700 hover:text-white`}
+          >
+            <Menu className="w-5 shrink-0 h-5" />
+          </button>
         </nav>
       </div>
 
@@ -184,8 +183,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
         {/* Mobile Logo with close button */}
         <div className="flex items-center justify-between h-16 px-4 bg-teal-900">
           <div className="flex items-center">
-<RhaceIcon className="w-8 h-8 mr-3" />
-<span className="text-xl font-bold">rhace</span>
+            <img src={logo} alt="Rhace Logo" className="w-20 h-20 object-contain" />
           </div>
           <button
             onClick={onClose}
@@ -198,7 +196,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
         {/* Business selector */}
         <div className="px-4 py-3 border-b border-teal-700">
           <div className="bg-teal-700 px-3 py-2 rounded text-sm">
-             {profile?.businessName ?? 'Vendor'}
+            {profile?.businessName ?? 'Vendor'}
           </div>
         </div>
 
