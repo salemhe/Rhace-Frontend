@@ -2,7 +2,7 @@ import api from "@/lib/axios";
 
 class ReservationSerice {
   async getSummary() {
-    const vendorId = localStorage.getItem('vendorId') || 'current';
+    // const vendorId = localStorage.getItem('vendorId') || 'current';
     const res = await api.get(`/bookings/summary`);
     return res.data;
   }
