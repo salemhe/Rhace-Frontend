@@ -302,21 +302,3 @@ function ReservationHomePage() {
 }
 
 export default ReservationHomePage;
-
-const TaxClinicExplainerData = [
-  {
-    title: "Understand the Risk",
-    description:
-      "Understand what changed in Nigeria’s 2026 tax system, why turnover now matters, and how the rules relate to your type of business before taking any action.",
-  },
-  {
-    title: "Register Your Interest",
-    description:
-      "Share basic details about your business so we can understand your context and determine the most relevant guidance for you. No accounts. No passwords.",
-  },
-  {
-    title: "Get Guided Support",
-    description:
-      "Receive curated communication, webinars, or one on one guidance based on your needs, with scheduling and outreach handled directly by the clinic team.",
-  },
-];

@@ -1,46 +1,40 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { authService } from '@/services/auth.service';
-import { setVendor } from '@/redux/slices/authSlice';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ErrorBoundary from '@/components/ErrorBoundary';
 import Sidebar from './sidebar/Sidebar';
-import Header from './headers/vendor-header';
+import VendorHeader from './headers/vendor-header';
 
-const DashboardLayout = ({ children, section, settings }) => {
+const DashboardLayout = ({ children, type }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
-  const vendor = useSelector(state => state.auth.vendor);
 
-  return (
-    <ErrorBoundary>
-      <div className="flex h-dvh">
-        {/* Sidebar */}
-        <Sidebar onNavigate={navigate} type={vendor?.vendorType} settings={settings} isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        
-        {/* Main content area */}
-        <div className="flex-1 flex flex-col relative overflow-hidden">
-          {/* Header */}
-          <Header section={section} onMenuClick={() => setSidebarOpen(true)} />
-          
-          {/* Main content */}
-          <main className="flex-1 overflow-auto">
-            {children}
-          </main>
-        </div>
-        
-        {/* Mobile sidebar overlay */}
-        {/* {sidebarOpen && (
-          <div
-            className="fixed inset-0 z-20 bg-black bg-opacity-50 lg:hidden"
-            onClick={() => setSidebarOpen(false)}
-          />
-        )} */}
+return (
+    <div className="h-screen flex bg-gray-50 overflow-hidden">
+
+      <div className="hidden lg:flex lg:flex-shrink-0">
+        <Sidebar
+          isOpen={false}
+          onClose={() => {}}
+          onNavigate={(path) => navigate(path)}
+          type={type}
+        />
       </div>
-    </ErrorBoundary>
-  );
 
+      <div className="flex flex-1 flex-col w-full">
+        <VendorHeader onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 overflow-auto p-4 lg:p-6">
+          {children}
+        </main>
+      </div>
+
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-20 bg-black/30 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+  </div>
+  );
 };
 
 export default DashboardLayout;
+

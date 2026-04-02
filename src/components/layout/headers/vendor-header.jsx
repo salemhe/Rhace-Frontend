@@ -34,7 +34,7 @@ const Header = ({ onMenuClick }) => {
 
   const handleLogout = () => {
     dispatch(logoutAsync());
-    navigate('/auth/vendor/login');
+    // navigate('/auth/vendor/login');
   };
 
   const handleProfile = () => {

@@ -60,22 +60,15 @@ class AuthService {
 
   // Vendors Auth
   async vendorLogin(email, password) {
-    console.log('vendorLogin called with:', { email });
-    try {
-      const res = await api.post("/auth/vendors/login", { email, password });
-      console.log('vendorLogin response:', res.data);
-      const token = res.data.accessToken || res.data.token;
-      if (!token) {
-        console.error('No token in response:', res.data);
-        throw new Error('Login response missing token');
-      }
-      localStorage.setItem("vendor_token", token);
-      console.log('vendor_token stored:', token ? token.slice(0,20) + '...' : 'null');
-      return res.data;
-    } catch (err) {
-      console.log('vendorLogin error:', err.response?.status, err.response?.data);
-      throw err;
+    const res = await api.post("/auth/vendors/login", { email, password });
+    console.log('vendorLogin response:', res.data);
+    const token = res.data.accessToken || res.data.token;
+    if (!token) {
+      throw new Error('Login response missing token');
     }
+    localStorage.setItem("vendor_token", token);
+
+    return res.data;
   }
 
   async vendorUpdate(formData) {
