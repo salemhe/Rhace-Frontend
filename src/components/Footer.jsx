@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 export default function Footer() {
   return (
-    <footer className="relative bg-gray-900 text-gray-300 py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+    <footer className="relative bottom-0 bg-gray-900 text-gray-300 py-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <motion.div
           initial={{ opacity: 0, scale: 0.8 }}

@@ -131,10 +131,7 @@ const VendorDashboard = () => {
             </div>
             <StatCard
               title="Pending Payments"
-              value={reservationStats.todayStats[3].details.toLocaleString('en-NG', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              value={reservationStats.todayStats[3].details.toLocaleString('en-NG')}
               change={reservationStats.todayStats[3].change}
               icon={<Cash2 fill="#E1B505" className="text-[#E1B505]" />}
               color="orange"

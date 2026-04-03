@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { authService } from "@/services/auth.service";
 
 export const logoutAsync = createAsyncThunk(
   "auth/logoutAsync",
@@ -7,17 +6,7 @@ export const logoutAsync = createAsyncThunk(
     const state = getState();
     const userType = state.auth.user ? "user" : state.auth.vendor ? "vendor" : null;
 
-    try {
-      await authService.logout();
-    } catch (err) {
-      console.warn("Logout API call failed, clearing local state anyway");
-    }
-
-    // Clear localStorage
     localStorage.removeItem("token");
-    localStorage.removeItem("vendor_token");
-    localStorage.removeItem("auth_token");
-
     // Clear Redux state
     dispatch(authSlice.actions.logout());
 

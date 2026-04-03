@@ -37,7 +37,7 @@ class AuthService {
     return res.data;
   }
 
-    async googleLogin(code) {
+  async googleLogin(code) {
     const res = await api.post("/auth/users/login/google", {
       code,
     });
@@ -125,14 +125,6 @@ class AuthService {
 
   async adminRegister(adminData) {
     const res = await api.post("/auth/admin/register", adminData);
-    return res.data;
-  }
-  
-  // Logout
-  async logout() {
-    const res = await api.post("/auth/logout");
-  
-    localStorage.removeItem("token");
     return res.data;
   }
 }
