@@ -97,6 +97,22 @@ const BookingManagement = () => {
   const [selectedRoomType, setSelectedRoomType] = useState("all");
   const [hideTab, setHideTab] = useState(false);
 
+    const reservationStatusOptions = (status) => {
+    switch (status) {
+      case "upcoming":
+        return "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]";
+      case "confirmed":
+        return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
+      case "canceled":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      case "no-show":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  }
+
+
   // ── Mark as Completed dialog state ─────────────────────────────────────────
   const [open, setOpen] = useState(false);
   // Store the full booking object so handleConfirmArrival has everything it needs
@@ -358,6 +374,24 @@ const BookingManagement = () => {
           </span>
         );
       },
+    },
+    {
+      accessorKey: "reservationStatus",
+      header: () => {
+        return <div>Reservation Status</div>;
+      },
+      cell: ({ row }) => (
+        <div
+          className={`w-max 
+            ${reservationStatusOptions(row.getValue("reservationStatus"))} 
+              flex py-1.5 px-3 border rounded-full`}
+        >
+          {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}
+          {row.getValue("reservationStatus") === "confirmed" && "Confirmed"}
+          {row.getValue("reservationStatus") === "canceled" && "Canceled"}
+          {row.getValue("reservationStatus") === "no-show" && "No Show"}
+        </div>
+      ),
     },
     {
       id: "actions",
