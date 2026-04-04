@@ -66,7 +66,7 @@ class AuthService {
     if (!token) {
       throw new Error('Login response missing token');
     }
-    localStorage.setItem("vendor_token", token);
+    localStorage.setItem("token", token);
 
     return res.data;
   }

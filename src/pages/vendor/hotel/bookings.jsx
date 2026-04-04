@@ -136,7 +136,7 @@ const BookingManagement = () => {
 
       const normalizeStatus = (status) => (status || "").toLowerCase();
       const paymentStatus = normalizeStatus(booking.paymentStatus);
-      const isPaid = paymentStatus.includes("paid") || paymentStatus.includes("success");
+      const isPaid = paymentStatus.includes("paid") || paymentStatus.includes("pay_later") || paymentStatus.includes("partly_paid") || paymentStatus.includes("success");
 
       let paymentRef = null;
       if (isPaid) {
@@ -173,7 +173,7 @@ const BookingManagement = () => {
 
       setBookings((prev) =>
         prev.map((b) =>
-          b._id === bookingId ? { ...b, reservationStatus: "arrived" } : b
+          b._id === bookingId ? { ...b, reservationStatus: "confirmed" } : b
         )
       );
       toast.success("✅ Arrival confirmed!");
