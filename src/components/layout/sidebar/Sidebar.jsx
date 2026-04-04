@@ -1,10 +1,9 @@
 import { logout } from "@/redux/slices/authSlice";
 import { Menu, Search, X } from "lucide-react";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
-import { ClubList, HotelList, RestaurantList, RhaceIcon } from "./SideMenuList";
-
-import { useEffect, useState } from "react";
+import { ClubList, HotelList, RestaurantList } from "./SideMenuList";
+import logo from "@/public/images/Rhace-09.png";
 
 // Hook to get current menu configuration
 const useMenuConfig = (businessType) => {
@@ -44,20 +43,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
   const { menuItems, bottomItems } = useMenuConfig(type);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const vendor = useSelector((state) => state.auth.vendor);
-    const [profile, setProfile] = useState(null);
-  useEffect(() => {
-    try {
-      if (vendor) {
-        setProfile(vendor);
-      } else {
-        setProfile(null);
-      }
-    } catch (error) {
-      console.error(error);
-      setProfile(null);
-    }
-  }, [vendor]);
+
   const handleItemClick = (item) => {
     if (item.label === "Logout") {
       console.log("Sidebar: logging out");
@@ -81,10 +67,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
 
   const getBusinessName = () => {
     return type === "hotel"
-      ? "Hotel "
+      ? "Hotel 1 - HQ"
       : type === "restaurant"
-        ? "Restaurant "
-        : "Club ";
+        ? "Restaurant 1 - HQ"
+        : "Club 1 - HQ";
   };
 
   return (
@@ -95,15 +81,18 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
           {/* Logo */}
           <div className="flex items-center h-16 px-4">
             <div className="flex items-center">
-<RhaceIcon className="w-10 h-10 mr-2" />
-              <span className="text-xl font-bold">rhace</span>
+              <img
+                src={logo}
+                alt="Rhace Logo"
+                className="w-20 h-20 object-contain"
+              />
             </div>
           </div>
 
           {/* Business selector */}
           <div className="px-4 py-3 border-b border-teal-700">
             <div className="bg-slate-300 text-gray-900 px-3 py-2 rounded text-sm">
-              {profile?.businessName ?? 'Vendor'} - {getBusinessName()}
+              {getBusinessName()}
             </div>
           </div>
 
@@ -184,8 +173,10 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
         {/* Mobile Logo with close button */}
         <div className="flex items-center justify-between h-16 px-4 bg-teal-900">
           <div className="flex items-center">
-<RhaceIcon className="w-8 h-8 mr-3" />
-<span className="text-xl font-bold">rhace</span>
+            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center mr-3">
+              <div className="w-6 h-6 bg-teal-800 rounded-full"></div>
+            </div>
+            <span className="text-xl font-bold">Rhace</span>
           </div>
           <button
             onClick={onClose}
@@ -198,7 +189,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
         {/* Business selector */}
         <div className="px-4 py-3 border-b border-teal-700">
           <div className="bg-teal-700 px-3 py-2 rounded text-sm">
-             {profile?.businessName ?? 'Vendor'}
+            {getBusinessName()}
           </div>
         </div>
 

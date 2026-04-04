@@ -97,6 +97,7 @@ import VendornHomePage from "./pages/vendor/landingPage/page";
 import Terms from "./pages/user/Terms";
 import PrivacyPolicy from "./pages/user/Privacy";
 import PaystackCallback from "./components/PaystackCallback";
+import CookiesPage from "./pages/user/Cookies";
 // import PrivacyPolicy from "./pages/user/PrivacyPolicy";
 
 // Route Arrays
@@ -219,6 +220,7 @@ function App() {
           <Route path="/contact" element={<ContactRhace />} />
           <Route path="/faq" element={<HelpCenterRhace />} />
           <Route path="/terms" element={<Terms />} />
+          <Route path="/cookies" element={<CookiesPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/partner" element={<VendornHomePage />} />
 

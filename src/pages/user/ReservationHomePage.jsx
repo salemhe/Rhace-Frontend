@@ -32,37 +32,7 @@ function ReservationHomePage() {
   const [activeTab, setActiveTab] = useState("restaurants");
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const dispatch = useDispatch();
-  const user = useSelector((state) => state.auth);
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const navigates = useNavigate();
 
-  const navigate = (path) => {
-    navigates(path);
-  };
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        setLoading(true);
-        if (user.isAuthenticated) {
-          setProfile(user.user);
-        }
-      } catch (error) {
-        console.log(error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUserData();
-  }, [user]);
-
-  const handleLogout = async () => {
-    console.log("Attempting to logout");
-    dispatch(logout());
-    setProfile(null);
-  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -73,73 +43,6 @@ function ReservationHomePage() {
     if (isMenuOpen) document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isMenuOpen]);
-
-  const footer = [
-    {
-      title: "Home",
-      icon: <Home />,
-      link: "/",
-    },
-    {
-      title: "Moments",
-      icon: <CalendarClock />,
-      link: "/bookings",
-    },
-    {
-      title: "Search",
-      icon: <Search />,
-      link: "/search",
-    },
-    {
-      title: "Profile",
-      icon: (
-        <div className="relative text-gray-700" ref={dropdownRef}>
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className={`flex items-center space-x-1`}
-          >
-            {loading ? (
-              <div className="w-4 h-4 bg-gray-300 rounded-full animate-pulse" />
-            ) : (
-              <>
-                {profile ? (
-                  <Avatar className="w-6 h-6">
-                    <AvatarImage
-                      src={profile.profilePic}
-                      alt={`${profile.firstName} ${profile.lastName}`}
-                    />
-                    <AvatarFallback className="text-xs">
-                      {profile.firstName[0].toUpperCase()}
-                      {profile.lastName[0].toUpperCase()}
-                    </AvatarFallback>
-                  </Avatar>
-                ) : (
-                  <User className="w-6 h-6 text-gray-400 bg-gray-200 rounded-full p-1" />
-                )}
-              </>
-            )}
-            {isMenuOpen ? (
-              <ChevronUp className={`w-5 h-5 text-gray-700`} />
-            ) : (
-              <ChevronDown className={`w-5 h-5 text-gray-700`} />
-            )}
-          </button>
-
-          {isMenuOpen && (
-            <div className="absolute bottom-full right-0 mt-2 w-72 z-50">
-              <UserProfileMenu
-                onClose={() => setIsMenuOpen(false)}
-                navigate={navigate}
-                isAuthenticated={user.isAuthenticated}
-                handleLogout={handleLogout}
-                user={profile}
-              />
-            </div>
-          )}
-        </div>
-      ),
-    },
-  ];
 
   useEffect(() => {
     setMounted(true);
@@ -277,25 +180,7 @@ function ReservationHomePage() {
         </div>
       )}
 
-      <div className={`${profile && "hidden"} md:block`}>
-        <Footer />
-      </div>
-      {profile && (
-        <div className="fixed bottom-0 left-0 w-full bg-white py-2 flex items-center justify-center gap-12 border-t md:hidden z-50">
-          {footer.map((item, i) => (
-            <button
-              onClick={() => item.link && navigate(item.link)}
-              key={i}
-              className="text-sm font-medium text-gray-700 hover:text-gray-900"
-            >
-              <div className="flex items-center gap-1 flex-col ">
-                <div>{item.icon}</div>
-                <span className="text-xs">{item.title}</span>
-              </div>
-            </button>
-          ))}
-        </div>
-      )}
+      <Footer />
       {/* <LocationModal /> */}
     </div>
   );

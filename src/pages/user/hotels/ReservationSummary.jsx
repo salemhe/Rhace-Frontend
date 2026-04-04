@@ -77,8 +77,8 @@ export default function ReservationSummary() {
     try {
       setLoading(true);
 
-      const response = await userService.getVendor("hotel", id);
-      setVendor(response.data[0]);
+      const response = await userService.getVendor(id);
+      setVendor(response.data);
 
       const roomsData = parseRoomsFromUrl();
 

@@ -377,7 +377,6 @@ const Favorites: React.FC = () => {
                 </div>
               </div>
             ))}
-            ;
           </div>
         </div>
       </div>

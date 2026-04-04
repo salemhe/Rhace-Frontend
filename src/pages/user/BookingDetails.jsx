@@ -143,33 +143,39 @@ export default function BookingDetails() {
                                 Reservation Details
                             </h2>
 
-                            <hr className="border-gray-200 mb-4" />
-
-                            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 px-4 mb-4">
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-1">Check In Date</p>
-                                    <p className="font-medium text-gray-900">
-                                        {new Date(data.checkInDate).toLocaleDateString('en-NG', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                        })}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-1">Check Out Date</p>
-                                    <p className="font-medium text-gray-900">
-                                        {new Date(data.checkInDate).toLocaleDateString('en-NG', {
-                                            year: 'numeric',
-                                            month: 'short',
-                                            day: 'numeric',
-                                        })}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-600 mb-1">Guests Allowed</p>
-                                    <p className="font-medium text-gray-900">{data.guests} Guests</p>
-                                </div>
+                            <hr className="border-gray-200 mb-2" />
+                            <div className=" divide-y px-4">
+                                {data.rooms.length > 0 && data.rooms.map((item, index) => (
+                                    <div key={index} className="py-2">
+                                        <div className="mb-2 text-xs text-medium">Superion {item.roomId.category || item.roomId.roomCategory} {item.roomId.name}</div>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                                            <div>
+                                                <p className="text-sm text-gray-600 mb-1">Check In Date</p>
+                                                <p className="font-medium text-gray-900">
+                                                    {new Date(item.checkInDate).toLocaleDateString('en-NG', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                    })}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-600 mb-1">Check Out Date</p>
+                                                <p className="font-medium text-gray-900">
+                                                    {new Date(item.checkOutDate).toLocaleDateString('en-NG', {
+                                                        year: 'numeric',
+                                                        month: 'short',
+                                                        day: 'numeric',
+                                                    })}
+                                                </p>
+                                            </div>
+                                            <div>
+                                                <p className="text-sm text-gray-600 mb-1">Guests Allowed</p>
+                                                <p className="font-medium text-gray-900">{item.guests} Guests</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
                         <div className="rounded-2xl bg-white border border-gray-200 mb-6">
@@ -177,37 +183,40 @@ export default function BookingDetails() {
                                 <div className="flex p-4 justify-between items-center">
                                     <h3 className="text-lg font-semibold">Room Summary</h3>
                                 </div>
-                                <div className="space-y-4 p-4">
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-1">
-                                            <p className="text-xs text-gray-600">Room Name</p>
-                                            <p className="text-sm  line-clamp-1 font-medium text-gray-900">
-                                                Superion {data.room.category} {data.room.name}
-                                            </p>
+                                <div className="divide-y px-4">
+                                    {data.rooms.length > 0 && data.rooms.map((room, index) => (
+
+                                        <div key={index} className="grid grid-cols-2 py-4 gap-4">
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-gray-600">Room Name</p>
+                                                <p className="text-sm  line-clamp-1 font-medium text-gray-900">
+                                                    Superion {room.roomId.category} {room.roomId.name}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-gray-600">Price per Night</p>
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    ₦
+                                                    {(
+                                                        room.roomId.pricePerNight -
+                                                        room.roomId.pricePerNight * (room.roomId.discount / 100)
+                                                    ).toLocaleString()}
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-gray-600">Bed Type</p>
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {room.roomId.bedType} Bed
+                                                </p>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <p className="text-xs text-gray-600">Guests Allowed</p>
+                                                <p className="text-sm font-medium text-gray-900">
+                                                    {room.roomId.adultsCapacity}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <div className="space-y-1">
-                                            <p className="text-xs text-gray-600">Price per Night</p>
-                                            <p className="text-sm font-medium text-gray-900">
-                                                ₦
-                                                {(
-                                                    data.room.pricePerNight -
-                                                    data.room.pricePerNight * (data.room.discount / 100)
-                                                ).toLocaleString()}
-                                            </p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-xs text-gray-600">Bed Type</p>
-                                            <p className="text-sm font-medium text-gray-900">
-                                                1 master bed
-                                            </p>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <p className="text-xs text-gray-600">Guests Allowed</p>
-                                            <p className="text-sm font-medium text-gray-900">
-                                                {data.room.adultsCapacity}
-                                            </p>
-                                        </div>
-                                    </div>
+                                    ))}
                                 </div>
                             </div>
                         </div>
@@ -258,7 +267,7 @@ export default function BookingDetails() {
                                         <div htmlFor="date" className="text-black text-xs">
                                             Table
                                         </div>
-                                        {data.table.name}
+                                        <span className=" line-clamp-1">{data.tables.length > 0 ? data.tables[0].tableType.name : "N/A"} {data.tables.length > 0 ? `+${data.tables.length - 1} more` : ""}</span>
                                     </div>
                                     <Edit3 className="size-5" />
                                 </div>
@@ -303,18 +312,21 @@ export default function BookingDetails() {
                                         </div>
                                     </div>
                                 ))}
-                                <div
-                                    className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
-                                >
-                                    <div className="flex justify-between items-center">
-                                        <p className="text-sm text-[#111827]">{data.table.name}</p>
+                                {data.tables.length > 0 && data.tables.map((item, i) => (
+                                    <div
+                                        key={i}
+                                        className="space-y-4 px-2 py-3 rounded-2xl border border-[#E5E7EB] bg-[#F9FAFB]"
+                                    >
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-sm text-[#111827]">{item.tableType.name}</p>
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <p className="text-sm text-[#111827]">
+                                                ₦{item.tableType.price.toLocaleString()}
+                                            </p>
+                                        </div>
                                     </div>
-                                    <div className="flex justify-end items-center">
-                                        <p className="text-sm text-[#111827]">
-                                            ₦{data.table.price.toLocaleString()}
-                                        </p>
-                                    </div>
-                                </div>
+                                ))}
                                 {data.drinks.map((item, i) => (
                                     <div
                                         key={i}

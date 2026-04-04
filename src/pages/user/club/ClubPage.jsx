@@ -16,6 +16,7 @@ import StarRating from "@/components/ui/starrating";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
 import { clubService } from "@/services/club.service";
 import { toast } from "react-toastify";
+import { TableGridThree } from "@/components/TableGridRecommendations";
 
 const ClubPage = () => {
     const { id } = useParams();
@@ -24,12 +25,13 @@ const ClubPage = () => {
     const [tables, setTables] = useState(null)
     const [loading, setLoading] = useState(true);
     const [club, setClub] = useState(null);
+    const [recommendations, setRecommendations] = useState([]);
 
     useEffect(() => {
         const fetchClub = async () => {
             try {
-                const res = await userService.getVendor("club", id)
-                setClub(res.data[0])
+                const res = await userService.getVendor(id)
+                setClub(res.data)
             } catch (error) {
                 console.error(error)
             } finally {
@@ -40,6 +42,7 @@ const ClubPage = () => {
             try {
                 const res = await clubService.getTables(id);
                 setTables(res.tables)
+                setRecommendations(res.recommendations)
                 console.log(res)
             } catch (error) {
                 console.error(error)
@@ -52,7 +55,7 @@ const ClubPage = () => {
         fetchTables();
     }, [])
 
-      if (isLoading) return <UniversalLoader fullscreen type="vendor-page"/>
+    if (isLoading) return <UniversalLoader fullscreen type="vendor-page" />
 
     return (
         <>
@@ -145,6 +148,9 @@ const ClubPage = () => {
                             </div>
                         </div>
                     </div>
+                </div>
+                <div className="mt-5">
+                    <TableGridThree title="You might also like" data={recommendations} />
                 </div>
                 <BookingPopup loading={loading} tables={tables} id={id} />
             </main>

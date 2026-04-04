@@ -41,7 +41,7 @@ import {
   Search,
   XIcon,
 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -98,7 +98,113 @@ const ReservationDashboard = () => {
   });
 
   const [open, setOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
   const [resID, setResID] = useState();
+  const [confirmingIds, setConfirmingIds] = useState(new Set());
+  const reservationStatusOptions = (status) => {
+    switch (status) {
+      case "upcoming":
+        return "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]";
+      case "confirmed":
+        return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
+      case "canceled":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      case "no-show":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  };
+
+  const handleConfirmArrival = useCallback(
+    async (booking) => {
+      const bookingId = booking._id;
+      if (confirmingIds.has(bookingId)) return;
+
+      setConfirmingIds((prev) => new Set(prev).add(bookingId));
+
+      try {
+        const resId = booking.resId || booking._id;
+
+        const normalizeStatus = (status) => (status || "").toLowerCase();
+        const paymentStatus = normalizeStatus(booking.paymentStatus);
+        const isPaid =
+          paymentStatus.includes("paid") || paymentStatus.includes("pay_later") || paymentStatus.includes("partly_paid") || paymentStatus.includes("success");
+
+        let paymentRef = null;
+        if (isPaid) {
+          paymentRef =
+            booking.paymentRef ??
+            booking.reference ??
+            booking.payment_ref ??
+            booking.payment?.id ??
+            booking.paymentId ??
+            booking.payment?._id;
+        }
+
+        console.log("🔍 Confirm attempt:", {
+          bookingId,
+          resId,
+          paymentRef,
+          paymentStatus: booking.paymentStatus,
+          isPaid,
+          availableKeys: Object.keys(booking).filter(
+            (k) =>
+              k.includes("pay") ||
+              k.includes("ref") ||
+              k.includes("resId") ||
+              k.includes("payment"),
+          ),
+        });
+
+        if (!isPaid) {
+          throw new Error("Cannot confirm arrival: Payment not completed");
+        }
+
+        await userService.updateReservationStatus({
+          reservationId: bookingId,
+          vendorId: vendor?._id,
+          resId,
+          paymentRef,
+        });
+
+        setData((prev) =>
+          prev.map((b) =>
+            b._id === bookingId ? { ...b, reservationStatus: "confirmed" } : b,
+          ),
+        );
+        toast.success("✅ Arrival confirmed!");
+      } catch (err) {
+        const msg = err?.response?.data?.message || err?.message || "";
+        if (msg.includes("Missing") && msg.includes("data"))
+          toast.error(
+            "Backend missing payment data. Admin: Add .populate('payment') to /bookings endpoint.",
+          );
+        else if (msg.includes("Missing required fields"))
+          toast.error("Missing resId or paymentId — check booking data.");
+        else if (msg.includes("resId"))
+          toast.error(
+            `resId mismatch: ${err?.response?.data?.providedResId || msg}`,
+          );
+        else if (msg.includes("paymentId") || msg.includes("payment"))
+          toast.error(
+            `Payment issue: ${msg}. Backend needs payment population.`,
+          );
+        else if (msg.includes("Payment must be successful"))
+          toast.error("Payment incomplete.");
+        else if (msg.includes("hotelReservation"))
+          toast.error("Use hotel-specific flow.");
+        else toast.error(msg || "Failed to confirm arrival.");
+      } finally {
+        setConfirmingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(bookingId);
+          return next;
+        });
+      }
+    },
+    [confirmingIds, vendor?._id],
+  );
 
   const columns = [
     {
@@ -216,9 +322,14 @@ const ReservationDashboard = () => {
       },
       cell: ({ row }) => (
         <div
-          className={`w-max ${row.getValue("reservationStatus") === "upcoming" ? "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]" : "text-[#EF4444] bg-[#FCE6E6] border-[#FAE48A]"} flex py-1.5 px-3 border rounded-full`}
+          className={`w-max 
+            ${reservationStatusOptions(row.getValue("reservationStatus"))} 
+              flex py-1.5 px-3 border rounded-full`}
         >
           {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}
+          {row.getValue("reservationStatus") === "confirmed" && "Confirmed"}
+          {row.getValue("reservationStatus") === "canceled" && "Canceled"}
+          {row.getValue("reservationStatus") === "no-show" && "No Show"}
         </div>
       ),
     },
@@ -266,8 +377,7 @@ const ReservationDashboard = () => {
                   className="relative flex cursor-default items-center gap-2 rounded-sm  py-1.5"
                   onClick={() => {
                     setOpen(true);
-                    setResID(booking._id);
-                    console.log(resID);
+                    setSelectedBooking(booking);
                   }}
                 >
                   <CheckCircle /> Mark as Completed
@@ -466,10 +576,7 @@ const ReservationDashboard = () => {
             {/* <div className='flex h-full items-center w-full'> */}
             <StatCard
               title="Pending Payments"
-              value={stats.pendingPayments.count.toLocaleString("en-US", {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
+              value={stats.pendingPayments.count.toLocaleString("en-US")}
               change={stats.pendingPayments.change}
               icon={<Cash2 fill="#E1B505" className="text-[#E1B505]" />}
               color="orange"
@@ -830,7 +937,7 @@ const ReservationDashboard = () => {
                 </Button>
                 <form
                   action={async () => {
-                    navigate(`/bookings`);
+                    setShowPopup({ display: false, details: {} });
                   }}
                   className="flex-1"
                 >
@@ -848,13 +955,13 @@ const ReservationDashboard = () => {
       )}
       <ConfirmReservation
         onConfirm={async () => {
-          const res = await userService.updateReservationStatus(resID);
-
-          if (res.status === 200) {
-            toast.success("successfully confirmed");
+          if (selectedBooking) {
+            console.log(
+              "Confirming arrival for booking ID:",
+              selectedBooking._id,
+            );
+            handleConfirmArrival(selectedBooking);
           }
-
-          console.log("Reservation confirmed", resID);
         }}
         setOpen={setOpen}
         open={open}

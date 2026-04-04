@@ -82,7 +82,6 @@ export const ClubList = {
       path: "/dashboard/club/payments",
       icon: PaymentIcon,
     },
-      { icon: PeopleIcon, label: 'Staffs', path: '/dashboard/club/Staffs' },
   ],
   bottomItems: [
     {
@@ -120,9 +119,7 @@ export const HotelList = {
       path: "/dashboard/hotel/payments",
       icon: PaymentIcon,
     },
-    
-     { icon: PeopleIcon, label: 'Staffs', path: '/dashboard/hotel/staffs' },
-  ],
+    ],
   bottomItems: [
     {
       label: "Settings",
@@ -154,8 +151,6 @@ export const RestaurantList = {
       path: "/dashboard/restaurant/menu",
       icon: MenuIcon,
     },
-    
-    { icon: PeopleIcon, label: 'Staffs', path: '/dashboard/restaurant/staffs' },
     {
       label: "Payments",
       path: "/dashboard/restaurant/payments",

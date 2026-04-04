@@ -2,7 +2,6 @@ import {
   getImagesForRestaurant,
   hasMultipleImages,
   useCarouselLogic,
-  useFavorites,
   useRestaurantData,
 } from "@/hooks/favorites";
 import { HeartIcon } from "@/public/icons/icons";
@@ -105,9 +104,9 @@ const TableGrid = ({ title, type }) => {
                   {/* Right Arrow */}
                   {multipleImages && (
                     <button
-                      onClick={(e) =>
-                        handleNextImage(restaurantId, images.length, e)
-                      }
+                      // onClick={(e) =>
+                      //   handleNextImage(restaurantId, images.length, e)
+                      // }
                       className="absolute right-2 top-1/2 -translate-y-1/2 z-40 
                                 sm:hidden 
                                 bg-white/80 backdrop-blur-sm 
@@ -447,7 +446,7 @@ export const TableGridThree = ({ title, type }) => {
   const { currentIndices, handleMouseEnter, handleMouseLeave, handleDotClick } =
     useCarouselLogic();
   const { restaurants, isLoading } = useRestaurantData("club", type);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   if (isLoading) return <UniversalLoader type="cards" />;
 

@@ -71,10 +71,10 @@ const normalizePaymentStatus = (status = "") => {
 const getPaymentStatusColor = (status) => {
   const normalized = normalizePaymentStatus(status);
   switch (normalized) {
-    case "Fully Paid":  return "bg-green-100 text-green-800 border";
-    case "Part Paid":   return "bg-yellow-100 text-yellow-800 border";
-    case "Unpaid":      return "bg-gray-100 text-gray-800 border";
-    default:            return "bg-gray-100 text-gray-800 border";
+    case "Fully Paid": return "bg-green-100 text-green-800 border";
+    case "Part Paid": return "bg-yellow-100 text-yellow-800 border";
+    case "Unpaid": return "bg-gray-100 text-gray-800 border";
+    default: return "bg-gray-100 text-gray-800 border";
   }
 };
 
@@ -96,6 +96,22 @@ const BookingManagement = () => {
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("all");
   const [selectedRoomType, setSelectedRoomType] = useState("all");
   const [hideTab, setHideTab] = useState(false);
+
+    const reservationStatusOptions = (status) => {
+    switch (status) {
+      case "upcoming":
+        return "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]";
+      case "confirmed":
+        return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
+      case "canceled":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      case "no-show":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  }
+
 
   // ── Mark as Completed dialog state ─────────────────────────────────────────
   const [open, setOpen] = useState(false);
@@ -120,7 +136,7 @@ const BookingManagement = () => {
 
       const normalizeStatus = (status) => (status || "").toLowerCase();
       const paymentStatus = normalizeStatus(booking.paymentStatus);
-      const isPaid = paymentStatus.includes("paid") || paymentStatus.includes("success");
+      const isPaid = paymentStatus.includes("paid") || paymentStatus.includes("pay_later") || paymentStatus.includes("partly_paid") || paymentStatus.includes("success");
 
       let paymentRef = null;
       if (isPaid) {
@@ -157,7 +173,7 @@ const BookingManagement = () => {
 
       setBookings((prev) =>
         prev.map((b) =>
-          b._id === bookingId ? { ...b, reservationStatus: "arrived" } : b
+          b._id === bookingId ? { ...b, reservationStatus: "confirmed" } : b
         )
       );
       toast.success("✅ Arrival confirmed!");
@@ -177,7 +193,7 @@ const BookingManagement = () => {
         toast.error("Use hotel-specific flow.");
       else
         toast.error(msg || "Failed to confirm arrival.");
-     
+
     } finally {
       setConfirmingIds((prev) => {
         const next = new Set(prev);
@@ -251,39 +267,99 @@ const BookingManagement = () => {
     {
       accessorKey: "checkInDate",
       header: "Check-In Date",
-      cell: ({ row }) => (
-        <div className="text-sm text-gray-900">
-          {formatDate(row.getValue("checkInDate"))}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const { rooms } = row.original;
+
+        return (<div className="flex gap-2 items-center">
+          <div className="text-sm text-gray-900 space-y-0.5">
+            {rooms && rooms.length > 0
+              ? rooms.slice(0, 2).map((room, i) => (
+                <div key={i} className="mr-2">
+                  {formatDate(room.checkInDate)}
+                </div>
+              ))
+              : "N/A"}
+          </div>
+          {rooms && rooms.length > 2 && (
+            <span className="text-xs text-gray-500">
+              +{rooms.length - 2} more
+            </span>
+          )}
+        </div>)
+      },
     },
     {
       accessorKey: "checkOutDate",
       header: "Check-Out Date",
-      cell: ({ row }) => (
-        <div className="text-sm text-gray-900">
-          {formatDate(row.getValue("checkOutDate"))}
-        </div>
-      ),
+      cell: ({ row }) => {
+        const { rooms } = row.original;
+
+
+        return (<div className="flex gap-2 items-center">
+          <div className="text-sm text-gray-900 space-y-0.5">
+            {rooms && rooms.length > 0
+              ? rooms.slice(0, 2).map((room, i) => (
+                <div key={i} className="mr-2">
+                  {formatDate(room.checkOutDate)}
+                </div>
+              ))
+              : "N/A"}
+          </div>
+          {rooms && rooms.length > 2 && (
+            <span className="text-xs text-gray-500">
+              +{rooms.length - 2} more
+            </span>
+          )}
+        </div>)
+      },
     },
     {
       accessorKey: "room.name",
       header: "Room Type",
       cell: ({ row }) => {
-        const booking = row.original;
-        return (
-          <div className="text-sm text-gray-900">
-            {booking.room?.name || "N/A"}
+        const { rooms } = row.original;
+
+        return (<div className="flex gap-2 items-center">
+          <div className="text-sm text-gray-900 space-y-0.5">
+            {rooms && rooms.length > 0
+              ? rooms.slice(0, 2).map((room, i) => (
+                <div key={i} className="text-sm text-gray-900">
+                  {room.roomId.name || "N/A"}
+                </div>
+              ))
+              : "N/A"}
           </div>
-        );
+          {rooms && rooms.length > 2 && (
+            <span className="text-xs text-gray-500">
+              +{rooms.length - 2} more
+            </span>
+          )}
+        </div>)
       },
     },
     {
       accessorKey: "guests",
       header: "No of Guests",
-      cell: ({ row }) => (
-        <div className="text-sm text-gray-900">{row.getValue("guests")}</div>
-      ),
+      cell: ({ row }) => {
+        const { rooms } = row.original;
+
+        return (<div className="flex gap-2 items-center">
+          <div className="text-sm text-gray-900 space-y-0.5">
+            {rooms && rooms.length > 0
+              ? rooms.slice(0, 2).map((room, i) => (
+                <div key={i} className="mr-2">
+                  {room.guests} guests
+                </div>
+              ))
+              : "N/A"}
+          </div>
+          {rooms && rooms.length > 2 && (
+            <span className="text-xs text-gray-500">
+              +{rooms.length - 2} more
+            </span>
+          )}
+        </div>)
+      },
     },
     {
       accessorKey: "paymentStatus",
@@ -298,6 +374,24 @@ const BookingManagement = () => {
           </span>
         );
       },
+    },
+    {
+      accessorKey: "reservationStatus",
+      header: () => {
+        return <div>Reservation Status</div>;
+      },
+      cell: ({ row }) => (
+        <div
+          className={`w-max 
+            ${reservationStatusOptions(row.getValue("reservationStatus"))} 
+              flex py-1.5 px-3 border rounded-full`}
+        >
+          {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}
+          {row.getValue("reservationStatus") === "confirmed" && "Confirmed"}
+          {row.getValue("reservationStatus") === "canceled" && "Canceled"}
+          {row.getValue("reservationStatus") === "no-show" && "No Show"}
+        </div>
+      ),
     },
     {
       id: "actions",
@@ -439,11 +533,11 @@ const BookingManagement = () => {
       if (activeTab !== "All") {
         const status = (booking.reservationStatus || booking.status || "").toLowerCase();
         switch (activeTab) {
-          case "Upcoming":   matchesTab = status === "upcoming"; break;
-          case "Completed":  matchesTab = status === "completed" || status === "paid"; break;
-          case "Canceled":   matchesTab = status === "canceled" || status === "cancelled"; break;
-          case "No shows":   matchesTab = status === "no shows" || status === "no-shows"; break;
-          default:           matchesTab = true;
+          case "Upcoming": matchesTab = status === "upcoming"; break;
+          case "Completed": matchesTab = status === "completed" || status === "paid"; break;
+          case "Canceled": matchesTab = status === "canceled" || status === "cancelled"; break;
+          case "No shows": matchesTab = status === "no shows" || status === "no-shows"; break;
+          default: matchesTab = true;
         }
       }
 
@@ -616,11 +710,10 @@ const BookingManagement = () => {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`p-2 text-xs md:text-sm rounded-lg border font-medium cursor-pointer ${
-                      activeTab === tab
-                        ? "border-[#B3D1D2] bg-[#E7F0F0] text-[#111827]"
-                        : "border-transparent text-[#606368]"
-                    }`}
+                    className={`p-2 text-xs md:text-sm rounded-lg border font-medium cursor-pointer ${activeTab === tab
+                      ? "border-[#B3D1D2] bg-[#E7F0F0] text-[#111827]"
+                      : "border-transparent text-[#606368]"
+                      }`}
                   >
                     {tab}
                   </button>
@@ -796,11 +889,10 @@ const BookingManagement = () => {
                   key={idx}
                   onClick={() => typeof page === "number" && handlePageChange(page)}
                   disabled={page === "ellipsis-start" || page === "ellipsis-end"}
-                  className={`px-3 py-1 rounded-md ${
-                    currentPage === page
-                      ? "bg-teal-600 text-white"
-                      : "bg-white text-gray-700 border border-gray-200"
-                  } ${page === "ellipsis-start" || page === "ellipsis-end" ? "cursor-default" : "hover:bg-gray-100"}`}
+                  className={`px-3 py-1 rounded-md ${currentPage === page
+                    ? "bg-teal-600 text-white"
+                    : "bg-white text-gray-700 border border-gray-200"
+                    } ${page === "ellipsis-start" || page === "ellipsis-end" ? "cursor-default" : "hover:bg-gray-100"}`}
                 >
                   {page === "ellipsis-start" || page === "ellipsis-end" ? "…" : page}
                 </button>
@@ -820,7 +912,7 @@ const BookingManagement = () => {
 
       {/* Mark as Completed confirmation dialog — uses original handleConfirmArrival logic */}
       <ConfirmReservation
-        onConfirm={async() => {
+        onConfirm={async () => {
           if (selectedBooking) {
             handleConfirmArrival(selectedBooking);
           }

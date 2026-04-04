@@ -288,7 +288,7 @@ const PaymentDashboard = () => {
   ]
 
 
-  const { subscribe, unsubscribe } = useWebSocket();
+  // const { subscribe, unsubscribe } = useWebSocket();
 
   const fetchData = () => {
 const fetchPayments = async () => {
@@ -365,16 +365,17 @@ const fetchPaymentStats = async () => {
       fetchData();
     };
 
-    subscribe("payment-updated", handlePaymentUpdate);
-    subscribe("payment-created", handlePaymentUpdate);
-    subscribe("payment-deleted", handlePaymentUpdate);
+    // subscribe("payment-updated", handlePaymentUpdate);
+    // subscribe("payment-created", handlePaymentUpdate);
+    // subscribe("payment-deleted", handlePaymentUpdate);
 
-    return () => {
-      unsubscribe("payment-updated");
-      unsubscribe("payment-created");
-      unsubscribe("payment-deleted");
-    };
-  }, [subscribe, unsubscribe]);
+    // return () => {
+    //   unsubscribe("payment-updated");
+    //   unsubscribe("payment-created");
+    //   unsubscribe("payment-deleted");
+    // };
+  }, []);
+  // }, [subscribe, unsubscribe]);
 
 
 
@@ -432,13 +433,7 @@ const fetchPaymentStats = async () => {
           <>
             {!hideTab && !loading.stats &&
               <div className='px-2'>
-                <div className='grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4 py-4 md:py-6 border w-full bg-white rounded-2xl md:divide-x divide-y md:divide-y-0 [&>div]:pb-0 md:[&>div]:px-2'>
-                  <div className='flex h-full items-center'>
-                    <StatCard title="Total Revenue" className="py-0" value={`₦${totalRevenue.toLocaleString('en-US', {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2
-                    })}`} change={0} icon={<Cash2 />} color="indigo" />
-                  </div>
+                <div className='grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 py-4 md:py-6 border w-full bg-white rounded-2xl md:divide-x divide-y md:divide-y-0 [&>div]:pb-0 md:[&>div]:px-2'>
                   <div className='flex h-full items-center'>
                     <StatCard title="Total Earnings" className="py-0" value={`₦${stats.earnings.thisYear.toLocaleString('en-US', {
                       minimumFractionDigits: 2,

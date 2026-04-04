@@ -39,6 +39,11 @@ class ClubService {
     return res.data;
   }
 
+  async updateTable(tableData) {
+    const res = await api.put(`/tables/${tableData.tableId}`, tableData);
+    return res.data;
+  }
+
   async createBottleSet(data) {
     const res = await api.post("/bottle-sets", data);
     return res.data;

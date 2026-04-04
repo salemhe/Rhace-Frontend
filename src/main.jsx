@@ -20,7 +20,7 @@ createRoot(document.getElementById('root')).render(
         <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
           <BrowserRouter>
             <LocationProvider>
-              <WebSocketProvider url="https://rhace-backend-mkne.onrender.com">
+              {/* <WebSocketProvider url="https://rhace-backend-mkne.onrender.com"> */}
                 <App />
                 <ToastContainer
                   position="top-right"
@@ -34,7 +34,7 @@ createRoot(document.getElementById('root')).render(
                   pauseOnHover
                   // theme="colored"
                 />
-              </WebSocketProvider>
+              {/* </WebSocketProvider> */}
             </LocationProvider>
           </BrowserRouter>
         </GoogleOAuthProvider>

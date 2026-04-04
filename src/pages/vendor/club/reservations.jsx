@@ -133,7 +133,7 @@ const ClubReservationTable = () => {
   const [selectedDate, setSelectedDate] = useState("all");
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("all");
   const [selectedTable, setSelectedTable] = useState("all");
-  const [resID, setResID] = useState()
+  const [resID, setResID] = useState();
 
   const [hideTab, setHideTab] = useState(false);
   const [showPopup, setShowPopup] = useState({
@@ -419,6 +419,33 @@ const ClubReservationTable = () => {
   });
 
   const data = filteredReservations;
+
+    const reservationStatusOptions = (status) => {
+    switch (status) {
+      case "upcoming":
+        return "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]";
+      case "confirmed":
+        return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
+      case "canceled":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      case "no-show":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  }
+    const reservationStatusOptions2 = (status) => {
+    switch (status) {
+      case "partly_paid":
+        return "bg-[#D4FCE7] text-[#37703F]  border-[#B8D1C2]";
+      case "paid":
+        return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
+      case "failed":
+        return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
+      default:
+        return "bg-gray-100 text-gray-800 border-gray-300";
+    }
+  }
 
   // Update total items based on filtered reservations
   useEffect(() => {
@@ -950,9 +977,24 @@ const ClubReservationTable = () => {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm text-gray-900">
-                              {reservation.table || "Not assigned"}
-                            </span>
+                            <div className="flex gap-2 items-center">
+                              <div className="text-sm text-gray-900 space-y-0.5">
+                                {reservation.tables
+                                  ? reservation.tables
+                                      .slice(0, 2)
+                                      .map((t, i) => (
+                                        <div key={i} className="mr-2">
+                                          {t.tableType.name}
+                                        </div>
+                                      ))
+                                  : "Not Assigned"}
+                              </div>
+                              {reservation.tables && reservation.tables.length > 2 && (
+                                <span className="text-xs text-gray-500">
+                                  +{reservation.tables.length - 2} more
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
@@ -972,29 +1014,25 @@ const ClubReservationTable = () => {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getPaymentStatusColor(
-                                reservation.paymentStatus,
-                              )}`}
+                            <div
+                              className={` w-max ${reservationStatusOptions2(reservation.paymentStatus)} flex py-1.5 px-3 border rounded-full`}
                             >
-                              {normalizePaymentStatus(
-                                reservation.paymentStatus,
-                              )}
-                            </span>
+                              {reservation.paymentStatus === "not_paid"
+                                ? "Pay at Restaurant"
+                                : reservation.paymentStatus.split("_").join(" ")}
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <span
-                              className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${getReservationStatusColor(
-                                reservation.reservationStatus,
-                              )}`}
+                            <div
+                                className={`w-max 
+                                  ${reservationStatusOptions(reservation.reservationStatus)} 
+                                    flex py-1.5 px-3 border rounded-full`}
                             >
-                              {(reservation.reservationStatus || "Pending")
-                                .charAt(0)
-                                .toUpperCase() +
-                                (
-                                  reservation.reservationStatus || "Pending"
-                                ).slice(1)}
-                            </span>
+                              {reservation.reservationStatus === "upcoming" && "Upcoming"}
+                              {reservation.reservationStatus === "confirmed" && "Confirmed"}
+                              {reservation.reservationStatus === "canceled" && "Canceled"}
+                              {reservation.reservationStatus === "no-show" && "No Show"}
+                            </div>
                           </TableCell>
                           <TableCell>
                             {/* <button
@@ -1045,8 +1083,8 @@ const ClubReservationTable = () => {
                                     className="relative flex cursor-pointer items-center gap-2 rounded-sm  py-1.5"
                                     onClick={() => {
                                       setOpen(true);
-                                      setResID(reservation._id,)
-                                      console.log(resID)
+                                      setResID(reservation._id);
+                                      console.log(resID);
                                     }}
                                   >
                                     <CheckCircle /> Mark as Completed
@@ -1429,14 +1467,14 @@ const ClubReservationTable = () => {
           try {
             const res = await userService.updateReservationStatus({
               reservationId: resID,
-              vendorId: vendor._id
+              vendorId: vendor._id,
             });
-            
+
             if (res.status === 200) {
               toast.success("Reservation marked as complete!");
               // Refresh reservations list
               const freshRes = await userService.fetchReservations({
-                vendorId: vendor._id
+                vendorId: vendor._id,
               });
               setReservations(freshRes.data || []);
             } else {
@@ -1444,7 +1482,9 @@ const ClubReservationTable = () => {
             }
           } catch (error) {
             console.error("Update failed:", error);
-            toast.error(error.response?.data?.message || "Failed to update reservation");
+            toast.error(
+              error.response?.data?.message || "Failed to update reservation",
+            );
           }
         }}
         setOpen={setOpen}
