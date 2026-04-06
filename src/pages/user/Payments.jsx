@@ -14,7 +14,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useWebSocket } from "@/contexts/WebSocketContext";
+// import { useWebSocket } from "@/contexts/WebSocketContext";
 import { RefreshCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { AreaChart, ResponsiveContainer, Tooltip } from "recharts";
@@ -360,7 +360,7 @@ function DetailDrawer({ payment, onClose, openCheckout }) {
             {[
               { label: "Date", value: fmtDate(payment.createdAt) },
               { label: "Time", value: fmtTime(payment.createdAt) },
-              { label: "Method", value: payment.paymentMethod },
+              { label: "Method", value: payment.paymentMethod || "Not specified" },
               { label: "Type", value: payment.vendor.vendorType },
             ].map(({ label, value }) => (
               <div key={label} className="bg-gray-50 rounded-2xl px-3.5 py-3">
@@ -380,7 +380,7 @@ function DetailDrawer({ payment, onClose, openCheckout }) {
               Reference
             </p>
             <p className="text-[12px] font-semibold text-gray-700 font-mono tracking-tight">
-              {payment.reference}
+              {payment.paystackReference ? payment.paystackReference.toUpperCase() : "Not specified"}
             </p>
           </div>
 
@@ -457,6 +457,7 @@ const PaymentsHistory = () => {
 
   const fetchPayments = useCallback(async () => {
     setIsRefreshing(true);
+    setIsLoading(true);
     try {
       const result = await paymentService.getPayments();
       setPayments(result);
@@ -473,7 +474,7 @@ const PaymentsHistory = () => {
   useEffect(() => {
     fetchPayments(); // Initial load
 
-    const interval = setInterval(fetchPayments, 30000); // 30s poll
+    const interval = setInterval(fetchPayments, 300000); // 5-minute poll
 
     return () => {
       clearInterval(interval);

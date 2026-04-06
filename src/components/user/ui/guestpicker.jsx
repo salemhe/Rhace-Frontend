@@ -111,7 +111,7 @@ const inc = (type) => {
         >
           <div className="flex flex-col gap-2">
             <Label htmlFor="date" className="text-black text-xs">
-              Guest {`( max ${maxGuests})`}
+              Guest {maxGuests && `( max ${maxGuests})`}
             </Label>
             {value
               ? `${value} ${Number(value) > 1 ? "Guests" : "Guest"}`

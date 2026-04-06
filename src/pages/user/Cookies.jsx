@@ -27,10 +27,10 @@ const sections = [
   {
     heading: "Types of Cookies We Use",
     content: [
-      "Essential Cookies — required for core platform functionality such as authentication and booking sessions. These cannot be disabled.",
-      "Analytics Cookies — help us understand traffic patterns and usage behavior so we can improve our platforms.",
-      "Preference Cookies — remember your settings and preferences for a better experience on return visits.",
-      "Marketing Cookies — used occasionally to understand the effectiveness of our outreach. We do not sell this data.",
+      "Essential Cookies: required for core platform functionality such as authentication and booking sessions. These cannot be disabled.",
+      "Analytics Cookies: help us understand traffic patterns and usage behavior so we can improve our platforms.",
+      "Preference Cookies: remember your settings and preferences for a better experience on return visits.",
+      "Marketing Cookies: used occasionally to understand the effectiveness of our outreach. We do not sell this data.",
     ],
   },
   {

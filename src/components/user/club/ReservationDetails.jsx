@@ -59,7 +59,6 @@ const tableCategoryIcons = {
 
 export default function ReservationDetails({
   id,
-  searchQuery,
 }) {
   const {
     comboItems,
@@ -97,7 +96,6 @@ export default function ReservationDetails({
   const [maxTranslate, setMaxTranslate] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [scrollState, setScrollState] = useState({ atStart: true, atEnd: false });
-  const [tableAdded, setTableAdded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // Check if mobile on mount and resize
@@ -148,16 +146,6 @@ export default function ReservationDetails({
       })
     );
   };
-
-  useEffect(() => {
-    if (table.length > 0 && !tableAdded && searchQuery?.table) {
-      const theTable = table.find(t => t._id === searchQuery.table)
-      if (theTable) {
-        handleTableQuantityChange(theTable._id, 1, "input");
-      }
-      setTableAdded(true)
-    }
-  }, [table, searchQuery])
 
   const filteredBottles =
     activeTab === "All Bottles"
