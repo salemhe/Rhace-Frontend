@@ -656,6 +656,7 @@ function BookingsPage() {
    useEffect(() => {
       const fetchBookings = async () => {
          try {
+            setIsLoading(true)
             const res = await userService.fetchReservations({ userId: user._id });
             setBookings(res.data);
          } catch (err) {
@@ -674,14 +675,11 @@ function BookingsPage() {
      useEffect(() => {
        const fetchUserData = async () => {
          try {
-           setIsLoading(true);
            if (user.isAuthenticated) {
              setProfile(user.user);
            }
          } catch (error) {
            console.log(error);
-         } finally {
-           setIsLoading(false);
          }
        };
        fetchUserData();

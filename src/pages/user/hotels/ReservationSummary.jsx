@@ -151,7 +151,7 @@ export default function ReservationSummary() {
     fetchVendorAndRooms();
   }, []);
   const handleContinue = async () => {
-    if (next === false) {
+    if (next === false && isMobile) {
       showNext(true);
     } else {
       const res = await handleSubmit();
@@ -177,8 +177,8 @@ export default function ReservationSummary() {
     const maxQty = selection.room.totalUnits || 10;
     const newQty = Math.max(1, Math.min(currentQty + delta, maxQty));
 
-    const newMaxAdults = selection.room.maxAdults * newQty;
-    const newMaxChildren = selection.room.maxChildren * newQty;
+    const newMaxAdults = (selection.room.adultsCapacity ?? selection.room.maxAdults ?? 2) * newQty;
+    const newMaxChildren = (selection.room.childrenCapacity ?? selection.room.maxChildren ?? 2) * newQty;
     const newMaxGuests = newMaxAdults + newMaxChildren;
 
     const updates = { quantity: newQty };
@@ -320,8 +320,8 @@ export default function ReservationSummary() {
                         const quantity = selection.quantity || 1;
                         const roomTotal = discountedPrice * quantity * nights;
                         console.log(guests);
-                        const maxAdults = room.adultsCapacity * quantity;
-                        const maxChildren = room.childrenCapacity * quantity;
+                        const maxAdults = (room.adultsCapacity ?? room.maxAdults ?? 2) * quantity;
+                        const maxChildren = (room.childrenCapacity ?? room.maxChildren ?? 2) * quantity;
                         const maxGuests = maxAdults + maxChildren;
                         console.log(room);
                         return (

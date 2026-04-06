@@ -81,7 +81,7 @@ export default function ReservationSummary() {
   }, [table, comboItems, bottleItems, vipExtraItems]);
 
   const handleContinue = async () => {
-    if (next === false) {
+    if (next === false && isMobile) {
       showNext(true);
     } else {
       const canPay = await handleSubmit();

@@ -3,15 +3,17 @@ import storage from "redux-persist/lib/storage";
 import { persistReducer, persistStore } from "redux-persist";
 import { combineReducers } from "redux";
 import authReducer from "./slices/authSlice";
+import vendorReducer from "./slices/vendorSlice";
 
 const persistConfig = {
   key: "root",
   storage,
-  whitelist: ["auth"], // which slices to persist
+  whitelist: ["auth", "vendor"], // which slices to persist
 };
 
 const rootReducer = combineReducers({
   auth: authReducer,
+  vendor: vendorReducer,
 });
 
 const persistedReducer = persistReducer(persistConfig, rootReducer);

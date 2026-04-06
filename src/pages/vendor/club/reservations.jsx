@@ -1465,21 +1465,17 @@ const ClubReservationTable = () => {
           }
 
           try {
-            const res = await userService.updateReservationStatus({
+            await userService.updateReservationStatus({
               reservationId: resID,
               vendorId: vendor._id,
             });
-
-            if (res.status === 200) {
               toast.success("Reservation marked as complete!");
               // Refresh reservations list
               const freshRes = await userService.fetchReservations({
                 vendorId: vendor._id,
               });
               setReservations(freshRes.data || []);
-            } else {
-              toast.error("Update failed");
-            }
+            
           } catch (error) {
             console.error("Update failed:", error);
             toast.error(

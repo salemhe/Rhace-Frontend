@@ -84,11 +84,13 @@ const Reservation = () => {
     try {
       setTableLoading(true);
       const res = await clubService.getTables(id);
-      setTable(res.tables.map((item) => {
-        return { ...item, selected: false }
-      }));
+      setTable(res.tables.map((item) => ({
+        ...item,
+        quantity: item._id === searchQuery.table ? 1 : 0,
+        selected: item._id === searchQuery.table,
+      })));
     } catch (error) {
-      console.error("Error fetching vendor:", error);
+      console.error("Error fetching tables:", error);
     } finally {
       setTableLoading(false);
     }
@@ -102,12 +104,6 @@ const Reservation = () => {
     setDate(new Date(searchQuery.date));
     setTime(searchQuery.time);
     setGuestCount(searchQuery.guests);
-    setTable(
-      table.map((item) => ({
-        ...item,
-        selected: item._id === searchQuery.table ? !item.selected : false,
-      }))
-    );
   }, []);
 
   return <div className="">{page === 1 ? <ReservationSummary id={id} /> : <ReservationDetails id={id} searchQuery={searchQuery} />}</div>;
