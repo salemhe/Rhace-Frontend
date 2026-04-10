@@ -588,15 +588,26 @@ function BookingsPage() {
    const allBookings      = [...upcomingBookings, ...pastBookings];
    const rawBookings      = activeTab === 'upcoming' ? upcomingBookings : pastBookings;
 
-   const handleDelete = (id) => {
-      if (window.confirm('Are you sure you want to delete this booking?')) {
-         setBookings((prev) => ({
-            ...prev,
-            upcoming: prev.upcoming?.filter((b) => b._id !== id),
-            past:     prev.past?.filter((b) => b._id !== id),
-         }));
+   const handleCancel = async (id) => {
+      try {
+         const res = await userService.cancelReservation(id);
+         if (res.success) {
+            setBookings(prev => {
+               const updated = { ...prev };
+               ['upcoming', 'past'].forEach(key => {
+                  updated[key] = updated[key].map(b => b._id === id ? { ...b, reservationStatus: 'Cancelled' } : b);
+               });
+               return updated;
+            });
+            toast.success('Booking cancelled successfully');
+         } else {
+            toast.error(res.message || 'Failed to cancel booking');
+         }
+      } catch (err) {
+         console.log(err);
+         toast.error('Failed to cancel booking');
       }
-   };
+   }
 
    const handleSuggestionApply = (suggestion) => {
       setSearchQuery(suggestion.label);
@@ -657,7 +668,7 @@ function BookingsPage() {
       const fetchBookings = async () => {
          try {
             setIsLoading(true)
-            const res = await userService.fetchReservations({ userId: user._id });
+            const res = await userService.fetchReservations({ userId: user._id, limit: 1000 });
             setBookings(res.data);
          } catch (err) {
             console.log(err);
@@ -788,8 +799,8 @@ function BookingsPage() {
                   onClick={() => navigate('/')}
                   className="group flex items-center gap-3 text-gray-900 transition-colors"
                >
-                  <ArrowLeft className="w-6 h-6 transition-transform duration-200 group-hover:-translate-x-1" />
-                  <h1 className="text-xl sm:text-2xl font-normal sm:font-semibold tracking-tight">
+                  <ArrowLeft className="size-4 transition-transform duration-200 group-hover:-translate-x-1" />
+                  <h1 className="text-sm sm:text-base font-normal sm:font-semibold tracking-tight">
                      Reservations History
                   </h1>
                </button>
@@ -966,7 +977,11 @@ function BookingsPage() {
                                     key={booking._id}
                                     booking={booking}
                                     onEdit={(_id) => console.log('Edit', _id)}
-                                    onDelete={handleDelete}
+                                    onCancel={ async (id) => {
+                                       console.log('Cancel', id);
+                                       await handleCancel(id);
+                                    }}
+                                    // onDelete={handleDelete}
                                  />
                               ))}
                            </div>

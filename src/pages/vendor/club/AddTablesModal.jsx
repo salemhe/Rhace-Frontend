@@ -275,7 +275,7 @@ export function AddTablesModal({
                 <option value="Regular">Regular</option>
                 <option value="VIP">VIP</option>
                 <option value="VVIP">VVIP</option>
-                <option value="Super Regular">Super Regular</option>
+                <option value="Lounge">Lounge</option>
               </select>
             </div>
           </div>

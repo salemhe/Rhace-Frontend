@@ -1,10 +1,12 @@
 import { useState } from "react";
-import { Building2, Calendar, Download, Edit, Eye, Home, MapPin, MoreVertical, Trash2, Users, X } from 'lucide-react';
+import { Building2, Calendar, Download, Edit, Eye, Home, Loader, Loader2, MapPin, MoreVertical, Trash2, Users, X } from 'lucide-react';
 import { useNavigate } from "react-router";
 import { SvgIcon, SvgIcon2, SvgIcon3 } from "@/public/icons/icons";
 
-function BookingCard({ booking, onEdit, onDelete }) {
+function BookingCard({ booking, onEdit, onCancel }) {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showCancel, setShowCancel] = useState(false);
+  const [cancelLoading, setCancelLoading] = useState(false);
   const navigate = useNavigate();
 
   const formatDate = (dateString) => {
@@ -41,16 +43,13 @@ function BookingCard({ booking, onEdit, onDelete }) {
     const normalized = status.toLowerCase();
 
     switch (normalized) {
-      case 'paid':
+      case 'confirmed':
         return 'bg-green-100 text-green-700 border-green-800';
 
-      case 'part_paid':
-      case 'part paid':
-      case 'partial':
+      case 'upcoming':
         return 'bg-yellow-100 text-yellow-700 border-yellow-800';
 
-      case 'not_paid':
-      case 'unpaid':
+      case 'no_show':
         return 'bg-amber-100 text-amber-700 border-amber-800';
 
       case 'cancelled':
@@ -83,7 +82,7 @@ function BookingCard({ booking, onEdit, onDelete }) {
   };
 
   const getButtonText = (status) => {
-    if (status === 'success' || status === 'cancelled') {
+    if (status === 'confirmed' || status === 'cancelled') {
       return 'Leave Review';
     }
     return 'View Details';
@@ -95,11 +94,17 @@ function BookingCard({ booking, onEdit, onDelete }) {
     setShowDropdown(false);
   };
 
-  const handleCancelBooking = () => {
-    if (window.confirm('Are you sure you want to cancel this booking?')) {
-      onDelete(booking.id);
-      setShowDropdown(false);
-    }
+  const handleCancelBooking = async () => {
+      setCancelLoading(true);
+      try {
+        console.log('Cancelling booking with ID:', booking._id);
+        await onCancel(booking._id);
+      } catch (err) {
+          console.log(err);
+        } finally {
+          setCancelLoading(false);
+          setShowCancel(false);
+        }
   };
 
   //Capitalize Vendor type 
@@ -177,19 +182,24 @@ function BookingCard({ booking, onEdit, onDelete }) {
       <div className="flex flex-col border-t p-2  sm:flex-row items-start sm:items-center justify-between gap-3">
         <span
           className={`px-3 py-1 rounded-full text-sm font-medium border ${getStatusColor(
-            booking.paymentStatus
+            booking.reservationStatus
           )}`}
         >
-          {booking.paymentStatus.split("_").join(" ")}
+          {booking.reservationStatus.split("_").join(" ")}
         </span>
 
         <button
           className="px-6 py-3 rounded-full text-sm font-medium transition-colors w-full sm:w-auto bg-teal-700 hover:bg-teal-800 text-white"
           onClick={() => {
-            navigate(`/bookings/${booking._id}`)
+            if (getButtonText(booking.reservationStatus) === 'Leave Review') {
+              navigate(`/${booking.reservationType.slice(0, booking.reservationType.indexOf("Reservation")).toLowerCase()}s/${booking.vendor._id}#reviews`)
+            }
+            else {
+              navigate(`/bookings/${booking._id}`)
+            }
           }}
         >
-          {getButtonText(booking.paymentStatus)}
+          {getButtonText(booking.reservationStatus)}
         </button>
       </div>
       <div className="flex border border-[#B9C2DB] items-center bg-[#E9EBF3] absolute top-0 right-0 rounded-bl-xl gap-2 flex-shrink-0">
@@ -200,13 +210,13 @@ function BookingCard({ booking, onEdit, onDelete }) {
         >
           <Edit className="w-5 h-5 text-gray-600" />
         </button>
-        <button
+        {/* <button
           onClick={() => onDelete?.(booking._id)}
           className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
           aria-label="Delete booking"
         >
           <Trash2 className="w-5 h-5 text-gray-600" />
-        </button>
+        </button> */}
         <div className="relative">
           <button
             onClick={() => setShowDropdown(!showDropdown)}
@@ -237,7 +247,7 @@ function BookingCard({ booking, onEdit, onDelete }) {
                   <div className="border-t border-gray-100 my-1" />
 
                   <button
-                    onClick={handleCancelBooking}
+                    onClick={setShowCancel}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:bg-red-50 transition-colors text-left"
                   >
                     <X className="w-5 h-5 text-red-600" />
@@ -249,6 +259,36 @@ function BookingCard({ booking, onEdit, onDelete }) {
           )}
         </div>
       </div>
+      {showCancel && (
+        <div className="absolute top-0 inset-0 z-30 flex items-center justify-center bg-black/50">
+          <div className="bg-white relative rounded-lg p-4 w-full max-w-sm">
+            <button
+              onClick={() => setShowCancel(false)}
+              className="absolute top-2 right-2 p-1 hover:bg-gray-200 rounded-full transition-colors"
+            >
+              <X className="w-5 h-5 text-gray-600" />
+            </button>
+            <h2 className="font-semibold mb-2">Confirm Cancellation</h2>
+            <p className="mb-4 text-sm">Are you sure you want to cancel this booking?</p>
+            <div className="flex justify-end gap-2">
+              <button
+                disabled={cancelLoading}
+                onClick={() => setShowCancel(false)}
+                className="px-3 py-1 text-sm rounded-md hover:text-gray-600 transition-colors"
+              >
+                No, Keep It
+              </button>
+              <button
+                disabled={cancelLoading}
+                onClick={handleCancelBooking}
+                className="px-3 py-2 text-sm rounded-full bg-red-600 hover:bg-red-700 text-white transition-colors"
+              >
+                {cancelLoading ? <><Loader2 className="animate-spin" /></> : "Yes, Cancel It"}
+              </button>
+            </div>
+          </div>
+        </div> 
+      )}
     </div>
   );
 }
