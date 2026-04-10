@@ -160,9 +160,6 @@ const RestaurantsPage = () => {
                         </div>
                     </div>
                 </div>
-                <div className="mt-5">
-                    <TableGrid title="You might also like" data={recommendations} />
-                </div>
                 <BookingPopup id={id} />
             </main>
             <div className="hidden md:block">

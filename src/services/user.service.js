@@ -168,11 +168,11 @@ async updateReservationStatus({ reservationId, vendorId, resId, paymentRef }) {
     return res.data;
   }
 
-  async fetchReservations({ vendorId, userId, bookingId, resId }) {
+  async fetchReservations({ vendorId, userId, bookingId, resId, limit = 10 }) {
     const res = await api.get(
       `/bookings?vendorId=${vendorId ? vendorId : ""}&userId=${
         userId ? userId : ""
-      }&bookingId=${bookingId ? bookingId : ""}&resId=${resId ? resId : ""}`,
+      }&bookingId=${bookingId ? bookingId : ""}&resId=${resId ? resId : ""}&limit=${limit}`,
     );
     return res.data;
   }
@@ -196,6 +196,11 @@ async updateReservationStatus({ reservationId, vendorId, resId, paymentRef }) {
 
   async createReview(data) {
     const res = await api.post(`/reviews/create`, data);
+    return res.data;
+  }
+
+  async cancelReservation(id) {
+    const res = await api.put(`/bookings/${id}/cancel`);
     return res.data;
   }
 }
