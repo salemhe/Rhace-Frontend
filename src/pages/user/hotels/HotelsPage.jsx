@@ -13,12 +13,15 @@ import { hotelService } from "@/services/hotel.service";
 import { userService } from "@/services/user.service";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router";
+import { useLocation, useParams } from "react-router";
 import HotelInfo from "../../../components/user/hotel/HotelInfo";
 import { TableGridTwo } from "@/components/TableGridRecommendations";
 
+
 const HotelsPage = () => {
-  const [activeTab, setActiveTab] = useState("details");
+  const location = useLocation();
+  const section = location.hash ? location.hash.substring(1) : "details";
+    const [activeTab, setActiveTab] = useState(section);
 
   const { id } = useParams();
   const [hotel, setHotel] = useState({});
@@ -186,9 +189,6 @@ const HotelsPage = () => {
               </div>
             </div>
           )}
-        </div>
-        <div className="mt-5">
-          <TableGridTwo title="You might also like" data={recommendations} />
         </div>
         <HotelBookingPopup
           activeTab={activeTab}

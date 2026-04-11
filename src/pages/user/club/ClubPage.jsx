@@ -149,9 +149,6 @@ const ClubPage = () => {
                         </div>
                     </div>
                 </div>
-                <div className="mt-5">
-                    <TableGridThree title="You might also like" data={recommendations} />
-                </div>
                 <BookingPopup loading={loading} tables={tables} id={id} />
             </main>
             <div className="hidden md:block">

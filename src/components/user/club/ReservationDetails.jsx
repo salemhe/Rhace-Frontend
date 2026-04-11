@@ -59,7 +59,6 @@ const tableCategoryIcons = {
 
 export default function ReservationDetails({
   id,
-  searchQuery,
 }) {
   const {
     comboItems,
@@ -97,7 +96,6 @@ export default function ReservationDetails({
   const [maxTranslate, setMaxTranslate] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [scrollState, setScrollState] = useState({ atStart: true, atEnd: false });
-  const [tableAdded, setTableAdded] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
   // Check if mobile on mount and resize
@@ -148,16 +146,6 @@ export default function ReservationDetails({
       })
     );
   };
-
-  useEffect(() => {
-    if (table.length > 0 && !tableAdded && searchQuery?.table) {
-      const theTable = table.find(t => t._id === searchQuery.table)
-      if (theTable) {
-        handleTableQuantityChange(theTable._id, 1, "input");
-      }
-      setTableAdded(true)
-    }
-  }, [table, searchQuery])
 
   const filteredBottles =
     activeTab === "All Bottles"
@@ -493,7 +481,7 @@ export default function ReservationDetails({
                                   item.category === "VIP" && "bg-yellow-100",
                                   item.category === "VVIP" && "bg-purple-100",
                                   item.category === "Regular" && "bg-blue-100",
-                                  item.category === "Super Regular" && "bg-green-100",
+                                  item.category === "Lounge" && "bg-green-100",
                                 )}>
                                   {TableIcon}
                                 </div>
@@ -529,7 +517,7 @@ export default function ReservationDetails({
                             {/* Capacity Info */}
                             <div className="flex items-center gap-2 text-xs text-gray-500">
                               <Users className="size-3.5" />
-                              <span>Up to {item.capacity || 6} guests</span>
+                              <span>Up to {item.seatingCapacity || 6} guests</span>
                               {item.minimum && (
                                 <span className="ml-auto">Min. {item.minimum} guests</span>
                               )}
