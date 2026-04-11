@@ -685,15 +685,15 @@ const VenueCard = ({ vendor, activeType }) => {
             {vendor.address || "Location not set"}
           </span>
         </div>
-        {/* <button
+        <button
           onClick={(e) => {
             e.stopPropagation();
             navigate(`/${cfg.path}/${vendor._id}`);
           }}
-          className="w-full mt-1 py-1.5 sm:py-2 rounded-lg text-white text-[11px] sm:text-xs font-semibold bg-linear-to-b from-[#0A6C6D] to-[#08577C] hover:opacity-90 transition-opacity"
+          className="w-full mt-1 py-1.5 sm:py-2 rounded-lg text-white text-[11px] sm:text-xs font-semibold bg-[#0A6C6D] hover:opacity-90 transition-opacity"
         >
           {type === "restaurant" ? "Reserve Table" : "Book Now"}
-        </button> */}
+        </button>
       </div>
     </div>
   );
