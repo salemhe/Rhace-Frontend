@@ -194,7 +194,7 @@ const hotelVendorRoutes = [
   { path: "hotel/rooms", element: <RoomsManagement /> },
   { path: "hotel/payments", element: <PaymentDashboard /> },
   { path: "hotel/staffs", element: <StaffManagementSystem /> },
-  { path: "hotel/settings", element: <HotelSettings /> },
+  { path: "hotel/settings", element: <RestaurantSettings /> },
 ];
 
 const clubVendorRoutes = [
@@ -204,7 +204,7 @@ const clubVendorRoutes = [
   { path: "club/payments", element: <PaymentDashboard /> },
   { path: "club/staffs", element: <StaffManagementSystem /> },
   { path: "club/add-drinks", element: <BottleServiceManager /> },
-  { path: "club/settings", element: <ClubSettings /> },
+  { path: "club/settings", element: <RestaurantSettings /> },
 ];
 
 function App() {
