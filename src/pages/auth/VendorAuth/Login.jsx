@@ -51,10 +51,12 @@ const Login = () => {
         dispatch(setVendor(user?.vendor));
         localStorage.setItem('vendorId', user?.vendor?._id || user?.vendor?.id);
         toast.success("Welcome back!");
-        if (!user.vendor.isOnboarded) {
-          navigate("/auth/vendor/onboarding")
+        
+        const dashboardPath = `/dashboard/${vendorData.vendorType}`;
+        if (!vendorData.isOnboarded) {
+          navigate("/auth/vendor/onboarding");
         } else {
-          navigate(redirectTo === "/dashboard" ? `/dashboard/${user.vendor.vendorType}` : "/dashboard");
+          navigate(redirectTo === "/dashboard" ? dashboardPath : dashboardPath);
         }
       }
     } catch (err) {

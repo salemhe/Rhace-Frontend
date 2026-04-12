@@ -432,8 +432,7 @@ const ReservationDashboard = () => {
     },
   });
 
-  const socketRef = useRef(null);
-  const reconnectTimeout = useRef(null);
+  const { subscribe, unsubscribe } = useWebSocket();
 
   useEffect(() => {
     if (!vendor?._id) return;
@@ -483,7 +482,16 @@ const ReservationDashboard = () => {
       };
     };
 
-    connect();
+    const handleReservationUpdate = (payload) => {
+      toast.info(`Reservation updated: ${payload._id?.slice(0,8) || 'ID'}`);
+      // Refetch data/stats
+      fetchReservations();
+      fetchStats();
+    };
+
+    subscribe('reservation-created', handleNewReservation);
+    subscribe('reservation-updated', handleReservationUpdate);
+    subscribe('reservation-counters-updated', () => fetchStats());
 
     return () => {
       if (socketRef.current) {
@@ -494,6 +502,14 @@ const ReservationDashboard = () => {
         clearTimeout(reconnectTimeout.current);
       }
     };
+  }, [vendor?._id, subscribe, unsubscribe]);
+
+  // Load data on mount/vendor change
+  useEffect(() => {
+    if (vendor?._id) {
+      fetchReservations();
+      fetchStats();
+    }
   }, [vendor?._id]);
 
   useEffect(() => {

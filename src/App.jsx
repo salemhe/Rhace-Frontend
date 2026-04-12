@@ -38,6 +38,14 @@ import HelpCenterRhace from "./pages/user/HelpCenter";
 import HotelConfirmPage from "./pages/user/hotels/Confirmation";
 import HotelsPage from "./pages/user/hotels/HotelsPage";
 import HotelReservation from "./pages/user/hotels/ReservationSummary";
+import BookingsPage from "./pages/user/Bookings";
+import SearchContent from "./pages/user/Search";
+import Favorites from "./pages/user/Favourites";
+
+import AboutRhace from "./pages/user/About";
+
+import ContactRhace from "./pages/user/Contact";
+import HelpCenterRhace from "./pages/user/HelpCenter";
 import NotFound from "./pages/user/NotFound";
 import ReservationHomePage from "./pages/user/ReservationHomePage";
 import CompletedPage from "./pages/user/restaurant/Completed";
@@ -237,8 +245,10 @@ function App() {
               ))}
             </Route>
 
+
             {/* Vendor */}
             <Route path="vendor">
+              <Route index element={<VendorLogin />} />
               {authRoutes.vendor.map((route) => (
                 <Route
                   key={route.path}
@@ -247,6 +257,7 @@ function App() {
                 />
               ))}
             </Route>
+
 
             {/* Admin */}
             <Route path="admin">
