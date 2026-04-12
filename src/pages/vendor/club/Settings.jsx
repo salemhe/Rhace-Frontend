@@ -1,10 +1,11 @@
+// ClubSettings.tsx
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import TagInput from "@/components/TagInput";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, Clock, DollarSign, Globe, Phone, Tag } from "lucide-react";
+import { Building2, Clock, DollarSign, Globe, Phone, Tag, Save, RotateCcw, Music, MapPin, Sparkles, Users, Shield, PartyPopper, Crown } from "lucide-react";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { BusinessLogo } from "../settings/part/BusinessInfo";
@@ -13,187 +14,303 @@ import { setVendor } from "@/redux/slices/authSlice";
 import { toast } from "react-toastify";
 
 const ClubSettings = () => {
-   const vendor = useSelector((state) => state.auth.vendor);
-   const [formData, setFormData] = useState(vendor);
-   const [isLoading, setIsLoading] = useState(false);
-   const dispatch = useDispatch();
+  const vendor = useSelector((state) => state.auth.vendor);
+  const [formData, setFormData] = useState(vendor);
+  const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
 
-   const updateField = (field, value) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-   };
+  const updateField = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
-   const handleSubmit = async () => {
-      setIsLoading(true);
-      try {
-         const user = await authService.vendorUpdate(formData)
-         dispatch(setVendor(user?.vendor));
-         toast.success("Succesfully updated settings!");
-      } catch (error) {
-         console.error("Error updating settings:", error);
-         toast.error("Failed to update settings. Please try again.");
-      } finally {
-         setIsLoading(false);
-      }
-   }
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const user = await authService.vendorUpdate(formData);
+      dispatch(setVendor(user?.vendor));
+      toast.success("Successfully updated club settings!");
+    } catch (error) {
+      console.error("Error updating settings:", error);
+      toast.error("Failed to update settings. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-   const addTag = (field, value) => {
-      setFormData((prev) => ({
-         ...prev,
-         [field]: [...prev[field], value],
-      }));
-   };
+  const handleReset = () => {
+    setFormData(vendor);
+    toast.info("Changes have been reset");
+  };
 
-   const removeTag = (field, value) => {
-      setFormData((prev) => ({
-         ...prev,
-         [field]: prev[field].filter((item) => item !== value),
-      }));
-   };
+  const addTag = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: [...prev[field], value],
+    }));
+  };
 
-   return (
-      <DashboardLayout type={vendor?.vendorType} section="settings" settings={true}>
-         <div className="min-h-screen ">
-            <div className="max-w-4xl mx-auto space-y-6">
-               <div className="flex items-center gap-3 mb-6">
-                  {/* <Music className="w-8 h-8 text-[#0A6C6D]" /> */}
-                  <h1 className="text-xl font-bold text-gray-900">Club Settings</h1>
-               </div>
-               <div className="md:w-[49%]">
-                  <BusinessLogo value={formData.logo} onChange={(value) => updateField('logo', value)} />
-               </div>
+  const removeTag = (field, value) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: prev[field].filter((item) => item !== value),
+    }));
+  };
 
-               {/* Business Information */}
-               <Card className="p-6 space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                     <Building2 className="w-5 h-5 text-[#0A6C6D]" />
-                     Business Information
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                     <Input
-                        label="Club Name"
-                        value={formData.businessName}
-                        onChange={(e) => updateField('businessName', e.target.value)}
-                     />
-                     <Input
-                        label="Phone"
-                        icon={Phone}
-                        value={formData.phone}
-                        onChange={(e) => updateField('phone', e.target.value)}
-                     />
-                  </div>
-                  <Input
-                     label="Website"
-                     icon={Globe}
-                     placeholder="https://yourclub.com"
-                     value={formData.website}
-                     onChange={(e) => updateField('website', e.target.value)}
-                  />
-                  <Textarea
-                     label="Club Description"
-                     placeholder="Describe your club's atmosphere and entertainment..."
-                     value={formData.businessDescription}
-                     onChange={(e) => updateField('businessDescription', e.target.value)}
-                  />
-                  <Textarea
-                     label="Address"
-                     placeholder="Enter your club's complete address..."
-                     value={formData.address}
-                     onChange={(e) => updateField('address', e.target.value)}
-                  />
-               </Card>
-
-               {/* Operating Hours & Capacity */}
-               <Card className="p-6 space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                     <Clock className="w-5 h-5 text-[#0A6C6D]" />
-                     Operating Hours & Capacity
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                     <Input
-                        type="time"
-                        label="Opening Time"
-                        value={formData.openingTime}
-                        onChange={(e) => updateField('openingTime', e.target.value)}
-                     />
-                     <Input
-                        type="time"
-                        label="Closing Time"
-                        value={formData.closingTime}
-                        onChange={(e) => updateField('closingTime', e.target.value)}
-                     />
-                     <Input
-                        type="number"
-                        label="Available Slots"
-                        value={formData.slots}
-                        onChange={(e) => updateField('slots', Number(e.target.value))}
-                     />
-                  </div>
-               </Card>
-
-               {/* Club Details */}
-               <Card className="p-6 space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                     <Tag className="w-5 h-5 text-[#0A6C6D]" />
-                     Club Details
-                  </h2>
-                  <TagInput
-                     label="Categories"
-                     placeholder="Add categories (e.g., Nightclub, Lounge)"
-                     tags={formData.categories}
-                     onAdd={(value) => addTag('categories', value)}
-                     onRemove={(value) => removeTag('categories', value)}
-                  />
-                  <TagInput
-                     label="Dress Code"
-                     placeholder="Add dress code (e.g., Smart Casual)"
-                     tags={formData.dressCode}
-                     onAdd={(value) => addTag('dressCode', value)}
-                     onRemove={(value) => removeTag('dressCode', value)}
-                  />
-                  <Select
-                     label="Age Limit"
-                     value={formData.ageLimit}
-                     onChange={(e) => updateField('ageLimit', e.target.value)}
-                     options={[
-                        { value: '16', label: '16 years and above' },
-                        { value: '18', label: '18 years and above' },
-                        { value: '21', label: '21 years and above' },
-                     ]}
-                  />
-               </Card>
-
-               {/* Pricing */}
-               <Card className="p-6 space-y-4">
-                  <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                     <DollarSign className="w-5 h-5 text-[#0A6C6D]" />
-                     Pricing & Offers
-                  </h2>
-                  <Input
-                     type="number"
-                     label="Entry Fee (₦)"
-                     value={formData.priceRange}
-                     onChange={(e) => updateField('priceRange', Number(e.target.value))}
-                  />
-                  <Input
-                     label="Special Offers"
-                     placeholder="e.g., Ladies night free entry, VIP packages"
-                     value={formData.offer}
-                     onChange={(e) => updateField('offer', e.target.value)}
-                  />
-               </Card>
-
-               {/* Action Buttons */}
-               <div className="flex justify-end gap-3">
-                  <button onClick={() => setFormData(vendor)} className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 transition-colors">
-                     Reset
-                  </button>
-                  <button disabled={isLoading} onClick={handleSubmit} className="px-6 py-2 bg-[#0A6C6D] text-white rounded-md hover:bg-[#085555] transition-colors">
-                     {isLoading ? "Saving..." : "Save Changes"}
-                  </button>
-               </div>
+  return (
+    <DashboardLayout type={vendor?.vendorType} section="settings" settings={true}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-purple-50/30">
+        <div className="max-w-5xl mx-auto px-4 py-8 md:px-6 lg:px-8">
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 bg-gradient-to-br from-purple-600 to-pink-600 rounded-xl shadow-lg shadow-purple-500/20">
+                <Music className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                Club Settings
+              </h1>
             </div>
-         </div>
-      </DashboardLayout>
-   );
+            <p className="text-slate-500 ml-12">
+              Manage your club profile, capacity, entry requirements, and entertainment options
+            </p>
+          </div>
+
+          {/* Logo Section */}
+          <div className="mb-8 p-6 bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow duration-300">
+            <div className="flex items-center gap-2 mb-4">
+              <Sparkles className="w-5 h-5 text-purple-600" />
+              <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+                Brand Identity
+              </h3>
+            </div>
+            <BusinessLogo
+              value={formData.logo}
+              onChange={(value) => updateField("logo", value)}
+            />
+          </div>
+
+          <div className="grid gap-6">
+            {/* Business Information Card */}
+            <Card className="group border-0 shadow-lg shadow-slate-200/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-purple-100/30">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+              <div className="p-6 md:p-8 space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                    <div className="p-1.5 bg-purple-100 rounded-lg">
+                      <Building2 className="w-5 h-5 text-purple-700" />
+                    </div>
+                    Business Information
+                  </h2>
+                  <div className="text-xs text-slate-400 font-mono">Club details</div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <Input
+                    label="Club Name"
+                    value={formData.businessName}
+                    onChange={(e) => updateField("businessName", e.target.value)}
+                    className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  />
+                  <Input
+                    label="Phone Number"
+                    icon={Phone}
+                    value={formData.phone}
+                    onChange={(e) => updateField("phone", e.target.value)}
+                    className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  />
+                </div>
+
+                <Input
+                  label="Website"
+                  icon={Globe}
+                  placeholder="https://yourclub.com"
+                  value={formData.website}
+                  onChange={(e) => updateField("website", e.target.value)}
+                  className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                />
+
+                <div className="space-y-6">
+                  <Textarea
+                    label="Club Description"
+                    placeholder="Describe your club's atmosphere, music genres, entertainment, and what makes the nightlife experience special..."
+                    value={formData.businessDescription}
+                    onChange={(e) => updateField("businessDescription", e.target.value)}
+                    className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all min-h-[100px]"
+                  />
+                  <Textarea
+                    label="Address"
+                    icon={MapPin}
+                    placeholder="Enter your club's complete address..."
+                    value={formData.address}
+                    onChange={(e) => updateField("address", e.target.value)}
+                    className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* Operating Hours & Capacity Card */}
+            <Card className="group border-0 shadow-lg shadow-slate-200/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-purple-100/30">
+              <div className="p-6 md:p-8 space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                    <div className="p-1.5 bg-purple-100 rounded-lg">
+                      <Clock className="w-5 h-5 text-purple-700" />
+                    </div>
+                    Operating Hours & Capacity
+                  </h2>
+                  <div className="text-xs text-slate-400 font-mono">Nightlife schedule</div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <Input
+                    type="time"
+                    label="Opening Time"
+                    value={formData.openingTime}
+                    onChange={(e) => updateField("openingTime", e.target.value)}
+                    className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  />
+                  <Input
+                    type="time"
+                    label="Closing Time"
+                    value={formData.closingTime}
+                    onChange={(e) => updateField("closingTime", e.target.value)}
+                    className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  />
+                  <Input
+                    type="number"
+                    label="Available Slots (Capacity)"
+                    icon={Users}
+                    value={formData.slots}
+                    onChange={(e) => updateField("slots", Number(e.target.value))}
+                    className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  />
+                </div>
+                <div className="mt-2 p-3 bg-amber-50 rounded-lg border border-amber-100">
+                  <p className="text-xs text-amber-700 flex items-center gap-1">
+                    <PartyPopper className="w-3 h-3" />
+                    Tip: Set your available slots based on venue capacity for optimal crowd management
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            {/* Club Details Card */}
+            <Card className="group border-0 shadow-lg shadow-slate-200/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-purple-100/30">
+              <div className="p-6 md:p-8 space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                    <div className="p-1.5 bg-purple-100 rounded-lg">
+                      <Tag className="w-5 h-5 text-purple-700" />
+                    </div>
+                    Club Details
+                  </h2>
+                  <div className="text-xs text-slate-400 font-mono">Guest policies</div>
+                </div>
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-purple-50/50 to-transparent p-4 rounded-xl">
+                    <TagInput
+                      label="Categories"
+                      placeholder="Add categories (e.g., Nightclub, Lounge, Rooftop Bar)"
+                      tags={formData.categories}
+                      onAdd={(value) => addTag("categories", value)}
+                      onRemove={(value) => removeTag("categories", value)}
+                      className="focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div className="bg-gradient-to-r from-purple-50/50 to-transparent p-4 rounded-xl">
+                    <TagInput
+                      label="Dress Code"
+                      placeholder="Add dress code (e.g., Smart Casual, Elegant, Party Wear)"
+                      tags={formData.dressCode}
+                      onAdd={(value) => addTag("dressCode", value)}
+                      onRemove={(value) => removeTag("dressCode", value)}
+                      className="focus:ring-2 focus:ring-purple-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-purple-600" />
+                      Age Limit
+                    </label>
+                    <Select
+                      value={formData.ageLimit}
+                      onChange={(e) => updateField("ageLimit", e.target.value)}
+                      options={[
+                        { value: "16", label: "16 years and above" },
+                        { value: "18", label: "18 years and above" },
+                        { value: "21", label: "21 years and above" },
+                      ]}
+                      className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* Pricing & Offers Card */}
+            <Card className="group border-0 shadow-lg shadow-slate-200/50 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-xl hover:shadow-purple-100/30">
+              <div className="p-6 md:p-8 space-y-6">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                  <h2 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+                    <div className="p-1.5 bg-purple-100 rounded-lg">
+                      <DollarSign className="w-5 h-5 text-purple-700" />
+                    </div>
+                    Pricing & Offers
+                  </h2>
+                  <div className="text-xs text-slate-400 font-mono">Entry & promotions</div>
+                </div>
+                <div className="space-y-6">
+                  <Input
+                    type="number"
+                    label="Entry Fee (₦)"
+                    icon={Crown}
+                    value={formData.priceRange}
+                    onChange={(e) => updateField("priceRange", Number(e.target.value))}
+                    className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  />
+                  <Input
+                    label="Special Offers"
+                    placeholder="e.g., Ladies night free entry, VIP packages, Bottle service deals"
+                    value={formData.offer}
+                    onChange={(e) => updateField("offer", e.target.value)}
+                    className="focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all"
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* Action Buttons */}
+            <div className="flex justify-end gap-4 mt-6 pb-8">
+              <button
+                onClick={handleReset}
+                className="group px-6 py-2.5 rounded-xl border-2 border-slate-200 text-slate-600 font-medium bg-white hover:bg-slate-50 hover:border-slate-300 transition-all duration-200 flex items-center gap-2 shadow-sm"
+              >
+                <RotateCcw className="w-4 h-4 transition-transform group-hover:rotate-[-180deg] duration-300" />
+                Reset
+              </button>
+              <button
+                disabled={isLoading}
+                onClick={handleSubmit}
+                className="group px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-medium shadow-md shadow-purple-500/25 hover:shadow-lg hover:shadow-purple-500/30 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 flex items-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-4 h-4 transition-transform group-hover:scale-110 duration-200" />
+                    Save Changes
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </DashboardLayout>
+  );
 };
-export default ClubSettings
+
+export default ClubSettings;

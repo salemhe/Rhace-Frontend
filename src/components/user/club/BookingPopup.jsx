@@ -70,11 +70,11 @@ const BookingPopup = ({ id, tables, loading }) => {
               <TimePicker chevron title="Time" className="bg-white" value={time} onChange={setTime} slot={['09:00 PM', '09:30 PM', '10:00 PM', '10:30 PM', '11:00 PM', '11:30 PM', '12:00 AM', '12:30 AM', '01:00 AM', '01:30 AM', '02:00 AM', '02:30 AM', '03:00 AM']} />
             </div>
             <TablePicker chevron className="bg-white" loading={loading} tables={tables} value={table.name} onChange={(value) => handleTable(value)} />
-            <GuestPicker chevron className="bg-white" value={guests} onChange={setGuests} />
+            <GuestPicker chevron className="bg-white" value={guests} onChange={setGuests} hideChildren hideInfants />
             <div className="flex md:hidden fixed bottom-0 left-0 w-full bg-white p-4 border-t border-[#E5E7EB]">
               <Button
                 type="submit"
-                disabled={!date || !time || isLoading}
+                disabled={!date || !time || isLoading} 
                 className="w-full rounded-xl bg-[#0A6C6D] py-6 h-10 hover:bg-[0A6C6D]/50"
               >
                 {isLoading ? (

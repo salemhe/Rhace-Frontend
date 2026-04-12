@@ -283,8 +283,6 @@ const Header = ({ onClick = () => {}, activeTab = null }) => {
     },
   ];
 
-  console.log(activeTab);
-
   return hideNavigation ? (
     <nav
       className={`fixed top-0 z-90 w-full transition-all duration-300 ${

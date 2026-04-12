@@ -3,9 +3,12 @@ import RestaurantOverview from "./RestaurantOverview";
 import RestaurantAvailableSlot from "./RestaurantAvailableSlot";
 import RestaurantMenu from "./RestaurantMenu";
 import RestaurantReviews from "./RestaurantReview";
+import { useLocation } from "react-router";
 
 const RestaurantInfo = ({ data }) => {
-  const [activeTab, setActiveTab] = useState("overview");
+  const location = useLocation();
+  const section = location.hash ? location.hash.substring(1) : "overview";
+  const [activeTab, setActiveTab] = useState(section);
 
   const tabs = [
     {

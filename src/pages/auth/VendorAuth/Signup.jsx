@@ -40,7 +40,7 @@ const Signup = () => {
       const user = await authService.vendorRegister(
         formData
       );
-      console.log(user);
+
       toast.success("Congratulations!. Next: verify your email");
       navigate(`/auth/vendor/otp?email=${formData.email}`)
     } catch (err) {

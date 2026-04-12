@@ -1,25 +1,22 @@
+import { logoutAsync } from '@/redux/slices/authSlice';
 import axios from 'axios';
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL,
-  withCredentials: true,
 });
 
-// Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token') || localStorage.getItem('vendor_token');
+    const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// Response interceptor to handle 401 errors (logout)
+// Response interceptor
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -48,14 +45,13 @@ api.interceptors.response.use(
         originalRequest._retry = true;
       }
 
-      return new Promise((resolve) => {
-        subscribeTokenRefresh((token) => {
-          original.headers.Authorization = `Bearer ${token}`;
-          resolve(api(original));
-        });
-      });
+    // Handle 401 Unauthorized
+    if (error.response?.status === 401 && error.response?.error === "jwt expired") {
+      logoutAsync()
     }
-  });
+
+    return Promise.reject(error);
+  }
+});
 
 export default api;
-

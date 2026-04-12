@@ -41,8 +41,8 @@ export default function ReservationDetails({
   const fetchVendor = async () => {
     try {
       setLoading(true);
-      const response = await userService.getVendor("restaurant", id);
-      setVendor(response.data[0]);
+      const response = await userService.getVendor(id);
+      setVendor(response.data);
     } catch (error) {
       console.error("Error fetching vendor:", error);
     } finally {

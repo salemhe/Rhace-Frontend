@@ -11,13 +11,22 @@ class PaymentService {
     return res.data;
   }
 
+  async getKpis() {
+    const res = await api.get("/dashboard/kpis");
+    return res.data;
+  }
+
   async getTrends({ range }) {
     const res = await api.get(`/payments/earnings-trend?range=${range}`);
     return res.data;
   }
 
-  async getPaymentInfo() {
-    const res = await api.get("/payments/payment-info");
+async getPaymentInfo() {
+    const vendorId = localStorage.getItem('vendorId');
+    if (!vendorId) {
+      throw new Error('Vendor ID missing. Please log in again.');
+    }
+    const res = await api.get(`/payments/payment-info?vendorId=${vendorId}`);
     return res.data;
   }
 

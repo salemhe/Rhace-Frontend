@@ -92,8 +92,13 @@ class UserService {
 
     return response.data;
   }
-  async getVendor(type, id) {
-    const res = await api.get(`/vendors?type=${type}&id=${id ? id : ""}`);
+  async getVendor(id) {
+    const res = await api.get(`/vendors/${id ? id : ""}`);
+    return res.data;
+  }
+
+  async getVendors(type, id) {
+    const res = await api.get(`/vendors?type=${type}&user=${id ? id : ""}`);
     return res.data;
   }
 
@@ -163,11 +168,11 @@ async updateReservationStatus({ reservationId, vendorId, resId, paymentRef }) {
     return res.data;
   }
 
-  async fetchReservations({ vendorId, userId, bookingId, resId }) {
+  async fetchReservations({ vendorId, userId, bookingId, resId, limit = 10 }) {
     const res = await api.get(
       `/bookings?vendorId=${vendorId ? vendorId : ""}&userId=${
         userId ? userId : ""
-      }&bookingId=${bookingId ? bookingId : ""}&resId=${resId ? resId : ""}`,
+      }&bookingId=${bookingId ? bookingId : ""}&resId=${resId ? resId : ""}&limit=${limit}`,
     );
     return res.data;
   }
@@ -177,8 +182,25 @@ async updateReservationStatus({ reservationId, vendorId, resId, paymentRef }) {
     return res.data;
   }
 
+  /**
+   * Fetch full reservation details by ID (populated w/ vendor/room/menu etc)
+   * for Payments page drawer
+   */
+  async fetchFullReservation(bookingId) {
+    if (!bookingId) {
+      throw new Error("bookingId required");
+    }
+    const res = await api.get(`/bookings/${bookingId}`);
+    return res.data;
+  }
+
   async createReview(data) {
     const res = await api.post(`/reviews/create`, data);
+    return res.data;
+  }
+
+  async cancelReservation(id) {
+    const res = await api.put(`/bookings/${id}/cancel`);
     return res.data;
   }
 }

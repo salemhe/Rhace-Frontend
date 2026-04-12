@@ -47,7 +47,7 @@ if (vendor) {
 
   const handleLogout = () => {
     dispatch(logoutAsync());
-    navigate('/auth/vendor/login');
+    // navigate('/auth/vendor/login');
   };
 
   const handleProfile = () => {
@@ -59,7 +59,7 @@ if (vendor) {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 h-16 hidden md:flex items-center px-6 relative">
+    <header className="bg-white border-b border-gray-200 h-16 hidden md:flex items-center px-6 relative">
       {/* Mobile menu button */}
       <button
         onClick={onMenuClick}
