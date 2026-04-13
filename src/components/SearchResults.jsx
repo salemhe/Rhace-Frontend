@@ -103,7 +103,7 @@ export const SearchResults = ({
 
       {/* Results grid */}
       {!isLoading && hasResults && (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="grid md:grid-cols-2 gap-3 sm:gap-4">
           {results.map(v => <VenueCard key={v._id} vendor={v} activeType={filters.type} />)}
         </div>
       )}

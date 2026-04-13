@@ -3,116 +3,277 @@ import { FaStar } from "react-icons/fa6";
 import { FiMapPin } from "react-icons/fi";
 import { FavoriteButton } from "@/components/user/ui/favoritebutton";
 import { TYPE_CONFIG, PRICE_LABELS, PRICE_DESC } from "../utils/constants";
+import { ArrowUpRight, Clock } from "lucide-react";
 
+// ── Existing grid card (kept for SearchResults) ────────────────────────────────
 export const VenueCard = ({ vendor, activeType }) => {
   const navigate = useNavigate();
   const type = vendor.vendorType || activeType;
-  const cfg  = TYPE_CONFIG[type] || TYPE_CONFIG.restaurant;
+  const cfg = TYPE_CONFIG[type] || TYPE_CONFIG.restaurant;
   const photo = vendor.profileImages?.[0];
 
   const tags =
-    type === "restaurant" ? vendor.cuisines || [] :
-    type === "club"       ? vendor.musicGenres || vendor.categories || [] :
-    (vendor.amenities || []).slice(0, 3);
+    type === "restaurant"
+      ? vendor.cuisines || []
+      : type === "club"
+        ? vendor.musicGenres || vendor.categories || []
+        : (vendor.amenities || []).slice(0, 3);
 
   return (
     <div
       onClick={() => navigate(`/${cfg.path}/${vendor._id}`)}
-      className="group cursor-pointer p-2 flex flex-col bg-white rounded-2xl sm:rounded-3xl overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.07)] hover:shadow-[0_8px_20px_rgba(0,0,0,0.11)] transition-all duration-300 hover:-translate-y-0.5"
+      className="group cursor-pointer flex gap-3 sm:gap-4 bg-white rounded-3xl p-3 sm:p-4 border border-gray-200 transition-all duration-300"
     >
-      {/* Image */}
-      <div className="relative h-36 sm:h-44 rounded-2xl sm:rounded-3xl overflow-hidden bg-gray-100 shrink-0">
+      {/* Image (LEFT) */}
+      <div className="relative w-28 h-32 sm:w-36 sm:h-32 rounded-xl overflow-hidden bg-gray-100 shrink-0">
         {photo ? (
-          <img src={photo} alt={vendor.businessName} loading="lazy"
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+          <img
+            src={photo}
+            alt={vendor.businessName}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-            <span className="text-4xl font-black text-gray-300 select-none">
+          <div className="w-full h-full flex items-center justify-center bg-gray-200">
+            <span className="text-2xl font-bold text-gray-400">
               {vendor.businessName?.[0]?.toUpperCase() || "?"}
             </span>
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent pointer-events-none" />
 
-        {type === "club" && vendor.entryFee != null && (
-          <span className="absolute bottom-2 right-2 bg-violet-600/80 backdrop-blur-sm text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">
-            {vendor.entryFee === 0 ? "Free Entry" : `₦${vendor.entryFee?.toLocaleString()}`}
-          </span>
-        )}
-        {vendor.offer && (
-          <span className="absolute top-2 right-7 bg-amber-400 text-gray-900 text-[10px] font-bold px-1.5 py-0.5 rounded-full max-w-[90px] truncate">
-            {vendor.offer}
-          </span>
-        )}
-        <div className="absolute top-2 right-2 text-white cursor-pointer text-base sm:text-lg transition-all duration-300 hover:scale-110 drop-shadow-md">
+        {/* Favorite */}
+        <div className="absolute top-2 right-2 text-white">
           <FavoriteButton vendor={vendor} />
         </div>
       </div>
 
-      {/* Info */}
-      <div className="flex flex-col p-2.5 sm:p-3 flex-1 gap-1.5">
-        <div className="flex flex-col items-start gap-1.5">
+      {/* Content (RIGHT) */}
+      <div className="flex flex-col flex-1 min-w-0">
+        {/* Top row */}
+        <div className="flex justify-between items-start gap-2">
+          <div className="min-w-0">
+            <h3 className="font-semibold text-gray-900 text-sm sm:text-base line-clamp-1">
+              {vendor.businessName}
+            </h3>
+
+            {vendor.vendorTypeCategory &&
+              vendor.vendorTypeCategory !== "General" && (
+                <p className="text-xs text-gray-400 capitalize">
+                  {vendor.vendorTypeCategory}
+                </p>
+              )}
+          </div>
+
+          {/* Rating */}
           {vendor.rating > 0 && (
-            <div className="flex items-center gap-0.5 shrink-0">
-              <FaStar className="w-2.5 h-2.5 text-amber-400" />
-              <span className="text-sm font-medium text-gray-900">{vendor.rating.toFixed(1)}</span>
-              <span className="text-xs sm:text-sm text-gray-500 ml-1">
-                ({vendor.reviews?.toLocaleString() || 0} reviews)
+            <div className="flex items-center gap-1 shrink-0">
+              <FaStar className="w-3 h-3 text-amber-400" />
+              <span className="text-xs font-medium">
+                {vendor.rating.toFixed(1)}
               </span>
             </div>
           )}
-          <h3 className="font-semibold text-gray-900 text-xs sm:text-sm leading-tight line-clamp-1 flex-1">
-            {vendor.businessName}
-          </h3>
         </div>
 
-        {vendor.vendorTypeCategory && vendor.vendorTypeCategory !== "General" && (
-          <p className="text-[10px] text-gray-400 capitalize leading-none">{vendor.vendorTypeCategory}</p>
-        )}
-
+        {/* Tags */}
         {tags.length > 0 && (
-          <div className="flex flex-wrap gap-1">
-            {tags.slice(0, 2).map((tag, i) => (
-              <span key={i} className="text-gray-500 text-[10px] font-medium py-0.5 rounded capitalize">
-                {tag.replace(/-/g, " ")}{i < Math.min(tags.length, 2) - 1 && ","}
+          <div className="flex flex-wrap gap-1 mt-1">
+            {tags.slice(0, 3).map((tag, i) => (
+              <span key={i} className="text-[10px] text-gray-500 capitalize">
+                {tag.replace(/-/g, " ")}
+                {i < Math.min(tags.length, 3) - 1 && ","}
               </span>
             ))}
-            {tags.length > 2 && (
-              <span className="bg-gray-100 text-gray-400 text-[10px] px-1.5 py-0.5 rounded">+{tags.length - 2}</span>
-            )}
           </div>
         )}
 
-        {type === "restaurant" && vendor.diningStyles?.length > 0 && (
-          <p className="text-[10px] text-gray-400 capitalize">
-            {vendor.diningStyles.slice(0, 2).join(" · ")}
-          </p>
-        )}
-        {type === "hotel" && vendor.mealPlan && vendor.mealPlan !== "room-only" && (
-          <p className="text-[10px] text-emerald-600 font-medium capitalize">
-            {vendor.mealPlan.replace(/-/g, " ")} included
-          </p>
-        )}
-        {type === "club" && vendor.dressCode && (
-          <p className="text-[10px] text-gray-400 capitalize">👔 {vendor.dressCode}</p>
-        )}
+        {/* Description */}
+        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+          {vendor.description || "Discover great experiences at this location."}
+        </p>
 
-        <div className="flex items-center gap-1 text-gray-500 text-[10px] sm:text-[11px] mt-auto pt-1">
-          <FiMapPin className="w-2.5 h-2.5 shrink-0" />
-          <span className="line-clamp-1">{vendor.address || "Location not set"}</span>
+        {/* Location */}
+        <div className="flex items-center gap-1 text-gray-500 text-xs">
+          <FiMapPin className="w-3 h-3 shrink-0" />
+          <span className="line-clamp-1">
+            {vendor.address || "Location not set"}
+          </span>
+        </div>
+        {/* Bottom row */}
+        <div className="flex items-center justify-between mt-auto pt-2">
+          {/* CTA */}
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/${cfg.path}/${vendor._id}`);
+            }}
+            className="w-full py-2 text-center rounded-full items-center gap-1 text-xs text-white font-medium bg-[#0A6C6D] hover:bg-[#0A6C6D]/90 transition-colors flex justify-center"
+          >
+            Book Now
+          </button>
         </div>
       </div>
     </div>
   );
 };
 
-// ── Skeleton loading card ─────────────────────────────────────────────────────
+// ── Discovery list card (horizontal, with description + Book button) ───────────
+export const DiscoveryListCard = ({ vendor, activeType, navigate: nav }) => {
+  const navigate = nav || useNavigate();
+  const type = vendor.vendorType || activeType;
+  const cfg = TYPE_CONFIG[type] || TYPE_CONFIG.restaurant;
+  const photo = vendor.profileImages?.[0];
+
+  const isOpen = vendor.isOpen !== false; // default to open if not specified
+  const isClosed = vendor.isOpen === false;
+
+  const tags =
+    type === "restaurant"
+      ? vendor.cuisines || []
+      : type === "club"
+        ? vendor.musicGenres || vendor.categories || []
+        : (vendor.amenities || []).slice(0, 2);
+
+  // Short description: use vendor.description, or build from tags/type
+  const description =
+    vendor.description ||
+    vendor.shortDescription ||
+    (tags.length
+      ? tags.slice(0, 3).join(", ")
+      : type === "restaurant"
+        ? "Dine in experience"
+        : type === "hotel"
+          ? "Comfortable accommodations"
+          : "Night entertainment");
+
+  const ctaLabel =
+    type === "hotel"
+      ? "Book Stay"
+      : type === "club"
+        ? "Book now"
+        : "Reserve now";
+
+  const handleClick = () => navigate(`/${cfg.path}/${vendor._id}`);
+
+  return (
+    <div
+      className={`flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50/80 transition-colors duration-150 ${isClosed ? "opacity-60" : ""}`}
+    >
+      {/* Thumbnail */}
+      <div
+        onClick={handleClick}
+        className="relative w-16 h-16 sm:w-[72px] sm:h-[72px] rounded-xl overflow-hidden bg-gray-100 shrink-0 cursor-pointer"
+      >
+        {photo ? (
+          <img
+            src={photo}
+            alt={vendor.businessName}
+            loading="lazy"
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div
+            className="w-full h-full flex items-center justify-center text-white font-black text-xl"
+            style={{
+              background: `hsl(${((vendor.businessName?.charCodeAt(0) || 65) * 5) % 360}, 60%, 50%)`,
+            }}
+          >
+            {vendor.businessName?.[0]?.toUpperCase() || "?"}
+          </div>
+        )}
+      </div>
+
+      {/* Info */}
+      <div
+        className="flex-1 min-w-0"
+        onClick={handleClick}
+        style={{ cursor: "pointer" }}
+      >
+        <div className="flex items-start gap-1">
+          <h3 className="font-bold text-gray-900 text-sm leading-tight line-clamp-1 flex-1">
+            {vendor.businessName}
+          </h3>
+          {vendor.offer && (
+            <span className="shrink-0 text-[9px] font-bold bg-amber-400 text-gray-900 px-1.5 py-0.5 rounded-full">
+              {vendor.offer}
+            </span>
+          )}
+        </div>
+
+        {/* Rating row */}
+        <div className="flex items-center gap-2 mt-0.5">
+          {vendor.rating > 0 ? (
+            <div className="flex items-center gap-0.5">
+              <FaStar className="w-2.5 h-2.5 text-amber-400" />
+              <span className="text-xs font-semibold text-gray-800">
+                {vendor.rating.toFixed(1)}
+              </span>
+              {vendor.reviews > 0 && (
+                <span className="text-[10px] text-gray-400 ml-0.5">
+                  ({vendor.reviews?.toLocaleString()})
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className="text-[10px] text-gray-400">No ratings yet</span>
+          )}
+          {vendor.deliveryTime && (
+            <>
+              <span className="text-gray-200 text-xs">·</span>
+              <div className="flex items-center gap-0.5 text-[10px] text-gray-500">
+                <Clock className="w-2.5 h-2.5" />
+                {vendor.deliveryTime} min
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Description / tags */}
+        <p className="text-[11px] text-gray-400 mt-0.5 line-clamp-1 capitalize leading-tight">
+          {isClosed ? (
+            <span className="text-red-400 font-medium">
+              Closed until tomorrow
+            </span>
+          ) : (
+            description
+          )}
+        </p>
+
+        {/* Address */}
+        <div className="flex items-center gap-0.5 mt-0.5 text-[10px] text-gray-400">
+          <FiMapPin className="w-2.5 h-2.5 shrink-0" />
+          <span className="line-clamp-1">
+            {vendor.address || "Location not set"}
+          </span>
+        </div>
+      </div>
+
+      {/* CTA */}
+      <div className="flex flex-col items-end gap-1.5 shrink-0">
+        <div className="text-white cursor-pointer transition-all duration-200 hover:scale-110">
+          <FavoriteButton vendor={vendor} />
+        </div>
+        {!isClosed && (
+          <button
+            onClick={handleClick}
+            className="text-[11px] font-bold text-[#0A6C6D] border border-[#0A6C6D]/30 hover:bg-[#0A6C6D] hover:text-white rounded-lg px-2.5 py-1 transition-all duration-200 whitespace-nowrap"
+          >
+            {ctaLabel}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ── Skeleton loading card (grid) ───────────────────────────────────────────────
 const shimmerStyle = {
   background: "linear-gradient(90deg,#f0f0f0 25%,#e4e4e4 50%,#f0f0f0 75%)",
   backgroundSize: "200% 100%",
   animation: "shimmer 1.4s ease-in-out infinite",
 };
-const Shimmer = ({ className = "" }) => <div className={className} style={shimmerStyle} />;
+const Shimmer = ({ className = "" }) => (
+  <div className={className} style={shimmerStyle} />
+);
 
 export const SkeletonCard = () => (
   <div className="bg-white rounded-xl overflow-hidden shadow-sm">
@@ -129,6 +290,23 @@ export const SkeletonCard = () => (
         <Shimmer className="h-4 rounded w-14" />
       </div>
       <Shimmer className="h-3 rounded w-3/4" />
+    </div>
+  </div>
+);
+
+// ── Skeleton list card (for DiscoveryHome) ─────────────────────────────────────
+export const DiscoverySkeletonList = () => (
+  <div className="flex items-center gap-3 px-4 py-3.5">
+    <style>{`@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}`}</style>
+    <Shimmer className="w-16 h-16 rounded-xl shrink-0" />
+    <div className="flex-1 space-y-2">
+      <Shimmer className="h-3.5 rounded w-3/4" />
+      <Shimmer className="h-3 rounded w-1/3" />
+      <Shimmer className="h-3 rounded w-1/2" />
+    </div>
+    <div className="flex flex-col gap-2 shrink-0">
+      <Shimmer className="h-4 w-4 rounded-full" />
+      <Shimmer className="h-6 w-16 rounded-lg" />
     </div>
   </div>
 );

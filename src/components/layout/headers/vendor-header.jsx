@@ -1,5 +1,4 @@
 import { Bell, ChevronDown, Menu, User } from 'lucide-react';
-import { useDispatch } from 'react-redux';
 import { logout } from '@/redux/slices/authSlice';
 import {
   DropdownMenu,
@@ -7,12 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useNavigate } from 'react-router-dom';
 import {
-  Bell,
-  ChevronDown,
-  Menu,
-  User,
   LogOut,
   Settings,
   User as UserIcon,

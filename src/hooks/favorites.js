@@ -252,6 +252,7 @@ export const useRestaurantData = (vendorType, type) => {
           setRestaurants(res.data);
         } else {
           const res = await userService.getVendors(vendorType, user ? user.user?._id : "");
+          console.log("Fetched restaurants:", res.data);
           setRestaurants(res.data);
         }
       } catch (error) {

@@ -1,56 +1,108 @@
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { useRef, useState } from "react";
-import { Bell, ChevronDown, ChevronUp, Heart, LogIn, User } from "lucide-react";
+import {
+  Bell,
+  ChevronDown,
+  ChevronUp,
+  Heart,
+  LogIn,
+  Search,
+  User,
+  X,
+} from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserProfileMenu } from "@/components/layout/headers/user-header";
 import { SvgIcon, SvgIcon2, SvgIcon3 } from "@/public/icons/icons";
 import logoBlack from "@/public/images/Rhace-11.png";
 import { logout } from "@/redux/slices/authSlice";
-import { SearchBar } from "./SearchBar";
+import { SearchBar, SearchPopup } from "./SearchBar";
 import { LocationPill } from "./LocationPill";
 
 const TABS = [
   { val: "", label: "All" },
-  { val: "restaurant", label: "Restaurants", icon: (active) => <SvgIcon isActive={!active} /> },
-  { val: "hotel",      label: "Hotels",      icon: (active) => <SvgIcon2 className="text-amber-200" /> },
-  { val: "club",       label: "Clubs",       icon: (active) => <SvgIcon3 isActive={!active} /> },
+  {
+    val: "restaurant",
+    label: "Restaurants",
+    icon: (active) => <SvgIcon isActive={true} />,
+  },
+  {
+    val: "hotel",
+    label: "Hotels",
+    icon: (active) => <SvgIcon2 className="text-amber-200" isActive={true}  />,
+  },
+  {
+    val: "club",
+    label: "Clubs",
+    icon: (active) => <SvgIcon3 isActive={true} />,
+  },
 ];
 
 export const SearchHeader = ({
   searchProps,
-  filters, updateFilter,
+  filters,
+  updateFilter,
   locationState,
 }) => {
-  const navigate    = useNavigate();
-  const dispatch    = useDispatch();
-  const user        = useSelector(s => s.auth);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const user = useSelector((s) => s.auth);
   const dropdownRef = useRef(null);
+  const inputRef = useRef(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const profile = user.isAuthenticated ? user.user : null;
+  const [showSearch, setShowSearch] = useState(false);
 
-  const handleLogout = () => { dispatch(logout()); };
+  const handleLogout = () => {
+    dispatch(logout());
+  };
+
 
   return (
     <div className="z-40 relative bg-white/95 shadow-sm">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-2.5 sm:py-3">
-
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-2.5 sm:pt-3">
         {/* ── Row 1: Logo + Search + User ──────────────────────────── */}
         <div className="flex z-10 gap-2 flex-wrap justify-between">
           {/* Logo */}
-          <div onClick={() => navigate("/")} className="flex items-center cursor-pointer space-x-2">
-            <img src={logoBlack} alt="Rhace Logo" className="h-6 w-auto object-contain" />
+          <div
+            onClick={() => navigate("/")}
+            className="flex items-center cursor-pointer space-x-2"
+          >
+            <img
+              src={logoBlack}
+              alt="Rhace Logo"
+              className="h-6 w-auto object-contain"
+            />
           </div>
 
           {/* Search bar + button */}
-          <div className="flex flex-1 mt-4 sm:mt-0 sm:flex-1 sm:w-auto sm:max-w-2xl sm:mx-auto gap-1.5 sm:gap-3 order-last sm:order-none">
-            <SearchBar {...searchProps} filters={filters} />
-            <button
-              onClick={() => searchProps.submitSearch()}
-              className="px-5 sm:px-5 py-0.5 sm:py-2.5 bg-[#0A6C6D] text-white text-sm sm:text-base font-semibold rounded-full hover:bg-[#084F4F] transition-colors shrink-0"
-            >
-              Search
-            </button>
+          <div className="sm:flex hidden flex-1 mt-4 sm:mt-0 sm:flex-1 sm:w-auto sm:max-w-2xl sm:mx-auto gap-1.5 sm:gap-3 order-last sm:order-none">
+            <SearchBar {...searchProps} filters={filters} id="search1" />
+          </div>
+          <div className="flex sm:hidden w-full mt-4 gap-1.5 sm:gap-3 order-last">
+            <div className="w-full relative">
+              <button
+                type="button"
+                onClick={e => {
+                  setShowSearch(true);
+                }}
+                className="w-full flex items-center gap-2 cursor-pointer sm:cursor-text bg-gray-50 border rounded-full px-3 py-2.5 sm:py-3.5 border-gray-200 hover:border-gray-400"
+              >
+                <Search className="w-4 h-4 text-gray-400 shrink-0" />
+                <div className={`flex-1 bg-transparent text-gray-400 overflow-hidden line-clamp-1 text-sm min-w-0 text-start ${searchProps.inputValue ? "text-gray-900" : ""}`}>
+                  {searchProps.inputValue ? searchProps.inputValue : "Search for restaurants, hotels, clubs..."}
+                </div>
+                {searchProps.inputValue && (
+                  <button
+                    onMouseDown={(e) => e.preventDefault()}
+                    onClick={() => searchProps.setInputValue("")}
+                    className="text-gray-400 hover:text-gray-700 shrink-0"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* User area */}
@@ -68,19 +120,29 @@ export const SearchHeader = ({
                   className="flex items-center space-x-3 px-2 py-2 rounded-full outline outline-gray-200 hover:bg-gray-50 transition-colors"
                 >
                   <Avatar className="w-8 h-8">
-                    <AvatarImage src={profile.profilePic} alt={`${profile.firstName} ${profile.lastName}`} />
+                    <AvatarImage
+                      src={profile.profilePic}
+                      alt={`${profile.firstName} ${profile.lastName}`}
+                    />
                     <AvatarFallback>
-                      {profile.firstName[0].toUpperCase()}{profile.lastName[0].toUpperCase()}
+                      {profile.firstName[0].toUpperCase()}
+                      {profile.lastName[0].toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
-                  {isMenuOpen ? <ChevronUp className="w-5 h-5 text-gray-700" /> : <ChevronDown className="w-5 h-5 text-gray-700" />}
+                  {isMenuOpen ? (
+                    <ChevronUp className="w-5 h-5 text-gray-700" />
+                  ) : (
+                    <ChevronDown className="w-5 h-5 text-gray-700" />
+                  )}
                 </button>
                 {isMenuOpen && (
                   <div className="absolute top-full right-0 mt-2 w-72 z-50">
                     <UserProfileMenu
-                      onClose={() => setIsMenuOpen(false)} navigate={navigate}
+                      onClose={() => setIsMenuOpen(false)}
+                      navigate={navigate}
                       isAuthenticated={user.isAuthenticated}
-                      handleLogout={handleLogout} user={profile}
+                      handleLogout={handleLogout}
+                      user={profile}
                     />
                   </div>
                 )}
@@ -107,9 +169,13 @@ export const SearchHeader = ({
                   onClick={() => updateFilter("type", val)}
                   className="relative cursor-pointer h-full hover:bg-gray-50 transition-colors duration-300"
                 >
-                  <div className={`flex items-center px-[18px] md:px-10 lg:px-16 gap-1.5 w-full h-full whitespace-nowrap transition-all ${
-                    filters.type === val ? "text-[#0A6C6D] font-bold" : "text-gray-500 hover:text-[#0A6C6D] font-medium"
-                  }`}>
+                  <div
+                    className={`flex items-center px-[18px] md:px-10 lg:px-16 gap-1.5 w-full h-full whitespace-nowrap transition-all ${
+                      filters.type === val
+                        ? "text-[#0A6C6D] font-bold"
+                        : "text-gray-500 hover:text-[#0A6C6D] font-medium"
+                    }`}
+                  >
                     {icon && (
                       <figure className="w-3 h-3 flex items-center shrink-0">
                         {icon(filters.type === val)}
@@ -117,9 +183,11 @@ export const SearchHeader = ({
                     )}
                     {label}
                   </div>
-                  <div className={`h-1 w-full absolute bottom-0 z-30 rounded bg-[#0A6C6D] transition-opacity ${
-                    filters.type === val ? "opacity-100" : "opacity-0"
-                  }`} />
+                  <div
+                    className={`h-1 w-full absolute bottom-0 z-30 rounded bg-[#0A6C6D] transition-opacity ${
+                      filters.type === val ? "opacity-100" : "opacity-0"
+                    }`}
+                  />
                 </button>
               ))}
             </div>
@@ -132,6 +200,8 @@ export const SearchHeader = ({
           </div>
         </div>
       </div>
+      {/* Mobile search bar */}
+      <SearchPopup searchProps={searchProps} filters={filters} show={showSearch} inputRef={inputRef}  setShow={setShowSearch} />
     </div>
   );
 };

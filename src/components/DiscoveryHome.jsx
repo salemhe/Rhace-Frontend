@@ -1,180 +1,270 @@
 import { useNavigate } from "react-router-dom";
-import { ArrowUpRight, TrendingUp, Star, MapPin, Zap } from "lucide-react";
-import { SvgIcon, SvgIcon2, SvgIcon3 } from "@/public/icons/icons";
-import { TYPE_CONFIG, POPULAR_SEARCHES } from "../utils/constants";
-import { VenueCard, SkeletonCard } from "./VenueCard";
-import { LocationBanner } from "./LocationPill";
+import {
+  ArrowUpRight,
+  TrendingUp,
+  Star,
+  MapPin,
+  Zap,
+  Clock,
+  ChevronRight,
+  Utensils,
+  Hotel,
+  Music,
+} from "lucide-react";
+import { TYPE_CONFIG } from "../utils/constants";
+import { DiscoveryListCard, DiscoverySkeletonList } from "./VenueCard";
+import { FoodIcon } from "@/public/icons/icons";
 
-// ── Section heading ───────────────────────────────────────────────────────────
-const SectionHeading = ({ icon, title, subtitle }) => (
-  <div className="flex items-center gap-2 mb-4">
-    <div className="w-6 h-6 flex items-center justify-center text-[#0A6C6D]">{icon}</div>
-    <div>
-      <h3 className="text-sm sm:text-base font-black text-gray-900 leading-none">{title}</h3>
-      {subtitle && <p className="text-[11px] text-gray-400 mt-0.5">{subtitle}</p>}
+// ── Recent searches pill row ───────────────────────────────────────────────────
+const RecentSearchPills = ({ recentSearches = [], onSearch }) => {
+  if (!recentSearches.length) return null;
+  return (
+    <section>
+      <div className="flex items-center gap-1.5 mb-3">
+        <Clock className="w-3.5 h-3.5 text-gray-400" />
+        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
+          Recent Searches
+        </p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {recentSearches.slice(0, 8).map((s) => (
+          <button
+            key={s}
+            onClick={() => onSearch(s)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-full text-xs text-gray-600 hover:border-[#0A6C6D] hover:text-[#0A6C6D] hover:bg-[#0A6C6D]/5 transition-all font-medium shadow-sm"
+          >
+            <Clock className="w-2.5 h-2.5" />
+            {s}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+};
+
+// ── Section heading ────────────────────────────────────────────────────────────
+const SectionHeading = ({ icon, title, subtitle, action, onAction }) => (
+  <div className="flex items-center justify-between mb-4">
+    <div className="flex items-center gap-2">
+      <div className="w-7 h-7 flex items-center justify-center bg-[#0A6C6D]/10 rounded-lg text-[#0A6C6D]">
+        {icon}
+      </div>
+      <div>
+        <h3 className="text-sm sm:text-base font-black text-gray-900 leading-none">
+          {title}
+        </h3>
+        {subtitle && (
+          <p className="text-[11px] text-gray-400 mt-0.5">{subtitle}</p>
+        )}
+      </div>
     </div>
+    {action && (
+      <button
+        onClick={onAction}
+        className="text-xs font-bold text-[#0A6C6D] hover:underline flex items-center gap-0.5 shrink-0"
+      >
+        See all <ChevronRight className="w-3 h-3" />
+      </button>
+    )}
   </div>
 );
 
-// ── Horizontal scroll row of cards ───────────────────────────────────────────
-const CardRow = ({ vendors = [], isLoading, type, skeletonCount = 4 }) => {
+// ── Divider between items ──────────────────────────────────────────────────────
+const ListDivider = () => <div className="border-t border-gray-100 mx-4" />;
+
+// ── Card list section (up to 8 items) ─────────────────────────────────────────
+const CardSection = ({
+  vendors = [],
+  isLoading,
+  type,
+  skeletonCount = 4,
+  onAction,
+  navigate,
+}) => {
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-        {Array.from({ length: skeletonCount }).map((_, i) => <SkeletonCard key={i} />)}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        {Array.from({ length: skeletonCount }).map((_, i) => (
+          <div key={i}>
+            <DiscoverySkeletonList />
+            {i < skeletonCount - 1 && <ListDivider />}
+          </div>
+        ))}
       </div>
     );
   }
-  if (!vendors.length) return (
-    <p className="text-sm text-gray-400 py-4 text-center">No listings available yet.</p>
-  );
+  if (!vendors.length)
+    return (
+      <p className="text-sm text-gray-400 py-6 text-center">
+        No listings available yet.
+      </p>
+    );
+
+  const sliced = vendors.slice(0, 8);
+
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-      {vendors.map(v => <VenueCard key={v._id} vendor={v} activeType={type} />)}
+    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      {sliced.map((v, i) => (
+        <div key={v._id}>
+          <DiscoveryListCard vendor={v} activeType={type} navigate={navigate} />
+          {i < sliced.length - 1 && <ListDivider />}
+        </div>
+      ))}
     </div>
   );
 };
 
-// ── Category hero cards ───────────────────────────────────────────────────────
-const CategoryCard = ({ type, label, sub, icon, onClick }) => {
-  const cfg = TYPE_CONFIG[type];
-  return (
-    <button
-      onClick={onClick}
-      className="group relative h-32 sm:h-40 overflow-hidden rounded-xl text-left transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
-    >
-      <img src={cfg.image} alt={label} className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-black/10" />
-      <div className="absolute inset-0 flex flex-col justify-between p-3 sm:p-3.5">
-        <div className="w-7 h-7 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-          <figure className="w-3.5 h-3.5 flex items-center">{icon}</figure>
-        </div>
-        <div>
-          <p className="text-white font-bold text-sm sm:text-base leading-tight">{label}</p>
-          <p className="text-white/65 text-xs mt-0.5">{sub}</p>
-        </div>
-      </div>
-      <div className="absolute top-3 right-3 w-6 h-6 bg-white/20 backdrop-blur-sm rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-        <ArrowUpRight className="w-3 h-3 text-white" />
-      </div>
-    </button>
-  );
-};
+// ── Type filter chips ──────────────────────────────────────────────────────────
+const TYPE_TABS = [
+  { val: "", label: "All", icon: <Zap className="w-3.5 h-3.5" /> },
+  {
+    val: "restaurant",
+    label: "Restaurants",
+    icon: <FoodIcon className="w-3.5 h-3.5" />,
+  },
+  { val: "hotel", label: "Hotels", icon: <Hotel className="w-3.5 h-3.5" /> },
+  { val: "club", label: "Clubs", icon: <Music className="w-3.5 h-3.5" /> },
+];
 
-// ── Main discovery home ───────────────────────────────────────────────────────
+// ── Main discovery home ────────────────────────────────────────────────────────
 export const DiscoveryHome = ({
-  discovery, isDiscLoading, locationState,
-  updateFilter, submitSearch, inputRef,
-  showLocationBanner,
+  discovery,
+  isDiscLoading,
+  locationState,
+  updateFilter,
+  submitSearch,
+  inputRef,
+  activeType = "",
+  recentSearches = [],
 }) => {
-  const { nearby = [], topRated = [], restaurants = [], hotels = [], clubs = [] } = discovery;
+  const navigate = useNavigate();
+  const {
+    nearby = [],
+    topRated = [],
+    restaurants = [],
+    hotels = [],
+    clubs = [],
+  } = discovery;
+
+  // Which sections to show based on activeType
+  const showAll = !activeType;
+  const showRestaurants =
+    showAll || activeType === "restaurant";
+  const showHotels = showAll || activeType === "hotel";
+  const showClubs = showAll || activeType === "club";
+  const showNearby = nearby.length > 0 || isDiscLoading;
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-6 sm:py-10 space-y-10">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 py-5 sm:py-8 space-y-8">
 
-      {/* Location banner (shown until location is known) */}
-      {showLocationBanner && (
-        <LocationBanner
-          requestLocation={locationState.requestLocation}
-          isDetecting={locationState.isDetecting}
-        />
-      )}
+      {/* Recent searches */}
+      <RecentSearchPills
+        recentSearches={recentSearches}
+        onSearch={submitSearch}
+      />
 
-      {/* Hero: Category cards */}
-      <section>
-        <div className="text-center mb-5">
-          <h2 className="text-lg sm:text-xl font-black text-gray-900 mb-1">Discover Vendors</h2>
-          <p className="text-gray-400 text-sm">Find and book the best spots near you</p>
+      {/* Desktop: two-column grid wrapper */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+        {/* ── LEFT COLUMN ── */}
+        <div className="space-y-8">
+
+          {/* Near You */}
+          {showNearby && (
+            <section>
+              <SectionHeading
+                icon={<MapPin className="w-4 h-4" />}
+                title={
+                  locationState.location?.city
+                    ? `Near ${locationState.location.city}`
+                    : "Near You"
+                }
+                subtitle="Based on your current location"
+              />
+              <CardSection
+                vendors={nearby}
+                isLoading={isDiscLoading}
+                navigate={navigate}
+                skeletonCount={3}
+              />
+            </section>
+          )}
+
+          {/* Restaurants */}
+          {showRestaurants && (isDiscLoading || restaurants.length > 0) && (
+            <section>
+              <SectionHeading
+                icon={<Utensils className="w-4 h-4" />}
+                title="Top Restaurants"
+                subtitle="Highly rated dining experiences"
+              />
+              <CardSection
+                vendors={restaurants}
+                isLoading={isDiscLoading}
+                type="restaurant"
+                navigate={navigate}
+              />
+            </section>
+          )}
+
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <CategoryCard type="restaurant" label="Restaurants" sub="Reserve your table"
-            icon={<SvgIcon isActive={false} />}
-            onClick={() => { updateFilter("type", "restaurant"); setTimeout(() => inputRef.current?.focus(), 50); }} />
-          <CategoryCard type="hotel"      label="Hotels"      sub="Book your stay"
-            icon={<SvgIcon2 isActive={false} />}
-            onClick={() => { updateFilter("type", "hotel"); setTimeout(() => inputRef.current?.focus(), 50); }} />
-          <CategoryCard type="club"       label="Clubs"       sub="Plan your night"
-            icon={<SvgIcon3 isActive={false} />}
-            onClick={() => { updateFilter("type", "club"); setTimeout(() => inputRef.current?.focus(), 50); }} />
+
+        {/* ── RIGHT COLUMN ── */}
+        <div className="space-y-8">
+
+          {/* Trending */}
+          {(showAll || activeType) && (
+            <section>
+              <SectionHeading
+                icon={<TrendingUp className="w-4 h-4" />}
+                title="Trending Now"
+                subtitle="Most popular bookings right now"
+              />
+              <CardSection
+                vendors={topRated}
+                isLoading={isDiscLoading}
+                navigate={navigate}
+                skeletonCount={4}
+              />
+            </section>
+          )}
+
+          {/* Hotels */}
+          {showHotels && (isDiscLoading || hotels.length > 0) && (
+            <section>
+              <SectionHeading
+                icon={<Star className="w-4 h-4" />}
+                title="Featured Hotels"
+                subtitle="Luxury & budget stays"
+              />
+              <CardSection
+                vendors={hotels}
+                isLoading={isDiscLoading}
+                type="hotel"
+                navigate={navigate}
+              />
+            </section>
+          )}
+
+          {/* Clubs */}
+          {showClubs && (isDiscLoading || clubs.length > 0) && (
+            <section>
+              <SectionHeading
+                icon={<Zap className="w-4 h-4" />}
+                title="Tonight's Clubs"
+                subtitle="Plan your perfect night out"
+              />
+              <CardSection
+                vendors={clubs}
+                isLoading={isDiscLoading}
+                type="club"
+                navigate={navigate}
+              />
+            </section>
+          )}
+
         </div>
-      </section>
-
-      {/* Near You */}
-      {(isDiscLoading || nearby.length > 0) && (
-        <section>
-          <SectionHeading
-            icon={<MapPin className="w-5 h-5" />}
-            title={locationState.location.city ? `Near ${locationState.location.city}` : "Near You"}
-            subtitle="Based on your current location"
-          />
-          <CardRow vendors={nearby} isLoading={isDiscLoading} />
-        </section>
-      )}
-
-      {/* Trending */}
-      <section>
-        <SectionHeading
-          icon={<TrendingUp className="w-5 h-5" />}
-          title="Trending Now"
-          subtitle="Most popular bookings right now"
-        />
-        <CardRow vendors={topRated} isLoading={isDiscLoading} />
-      </section>
-
-      {/* Restaurants */}
-      {(isDiscLoading || restaurants.length > 0) && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <SectionHeading icon={<Star className="w-5 h-5" />} title="Top Restaurants" subtitle="Highly rated dining experiences" />
-            <button onClick={() => updateFilter("type", "restaurant")}
-              className="text-xs font-bold text-[#0A6C6D] hover:underline flex items-center gap-1">
-              See all <ArrowUpRight className="w-3 h-3" />
-            </button>
-          </div>
-          <CardRow vendors={restaurants} isLoading={isDiscLoading} type="restaurant" />
-        </section>
-      )}
-
-      {/* Hotels */}
-      {(isDiscLoading || hotels.length > 0) && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <SectionHeading icon={<Zap className="w-5 h-5" />} title="Featured Hotels" subtitle="Luxury & budget stays" />
-            <button onClick={() => updateFilter("type", "hotel")}
-              className="text-xs font-bold text-[#0A6C6D] hover:underline flex items-center gap-1">
-              See all <ArrowUpRight className="w-3 h-3" />
-            </button>
-          </div>
-          <CardRow vendors={hotels} isLoading={isDiscLoading} type="hotel" />
-        </section>
-      )}
-
-      {/* Clubs */}
-      {(isDiscLoading || clubs.length > 0) && (
-        <section>
-          <div className="flex items-center justify-between mb-4">
-            <SectionHeading icon={<Zap className="w-5 h-5" />} title="Tonight's Clubs" subtitle="Plan your perfect night out" />
-            <button onClick={() => updateFilter("type", "club")}
-              className="text-xs font-bold text-[#0A6C6D] hover:underline flex items-center gap-1">
-              See all <ArrowUpRight className="w-3 h-3" />
-            </button>
-          </div>
-          <CardRow vendors={clubs} isLoading={isDiscLoading} type="club" />
-        </section>
-      )}
-
-      {/* Popular quick searches */}
-      <section className="text-center">
-        <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Popular Searches</p>
-        <div className="flex flex-wrap justify-center gap-2">
-          {POPULAR_SEARCHES.map(s => (
-            <button key={s} onClick={() => submitSearch(s)}
-              className="px-3 py-1 bg-white border border-gray-200 rounded-full text-xs text-gray-600 hover:border-[#0A6C6D] hover:text-[#0A6C6D] transition-all font-medium">
-              {s}
-            </button>
-          ))}
-        </div>
-      </section>
+      </div>
     </div>
   );
 };

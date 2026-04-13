@@ -46,11 +46,12 @@ export const searchSvc = {
     api.get(`/search/trending${type ? `?type=${type}` : ""}`)
       .then(r => r.data.trending || []),
 
-  discover: (location) => {
+  discover: (location, type) => {
     const params = new URLSearchParams();
     if (location?.lat != null && location?.lng != null) {
       params.set("latitude",  String(location.lat));
       params.set("longitude", String(location.lng));
+      params.set("type", type);
     }
     return api.get(`/search/discover${params.toString() ? `?${params}` : ""}`)
       .then(r => r.data.data || {});
