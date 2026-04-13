@@ -90,7 +90,7 @@ const UserHeader = () => {
 
   return (
     <header
-      className={`${profile ? "absolute md:fixed" : "fixed"} top-0 z-50 w-full transition-all duration-300 ${scrolled ? "bg-white shadow-md" : "bg-transparent text-white"}`}
+      className={`${profile ? "absolute md:fixed" : "fixed"} top-0 z-99 w-full transition-all duration-300 ${scrolled ? "bg-white shadow-md" : "bg-transparent text-white"}`}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center py-4">

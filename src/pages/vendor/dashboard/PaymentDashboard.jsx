@@ -196,6 +196,7 @@ const PaymentDashboard = () => {
       header: "Customer Name",
       cell: ({ row }) => {
         const user = row.original
+        const customerName = user.customer_name || ''
         return (
           <div className="flex items-center gap-3">
             <Avatar>

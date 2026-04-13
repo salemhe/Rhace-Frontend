@@ -151,7 +151,7 @@ function ReservationHomePage() {
           </div>
 
           {/* Search Section */}
-          <div className="relative w-full mt-4 sm:mt-5 lg:mt-6 px-1  sm:px-0 z-20">
+          <div className="relative w-full mt-4 sm:mt-5 lg:mt-6 px-1  sm:px-0 z-50">
             <SearchSection activeTab={activeTab} onSearch={() => {}} />
           </div>
         </div>

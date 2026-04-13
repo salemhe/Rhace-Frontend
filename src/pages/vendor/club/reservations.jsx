@@ -489,10 +489,6 @@ const ClubReservationTable = () => {
     }
   };
 
-  if (isLoading) {
-    return <UniversalLoader fullscreen />;
-  }
-
   const getPaymentStatusColor = (status) => {
     switch (normalizePaymentStatus(status)) {
       case "Fully Paid":
@@ -526,6 +522,10 @@ const ClubReservationTable = () => {
 
   return (
     <DashboardLayout type="club" section="Reservations">
+      {isLoading ? (
+        <UniversalLoader type='dashboard-2' />
+      ) : (
+        <>
       <div className="min-h-screen bg-gray0 p-2 md:p-6 mb-12">
         <div className="max-w-7xl mx-auto">
           <div className="md:flex justify-between items-center mb-6">
@@ -1486,6 +1486,8 @@ const ClubReservationTable = () => {
         setOpen={setOpen}
         open={open}
       />
+      </>
+      )}
     </DashboardLayout>
   );
 };

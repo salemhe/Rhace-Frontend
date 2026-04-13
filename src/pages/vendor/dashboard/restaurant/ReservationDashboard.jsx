@@ -77,7 +77,7 @@ import { toast } from "react-toastify";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
 
-const categories = ["All", "Upcoming", "Completed", "Canceled", "No Shows"];
+const categories = ["All", "Upcoming", "Confirmed", "Cancelled", "No Shows"];
 
 const ReservationDashboard = () => {
   const [hideTab, setHideTab] = useState(false);
@@ -89,6 +89,14 @@ const ReservationDashboard = () => {
   const navigate = useNavigate();
   const vendor = useSelector((state) => state.auth.vendor);
   const [data, setData] = useState([]);
+  const [dat, setDat] = useState();
+  const [page, setPage] = useState(1);
+  const [limit] = useState(10);
+  const [query, setQuery] = useState({
+    page: 1,
+    limit: 10,
+    status: "", // upcoming | confirmed | cancelled | no-show
+  });
   const [stats, setStats] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -107,7 +115,7 @@ const ReservationDashboard = () => {
         return "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]";
       case "confirmed":
         return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
-      case "canceled":
+      case "cancelled":
         return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
       case "no-show":
         return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
@@ -129,7 +137,10 @@ const ReservationDashboard = () => {
         const normalizeStatus = (status) => (status || "").toLowerCase();
         const paymentStatus = normalizeStatus(booking.paymentStatus);
         const isPaid =
-          paymentStatus.includes("paid") || paymentStatus.includes("pay_later") || paymentStatus.includes("partly_paid") || paymentStatus.includes("success");
+          paymentStatus.includes("paid") ||
+          paymentStatus.includes("pay_later") ||
+          paymentStatus.includes("partly_paid") ||
+          paymentStatus.includes("success");
 
         let paymentRef = null;
         if (isPaid) {
@@ -328,7 +339,7 @@ const ReservationDashboard = () => {
         >
           {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}
           {row.getValue("reservationStatus") === "confirmed" && "Confirmed"}
-          {row.getValue("reservationStatus") === "canceled" && "Canceled"}
+          {row.getValue("reservationStatus") === "cancelled" && "Cancelled"}
           {row.getValue("reservationStatus") === "no-show" && "No Show"}
         </div>
       ),
@@ -421,15 +432,16 @@ const ReservationDashboard = () => {
     },
   });
 
-  const socketRef = useRef(null);
-  const reconnectTimeout = useRef(null);
+  const { subscribe, unsubscribe } = useWebSocket();
 
   useEffect(() => {
     if (!vendor?._id) return;
 
+    const VITE_SOCKET_URL = import.meta.env.VITE_SOCKET_URL;
+
     const connect = () => {
       const socket = new WebSocket(
-        `wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`,
+        `${VITE_SOCKET_URL}?type=vendor&id=${vendor._id}`,
       );
       socketRef.current = socket;
 
@@ -470,7 +482,16 @@ const ReservationDashboard = () => {
       };
     };
 
-    connect();
+    const handleReservationUpdate = (payload) => {
+      toast.info(`Reservation updated: ${payload._id?.slice(0,8) || 'ID'}`);
+      // Refetch data/stats
+      fetchReservations();
+      fetchStats();
+    };
+
+    subscribe('reservation-created', handleNewReservation);
+    subscribe('reservation-updated', handleReservationUpdate);
+    subscribe('reservation-counters-updated', () => fetchStats());
 
     return () => {
       if (socketRef.current) {
@@ -481,18 +502,33 @@ const ReservationDashboard = () => {
         clearTimeout(reconnectTimeout.current);
       }
     };
+  }, [vendor?._id, subscribe, unsubscribe]);
+
+  // Load data on mount/vendor change
+  useEffect(() => {
+    if (vendor?._id) {
+      fetchReservations();
+      fetchStats();
+    }
   }, [vendor?._id]);
 
   useEffect(() => {
     const fetchReservations = async () => {
       try {
+        setIsLoading(true);
+
         const res = await userService.fetchReservations({
           vendorId: vendor._id,
+          page: query.page,
+          limit: query.limit,
+          status: query.status,
         });
+
         setData(res.data);
+        setDat(res);
       } catch (error) {
         console.error(error);
-        toast.error(error.response.data.message);
+        toast.error(error.response?.data?.message);
       } finally {
         setIsLoading(false);
       }
@@ -508,464 +544,564 @@ const ReservationDashboard = () => {
         setLoading(false);
       }
     };
-    fetchReservations();
+    if (!vendor?._id) return;
+    fetchReservations(page);
     fetchStats();
-  }, []);
+  }, [vendor?._id, query]);
 
-  if (isLoading || loading) {
-    return <UniversalLoader fullscreen />;
-  }
+  // if (isLoading || loading) {
+  //   return <UniversalLoader fullscreen type="cards" />;
+  // }
+
+  const getVisiblePages = () => {
+    const total = dat?.pages || 1;
+    const current = query.page;
+
+    let start = Math.max(current - 2, 1);
+    let end = Math.min(start + 4, total);
+
+    // adjust if near end
+    if (end - start < 4) {
+      start = Math.max(end - 4, 1);
+    }
+
+    return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+  };
 
   return (
     <DashboardLayout type="restaurant" section="Reservations">
-      <div className="md:p-6 md:mb-12 space-y-6">
-        <div className="md:flex hidden justify-between items-center">
-          <h2 className="text-[#111827] font-semibold">Reservation List</h2>
-          <div className="flex gap-6">
-            <DashboardButton
-              onClick={() => setHideTab(!hideTab)}
-              variant="secondary"
-              text={hideTab ? "Open tabs" : "Hide tabs"}
-              icon={hideTab ? <Eye /> : <EyeClose />}
-            />
-            <DashboardButton
-              variant="secondary"
-              text="Export"
-              icon={<Export />}
-            />
-            <DashboardButton
-              onClick={() => navigate("/dashboard/restaurant/reservation/new")}
-              variant="primary"
-              text="New Reservation"
-              icon={<Add fill="#fff" />}
-            />
-          </div>
-        </div>
-        {!hideTab && (
-          <div className="hidden md:grid grid-cols-4 border bg-white rounded-2xl">
-            <div className="flex h-full items-center">
-              <StatCard
-                title="Reservations made today"
-                value={stats.totalReservations.count}
-                change={stats.totalReservations.change}
-                icon={<Calendar />}
-                color="blue"
-              />
-              <div className="h-3/5 w-[1px] bg-[#E5E7EB]" />
-            </div>
-            <div className="flex h-full items-center">
-              <StatCard
-                title="Prepaid Reservations"
-                value={stats.prepaidReservations.count}
-                change={stats.prepaidReservations.change}
-                icon={<CardPay />}
-                color="green"
-              />
-              <div className="h-3/5 w-[1px] bg-[#E5E7EB]" />
-            </div>
-            <div className="flex h-full items-center">
-              <StatCard
-                title="Expected Guests Today"
-                value={stats.expectedGuests.count}
-                change={stats.expectedGuests.change}
-                icon={<Group3 />}
-                color="purple"
-              />
-              <div className="h-3/5 w-[1px] bg-[#E5E7EB]" />
-            </div>
-            {/* <div className='flex h-full items-center w-full'> */}
-            <StatCard
-              title="Pending Payments"
-              value={stats.pendingPayments.count.toLocaleString("en-US")}
-              change={stats.pendingPayments.change}
-              icon={<Cash2 fill="#E1B505" className="text-[#E1B505]" />}
-              color="orange"
-            />
-            {/* </div> */}
-          </div>
-        )}
-        <div>
-          <div className="w-full">
-            <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between py-4">
-              <div className="flex flex-1 items-center">
-                {categories.map((category, i) => (
-                  <div
-                    onClick={() => setActiveCategory(category)}
-                    className={`p-2 text-xs md:text-sm rounded-lg border font-medium cursor-pointer ${category === activeCategory ? "border-[#B3D1D2] bg-[#E7F0F0] text-[#111827] " : "border-transparent text-[#606368]"}`}
-                    key={i}
-                  >
-                    {category}
-                  </div>
-                ))}
+      {isLoading || loading ? (
+        <UniversalLoader fullscreen type="dashboard-2" />
+      ) : (
+        <>
+          <div className="md:p-6 md:mb-12 space-y-6">
+            <div className="md:flex hidden justify-between items-center">
+              <h2 className="text-[#111827] font-semibold">Reservation List</h2>
+              <div className="flex gap-6">
+                <DashboardButton
+                  onClick={() => setHideTab(!hideTab)}
+                  variant="secondary"
+                  text={hideTab ? "Open tabs" : "Hide tabs"}
+                  icon={hideTab ? <Eye /> : <EyeClose />}
+                />
+                <DashboardButton
+                  variant="secondary"
+                  text="Export"
+                  icon={<Export />}
+                />
+                <DashboardButton
+                  onClick={() =>
+                    navigate("/dashboard/restaurant/reservation/new")
+                  }
+                  variant="primary"
+                  text="New Reservation"
+                  icon={<Add fill="#fff" />}
+                />
               </div>
-              <div className="flex items-center justify-between gap-4">
-                <div className="relative items-center flex flex-1">
-                  <Search className="absolute left-2 text-[#606368] size-5" />
-                  <Input
-                    placeholder="Search by guest name or ID"
-                    value={
-                      table.getColumn("customerName")?.getFilterValue() ?? ""
-                    }
-                    onChange={(event) =>
-                      table
-                        .getColumn("customerName")
-                        ?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm pl-10 bg-[#F9FAFB] border-[#DAE9E9] "
+            </div>
+            {!hideTab && (
+              <div className="hidden md:grid grid-cols-4 border bg-white rounded-2xl">
+                <div className="flex h-full items-center">
+                  <StatCard
+                    title="Reservations made today"
+                    value={stats.totalReservations.count}
+                    change={stats.totalReservations.change}
+                    icon={<Calendar />}
+                    color="blue"
                   />
+                  <div className="h-3/5 w-[1px] bg-[#E5E7EB]" />
                 </div>
-                <div className="md:flex gap-2 hidden">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="ml-auto text-[#606368]"
-                      >
-                        Today <ChevronDown />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {table
-                        .getAllColumns()
-                        .filter((column) => column.getCanHide())
-                        .map((column) => {
-                          return (
-                            <DropdownMenuCheckboxItem
-                              key={column.id}
-                              className="capitalize"
-                              checked={column.getIsVisible()}
-                              onCheckedChange={(value) =>
-                                column.toggleVisibility(!!value)
-                              }
-                            >
-                              {column.id}
-                            </DropdownMenuCheckboxItem>
-                          );
-                        })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="ml-auto text-[#606368]"
-                      >
-                        Payment Status <ChevronDown />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {table
-                        .getAllColumns()
-                        .filter((column) => column.getCanHide())
-                        .map((column) => {
-                          return (
-                            <DropdownMenuCheckboxItem
-                              key={column.id}
-                              className="capitalize"
-                              checked={column.getIsVisible()}
-                              onCheckedChange={(value) =>
-                                column.toggleVisibility(!!value)
-                              }
-                            >
-                              {column.id}
-                            </DropdownMenuCheckboxItem>
-                          );
-                        })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="ml-auto text-[#606368]"
-                      >
-                        Advanced filter <Filter2 fill="black" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      {table
-                        .getAllColumns()
-                        .filter((column) => column.getCanHide())
-                        .map((column) => {
-                          return (
-                            <DropdownMenuCheckboxItem
-                              key={column.id}
-                              className="capitalize"
-                              checked={column.getIsVisible()}
-                              onCheckedChange={(value) =>
-                                column.toggleVisibility(!!value)
-                              }
-                            >
-                              {column.id}
-                            </DropdownMenuCheckboxItem>
-                          );
-                        })}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                <div className="flex h-full items-center">
+                  <StatCard
+                    title="Prepaid Reservations"
+                    value={stats.prepaidReservations.count}
+                    change={stats.prepaidReservations.change}
+                    icon={<CardPay />}
+                    color="green"
+                  />
+                  <div className="h-3/5 w-[1px] bg-[#E5E7EB]" />
                 </div>
-                <div className="md:hidden">
-                  <Button variant="outline" size="sm" className="ml-auto">
-                    <Filter2 fill="black" />
-                  </Button>
+                <div className="flex h-full items-center">
+                  <StatCard
+                    title="Expected Guests Today"
+                    value={stats.expectedGuests.count}
+                    change={stats.expectedGuests.change}
+                    icon={<Group3 />}
+                    color="purple"
+                  />
+                  <div className="h-3/5 w-[1px] bg-[#E5E7EB]" />
                 </div>
+                {/* <div className='flex h-full items-center w-full'> */}
+                <StatCard
+                  title="Pending Payments"
+                  value={stats.pendingPayments.count.toLocaleString("en-US")}
+                  change={stats.pendingPayments.change}
+                  icon={<Cash2 fill="#E1B505" className="text-[#E1B505]" />}
+                  color="orange"
+                />
+                {/* </div> */}
               </div>
-            </div>
-            <div className="overflow-hidden hidden md:block rounded-md border">
-              <Table>
-                <TableHeader className="bg-[#E6F2F2]">
-                  {table.getHeaderGroups().map((headerGroup) => (
-                    <TableRow key={headerGroup.id}>
-                      {headerGroup.headers.map((header) => {
-                        return (
-                          <TableHead key={header.id}>
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
-                          </TableHead>
-                        );
-                      })}
-                    </TableRow>
-                  ))}
-                </TableHeader>
-                <TableBody>
-                  {table.getRowModel().rows?.length ? (
-                    table.getRowModel().rows.map((row) => (
-                      <TableRow
-                        key={row.id}
-                        data-state={row.getIsSelected() && "selected"}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <TableCell key={cell.id}>
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </TableCell>
-                        ))}
-                      </TableRow>
-                    ))
-                  ) : (
-                    <TableRow>
-                      <TableCell
-                        colSpan={columns.length}
-                        className="h-24 text-center"
-                      >
-                        No results.
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="absolute hidden md:flex bottom-0 border-t border-[#E5E7EB] left-0 right-0 bg-white">
-        <div className="flex items-center w-full px-8 justify-between space-x-2 py-4">
-          <div className="text-muted-foreground text-sm">
-            Page {table.getFilteredSelectedRowModel().rows.length} of{" "}
-            {table.getFilteredRowModel().rows.length}
-          </div>
-          <div className="flex">
-            <Pagination>
-              <PaginationContent>
-                <PaginationItem>
-                  <PaginationLink href="#">1</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#" isActive>
-                    2
-                  </PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">3</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationEllipsis />
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">10</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">11</PaginationLink>
-                </PaginationItem>
-                <PaginationItem>
-                  <PaginationLink href="#">12</PaginationLink>
-                </PaginationItem>
-              </PaginationContent>
-            </Pagination>
-          </div>
-          <div className="gap-2 flex">
-            <DashboardButton
-              variant="secondary"
-              icon={<ChevronLeft className="size-5" />}
-              // size="sm"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-              className="shadow-md"
-            />
-            <DashboardButton
-              variant="secondary"
-              icon={<ChevronRight className="size-5" />}
-              // size="sm"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-              className="shadow-md"
-            />
-          </div>
-        </div>
-      </div>
-      {showPopup.display && (
-        <div className="inset-0 fixed top-0 left-o w-full h-screen overflow-y-auto bg-black/80">
-          <div className="bg-gray-50 px-4 max-w-4xl mx-auto rounded-lg my-10 py-6 md:px-6 md:py-8">
-            <div className="max-w-4xl mx-auto">
-              {/* Reservation Details */}
-              <div className="bg-white rounded-2xl border border-gray-200 mb-6">
-                <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
-                  Reservation Details
-                </h2>
+            )}
+            <div>
+              <div className="w-full">
+                <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between py-4">
+                  <div className="flex flex-1 items-center">
+                    {categories.map((category, i) => (
+                      <div
+                        onClick={() => {
+                          const value =
+                            category === "All" ? "" : category.toLowerCase();
 
-                {/* HR tag after Reservation Details */}
-                <hr className="border-gray-200 mb-4" />
+                          setActiveCategory(category);
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 px-4">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Restaurant</p>
-                    <p className="text-base font-medium text-gray-900 mb-1">
-                      {showPopup.details.vendor.businessName || "hey"}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {showPopup.details.location}
-                    </p>
+                          setQuery((prev) => ({
+                            ...prev,
+                            status: value,
+                            page: 1, // reset page
+                          }));
+                        }}
+                        className={`p-2 text-xs md:text-sm rounded-lg border font-medium cursor-pointer ${category === activeCategory ? "border-[#B3D1D2] bg-[#E7F0F0] text-[#111827] " : "border-transparent text-[#606368]"}`}
+                        key={i}
+                      >
+                        {category}
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Reservation ID</p>
-                    <p className="font-medium text-gray-900">
-                      #{showPopup.details._id.slice(0, 8).toUpperCase()}
-                    </p>
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="relative items-center flex flex-1">
+                      <Search className="absolute left-2 text-[#606368] size-5" />
+                      <Input
+                        placeholder="Search by guest name or ID"
+                        value={
+                          table.getColumn("customerName")?.getFilterValue() ??
+                          ""
+                        }
+                        onChange={(event) =>
+                          table
+                            .getColumn("customerName")
+                            ?.setFilterValue(event.target.value)
+                        }
+                        className="max-w-sm pl-10 bg-[#F9FAFB] border-[#DAE9E9] "
+                      />
+                    </div>
+                    <div className="md:flex gap-2 hidden">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="ml-auto text-[#606368]"
+                          >
+                            Today <ChevronDown />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {table
+                            .getAllColumns()
+                            .filter((column) => column.getCanHide())
+                            .map((column) => {
+                              return (
+                                <DropdownMenuCheckboxItem
+                                  key={column.id}
+                                  className="capitalize"
+                                  checked={column.getIsVisible()}
+                                  onCheckedChange={(value) =>
+                                    column.toggleVisibility(!!value)
+                                  }
+                                >
+                                  {column.id}
+                                </DropdownMenuCheckboxItem>
+                              );
+                            })}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="ml-auto text-[#606368]"
+                          >
+                            Payment Status <ChevronDown />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {table
+                            .getAllColumns()
+                            .filter((column) => column.getCanHide())
+                            .map((column) => {
+                              return (
+                                <DropdownMenuCheckboxItem
+                                  key={column.id}
+                                  className="capitalize"
+                                  checked={column.getIsVisible()}
+                                  onCheckedChange={(value) =>
+                                    column.toggleVisibility(!!value)
+                                  }
+                                >
+                                  {column.id}
+                                </DropdownMenuCheckboxItem>
+                              );
+                            })}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="ml-auto text-[#606368]"
+                          >
+                            Advanced filter <Filter2 fill="black" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {table
+                            .getAllColumns()
+                            .filter((column) => column.getCanHide())
+                            .map((column) => {
+                              return (
+                                <DropdownMenuCheckboxItem
+                                  key={column.id}
+                                  className="capitalize"
+                                  checked={column.getIsVisible()}
+                                  onCheckedChange={(value) =>
+                                    column.toggleVisibility(!!value)
+                                  }
+                                >
+                                  {column.id}
+                                </DropdownMenuCheckboxItem>
+                              );
+                            })}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                    <div className="md:hidden">
+                      <Button variant="outline" size="sm" className="ml-auto">
+                        <Filter2 fill="black" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 mb-4">
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Date & Time</p>
-                    <p className="font-medium text-gray-900">
-                      {new Date(showPopup.details.date).toLocaleDateString(
-                        undefined,
-                        {
-                          year: "numeric",
-                          month: "long",
-                          day: "numeric",
-                        },
-                      )}{" "}
-                      • {showPopup.details.time}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 mb-1">Guests</p>
-                    <p className="font-medium text-gray-900">
-                      {showPopup.details.guests} Guests
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Meal Selection */}
-              {showPopup.details.menus.length > 0 && (
-                <div className="rounded-2xl border border-gray-200 mb-6 bg-white shadow-sm p-5">
-                  <div>
-                    <h2 className="font-semibold text-gray-900 mb-2">
-                      Your Selection ({showPopup.details.menus.length}{" "}
-                      {showPopup.details.menus.length > 1 ? "items" : "item"})
-                    </h2>
-                    <ul className="divide-y divide-gray-100">
-                      {showPopup.details.menus.map((item, index) => (
-                        <li key={index} className="flex justify-between py-2">
-                          <span className="text-gray-700">
-                            {item.quantity}x {item.menu.name}
-                          </span>
-                          <span className="text-gray-900 font-medium">
-                            ₦{item.menu.price.toLocaleString()}
-                          </span>
-                        </li>
+                <div className="overflow-hidden hidden md:block rounded-md border">
+                  <Table>
+                    <TableHeader className="bg-[#E6F2F2]">
+                      {table.getHeaderGroups().map((headerGroup) => (
+                        <TableRow key={headerGroup.id}>
+                          {headerGroup.headers.map((header) => {
+                            return (
+                              <TableHead key={header.id}>
+                                {header.isPlaceholder
+                                  ? null
+                                  : flexRender(
+                                      header.column.columnDef.header,
+                                      header.getContext(),
+                                    )}
+                              </TableHead>
+                            );
+                          })}
+                        </TableRow>
                       ))}
-                    </ul>
-                  </div>
-
-                  <div className="border-t border-gray-200 my-4"></div>
-
-                  <div className="flex justify-between items-center">
-                    <p className="font-medium text-gray-800">Amount paid</p>
-                    <p className="font-semibold text-[#37703F] text-lg">
-                      ₦{showPopup.details.totalAmount.toLocaleString()}
-                    </p>
-                  </div>
+                    </TableHeader>
+                    <TableBody>
+                      {table.getRowModel().rows?.length ? (
+                        table.getRowModel().rows.map((row) => (
+                          <TableRow
+                            key={row.id}
+                            data-state={row.getIsSelected() && "selected"}
+                          >
+                            {row.getVisibleCells().map((cell) => (
+                              <TableCell key={cell.id}>
+                                {flexRender(
+                                  cell.column.columnDef.cell,
+                                  cell.getContext(),
+                                )}
+                              </TableCell>
+                            ))}
+                          </TableRow>
+                        ))
+                      ) : (
+                        <TableRow>
+                          <TableCell
+                            colSpan={columns.length}
+                            className="h-24 text-center"
+                          >
+                            No results.
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
                 </div>
-              )}
-
-              {/* Info Cards - Changed to green background */}
-              <div className="bg-[#E7F0F0] border border-[#B3D1D2] rounded-2xl p-4 mb-8">
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3">
-                    <Mail className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
-                    <p className="text-sm">
-                      You will receive a confirmation email with your
-                      reservation details
-                    </p>
-                  </div>
-
-                  <div className="flex items-start gap-3">
-                    <Clock className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
-                    <p className="text-sm">Please, arrive 10 mins early</p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col md:flex-row w-full gap-3">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowPopup({ display: false, details: {} });
-                  }}
-                  className="flex-1 h-10 text-sm rounded-xl font-medium px-6 border-gray-300"
-                >
-                  Close
-                </Button>
-                <form
-                  action={async () => {
-                    setShowPopup({ display: false, details: {} });
-                  }}
-                  className="flex-1"
-                >
-                  <Button
-                    type="submit"
-                    className="w-full h-10 text-sm font-medium rounded-xl px-6 bg-[#0A6C6D] hover:bg-teal-800"
-                  >
-                    Done
-                  </Button>
-                </form>
               </div>
             </div>
           </div>
-        </div>
+          <div className="absolute hidden md:flex bottom-0 border-t border-[#E5E7EB] left-0 right-0 bg-white">
+            <div className="flex items-center w-full px-8 justify-between space-x-2 py-4">
+              <div className="text-muted-foreground text-sm">
+                Page {dat.page} of {dat.pages}
+              </div>
+              <div className="flex">
+                <Pagination>
+                  <PaginationContent>
+                    {/* PREV */}
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() =>
+                          query.page > 1 &&
+                          setQuery((prev) => ({ ...prev, page: prev.page - 1 }))
+                        }
+                        className="cursor-pointer"
+                      >
+                        <ChevronLeft />
+                      </PaginationLink>
+                    </PaginationItem>
+
+                    {/* FIRST PAGE */}
+                    {query.page > 3 && (
+                      <>
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() =>
+                              setQuery((prev) => ({ ...prev, page: 1 }))
+                            }
+                          >
+                            1
+                          </PaginationLink>
+                        </PaginationItem>
+                        <PaginationEllipsis />
+                      </>
+                    )}
+
+                    {/* VISIBLE PAGES */}
+                    {getVisiblePages().map((p) => (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          isActive={query.page === p}
+                          onClick={() =>
+                            setQuery((prev) => ({ ...prev, page: p }))
+                          }
+                          className="cursor-pointer"
+                        >
+                          {p}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
+                    {/* LAST PAGE */}
+                    {query.page < (dat?.pages || 1) - 2 && (
+                      <>
+                        <PaginationEllipsis />
+                        <PaginationItem>
+                          <PaginationLink
+                            onClick={() =>
+                              setQuery((prev) => ({
+                                ...prev,
+                                page: dat.pages,
+                              }))
+                            }
+                          >
+                            {dat.pages}
+                          </PaginationLink>
+                        </PaginationItem>
+                      </>
+                    )}
+
+                    {/* NEXT */}
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() =>
+                          query.page < (dat?.pages || 1) &&
+                          setQuery((prev) => ({ ...prev, page: prev.page + 1 }))
+                        }
+                        className="cursor-pointer"
+                      >
+                        <ChevronRight />
+                      </PaginationLink>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+              <div className="gap-2 flex">
+                <DashboardButton
+                  variant="secondary"
+                  icon={<ChevronLeft className="size-5" />}
+                  // size="sm"
+                  onClick={() => query.page > 1 && setQuery((prev) => ({ ...prev, page: prev.page - 1 }))}
+                  disabled={query.page === 1}
+                  className="shadow-md"
+                />
+                <DashboardButton
+                  variant="secondary"
+                  icon={<ChevronRight className="size-5" />}
+                  // size="sm"
+                  onClick={() =>
+                    query.page < dat.pages &&
+                    setQuery((prev) => ({ ...prev, page: prev.page + 1 }))
+                  }
+                  disabled={query.page === dat.pages}
+                  className="shadow-md"
+                />
+              </div>
+            </div>
+          </div>
+          {showPopup.display && (
+            <div className="inset-0 fixed top-0 left-o w-full h-screen overflow-y-auto bg-black/80">
+              <div className="bg-gray-50 px-4 max-w-4xl mx-auto rounded-lg my-10 py-6 md:px-6 md:py-8">
+                <div className="max-w-4xl mx-auto">
+                  {/* Reservation Details */}
+                  <div className="bg-white rounded-2xl border border-gray-200 mb-6">
+                    <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                      Reservation Details
+                    </h2>
+
+                    {/* HR tag after Reservation Details */}
+                    <hr className="border-gray-200 mb-4" />
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4 px-4">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Restaurant</p>
+                        <p className="text-base font-medium text-gray-900 mb-1">
+                          {showPopup.details.vendor.businessName || "hey"}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {showPopup.details.location}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">
+                          Reservation ID
+                        </p>
+                        <p className="font-medium text-gray-900">
+                          #{showPopup.details._id.slice(0, 8).toUpperCase()}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 px-4 mb-4">
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">
+                          Date & Time
+                        </p>
+                        <p className="font-medium text-gray-900">
+                          {new Date(showPopup.details.date).toLocaleDateString(
+                            undefined,
+                            {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            },
+                          )}{" "}
+                          • {showPopup.details.time}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-gray-600 mb-1">Guests</p>
+                        <p className="font-medium text-gray-900">
+                          {showPopup.details.guests} Guests
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Meal Selection */}
+                  {showPopup.details.menus.length > 0 && (
+                    <div className="rounded-2xl border border-gray-200 mb-6 bg-white shadow-sm p-5">
+                      <div>
+                        <h2 className="font-semibold text-gray-900 mb-2">
+                          Your Selection ({showPopup.details.menus.length}{" "}
+                          {showPopup.details.menus.length > 1
+                            ? "items"
+                            : "item"}
+                          )
+                        </h2>
+                        <ul className="divide-y divide-gray-100">
+                          {showPopup.details.menus.map((item, index) => (
+                            <li
+                              key={index}
+                              className="flex justify-between py-2"
+                            >
+                              <span className="text-gray-700">
+                                {item.quantity}x {item.menu.name}
+                              </span>
+                              <span className="text-gray-900 font-medium">
+                                ₦{item.menu.price.toLocaleString()}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="border-t border-gray-200 my-4"></div>
+
+                      <div className="flex justify-between items-center">
+                        <p className="font-medium text-gray-800">Amount paid</p>
+                        <p className="font-semibold text-[#37703F] text-lg">
+                          ₦{showPopup.details.totalAmount.toLocaleString()}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Info Cards - Changed to green background */}
+                  <div className="bg-[#E7F0F0] border border-[#B3D1D2] rounded-2xl p-4 mb-8">
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-3">
+                        <Mail className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+                        <p className="text-sm">
+                          You will receive a confirmation email with your
+                          reservation details
+                        </p>
+                      </div>
+
+                      <div className="flex items-start gap-3">
+                        <Clock className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+                        <p className="text-sm">Please, arrive 10 mins early</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col md:flex-row w-full gap-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowPopup({ display: false, details: {} });
+                      }}
+                      className="flex-1 h-10 text-sm rounded-xl font-medium px-6 border-gray-300"
+                    >
+                      Close
+                    </Button>
+                    <form
+                      action={async () => {
+                        setShowPopup({ display: false, details: {} });
+                      }}
+                      className="flex-1"
+                    >
+                      <Button
+                        type="submit"
+                        className="w-full h-10 text-sm font-medium rounded-xl px-6 bg-[#0A6C6D] hover:bg-teal-800"
+                      >
+                        Done
+                      </Button>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          <ConfirmReservation
+            onConfirm={async () => {
+              if (selectedBooking) {
+                console.log(
+                  "Confirming arrival for booking ID:",
+                  selectedBooking._id,
+                );
+                handleConfirmArrival(selectedBooking);
+              }
+            }}
+            setOpen={setOpen}
+            open={open}
+          />
+        </>
       )}
-      <ConfirmReservation
-        onConfirm={async () => {
-          if (selectedBooking) {
-            console.log(
-              "Confirming arrival for booking ID:",
-              selectedBooking._id,
-            );
-            handleConfirmArrival(selectedBooking);
-          }
-        }}
-        setOpen={setOpen}
-        open={open}
-      />
     </DashboardLayout>
   );
 };

@@ -229,9 +229,6 @@ export function DrinksTable() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedItems = data.slice(startIndex, startIndex + itemsPerPage);
 
-  if (isLoading) {
-    return <UniversalLoader fullscreen />;
-  }
 
   const getStatusColor = (status) => {
     switch (normalizeStatus(status)) {
@@ -261,6 +258,11 @@ export function DrinksTable() {
 
   return (
     <DashboardLayout type="club" section="drinks">
+      {isLoading ? (
+        <UniversalLoader type='dashboard-3' />
+      ) : (
+        <>
+        
       <div className="min-h-screen bg-gray-50 p-2 md:p-6 mb-12">
         <div className="max-w-7xl mx-auto">
           <div className="md:flex justify-between items-center mb-6">
@@ -808,6 +810,8 @@ export function DrinksTable() {
           initialData={initialTableData}
           editMode={true}
         />
+      )}
+      </>
       )}
     </DashboardLayout>
   );

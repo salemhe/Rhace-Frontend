@@ -71,8 +71,8 @@ class AuthService {
     return res.data;
   }
 
-  async vendorUpdate(formData) {
-    const res = await api.put("/vendors", formData);
+  async vendorUpdate(formData, vendorId) {
+    const res = await api.put(`/vendors/${vendorId}`, formData);
     return res.data;
   }
 
@@ -131,4 +131,3 @@ class AuthService {
 
 
 export const authService = new AuthService();
-

@@ -51,7 +51,7 @@ const HotelDashboard = () => {
   if (loading || !reservationStats) {
     return (
       <DashboardLayout type={vendor.vendorType} section="dashboard" settings={false}>
-        <UniversalLoader fullscreen />
+        <UniversalLoader type='dashboard-1' />
       </DashboardLayout>
     );
   }

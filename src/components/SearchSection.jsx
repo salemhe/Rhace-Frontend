@@ -586,7 +586,9 @@ const SearchSection = ({ activeTab, onSearch }) => {
             </label>
             <DateDropdown selectedDate={date} onChange={setDate} />
           </div>
-          <div className="flex flex-col justify-center py-2 sm:py-4 px-4 sm:px-6 border-b sm:border-b-0 lg:border-r border-gray-200">
+
+          {/* Time */}
+          <div className="flex flex-col z-50 justify-center py-2 sm:py-4 px-4 sm:px-6 border-b sm:border-b-0 lg:border-r border-gray-200">
             <label className="text-xs text-text-secondary text-left">
               Time
             </label>

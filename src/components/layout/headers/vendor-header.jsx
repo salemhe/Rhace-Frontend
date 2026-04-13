@@ -1,8 +1,12 @@
+import { Bell, ChevronDown, Menu, User } from 'lucide-react';
+import { logout } from '@/redux/slices/authSlice';
 import {
-  Bell,
-  ChevronDown,
-  Menu,
-  User,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
   LogOut,
   Settings,
   User as UserIcon,
@@ -13,6 +17,8 @@ import { logoutAsync } from '@/redux/slices/authSlice';
 import { useNavigate } from 'react-router-dom';
 
 const Header = ({ onMenuClick }) => {
+
+  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const vendor = useSelector((state) => state.auth.vendor);
@@ -21,9 +27,10 @@ const Header = ({ onMenuClick }) => {
 
   useEffect(() => {
     try {
-      if (vendor) {
+if (vendor) {
         setProfile(vendor);
       } else {
+
         setProfile(null);
       }
     } catch (error) {
@@ -64,6 +71,39 @@ const Header = ({ onMenuClick }) => {
         </button>
 
         {/* User profile dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger className="flex items-center space-x-3 p-1 -m-1 rounded-lg hover:bg-gray-100">
+            {profile?.logo ? (
+              <img src={profile.logo} alt="Vendor Logo" className="w-8 h-8 rounded-full object-cover" />
+            ) : (
+              <div className="w-8 h-8 bg-teal-600 rounded-full flex items-center justify-center">
+                <User className="w-5 h-5 text-white" />
+              </div>
+            )}
+            <div className="hidden md:block">
+              <div className="text-sm font-medium text-gray-900">{profile?.businessName ?? 'Vendor'}</div>
+              <div className="text-xs text-gray-500">{profile?.role ?? ''}</div>
+            </div>
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-56">
+            <DropdownMenuItem onClick={() => navigate('/dashboard/vendor/profile')}>
+              Profile
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => navigate('/dashboard/vendor/settings')}>
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onClick={() => {
+                dispatch(logout());
+                navigate('/auth/vendor/login');
+              }}
+              className="text-destructive focus:text-destructive"
+            >
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <div className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}

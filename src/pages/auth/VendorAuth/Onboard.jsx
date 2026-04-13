@@ -572,7 +572,7 @@ export function Onboard() {
                       placeholder="Enter your complete business address..."
                       value={formData.address}
                       onChange={(e) => updateFormData({ address: e.target.value })}
-                      className="min-h-[80px] resize-none w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white 
+                      className="min-h-20 resize-none w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white 
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
                           hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"

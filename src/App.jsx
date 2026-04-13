@@ -38,6 +38,8 @@ import HelpCenterRhace from "./pages/user/HelpCenter";
 import HotelConfirmPage from "./pages/user/hotels/Confirmation";
 import HotelsPage from "./pages/user/hotels/HotelsPage";
 import HotelReservation from "./pages/user/hotels/ReservationSummary";
+import SearchContent from "./pages/user/Search";
+
 import NotFound from "./pages/user/NotFound";
 import ReservationHomePage from "./pages/user/ReservationHomePage";
 import CompletedPage from "./pages/user/restaurant/Completed";
@@ -45,7 +47,6 @@ import ConfirmPage from "./pages/user/restaurant/Confirmation";
 import PrePaymentPage from "./pages/user/restaurant/PrePayment";
 import Reservation from "./pages/user/restaurant/Reservation";
 import RestaurantsPage from "./pages/user/restaurant/RestaurantPage";
-import SearchContent from "./pages/user/Search";
 
 // Vendor Dashboard
 import VendorDashboard from "./pages/vendor/dashboard/Dashboard";
@@ -194,7 +195,7 @@ const hotelVendorRoutes = [
   { path: "hotel/rooms", element: <RoomsManagement /> },
   { path: "hotel/payments", element: <PaymentDashboard /> },
   { path: "hotel/staffs", element: <StaffManagementSystem /> },
-  { path: "hotel/settings", element: <HotelSettings /> },
+  { path: "hotel/settings", element: <RestaurantSettings /> },
 ];
 
 const clubVendorRoutes = [
@@ -204,7 +205,7 @@ const clubVendorRoutes = [
   { path: "club/payments", element: <PaymentDashboard /> },
   { path: "club/staffs", element: <StaffManagementSystem /> },
   { path: "club/add-drinks", element: <BottleServiceManager /> },
-  { path: "club/settings", element: <ClubSettings /> },
+  { path: "club/settings", element: <RestaurantSettings /> },
 ];
 
 function App() {
@@ -237,8 +238,10 @@ function App() {
               ))}
             </Route>
 
+
             {/* Vendor */}
             <Route path="vendor">
+              <Route index element={<VendorLogin />} />
               {authRoutes.vendor.map((route) => (
                 <Route
                   key={route.path}
@@ -247,6 +250,7 @@ function App() {
                 />
               ))}
             </Route>
+
 
             {/* Admin */}
             <Route path="admin">

@@ -168,11 +168,11 @@ async updateReservationStatus({ reservationId, vendorId, resId, paymentRef }) {
     return res.data;
   }
 
-  async fetchReservations({ vendorId, userId, bookingId, resId, limit = 10 }) {
+  async fetchReservations({ vendorId, userId, bookingId, resId, page, limit = 10, search, status }) {
     const res = await api.get(
       `/bookings?vendorId=${vendorId ? vendorId : ""}&userId=${
         userId ? userId : ""
-      }&bookingId=${bookingId ? bookingId : ""}&resId=${resId ? resId : ""}&limit=${limit}`,
+      }&bookingId=${bookingId ? bookingId : ""}&resId=${resId ? resId : ""}&page=${page}&limit=${limit}&search=${search ? search : ""}&status=${status ? status : ""}`,
     );
     return res.data;
   }
