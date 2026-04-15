@@ -13,24 +13,10 @@ import {
 } from "lucide-react";
 import { DiscoveryListCard, DiscoverySkeletonList } from "./VenueCard";
 
-// ─── Section icon map ──────────────────────────────────────────────────────────
-const getSectionIcon = (title = "") => {
-  const t = title.toLowerCase();
-  if (t.includes("near") || t.includes("reach")) return <MapPin className="w-4 h-4" />;
-  if (t.includes("trend") || t.includes("popular")) return <TrendingUp className="w-4 h-4" />;
-  if (t.includes("hotel") || t.includes("stay") || t.includes("room")) return <Star className="w-4 h-4" />;
-  if (t.includes("club") || t.includes("night") || t.includes("bottle") || t.includes("drink")) return <Zap className="w-4 h-4" />;
-  if (t.includes("dish") || t.includes("restaurant") || t.includes("food") || t.includes("crav")) return <Utensils className="w-4 h-4" />;
-  return <ArrowRight className="w-4 h-4" />;
-};
-
 // ─── Section heading ───────────────────────────────────────────────────────────
 const SectionHeading = ({ title, subtitle, onAction }) => (
   <div className="flex items-center justify-between mb-3">
     <div className="flex items-center gap-2">
-      <div className="w-7 h-7 flex items-center justify-center bg-[#0A6C6D]/10 rounded-lg text-[#0A6C6D]">
-        {getSectionIcon(title)}
-      </div>
       <div>
         <h3 className="text-sm sm:text-base font-black text-gray-900 leading-none">{title}</h3>
         {subtitle && <p className="text-[11px] text-gray-400 mt-0.5">{subtitle}</p>}
