@@ -305,13 +305,13 @@ export const SearchPopup = ({
                   searchProps.suggestions.map((v) => (
                     <div
                       className="py-2 text-sm text-gray-700 border-b last:border-b-0"
-                      key={v._id}
+                      key={v.label}
                       onClick={() => {
-                        searchProps.submitSearch(v.businessName);
+                        searchProps.submitSearch(v.label);
                         setShow(false);
                       }}
                     >
-                      {v.businessName}
+                      {v.label}
                     </div>
                   ))
                 ) : (

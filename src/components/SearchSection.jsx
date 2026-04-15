@@ -17,7 +17,7 @@ import { GuestDropdown } from "./GuestDropdown";
 import { TimeDropdown } from "./TimeDropdown";
 
 // ─── constants (mirror SearchPage) ───────────────────────────────────────────
-const DEBOUNCE_MS = 320;
+const DEBOUNCE_MS = 500;
 const LS_RECENT = "rhace_recent_searches";
 const MAX_RECENT = 8;
 
@@ -94,11 +94,8 @@ const searchSvc = {
     // }
     try {
       const res = await api.get(`/search/suggestions?${params}`);
-      const raw = res.data?.suggestions || [];
-      const normalized = raw
-        .map((i) => normalizeSuggestion(i, type))
-        .filter(Boolean);
-      if (normalized.length) return normalized;
+      const raw = res.data?.suggestions
+      return raw;
     } catch {
       /* fall through */
     }
@@ -108,7 +105,7 @@ const searchSvc = {
       const res = await api.get(`/search?${fp}`);
       const data = res.data;
       const items = Array.isArray(data) ? data : data?.data || [];
-      return items.map((i) => normalizeSuggestion(i, type)).filter(Boolean);
+      return items
     } catch {
       return [];
     }
@@ -160,7 +157,9 @@ const SearchDropdown = ({
     debounceRef.current = setTimeout(() => {
       searchSvc
         .suggestions(inputValue, activeType || undefined, userLocation)
-        .then(setSuggestions)
+        .then((data) => {
+          setSuggestions(data)
+        })
         .catch(() => setSuggestions([]))
         .finally(() => setIsSugLoading(false));
     }, DEBOUNCE_MS);
@@ -202,7 +201,7 @@ const SearchDropdown = ({
               className="flex items-center gap-2.5 px-4 py-4 hover:bg-gray-50 cursor-pointer group"
             >
               <Clock className="w-3.5 h-3.5 text-gray-300 shrink-0" />
-              <span className="text-sm text-gray-700 flex-1 truncate">
+              <span className="text-sm text-start line-clamp-1 text-gray-700 flex-1 truncate">
                 {term}
               </span>
               <button
@@ -298,34 +297,26 @@ const SearchDropdown = ({
                 <div
                   key={v._id}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => onSelect(v.businessName)}
+                  onClick={() => onSelect(v.label)}
                   className="flex items-center gap-2.5 px-4 py-2 hover:bg-gray-50 cursor-pointer group"
                 >
                   <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-                    {v.profileImages?.[0] ? (
-                      <img
-                        src={v.profileImages[0]}
-                        alt=""
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
                       <div className="w-full h-full flex items-center justify-center text-xs font-black text-gray-300">
-                        {v.businessName?.[0]}
+                        {v.label[0]}
                       </div>
-                    )}
                   </div>
                   <div className="flex-1  justify-items-start min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">
-                      {v.businessName}
+                      {v.label}
                     </p>
-                    <p className="text-[11px] text-gray-400 capitalize">
+                    {/* <p className="text-[11px] text-gray-400 capitalize">
                       {cfg?.singular}
                       {v.vendorTypeCategory &&
                       v.vendorTypeCategory !== "General"
                         ? ` · ${v.vendorTypeCategory}`
                         : ""}
                       {v.address ? ` · ${v.address.split(",")[0]}` : ""}
-                    </p>
+                    </p> */}
                   </div>
                   {v.rating > 0 && (
                     <div className="flex items-center gap-0.5 shrink-0">
@@ -366,7 +357,7 @@ const SearchDropdown = ({
 const buildSearchUrl = ({ q, type, date, time, guests }) => {
   const params = new URLSearchParams();
   if (q) params.set("q", q);
-  // if (type)  params.set("type", type);
+  if (type)  params.set("type", type);
   if (date) params.set("date", date);
   if (time) params.set("time", time);
   if (guests && guests > 0) params.set("guests", String(guests));
@@ -436,6 +427,7 @@ const SearchSection = ({ activeTab, onSearch }) => {
         time: time || undefined,
         guests: totalGuests,
       });
+      console.log(url)
 
       if (onSearch)
         onSearch({ query: q, tab: activeTab, date, time, guests: totalGuests });

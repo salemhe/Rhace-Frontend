@@ -13,9 +13,7 @@ export const searchSvc = {
     }
     try {
       const res = await api.get(`/search/suggestions?${params}`);
-      const normalized = (res.data?.suggestions || [])
-        .map(item => normalizeSuggestion(item, type)).filter(Boolean);
-      if (normalized.length) return normalized;
+      return res.data.suggestions;
     } catch { /* fallback below */ }
 
     try {
@@ -54,6 +52,6 @@ export const searchSvc = {
       params.set("type", type);
     }
     return api.get(`/search/discover${params.toString() ? `?${params}` : ""}`)
-      .then(r => r.data.data || {});
+      .then(r => r.data || {});
   },
 };
