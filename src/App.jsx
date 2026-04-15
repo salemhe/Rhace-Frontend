@@ -99,6 +99,8 @@ import Terms from "./pages/user/Terms";
 import PrivacyPolicy from "./pages/user/Privacy";
 import PaystackCallback from "./components/PaystackCallback";
 import CookiesPage from "./pages/user/Cookies";
+import DiscoverPage from "./pages/user/Discover";
+import SearchPage from "./pages/user/Search";
 // import PrivacyPolicy from "./pages/user/PrivacyPolicy";
 
 // Route Arrays
@@ -149,7 +151,6 @@ const hotelReservationRoutes = [
 
 const userGeneralRoutes = [
   { path: "/bookings", element: <BookingsPage /> },
-  { path: "/search", element: <SearchContent /> },
   { path: "/favorites", element: <Favorites /> },
   { path: "/bookings/:id", element: <BookingDetails /> },
   { path: "/payments", element: <PaymentsHistory /> },
@@ -224,6 +225,8 @@ function App() {
           <Route path="/cookies" element={<CookiesPage />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/partner" element={<VendornHomePage />} />
+          <Route path="/discover" element={<DiscoverPage />} />
+          <Route path="/search" element={<SearchPage />} />
 
           {/* Authentication Routes */}
           <Route path="/auth">

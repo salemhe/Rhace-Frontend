@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Footer from "@/components/Footer";
 
 import { useSearchLocation } from "@/hooks/useSearchLocations.jsx";
@@ -7,16 +7,65 @@ import { SearchHeader }      from "@/components/SearchHeader";
 import { DiscoveryHome }     from "@/components/DiscoveryHome";
 import { SearchResults }     from "@/components/SearchResults";
 import { FilterDrawer, DesktopFilterSidebar } from "@/components/FilterDrawer";
+import { useSearchParams, useNavigate } from 'react-router-dom';
+
+// Strip trailing "s" from plural type names coming from URL/tabs
+// e.g. "restaurants" → "restaurant", "hotels" → "hotel", "clubs" → "club"
+const normalizeType = (type) => {
+  if (!type) return "";
+  const MAP = {
+    restaurants: "restaurant",
+    hotels: "hotel",
+    clubs: "club",
+    restaurant: "restaurant",
+    hotel: "hotel",
+    club: "club",
+  };
+  return MAP[type.toLowerCase()] || type.replace(/s$/, "");
+};
 
 const SearchPage = () => {
   const locationState = useSearchLocation();
-  const searchState = useSearchState(locationState.location);
+  const searchState   = useSearchState(locationState.location);
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
 
-  const showLocationBanner =
-    !searchState.hasActiveSearch &&
-    locationState.status !== "granted" &&
-    locationState.status !== "detecting";
+  // Normalise the ?type= param on mount and whenever it changes
+  // e.g. /search?type=restaurants → /search?type=restaurant
+  useEffect(() => {
+    const rawType = searchParams.get("type");
+    if (!rawType) return;
+    const clean = normalizeType(rawType);
+    if (clean !== rawType) {
+      const next = new URLSearchParams(searchParams);
+      next.set("type", clean);
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
+
+  // When user clicks a type tab/chip in the UI,
+  // update the URL param (singular form) without resetting the query.
+  const handleTypeChange = (rawType) => {
+    const type = normalizeType(rawType);
+    const next = new URLSearchParams(searchParams);
+    if (type) {
+      next.set("type", type);
+    } else {
+      next.delete("type");
+    }
+    next.set("page", "1");
+    setSearchParams(next);
+  };
+
+  // Override updateFilter so that type values are always normalised
+  const updateFilterSafe = (key, value) => {
+    if (key === "type") {
+      searchState.updateFilter(key, normalizeType(value));
+    } else {
+      searchState.updateFilter(key, value);
+    }
+  };
 
   const searchBarProps = {
     inputValue:        searchState.inputValue,
@@ -42,7 +91,7 @@ const SearchPage = () => {
       <SearchHeader
         searchProps={searchBarProps}
         filters={searchState.filters}
-        updateFilter={searchState.updateFilter}
+        updateFilter={updateFilterSafe}
         locationState={locationState}
       />
 
@@ -57,7 +106,7 @@ const SearchPage = () => {
                 pagination={searchState.pagination}
                 activeQuery={searchState.activeQuery}
                 filters={searchState.filters}
-                updateFilter={searchState.updateFilter}
+                updateFilter={updateFilterSafe}
                 clearFilters={searchState.clearFilters}
                 hasFilters={searchState.hasFilters}
                 facets={searchState.facets}
@@ -72,13 +121,21 @@ const SearchPage = () => {
           discovery={searchState.discovery}
           isDiscLoading={searchState.isDiscLoading}
           locationState={locationState}
-          updateFilter={searchState.updateFilter}
+          updateFilter={updateFilterSafe}
           submitSearch={searchState.submitSearch}
           inputRef={searchState.inputRef}
-          // Pass active type so discovery sections filter correctly
-          activeType={searchState.filters.type || ""}
-          // Pass recent searches so the pill row is populated
+          activeType={normalizeType(searchState.filters.type || "")}
           recentSearches={searchState.recentSearches}
+        />
+      )}
+
+      {/* Filter drawer (mobile) */}
+      {isFilterOpen && (
+        <FilterDrawer
+          filters={searchState.filters}
+          updateFilter={updateFilterSafe}
+          clearFilters={searchState.clearFilters}
+          onClose={() => setIsFilterOpen(false)}
         />
       )}
 
