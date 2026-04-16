@@ -51,6 +51,7 @@ const Login = () => {
         dispatch(setVendor(user?.vendor));
         localStorage.setItem('vendorId', user?.vendor?._id || user?.vendor?.id);
         toast.success("Welcome back!");
+        const vendorData = user.vendor
         
         const dashboardPath = `/dashboard/${vendorData.vendorType}`;
         if (!vendorData.isOnboarded) {

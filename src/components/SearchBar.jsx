@@ -177,7 +177,7 @@ export const SearchBar = ({
                   <VendorDropdownRow
                     key={v._id}
                     vendor={v}
-                    onClick={() => submitSearch(v.businessName)}
+                    onClick={() => submitSearch(v.text)}
                     showArrow
                   />
                 ))
@@ -305,13 +305,13 @@ export const SearchPopup = ({
                   searchProps.suggestions.map((v) => (
                     <div
                       className="py-2 text-sm text-gray-700 border-b last:border-b-0"
-                      key={v.label}
+                      key={v.text}
                       onClick={() => {
-                        searchProps.submitSearch(v.label);
+                        searchProps.submitSearch(v.text);
                         setShow(false);
                       }}
                     >
-                      {v.label}
+                      {v.text}
                     </div>
                   ))
                 ) : (

@@ -76,6 +76,7 @@ import { toast } from "react-toastify";
 // import { formatCustomDate } from '@/utils/formatDate';
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import UniversalLoader from "@/components/user/ui/LogoLoader";
+import { useWebSocket } from "@/contexts/WebSocketContext";
 
 const categories = ["All", "Upcoming", "Confirmed", "Cancelled", "No Shows"];
 
