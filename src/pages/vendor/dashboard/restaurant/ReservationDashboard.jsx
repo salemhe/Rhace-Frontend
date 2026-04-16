@@ -124,6 +124,7 @@ const ReservationDashboard = () => {
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
   };
+  const socketRef = useRef(null);
 
   const handleConfirmArrival = useCallback(
     async (booking) => {
@@ -335,13 +336,13 @@ const ReservationDashboard = () => {
       cell: ({ row }) => (
         <div
           className={`w-max 
-            ${reservationStatusOptions(row.getValue("reservationStatus"))} 
+            ${reservationStatusOptions(row.getValue("reservationStatus").toLowerCase())} 
               flex py-1.5 px-3 border rounded-full`}
         >
-          {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}
-          {row.getValue("reservationStatus") === "confirmed" && "Confirmed"}
-          {row.getValue("reservationStatus") === "cancelled" && "Cancelled"}
-          {row.getValue("reservationStatus") === "no-show" && "No Show"}
+          {row.getValue("reservationStatus").toLowerCase() === "upcoming" && "Upcoming"}
+          {row.getValue("reservationStatus").toLowerCase() === "confirmed" && "Confirmed"}
+          {row.getValue("reservationStatus").toLowerCase() === "cancelled" && "Cancelled"}
+          {row.getValue("reservationStatus").toLowerCase() === "no-show" && "No Show"}
         </div>
       ),
     },
@@ -475,11 +476,11 @@ const ReservationDashboard = () => {
         socketRef.current = null;
 
         // Try reconnecting after delay
-        if (e.code !== 1000) {
-          reconnectTimeout.current = setTimeout(() => {
-            connect();
-          }, 3000); // 3 seconds
-        }
+        // if (e.code !== 1000) {
+        //   reconnectTimeout.current = setTimeout(() => {
+        //     connect();
+        //   }, 3000); // 3 seconds
+        // }
       };
     };
 
@@ -490,7 +491,7 @@ const ReservationDashboard = () => {
       fetchStats();
     };
 
-    subscribe('reservation-created', handleNewReservation);
+    // subscribe('reservation-created', handleNewReservation);
     subscribe('reservation-updated', handleReservationUpdate);
     subscribe('reservation-counters-updated', () => fetchStats());
 
@@ -499,19 +500,12 @@ const ReservationDashboard = () => {
         socketRef.current.close(1000, "Component unmounted");
         socketRef.current = null;
       }
-      if (reconnectTimeout.current) {
-        clearTimeout(reconnectTimeout.current);
-      }
+      // if (reconnectTimeout.current) {
+      //   clearTimeout(reconnectTimeout.current);
+      // }
     };
   }, [vendor?._id, subscribe, unsubscribe]);
 
-  // Load data on mount/vendor change
-  useEffect(() => {
-    if (vendor?._id) {
-      fetchReservations();
-      fetchStats();
-    }
-  }, [vendor?._id]);
 
   useEffect(() => {
     const fetchReservations = async () => {

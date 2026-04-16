@@ -46,9 +46,9 @@ const RecentSearchPills = ({ recentSearches = [], onSearch }) => {
 const SectionHeading = ({ icon, title, subtitle, action, onAction }) => (
   <div className="flex items-center justify-between mb-4">
     <div className="flex items-center gap-2">
-      <div className="w-7 h-7 flex items-center justify-center bg-[#0A6C6D]/10 rounded-lg text-[#0A6C6D]">
+      {/* <div className="w-7 h-7 flex items-center justify-center bg-[#0A6C6D]/10 rounded-lg text-[#0A6C6D]">
         {icon}
-      </div>
+      </div> */}
       <div>
         <h3 className="text-sm sm:text-base font-black text-gray-900 leading-none">
           {title}
@@ -70,7 +70,7 @@ const SectionHeading = ({ icon, title, subtitle, action, onAction }) => (
 );
 
 // ── Divider between items ──────────────────────────────────────────────────────
-const ListDivider = () => <div className="border-t border-gray-100 mx-4" />;
+const ListDivider = () => <div className="border-t border-gray-300 mx-4" />;
 
 // ── Card list section (up to 8 items) ─────────────────────────────────────────
 const CardSection = ({
@@ -83,7 +83,7 @@ const CardSection = ({
 }) => {
   if (isLoading) {
     return (
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+      <div className="bg-white rounded-2xl  border-gray-100 overflow-hidden">
         {Array.from({ length: skeletonCount }).map((_, i) => (
           <div key={i}>
             <DiscoverySkeletonList />
@@ -103,7 +103,7 @@ const CardSection = ({
   const sliced = vendors.slice(0, 8);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
       {sliced.map((v, i) => (
         <div key={v._id}>
           <DiscoveryListCard vendor={v} activeType={type} navigate={navigate} />

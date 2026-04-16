@@ -104,7 +104,7 @@ export const useSearchState = (userLocation) => {
     setFilters(parsed);
     searchSvc
       .search(
-        { q, page: searchParams.get("page") || "1", limit: "12", ...parsed },
+        { q, page: searchParams.get("page") || "1", limit: "30", ...parsed },
         userLocation,
       )
       .then((data) => {
@@ -124,16 +124,28 @@ export const useSearchState = (userLocation) => {
   // ── Actions ───────────────────────────────────────────────────────────────
   const submitSearch = useCallback(
     (term) => {
+      // 1. Determine the query and trim it
       const q = (term !== undefined ? term : inputValue).trim();
-      if (!q) return;
-      saveRecent(q);
-      setRecentSearches(getRecent());
-      setInputValue(q);
-      setSuggestions([]);
+      
       const next = new URLSearchParams(searchParams);
-      next.set("q", q);
-      next.set("page", "1");
+
+      if (!q) {
+        // 2. If empty, remove 'q' and reset pagination
+        next.delete("q");
+        next.set("page", "1");
+        setInputValue(""); // Clear the actual input state
+      } else {
+        // 3. If exists, save to recent and set param
+        saveRecent(q);
+        setRecentSearches(getRecent());
+        setInputValue(q);
+        next.set("q", q);
+        next.set("page", "1");
+      }
+
+      // 4. Update the URL
       setSearchParams(next);
+      setSuggestions([]);
     },
     [inputValue, searchParams, setSearchParams],
   );

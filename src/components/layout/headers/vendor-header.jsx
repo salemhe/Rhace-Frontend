@@ -71,7 +71,7 @@ if (vendor) {
         </button>
 
         {/* User profile dropdown */}
-        <DropdownMenu>
+        {/* <DropdownMenu>
           <DropdownMenuTrigger className="flex items-center space-x-3 p-1 -m-1 rounded-lg hover:bg-gray-100">
             {profile?.logo ? (
               <img src={profile.logo} alt="Vendor Logo" className="w-8 h-8 rounded-full object-cover" />
@@ -103,7 +103,7 @@ if (vendor) {
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
-        </DropdownMenu>
+        </DropdownMenu> */}
         <div className="relative">
           <button
             onClick={() => setDropdownOpen(!dropdownOpen)}
