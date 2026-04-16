@@ -11,21 +11,8 @@ export const searchSvc = {
       params.set("latitude", String(location.lat));
       params.set("longitude", String(location.lng));
     }
-    try {
       const res = await api.get(`/search/suggestions?${params}`);
-      const normalized = (res.data?.suggestions || [])
-        .map(item => normalizeSuggestion(item, type)).filter(Boolean);
-      if (normalized.length) return normalized;
-    } catch { /* fallback below */ }
-
-    try {
-      const fp = new URLSearchParams({ search: q, limit: "5" });
-      if (type) fp.set("type", type);
-      if (location?.lat != null) { fp.set("latitude", String(location.lat)); fp.set("longitude", String(location.lng)); }
-      const res = await api.get(`/search?${fp}`);
-      const items = Array.isArray(res.data) ? res.data : res.data?.data || [];
-      return items.map(item => normalizeSuggestion(item, type)).filter(Boolean);
-    } catch { return []; }
+      return res.data.suggestions;
   },
 
   search: (params, location) => {

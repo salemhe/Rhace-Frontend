@@ -309,14 +309,14 @@ const SearchDropdown = ({
                     <p className="text-sm font-semibold text-gray-800 truncate">
                       {v.text}
                     </p>
-                    {/* <p className="text-[11px] text-gray-400 capitalize">
+                    <p className="text-[11px] text-gray-400 capitalize">
                       {cfg?.singular}
-                      {v.vendorTypeCategory &&
-                      v.vendorTypeCategory !== "General"
-                        ? ` · ${v.vendorTypeCategory}`
+                      {v.label &&
+                      v.label !== "General"
+                        ? `${v.label}`
                         : ""}
-                      {v.address ? ` · ${v.address.split(",")[0]}` : ""}
-                    </p> */}
+                      {/* {v.address ? ` · ${v.address.split(",")[0]}` : ""} */}
+                    </p>
                   </div>
                   {v.rating > 0 && (
                     <div className="flex items-center gap-0.5 shrink-0">

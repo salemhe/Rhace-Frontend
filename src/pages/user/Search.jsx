@@ -87,7 +87,7 @@ const SearchPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <SearchHeader
         searchProps={searchBarProps}
         filters={searchState.filters}
@@ -96,7 +96,7 @@ const SearchPage = () => {
       />
 
       {searchState.hasActiveSearch ? (
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 bg-white lg:px-8 py-4 sm:py-6">
           <div className="flex gap-5 items-start">
             <div className="flex-1 min-w-0">
               <SearchResults
