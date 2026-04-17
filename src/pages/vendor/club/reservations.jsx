@@ -977,7 +977,7 @@ const ClubReservationTable = () => {
                                     {formatDate(reservation.date) || "N/A"}
                                   </span>
                                   <span className="text-xs text-gray-500">
-                                    {extractTime(reservation.date)}
+                                    {reservation.time || "N/A"}
                                   </span>
                                 </div>
                               </TableCell>
