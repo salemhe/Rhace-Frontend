@@ -104,7 +104,7 @@ function ReservationHomePage() {
                 Find your Perfect Table
               </h1>
               <p className="text-xs font-normal sm:text-base md:text-xl text-white/90 mb-5 sm:mb-8 leading-relaxed">
-                Discover and reserve the best restaurants in your citys
+                Discover and reserve the best restaurants in your city
               </p>
             </>
           ) : activeTab === "hotels" ? (
