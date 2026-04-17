@@ -156,7 +156,7 @@ export const DiscoveryListCard = ({ vendor, activeType, navigate: nav }) => {
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50/80 transition-colors duration-150 ${isClosed ? "opacity-60" : ""}`}
+      className={`flex items-center gap-3 py-3.5 hover:bg-gray-50/80 transition-colors duration-150 ${isClosed ? "opacity-60" : ""}`}
     >
       {/* Thumbnail */}
       <div

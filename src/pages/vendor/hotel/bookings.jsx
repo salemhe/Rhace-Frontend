@@ -21,6 +21,7 @@ import {
   CheckCircle,
   Export,
   Eye,
+  Eye2,
   EyeClose,
   Filter2,
   XCircle,
@@ -53,6 +54,8 @@ import {
   MoreHorizontal,
   ScanLine,
   Search,
+  Mail,
+  Clock,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
@@ -71,10 +74,14 @@ const normalizePaymentStatus = (status = "") => {
 const getPaymentStatusColor = (status) => {
   const normalized = normalizePaymentStatus(status);
   switch (normalized) {
-    case "Fully Paid": return "bg-green-100 text-green-800 border";
-    case "Part Paid": return "bg-yellow-100 text-yellow-800 border";
-    case "Unpaid": return "bg-gray-100 text-gray-800 border";
-    default: return "bg-gray-100 text-gray-800 border";
+    case "Fully Paid":
+      return "bg-green-100 text-green-800 border";
+    case "Part Paid":
+      return "bg-yellow-100 text-yellow-800 border";
+    case "Unpaid":
+      return "bg-gray-100 text-gray-800 border";
+    default:
+      return "bg-gray-100 text-gray-800 border";
   }
 };
 
@@ -96,8 +103,12 @@ const BookingManagement = () => {
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("all");
   const [selectedRoomType, setSelectedRoomType] = useState("all");
   const [hideTab, setHideTab] = useState(false);
+  const [showPopup, setShowPopup] = useState({
+    display: false,
+    details: {},
+  });
 
-    const reservationStatusOptions = (status) => {
+  const reservationStatusOptions = (status) => {
     switch (status) {
       case "upcoming":
         return "bg-[#E7F0F0] text-[#0A6C6D] border-[#B3D1D2]";
@@ -110,8 +121,7 @@ const BookingManagement = () => {
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
-  }
-
+  };
 
   // ── Mark as Completed dialog state ─────────────────────────────────────────
   const [open, setOpen] = useState(false);
@@ -124,84 +134,98 @@ const BookingManagement = () => {
   // ── Confirm arrival handler ──────────────────────────────────────────────────
   // Errors are re-thrown after toasting so ConfirmReservation's try/finally
   // keeps the loader spinner visible for the full duration of the API call.
-  const handleConfirmArrival = useCallback(async (booking) => {
+  const handleConfirmArrival = useCallback(
+    async (booking) => {
+      const bookingId = booking._id;
+      if (confirmingIds.has(bookingId)) return;
 
-    const bookingId = booking._id;
-    if (confirmingIds.has(bookingId)) return;
+      setConfirmingIds((prev) => new Set(prev).add(bookingId));
 
-    setConfirmingIds((prev) => new Set(prev).add(bookingId));
+      try {
+        const resId = booking.resId || booking._id;
 
-    try {
-      const resId = booking.resId || booking._id;
+        const normalizeStatus = (status) => (status || "").toLowerCase();
+        const paymentStatus = normalizeStatus(booking.paymentStatus);
+        const isPaid =
+          paymentStatus.includes("paid") ||
+          paymentStatus.includes("pay_later") ||
+          paymentStatus.includes("partly_paid") ||
+          paymentStatus.includes("success");
 
-      const normalizeStatus = (status) => (status || "").toLowerCase();
-      const paymentStatus = normalizeStatus(booking.paymentStatus);
-      const isPaid = paymentStatus.includes("paid") || paymentStatus.includes("pay_later") || paymentStatus.includes("partly_paid") || paymentStatus.includes("success");
+        let paymentRef = null;
+        if (isPaid) {
+          paymentRef =
+            booking.paymentRef ??
+            booking.reference ??
+            booking.payment_ref ??
+            booking.payment?.id ??
+            booking.paymentId ??
+            booking.payment?._id;
+        }
 
-      let paymentRef = null;
-      if (isPaid) {
-        paymentRef =
-          booking.paymentRef ??
-          booking.reference ??
-          booking.payment_ref ??
-          booking.payment?.id ??
-          booking.paymentId ??
-          booking.payment?._id;
+        console.log("🔍 Confirm attempt:", {
+          bookingId,
+          resId,
+          paymentRef,
+          paymentStatus: booking.paymentStatus,
+          isPaid,
+          availableKeys: Object.keys(booking).filter(
+            (k) =>
+              k.includes("pay") ||
+              k.includes("ref") ||
+              k.includes("resId") ||
+              k.includes("payment"),
+          ),
+        });
+
+        if (!isPaid) {
+          throw new Error("Cannot confirm arrival: Payment not completed");
+        }
+
+        await userService.updateReservationStatus({
+          reservationId: bookingId,
+          vendorId: vendor?._id,
+          resId,
+          paymentRef,
+        });
+
+        setBookings((prev) =>
+          prev.map((b) =>
+            b._id === bookingId ? { ...b, reservationStatus: "confirmed" } : b,
+          ),
+        );
+        toast.success("✅ Arrival confirmed!");
+      } catch (err) {
+        const msg = err?.response?.data?.message || err?.message || "";
+        if (msg.includes("Missing") && msg.includes("data"))
+          toast.error(
+            "Backend missing payment data. Admin: Add .populate('payment') to /bookings endpoint.",
+          );
+        else if (msg.includes("Missing required fields"))
+          toast.error("Missing resId or paymentId — check booking data.");
+        else if (msg.includes("resId"))
+          toast.error(
+            `resId mismatch: ${err?.response?.data?.providedResId || msg}`,
+          );
+        else if (msg.includes("paymentId") || msg.includes("payment"))
+          toast.error(
+            `Payment issue: ${msg}. Backend needs payment population.`,
+          );
+        else if (msg.includes("Payment must be successful"))
+          toast.error("Payment incomplete.");
+        else if (msg.includes("hotelReservation"))
+          toast.error("Use hotel-specific flow.");
+        else toast.error(msg || "Failed to confirm arrival.");
+      } finally {
+        setConfirmingIds((prev) => {
+          const next = new Set(prev);
+          next.delete(bookingId);
+          return next;
+        });
       }
-
-      console.log("🔍 Confirm attempt:", {
-        bookingId,
-        resId,
-        paymentRef,
-        paymentStatus: booking.paymentStatus,
-        isPaid,
-        availableKeys: Object.keys(booking).filter((k) =>
-          k.includes("pay") || k.includes("ref") || k.includes("resId") || k.includes("payment")
-        ),
-      });
-
-      if (!isPaid) {
-        throw new Error("Cannot confirm arrival: Payment not completed");
-      }
-
-      await userService.updateReservationStatus({
-        reservationId: bookingId,
-        vendorId: vendor?._id,
-        resId,
-        paymentRef,
-      });
-
-      setBookings((prev) =>
-        prev.map((b) =>
-          b._id === bookingId ? { ...b, reservationStatus: "confirmed" } : b
-        )
-      );
-      toast.success("✅ Arrival confirmed!");
-    } catch (err) {
-      const msg = err?.response?.data?.message || err?.message || "";
-      if (msg.includes("Missing") && msg.includes("data"))
-        toast.error("Backend missing payment data. Admin: Add .populate('payment') to /bookings endpoint.");
-      else if (msg.includes("Missing required fields"))
-        toast.error("Missing resId or paymentId — check booking data.");
-      else if (msg.includes("resId"))
-        toast.error(`resId mismatch: ${err?.response?.data?.providedResId || msg}`);
-      else if (msg.includes("paymentId") || msg.includes("payment"))
-        toast.error(`Payment issue: ${msg}. Backend needs payment population.`);
-      else if (msg.includes("Payment must be successful"))
-        toast.error("Payment incomplete.");
-      else if (msg.includes("hotelReservation"))
-        toast.error("Use hotel-specific flow.");
-      else
-        toast.error(msg || "Failed to confirm arrival.");
-
-    } finally {
-      setConfirmingIds((prev) => {
-        const next = new Set(prev);
-        next.delete(bookingId);
-        return next;
-      });
-    }
-  }, [confirmingIds, vendor?._id]);
+    },
+    [confirmingIds, vendor?._id],
+  );
 
   // ── QR scan confirmation ────────────────────────────────────────────────────
   useEffect(() => {
@@ -214,217 +238,239 @@ const BookingManagement = () => {
   }, [handleConfirmArrival]);
 
   // ── Columns ──────────────────────────────────────────────────────────────────
-  const columns = useMemo(() => [
-    {
-      id: "select",
-      header: ({ table }) => (
-        <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
-          }
-          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-          aria-label="Select all"
-          className="bg-white"
-        />
-      ),
-      cell: ({ row }) => (
-        <Checkbox
-          checked={row.getIsSelected()}
-          onCheckedChange={(value) => row.toggleSelected(!!value)}
-          aria-label="Select row"
-        />
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
-    {
-      accessorKey: "customerName",
-      header: "Customer name",
-      cell: ({ row }) => {
-        const booking = row.original;
-        return (
-          <div className="flex items-center gap-3">
-            <Avatar>
-              <AvatarFallback>
-                {booking.customerName
-                  ?.split(" ")
-                  .map((i) => i.slice(0, 1).toUpperCase()) || "N/A"}
-              </AvatarFallback>
-            </Avatar>
-            <div>
-              <div className="font-medium text-gray-900">
-                {booking.customerName || "Unknown"}
-              </div>
-              <div className="text-sm text-gray-500">
-                ID: #{booking._id?.slice(0, 8) || "N/A"}
+  const columns = useMemo(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
+            aria-label="Select all"
+            className="bg-white"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "customerName",
+        header: "Customer name",
+        cell: ({ row }) => {
+          const booking = row.original;
+          return (
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarFallback>
+                  {booking.customerName
+                    ?.split(" ")
+                    .map((i) => i.slice(0, 1).toUpperCase()) || "N/A"}
+                </AvatarFallback>
+              </Avatar>
+              <div>
+                <div className="font-medium text-gray-900">
+                  {booking.customerName || "Unknown"}
+                </div>
+                <div className="text-sm text-gray-500">
+                  ID: #{booking._id?.slice(0, 8) || "N/A"}
+                </div>
               </div>
             </div>
-          </div>
-        );
+          );
+        },
       },
-    },
-    {
-      accessorKey: "checkInDate",
-      header: "Check-In Date",
-      cell: ({ row }) => {
-        const { rooms } = row.original;
+      {
+        accessorKey: "checkInDate",
+        header: "Check-In Date",
+        cell: ({ row }) => {
+          const { rooms } = row.original;
 
-        return (<div className="flex gap-2 items-center">
-          <div className="text-sm text-gray-900 space-y-0.5">
-            {rooms && rooms.length > 0
-              ? rooms.slice(0, 2).map((room, i) => (
-                <div key={i} className="mr-2">
-                  {formatDate(room.checkInDate)}
-                </div>
-              ))
-              : "N/A"}
-          </div>
-          {rooms && rooms.length > 2 && (
-            <span className="text-xs text-gray-500">
-              +{rooms.length - 2} more
+          return (
+            <div className="flex gap-2 items-center">
+              <div className="text-sm text-gray-900 space-y-0.5">
+                {rooms && rooms.length > 0
+                  ? rooms.slice(0, 2).map((room, i) => (
+                      <div key={i} className="mr-2">
+                        {formatDate(room.checkInDate)}
+                      </div>
+                    ))
+                  : "N/A"}
+              </div>
+              {rooms && rooms.length > 2 && (
+                <span className="text-xs text-gray-500">
+                  +{rooms.length - 2} more
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "checkOutDate",
+        header: "Check-Out Date",
+        cell: ({ row }) => {
+          const { rooms } = row.original;
+
+          return (
+            <div className="flex gap-2 items-center">
+              <div className="text-sm text-gray-900 space-y-0.5">
+                {rooms && rooms.length > 0
+                  ? rooms.slice(0, 2).map((room, i) => (
+                      <div key={i} className="mr-2">
+                        {formatDate(room.checkOutDate)}
+                      </div>
+                    ))
+                  : "N/A"}
+              </div>
+              {rooms && rooms.length > 2 && (
+                <span className="text-xs text-gray-500">
+                  +{rooms.length - 2} more
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "room.name",
+        header: "Room Type",
+        cell: ({ row }) => {
+          const { rooms } = row.original;
+
+          return (
+            <div className="flex gap-2 items-center">
+              <div className="text-sm text-gray-900 space-y-0.5">
+                {rooms && rooms.length > 0
+                  ? rooms.slice(0, 2).map((room, i) => (
+                      <div key={i} className="text-sm text-gray-900">
+                        {room.roomId.name || "N/A"}
+                      </div>
+                    ))
+                  : "N/A"}
+              </div>
+              {rooms && rooms.length > 2 && (
+                <span className="text-xs text-gray-500">
+                  +{rooms.length - 2} more
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "guests",
+        header: "No of Guests",
+        cell: ({ row }) => {
+          const { rooms } = row.original;
+
+          return (
+            <div className="flex gap-2 items-center">
+              <div className="text-sm text-gray-900 space-y-0.5">
+                {rooms && rooms.length > 0
+                  ? rooms.slice(0, 2).map((room, i) => (
+                      <div key={i} className="mr-2">
+                        {room.guests} guests
+                      </div>
+                    ))
+                  : "N/A"}
+              </div>
+              {rooms && rooms.length > 2 && (
+                <span className="text-xs text-gray-500">
+                  +{rooms.length - 2} more
+                </span>
+              )}
+            </div>
+          );
+        },
+      },
+      {
+        accessorKey: "paymentStatus",
+        header: "Payment Status",
+        cell: ({ row }) => {
+          const paymentStatus = row.getValue("paymentStatus");
+          return (
+            <span
+              className={`inline-flex px-3 py-2.5 text-xs font-medium rounded-full ${getPaymentStatusColor(paymentStatus)}`}
+            >
+              {normalizePaymentStatus(paymentStatus)}
             </span>
-          )}
-        </div>)
+          );
+        },
       },
-    },
-    {
-      accessorKey: "checkOutDate",
-      header: "Check-Out Date",
-      cell: ({ row }) => {
-        const { rooms } = row.original;
-
-
-        return (<div className="flex gap-2 items-center">
-          <div className="text-sm text-gray-900 space-y-0.5">
-            {rooms && rooms.length > 0
-              ? rooms.slice(0, 2).map((room, i) => (
-                <div key={i} className="mr-2">
-                  {formatDate(room.checkOutDate)}
-                </div>
-              ))
-              : "N/A"}
-          </div>
-          {rooms && rooms.length > 2 && (
-            <span className="text-xs text-gray-500">
-              +{rooms.length - 2} more
-            </span>
-          )}
-        </div>)
-      },
-    },
-    {
-      accessorKey: "room.name",
-      header: "Room Type",
-      cell: ({ row }) => {
-        const { rooms } = row.original;
-
-        return (<div className="flex gap-2 items-center">
-          <div className="text-sm text-gray-900 space-y-0.5">
-            {rooms && rooms.length > 0
-              ? rooms.slice(0, 2).map((room, i) => (
-                <div key={i} className="text-sm text-gray-900">
-                  {room.roomId.name || "N/A"}
-                </div>
-              ))
-              : "N/A"}
-          </div>
-          {rooms && rooms.length > 2 && (
-            <span className="text-xs text-gray-500">
-              +{rooms.length - 2} more
-            </span>
-          )}
-        </div>)
-      },
-    },
-    {
-      accessorKey: "guests",
-      header: "No of Guests",
-      cell: ({ row }) => {
-        const { rooms } = row.original;
-
-        return (<div className="flex gap-2 items-center">
-          <div className="text-sm text-gray-900 space-y-0.5">
-            {rooms && rooms.length > 0
-              ? rooms.slice(0, 2).map((room, i) => (
-                <div key={i} className="mr-2">
-                  {room.guests} guests
-                </div>
-              ))
-              : "N/A"}
-          </div>
-          {rooms && rooms.length > 2 && (
-            <span className="text-xs text-gray-500">
-              +{rooms.length - 2} more
-            </span>
-          )}
-        </div>)
-      },
-    },
-    {
-      accessorKey: "paymentStatus",
-      header: "Payment Status",
-      cell: ({ row }) => {
-        const paymentStatus = row.getValue("paymentStatus");
-        return (
-          <span
-            className={`inline-flex px-3 py-2.5 text-xs font-medium rounded-full ${getPaymentStatusColor(paymentStatus)}`}
-          >
-            {normalizePaymentStatus(paymentStatus)}
-          </span>
-        );
-      },
-    },
-    {
-      accessorKey: "reservationStatus",
-      header: () => {
-        return <div>Reservation Status</div>;
-      },
-      cell: ({ row }) => (
-        <div
-          className={`w-max 
+      {
+        accessorKey: "reservationStatus",
+        header: () => {
+          return <div>Reservation Status</div>;
+        },
+        cell: ({ row }) => (
+          <div
+            className={`w-max 
             ${reservationStatusOptions(row.getValue("reservationStatus"))} 
               flex py-1.5 px-3 border rounded-full`}
-        >
-          {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}
-          {row.getValue("reservationStatus") === "confirmed" && "Confirmed"}
-          {row.getValue("reservationStatus") === "canceled" && "Canceled"}
-          {row.getValue("reservationStatus") === "no-show" && "No Show"}
-        </div>
-      ),
-    },
-    {
-      id: "actions",
-      enableHiding: false,
-      cell: ({ row }) => {
-        const booking = row.original;
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal size={16} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedBooking(booking);
-                  setOpen(true);
-                }}
-              >
-                <CheckCircle /> Mark as Completed
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-[#EF4444]">
-                <XCircle /> Cancel Booking
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
+          >
+            {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}
+            {row.getValue("reservationStatus") === "confirmed" && "Confirmed"}
+            {row.getValue("reservationStatus") === "canceled" && "Canceled"}
+            {row.getValue("reservationStatus") === "no-show" && "No Show"}
+          </div>
+        ),
       },
-    },
-  ], [confirmingIds, handleConfirmArrival]);
+      {
+        id: "actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+          const booking = row.original;
+          return (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="h-8 w-8 p-0">
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal size={16} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={() =>
+                    setShowPopup({
+                      display: true,
+                      details: booking,
+                    })
+                  }
+                >
+                  <Eye2 /> View Reservation
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedBooking(booking);
+                    setOpen(true);
+                  }}
+                >
+                  <CheckCircle /> Mark as Completed
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="text-[#EF4444]">
+                  <XCircle /> Cancel Booking
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          );
+        },
+      },
+    ],
+    [confirmingIds, handleConfirmArrival],
+  );
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
 
@@ -461,7 +507,7 @@ const BookingManagement = () => {
     const connect = () => {
       if (!isComponentMounted) return;
       const socket = new WebSocket(
-        `wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`
+        `wss://rhace-backend-mkne.onrender.com?type=vendor&id=${vendor._id}`,
       );
       socketRef.current = socket;
 
@@ -472,7 +518,9 @@ const BookingManagement = () => {
           const message = JSON.parse(event.data);
           console.log("📩 Message from server:", message);
           if (message.type === "new_reservation") {
-            toast.success(`🆕 New reservation from ${message.data.customerName}`);
+            toast.success(
+              `🆕 New reservation from ${message.data.customerName}`,
+            );
             setBookings((prev) => [message.data, ...prev]);
           }
         } catch (error) {
@@ -509,7 +557,9 @@ const BookingManagement = () => {
   useEffect(() => {
     const fetchReservations = async () => {
       try {
-        const res = await userService.fetchReservations({ vendorId: vendor._id });
+        const res = await userService.fetchReservations({
+          vendorId: vendor._id,
+        });
         const data = res?.data || [];
         setBookings(data);
       } catch (error) {
@@ -526,18 +576,33 @@ const BookingManagement = () => {
     return bookings.filter((booking) => {
       const matchesSearch =
         !searchTerm ||
-        booking.customerName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        booking.customerName
+          ?.toLowerCase()
+          .includes(searchTerm.toLowerCase()) ||
         booking._id?.toLowerCase().includes(searchTerm.toLowerCase());
 
       let matchesTab = true;
       if (activeTab !== "All") {
-        const status = (booking.reservationStatus || booking.status || "").toLowerCase();
+        const status = (
+          booking.reservationStatus ||
+          booking.status ||
+          ""
+        ).toLowerCase();
         switch (activeTab) {
-          case "Upcoming": matchesTab = status === "upcoming"; break;
-          case "Completed": matchesTab = status === "completed" || status === "paid"; break;
-          case "Canceled": matchesTab = status === "canceled" || status === "cancelled"; break;
-          case "No shows": matchesTab = status === "no shows" || status === "no-shows"; break;
-          default: matchesTab = true;
+          case "Upcoming":
+            matchesTab = status === "upcoming";
+            break;
+          case "Completed":
+            matchesTab = status === "completed" || status === "paid";
+            break;
+          case "Canceled":
+            matchesTab = status === "canceled" || status === "cancelled";
+            break;
+          case "No shows":
+            matchesTab = status === "no shows" || status === "no-shows";
+            break;
+          default:
+            matchesTab = true;
         }
       }
 
@@ -576,15 +641,28 @@ const BookingManagement = () => {
         }
       }
 
-      return matchesSearch && matchesTab && matchesPaymentStatus && matchesRoomType && matchesDate;
+      return (
+        matchesSearch &&
+        matchesTab &&
+        matchesPaymentStatus &&
+        matchesRoomType &&
+        matchesDate
+      );
     });
-  }, [bookings, searchTerm, activeTab, selectedPaymentStatus, selectedRoomType, selectedDate]);
+  }, [
+    bookings,
+    searchTerm,
+    activeTab,
+    selectedPaymentStatus,
+    selectedRoomType,
+    selectedDate,
+  ]);
 
   const confirmedCount = useMemo(() => {
     return bookings.filter((b) =>
       ["confirmed", "completed"].includes(
-        (b.reservationStatus || b.status || "").toLowerCase()
-      )
+        (b.reservationStatus || b.status || "").toLowerCase(),
+      ),
     ).length;
   }, [bookings]);
 
@@ -592,7 +670,10 @@ const BookingManagement = () => {
 
   useEffect(() => {
     setTotalItems(filteredBookings.length);
-    const maxPage = Math.max(1, Math.ceil(filteredBookings.length / itemsPerPage));
+    const maxPage = Math.max(
+      1,
+      Math.ceil(filteredBookings.length / itemsPerPage),
+    );
     setCurrentPage((prev) => Math.min(prev, maxPage));
   }, [filteredBookings.length, itemsPerPage]);
 
@@ -625,7 +706,7 @@ const BookingManagement = () => {
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => callback(...args), delay);
       },
-      [callback, delay]
+      [callback, delay],
     );
   };
 
@@ -635,7 +716,11 @@ const BookingManagement = () => {
   if (isLoading) return <UniversalLoader fullscreen />;
 
   return (
-    <DashboardLayout type={vendor.vendorType} settings={false} section="bookings">
+    <DashboardLayout
+      type={vendor.vendorType}
+      settings={false}
+      section="bookings"
+    >
       <div className="min-h-screen bg-gray-50 p-6 mb-12">
         <div className="max-w-7xl mx-auto">
           <div className="md:flex hidden justify-between items-center mb-6">
@@ -647,7 +732,11 @@ const BookingManagement = () => {
                 text={hideTab ? "Open tabs" : "Hide tabs"}
                 icon={hideTab ? <Eye /> : <EyeClose />}
               />
-              <DashboardButton variant="secondary" text="Export" icon={<Export />} />
+              <DashboardButton
+                variant="secondary"
+                text="Export"
+                icon={<Export />}
+              />
             </div>
           </div>
 
@@ -678,7 +767,10 @@ const BookingManagement = () => {
               <div className="flex-1">
                 <StatCard
                   title="Pending"
-                  value={bookings.filter((r) => r.reservationStatus === "Upcoming").length}
+                  value={
+                    bookings.filter((r) => r.reservationStatus === "Upcoming")
+                      .length
+                  }
                   change={8}
                   icon={<Cash2 className="text-[#CD16C3]" />}
                   color="pink"
@@ -690,7 +782,11 @@ const BookingManagement = () => {
                 <StatCard
                   title="Total Revenue"
                   value={`₦ ${bookings
-                    .filter((r) => r.paymentStatus === "paid" || r.paymentStatus === "success")
+                    .filter(
+                      (r) =>
+                        r.paymentStatus === "paid" ||
+                        r.paymentStatus === "success",
+                    )
                     .reduce((sum, r) => sum + (r.totalAmount || 0), 0)
                     .toLocaleString()}`}
                   change={-5}
@@ -710,10 +806,11 @@ const BookingManagement = () => {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
-                    className={`p-2 text-xs md:text-sm rounded-lg border font-medium cursor-pointer ${activeTab === tab
-                      ? "border-[#B3D1D2] bg-[#E7F0F0] text-[#111827]"
-                      : "border-transparent text-[#606368]"
-                      }`}
+                    className={`p-2 text-xs md:text-sm rounded-lg border font-medium cursor-pointer ${
+                      activeTab === tab
+                        ? "border-[#B3D1D2] bg-[#E7F0F0] text-[#111827]"
+                        : "border-transparent text-[#606368]"
+                    }`}
                   >
                     {tab}
                   </button>
@@ -739,13 +836,23 @@ const BookingManagement = () => {
                   {/* Date filter */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="ml-auto text-[#606368]">
-                        {selectedDate === "all" ? "Date" : selectedDate} <ChevronDown />
+                      <Button
+                        variant="outline"
+                        className="ml-auto text-[#606368]"
+                      >
+                        {selectedDate === "all" ? "Date" : selectedDate}{" "}
+                        <ChevronDown />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <div className="p-2">
-                        {["all", "Today", "This Week", "This Month", "Last 30 Days"].map((d) => (
+                        {[
+                          "all",
+                          "Today",
+                          "This Week",
+                          "This Month",
+                          "Last 30 Days",
+                        ].map((d) => (
                           <button
                             key={d}
                             onClick={() => setSelectedDate(d)}
@@ -761,21 +868,38 @@ const BookingManagement = () => {
                   {/* Payment status filter */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="ml-auto text-[#606368]">
-                        {selectedPaymentStatus === "all" ? "Payment Status" : selectedPaymentStatus} <ChevronDown />
+                      <Button
+                        variant="outline"
+                        className="ml-auto text-[#606368]"
+                      >
+                        {selectedPaymentStatus === "all"
+                          ? "Payment Status"
+                          : selectedPaymentStatus}{" "}
+                        <ChevronDown />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <div className="p-2">
-                        <button onClick={() => setSelectedPaymentStatus("all")} className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedPaymentStatus === "all" ? "bg-gray-100 font-medium" : ""}`}>All Status</button>
+                        <button
+                          onClick={() => setSelectedPaymentStatus("all")}
+                          className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedPaymentStatus === "all" ? "bg-gray-100 font-medium" : ""}`}
+                        >
+                          All Status
+                        </button>
                         {[
                           { label: "Fully Paid", color: "bg-green-500" },
                           { label: "Part Paid", color: "bg-yellow-500" },
                           { label: "Unpaid", color: "bg-gray-500" },
                         ].map(({ label, color }) => (
-                          <button key={label} onClick={() => setSelectedPaymentStatus(label)} className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedPaymentStatus === label ? "bg-gray-100 font-medium" : ""}`}>
+                          <button
+                            key={label}
+                            onClick={() => setSelectedPaymentStatus(label)}
+                            className={`w-full text-left px-3 py-2 rounded-md hover:bg-gray-100 ${selectedPaymentStatus === label ? "bg-gray-100 font-medium" : ""}`}
+                          >
                             <span className="inline-flex items-center gap-2">
-                              <span className={`w-2 h-2 rounded-full ${color}`} />
+                              <span
+                                className={`w-2 h-2 rounded-full ${color}`}
+                              />
                               {label}
                             </span>
                           </button>
@@ -787,28 +911,47 @@ const BookingManagement = () => {
                   {/* Advanced filter */}
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="ml-auto text-[#606368]">
+                      <Button
+                        variant="outline"
+                        className="ml-auto text-[#606368]"
+                      >
                         Advanced filter <Filter2 fill="black" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-64">
                       <div className="p-4 space-y-4">
                         <div>
-                          <label className="text-sm font-medium text-gray-700 mb-2 block">Room Type</label>
+                          <label className="text-sm font-medium text-gray-700 mb-2 block">
+                            Room Type
+                          </label>
                           <select
                             value={selectedRoomType}
-                            onChange={(e) => setSelectedRoomType(e.target.value)}
+                            onChange={(e) =>
+                              setSelectedRoomType(e.target.value)
+                            }
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500"
                           >
                             <option value="all">All Room Types</option>
-                            {Array.from(new Set(bookings.map((b) => b.room?.name).filter(Boolean))).map((roomType) => (
-                              <option key={roomType} value={roomType}>{roomType}</option>
+                            {Array.from(
+                              new Set(
+                                bookings
+                                  .map((b) => b.room?.name)
+                                  .filter(Boolean),
+                              ),
+                            ).map((roomType) => (
+                              <option key={roomType} value={roomType}>
+                                {roomType}
+                              </option>
                             ))}
                           </select>
                         </div>
                         <div className="pt-2 border-t">
                           <button
-                            onClick={() => { setSelectedDate("all"); setSelectedPaymentStatus("all"); setSelectedRoomType("all"); }}
+                            onClick={() => {
+                              setSelectedDate("all");
+                              setSelectedPaymentStatus("all");
+                              setSelectedRoomType("all");
+                            }}
                             className="w-full px-3 py-2 text-sm text-teal-600 hover:bg-teal-50 rounded-md font-medium"
                           >
                             Clear All Filters
@@ -838,7 +981,10 @@ const BookingManagement = () => {
                           <TableHead key={header.id}>
                             {header.isPlaceholder
                               ? null
-                              : flexRender(header.column.columnDef.header, header.getContext())}
+                              : flexRender(
+                                  header.column.columnDef.header,
+                                  header.getContext(),
+                                )}
                           </TableHead>
                         ))}
                       </TableRow>
@@ -854,14 +1000,20 @@ const BookingManagement = () => {
                         >
                           {row.getVisibleCells().map((cell) => (
                             <TableCell key={cell.id}>
-                              {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                              {flexRender(
+                                cell.column.columnDef.cell,
+                                cell.getContext(),
+                              )}
                             </TableCell>
                           ))}
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={columns.length} className="h-24 text-center">
+                        <TableCell
+                          colSpan={columns.length}
+                          className="h-24 text-center"
+                        >
                           No bookings found.
                         </TableCell>
                       </TableRow>
@@ -887,24 +1039,199 @@ const BookingManagement = () => {
               {getPageNumbers().map((page, idx) => (
                 <button
                   key={idx}
-                  onClick={() => typeof page === "number" && handlePageChange(page)}
-                  disabled={page === "ellipsis-start" || page === "ellipsis-end"}
-                  className={`px-3 py-1 rounded-md ${currentPage === page
-                    ? "bg-teal-600 text-white"
-                    : "bg-white text-gray-700 border border-gray-200"
-                    } ${page === "ellipsis-start" || page === "ellipsis-end" ? "cursor-default" : "hover:bg-gray-100"}`}
+                  onClick={() =>
+                    typeof page === "number" && handlePageChange(page)
+                  }
+                  disabled={
+                    page === "ellipsis-start" || page === "ellipsis-end"
+                  }
+                  className={`px-3 py-1 rounded-md ${
+                    currentPage === page
+                      ? "bg-teal-600 text-white"
+                      : "bg-white text-gray-700 border border-gray-200"
+                  } ${page === "ellipsis-start" || page === "ellipsis-end" ? "cursor-default" : "hover:bg-gray-100"}`}
                 >
-                  {page === "ellipsis-start" || page === "ellipsis-end" ? "…" : page}
+                  {page === "ellipsis-start" || page === "ellipsis-end"
+                    ? "…"
+                    : page}
                 </button>
               ))}
             </div>
             <div className="gap-2 flex">
-              <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="px-3 py-2 bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-2 bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50"
+              >
                 <ChevronLeft />
               </button>
-              <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages || totalPages === 0} className="px-3 py-2 bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50">
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || totalPages === 0}
+                className="px-3 py-2 bg-white border rounded-md hover:bg-gray-50 disabled:opacity-50"
+              >
                 <ChevronRight />
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showPopup.display && (
+        <div className="inset-0 fixed top-0 left-o w-full h-screen overflow-y-auto bg-black/80">
+          <div className="bg-gray-50 px-4 max-w-4xl mx-auto rounded-lg my-10 py-6 md:px-6 md:py-8">
+            <div className="max-w-4xl mx-auto">
+              {/* Reservation Details */}
+              <div className="bg-white rounded-2xl border border-gray-200 mb-6">
+              <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                Reservation Details
+              </h2>
+
+              <hr className="border-gray-200 mb-2" />
+              <div className=" divide-y px-4">
+                {showPopup.details.rooms.length > 0 &&
+                  showPopup.details.rooms.map((item, index) => (
+                    <div key={index} className="py-2">
+                      <div className="mb-2 text-xs text-medium">
+                        Superion{" "}
+                        {item.roomId.category || item.roomId.roomCategory}{" "}
+                        {item.roomId.name}
+                      </div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">
+                            Check In Date
+                          </p>
+                          <p className="font-medium text-gray-900">
+                            {new Date(item.checkInDate).toLocaleDateString(
+                              "en-NG",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">
+                            Check Out Date
+                          </p>
+                          <p className="font-medium text-gray-900">
+                            {new Date(item.checkOutDate).toLocaleDateString(
+                              "en-NG",
+                              {
+                                year: "numeric",
+                                month: "short",
+                                day: "numeric",
+                              },
+                            )}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600 mb-1">
+                            Guests Allowed
+                          </p>
+                          <p className="font-medium text-gray-900">
+                            {item.guests} Guests
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+            <div className="rounded-2xl bg-white border border-gray-200 mb-6">
+              <div className=" divide-y">
+                <div className="flex p-4 justify-between items-center">
+                  <h3 className="text-lg font-semibold">Room Summary</h3>
+                </div>
+                <div className="divide-y px-4">
+                  {showPopup.details.rooms.length > 0 &&
+                    showPopup.details.rooms.map((room, index) => (
+                      <div key={index} className="grid grid-cols-2 py-4 gap-4">
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-600">Room Name</p>
+                          <p className="text-sm  line-clamp-1 font-medium text-gray-900">
+                            Superion {room.roomId.category} {room.roomId.name}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-600">
+                            Price per Night
+                          </p>
+                          <p className="text-sm font-medium text-gray-900">
+                            ₦
+                            {(
+                              room.roomId.pricePerNight -
+                              room.roomId.pricePerNight *
+                                (room.roomId.discount / 100)
+                            ).toLocaleString()}
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-600">Bed Type</p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {room.roomId.bedType} Bed
+                          </p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-xs text-gray-600">
+                            Guests Allowed
+                          </p>
+                          <p className="text-sm font-medium text-gray-900">
+                            {room.roomId.adultsCapacity}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            </div>
+
+              {/* Info Cards - Changed to green background */}
+              <div className="bg-[#E7F0F0] border border-[#B3D1D2] rounded-2xl p-4 mb-8">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <Mail className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+                    <p className="text-sm">
+                      You will receive a confirmation email with your
+                      reservation details
+                    </p>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <Clock className="w-5 h-5 text-[#0A6C6D] mt-0.5 flex-shrink-0" />
+                    <p className="text-sm">Please, arrive 10 mins early</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col md:flex-row w-full gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowPopup({ display: false, details: {} });
+                  }}
+                  className="flex-1 h-10 text-sm rounded-xl font-medium px-6 border-gray-300"
+                >
+                  Close
+                </Button>
+                <form
+                  action={async () => {
+                    setShowPopup({ display: false, details: {} });
+                  }}
+                  className="flex-1"
+                >
+                  <Button
+                    type="submit"
+                    className="w-full h-10 text-sm font-medium rounded-xl px-6 bg-[#0A6C6D] hover:bg-teal-800"
+                  >
+                    Done
+                  </Button>
+                </form>
+              </div>
             </div>
           </div>
         </div>
