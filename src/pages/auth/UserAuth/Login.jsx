@@ -42,7 +42,7 @@ const Login = () => {
         navigate(redirectTo, { replace: true });
       } catch (error) {
         console.error("Google login failed:", error);
-        toast.error(error.response.data.message);
+        toast.error(error.response.data.message || "Error logging in with Google");
       } finally {
         setGoogleLoading(false);
       }
@@ -65,8 +65,8 @@ const Login = () => {
       toast.success("Welcome back!");
       navigate(redirectTo, { replace: true });
     } catch (err) {
-      toast.error(err.response?.data.message);
-      if (err.response?.data?.message === "Please verify your email with the OTP sent to your inbox.") {
+      toast.error(err.response.data.message || "Error logging in");
+      if (err.response.data.message === "Please verify your email with the OTP sent to your inbox.") {
         navigate(`/auth/user/otp?email=${formData.email}`);
       }
     } finally {
