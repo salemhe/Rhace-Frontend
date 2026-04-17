@@ -103,7 +103,7 @@ const CardSection = ({
   const sliced = vendors.slice(0, 8);
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+    <div className="overflow-hidden">
       {sliced.map((v, i) => (
         <div key={v._id}>
           <DiscoveryListCard vendor={v} activeType={type} navigate={navigate} />

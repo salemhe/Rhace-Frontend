@@ -1,4 +1,4 @@
-import { logout } from "@/redux/slices/authSlice";
+import { logout, logoutAsync } from "@/redux/slices/authSlice";
 import { Menu, Search, X } from "lucide-react";
 import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -47,7 +47,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
   const handleItemClick = (item) => {
     if (item.label === "Logout") {
       console.log("Sidebar: logging out");
-      dispatch(logout());
+      dispatch(logoutAsync());
       setTimeout(() => {
         navigate("/auth/vendor/login");
       }, 500);

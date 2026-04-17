@@ -17,21 +17,21 @@ export default function ProtectedRoute() {
     const token = localStorage.getItem('token');
     if (token && !vendor && !admin) {
       console.log('ProtectedRoute: Token found, fetching vendor profile...');
-      authService.getVendorProfile()
-        .then((profile) => {
-          console.log('Profile fetched:', profile);
-          const vendorData = { ...profile, isOnboarded: profile.isOnboarded ?? true };
-          dispatch(setVendor(vendorData));
-          setHasValidToken(true);
-        })
-        .catch((err) => {
-          console.error('Profile fetch failed:', err);
-          localStorage.removeItem('token');
-          setHasValidToken(false);
-        })
-        .finally(() => {
-          setIsCheckingAuth(false);
-        });
+      // authService.getVendorProfile()
+      //   .then((profile) => {
+      //     console.log('Profile fetched:', profile);
+      //     const vendorData = { ...profile, isOnboarded: profile.isOnboarded ?? true };
+      //     dispatch(setVendor(vendorData));
+      //     setHasValidToken(true);
+      //   })
+      //   .catch((err) => {
+      //     console.error('Profile fetch failed:', err);
+      //     localStorage.removeItem('token');
+      //     setHasValidToken(false);
+      //   })
+      //   .finally(() => {
+      //     setIsCheckingAuth(false);
+      //   });
     } else {
       setHasValidToken(!!token);
       setIsCheckingAuth(false);
