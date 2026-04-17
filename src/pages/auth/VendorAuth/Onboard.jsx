@@ -1,17 +1,22 @@
-import HeroImage from "@/components/auth/HeroImage"
+import HeroImage from "@/components/auth/HeroImage";
 
-
-import { useState, useCallback, useEffect } from "react"
-import { Card, CardContent, CardHeader } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import { Progress } from "@/components/ui/progress"
-import logo from "../../../public/images/Rhace-11.png"
-import { setVendor } from "@/redux/slices/authSlice"
+import { useState, useCallback, useEffect } from "react";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import logo from "../../../public/images/Rhace-11.png";
+import { setVendor } from "@/redux/slices/authSlice";
 import {
   Building2,
   MapPin,
@@ -30,18 +35,42 @@ import {
   Tag,
   Loader2,
   Plus,
-} from "lucide-react"
-import { cn } from "@/lib/utils"
-import { toast } from "react-toastify"
-import axios from "axios"
-import api from "@/lib/axios"
-import { useNavigate } from "react-router"
-import { authService } from "@/services/auth.service"
-import { useDispatch } from "react-redux"
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { toast } from "react-toastify";
+import axios from "axios";
+import api from "@/lib/axios";
+import { useNavigate } from "react-router";
+import { authService } from "@/services/auth.service";
+import { useDispatch } from "react-redux";
 
+const generateTimeSlots = (start, end, interval = 60) => {
+  if (!start || !end) return [];
 
-const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME
-const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET
+  const slots = [];
+  let current = new Date(`2026-01-01T${start}`);
+  const stop = new Date(`2026-01-01T${end}`);
+
+  // Handle overnight cases (e.g., 10 PM to 4 AM)
+  if (stop <= current) {
+    stop.setDate(stop.getDate() + 1);
+  }
+
+  while (current <= stop) {
+    slots.push(
+      current.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      }),
+    );
+    current.setMinutes(current.getMinutes() + interval);
+  }
+  return slots;
+};
+
+const CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
+const UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
 const STEPS = [
   {
@@ -62,8 +91,7 @@ const STEPS = [
     description: "Add specific details about your services and offerings",
     icon: Tag,
   },
-]
-
+];
 
 // --- SVG ICONS ---
 const SvgIcon = ({ isActive }) => (
@@ -81,7 +109,7 @@ const SvgIcon = ({ isActive }) => (
       d="M3 10h18M4 10V7a1 1 0 011-1h14a1 1 0 011 1v3m-1 0v9a1 1 0 01-1 1H5a1 1 0 01-1-1v-9m4 5h8"
     />
   </svg>
-)
+);
 
 const SvgIcon2 = ({ isActive }) => (
   <svg
@@ -98,7 +126,7 @@ const SvgIcon2 = ({ isActive }) => (
       d="M3 4h18M4 4v16a1 1 0 001 1h14a1 1 0 001-1V4M8 10h8M8 14h4"
     />
   </svg>
-)
+);
 
 const SvgIcon3 = ({ isActive }) => (
   <svg
@@ -109,14 +137,9 @@ const SvgIcon3 = ({ isActive }) => (
     strokeWidth={1.5}
     viewBox="0 0 24 24"
   >
-    <path
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      d="M5 12h14M12 5v14"
-    />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5v14" />
   </svg>
-)
-
+);
 
 const NIGERIAN_BANKS = [
   { name: "Access Bank", code: "044" },
@@ -138,10 +161,10 @@ const NIGERIAN_BANKS = [
   { name: "Unity Bank", code: "215" },
   { name: "Wema Bank", code: "035" },
   { name: "Zenith Bank", code: "057" },
-]
+];
 
 export function Onboard() {
-  const [currentStep, setCurrentStep] = useState(1)
+  const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     profileImages: [],
     businessDescription: "",
@@ -163,33 +186,68 @@ export function Onboard() {
     dressCode: [],
     ageLimit: "",
     slots: 0,
-  })
-  const [uploadProgress, setUploadProgress] = useState({})
-  const [isVerifyingBank, setIsVerifyingBank] = useState(false)
-  const [isLoading, setIsloading] = useState(false)
-  const [bankVerified, setBankVerified] = useState(false)
-  const [banks, setBanks] = useState([])
+  });
+  const [uploadProgress, setUploadProgress] = useState({});
+  const [isVerifyingBank, setIsVerifyingBank] = useState(false);
+  const [isLoading, setIsloading] = useState(false);
+  const [bankVerified, setBankVerified] = useState(false);
+  const [banks, setBanks] = useState([]);
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const updateFormData = (updates) => {
-    setFormData((prev) => ({ ...prev, ...updates }))
-  }
+    setFormData((prev) => ({ ...prev, ...updates }));
+  };
+
+  // Inside your Onboard component
+  const availableTimeOptions = generateTimeSlots(
+    formData.openingTime,
+    formData.closingTime,
+    60,
+  );
+
+  // Helper to toggle a slot (add if not there, remove if it is)
+  const toggleSlot = (slot) => {
+    const currentSlots = formData.availableSlots;
+    if (currentSlots.includes(slot)) {
+      updateFormData({
+        availableSlots: currentSlots.filter((s) => s !== slot),
+      });
+    } else {
+      updateFormData({ availableSlots: [...currentSlots, slot] });
+    }
+  };
+
+  useEffect(() => {
+    // Clear slots that are no longer within the new time range
+    const validSlots = generateTimeSlots(
+      formData.openingTime,
+      formData.closingTime,
+      60,
+    );
+    const filtered = formData.availableSlots.filter((slot) =>
+      validSlots.includes(slot),
+    );
+
+    if (filtered.length !== formData.availableSlots.length) {
+      updateFormData({ availableSlots: filtered });
+    }
+  }, [formData.openingTime, formData.closingTime]);
 
   const handleImageUpload = useCallback(
     async (files) => {
-      const fileArray = Array.from(files).slice(0, 5) // Limit to 5 images
+      const fileArray = Array.from(files).slice(0, 5); // Limit to 5 images
 
-      const uploadedUrls = []
+      const uploadedUrls = [];
 
       for (const file of fileArray) {
-        const fileName = file.name
-        setUploadProgress((prev) => ({ ...prev, [fileName]: 0 }))
+        const fileName = file.name;
+        setUploadProgress((prev) => ({ ...prev, [fileName]: 0 }));
 
-        const formData = new FormData()
-        formData.append('file', file)
-        formData.append('upload_preset', UPLOAD_PRESET)
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", UPLOAD_PRESET);
 
         try {
           const response = await axios.post(
@@ -198,26 +256,30 @@ export function Onboard() {
             {
               onUploadProgress: (progressEvent) => {
                 const progress = Math.round(
-                  (progressEvent.loaded * 100) / progressEvent.total
-                )
-                setUploadProgress((prev) => ({ ...prev, [fileName]: progress }))
+                  (progressEvent.loaded * 100) / progressEvent.total,
+                );
+                setUploadProgress((prev) => ({
+                  ...prev,
+                  [fileName]: progress,
+                }));
               },
-            }
-          )
+            },
+          );
 
-          const imageUrl = response.data.secure_url
-          uploadedUrls.push(imageUrl)
+          const imageUrl = response.data.secure_url;
+          uploadedUrls.push(imageUrl);
         } catch (error) {
-          console.error('Upload failed for', fileName, error)
-          setUploadProgress((prev) => ({ ...prev, [fileName]: -1 })) // -1 to indicate failure
+          console.error("Upload failed for", fileName, error);
+          setUploadProgress((prev) => ({ ...prev, [fileName]: -1 })); // -1 to indicate failure
         }
       }
 
-      updateFormData({ profileImages: [...formData.profileImages, ...uploadedUrls] })
+      updateFormData({
+        profileImages: [...formData.profileImages, ...uploadedUrls],
+      });
     },
-    [formData.profileImages]
-  )
-
+    [formData.profileImages],
+  );
 
   const SvgIcon = ({ className }) => (
     <svg
@@ -229,7 +291,7 @@ export function Onboard() {
       className={className}
     >
       <path
-        fill="#1f2937"  // ← Tailwind's gray-800
+        fill="#1f2937" // ← Tailwind's gray-800
         // stroke="#fff"
         strokeWidth="1"
         fillRule="evenodd"
@@ -259,7 +321,14 @@ export function Onboard() {
     </svg>
   );
   const SvgIcon3 = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="18" viewBox="0 0 14 18" fill="currentColor" className={className} >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width="14"
+      height="18"
+      viewBox="0 0 14 18"
+      fill="currentColor"
+      className={className}
+    >
       <path
         fill="#111827"
         fillRule="evenodd"
@@ -269,51 +338,50 @@ export function Onboard() {
     </svg>
   );
 
-
-
   const handleBankVerification = async () => {
-    if (!formData.bankCode || !formData.accountNumber) return
+    if (!formData.bankCode || !formData.accountNumber) return;
 
-    setIsVerifyingBank(true)
-    setBankVerified(false)
+    setIsVerifyingBank(true);
+    setBankVerified(false);
 
     try {
-      const response = await api.get('/payments/verify-account', {
+      const response = await api.get("/payments/verify-account", {
         params: {
           account_number: formData.accountNumber,
           bank_code: formData.bankCode,
         },
-      })
+      });
 
-      const { accountName } = response.data
+      const { accountName } = response.data;
 
       updateFormData({
-        bankName: banks.find((b) => b.code === formData.bankCode)?.name || '',
+        bankName: banks.find((b) => b.code === formData.bankCode)?.name || "",
         accountName,
-      })
+      });
 
-      setBankVerified(true)
+      setBankVerified(true);
     } catch (error) {
-      console.error('Account verification failed:', error)
-      alert(error.response?.data?.error || 'Verification failed. Please try again.')
-      setBankVerified(false)
+      console.error("Account verification failed:", error);
+      alert(
+        error.response?.data?.error || "Verification failed. Please try again.",
+      );
+      setBankVerified(false);
     } finally {
-      setIsVerifyingBank(false)
+      setIsVerifyingBank(false);
     }
-  }
-
+  };
 
   const addTag = (field, value) => {
-    const currentArray = formData[field]
+    const currentArray = formData[field];
     if (!currentArray.includes(value) && value.trim()) {
-      updateFormData({ [field]: [...currentArray, value.trim()] })
+      updateFormData({ [field]: [...currentArray, value.trim()] });
     }
-  }
+  };
 
   const removeTag = (field, value) => {
-    const currentArray = formData[field]
-    updateFormData({ [field]: currentArray.filter((item) => item !== value) })
-  }
+    const currentArray = formData[field];
+    updateFormData({ [field]: currentArray.filter((item) => item !== value) });
+  };
 
   const canProceedToNext = () => {
     switch (currentStep) {
@@ -324,74 +392,75 @@ export function Onboard() {
           formData.vendorType &&
           formData.phone.trim() &&
           formData.address.trim()
-        )
+        );
       case 2:
-        return bankVerified && formData.accountName.trim()
+        return bankVerified && formData.accountName.trim();
       case 3:
-        return formData.priceRange
+        return formData.priceRange;
       default:
-        return false
+        return false;
     }
-  }
+  };
 
   const handleNext = () => {
     if (canProceedToNext() && currentStep < 3) {
-      setCurrentStep(currentStep + 1)
+      setCurrentStep(currentStep + 1);
     }
-  }
+  };
 
   const handleBack = () => {
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1)
+      setCurrentStep(currentStep - 1);
     }
-  }
-  const navigate = useNavigate()
+  };
+  const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    setIsloading(true)
+    setIsloading(true);
 
     try {
-      const user = await authService.vendorOnboard(formData)
-      console.log(user)
+      const user = await authService.vendorOnboard(formData);
+      console.log(user);
       dispatch(setVendor(user?.vendor));
 
       // Handle response (optional: use response.data if needed)
-      toast.success("Completed Onboarding Successfully!")
+      toast.success("Completed Onboarding Successfully!");
 
       // Optionally reset form or redirect
-      navigate(`/dashboard`)
+      navigate(`/dashboard`);
       // resetFormData()
     } catch (error) {
-      console.error('Onboarding failed:', error)
+      console.error("Onboarding failed:", error);
 
       toast.error(
-        error.response?.data?.error || 'Something went wrong. Please try again.'
-      )
+        error.response?.data?.error ||
+          "Something went wrong. Please try again.",
+      );
     } finally {
-      setIsloading(false)
+      setIsloading(false);
     }
-  }
+  };
 
   useEffect(() => {
     const fetchBanks = async () => {
       try {
-        const response = await api.get('/payments/banks')
-        setBanks(response.data.data)
+        const response = await api.get("/payments/banks");
+        setBanks(response.data.data);
       } catch (err) {
-        setError('Failed to load banks')
-        console.error(err)
+        setError("Failed to load banks");
+        console.error(err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchBanks()
-  }, [])
+    fetchBanks();
+  }, []);
 
   return (
     <div className="w-full h-screen flex p-4 bg-white">
-      <HeroImage role='vendor' />
-      <div className='flex-1 h-full overflow-y-auto hide-scrollbar'>
+      <HeroImage role="vendor" />
+      <div className="flex-1 h-full overflow-y-auto hide-scrollbar">
         <div className="min-h-screen flex items-center py-5 justify-center">
           <Card className="w-full max-w-lg bg-white shadow-none gap-3 p-0 border-none">
             <CardHeader className="text-left">
@@ -404,30 +473,41 @@ export function Onboard() {
               </div>
               {currentStep === 1 && (
                 <>
-                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">Tell us about your business</h2>
+                  <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
+                    Tell us about your business
+                  </h2>
                   <p className="text-muted-foreground text-pretty max-w-2xl">
-                    Share some details about what you offer and how customers can find you.
+                    Share some details about what you offer and how customers
+                    can find you.
                   </p>
                 </>
               )}
               {currentStep === 2 && (
                 <>
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Set up your payments</h2>
-                  <p className="text-muted-foreground">Add your bank details to receive payments from customers.</p>
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                    Set up your payments
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Add your bank details to receive payments from customers.
+                  </p>
                 </>
               )}
               {currentStep === 3 && (
                 <>
-                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">Business Details</h2>
-                  <p className="text-muted-foreground">Add specific information about your services and pricing.</p>
+                  <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                    Business Details
+                  </h2>
+                  <p className="text-muted-foreground">
+                    Add specific information about your services and pricing.
+                  </p>
                 </>
               )}
             </CardHeader>
 
             <div className="flex items-center justify-center gap-2 px-6">
               {STEPS.map((step) => {
-                const isCompleted = currentStep > step.id
-                const isActive = currentStep === step.id
+                const isCompleted = currentStep > step.id;
+                const isActive = currentStep === step.id;
 
                 return (
                   <div key={step.id} className="flex items-center w-full">
@@ -438,7 +518,7 @@ export function Onboard() {
                       })}
                     />
                   </div>
-                )
+                );
               })}
             </div>
             <CardContent>
@@ -446,7 +526,9 @@ export function Onboard() {
                 <div className="space-y-8">
                   {/* Image Upload */}
                   <div className="space-y-4">
-                    <Label className="text-base font-medium">Business Photos (Upload at least 5)</Label>
+                    <Label className="text-base font-medium">
+                      Business Photos (Upload at least 5)
+                    </Label>
                     <div className="border-2 border-dashed border-border  bg-white rounded-lg p-8 text-center hover:border-primary/50 transition-colors">
                       <Upload className="w-8 h-8 text-muted-foreground mx-auto mb-4" />
                       <p className="text-sm text-muted-foreground mb-4">
@@ -456,41 +538,55 @@ export function Onboard() {
                         type="file"
                         multiple
                         accept="image/*"
-                        onChange={(e) => e.target.files && handleImageUpload(e.target.files)}
+                        onChange={(e) =>
+                          e.target.files && handleImageUpload(e.target.files)
+                        }
                         className="hidden"
                         id="image-upload"
                       />
                       <Button variant="outline" asChild>
-                        <label htmlFor="image-upload" className="cursor-pointer">
+                        <label
+                          htmlFor="image-upload"
+                          className="cursor-pointer"
+                        >
                           Choose Files
                         </label>
                       </Button>
                     </div>
 
                     {/* Upload Progress */}
-                    {Object.entries(uploadProgress).map(([fileName, progress]) => (
-                      <div key={fileName} className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="truncate">{fileName}</span>
-                          <span>{Math.round(progress)}%</span>
+                    {Object.entries(uploadProgress).map(
+                      ([fileName, progress]) => (
+                        <div key={fileName} className="space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="truncate">{fileName}</span>
+                            <span>{Math.round(progress)}%</span>
+                          </div>
+                          <Progress value={progress} className="h-2" />
                         </div>
-                        <Progress value={progress} className="h-2" />
-                      </div>
-                    ))}
+                      ),
+                    )}
 
-                    <p className="text-sm text-muted-foreground">{formData.profileImages.length} images uploaded</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formData.profileImages.length} images uploaded
+                    </p>
                   </div>
 
                   {/* Business Description */}
                   <div className="space-y-2">
-                    <Label htmlFor="description" className="text-base font-medium">
+                    <Label
+                      htmlFor="description"
+                      className="text-base font-medium"
+                    >
                       Business Description
                     </Label>
                     <Textarea
                       id="description"
                       placeholder="Tell customers what makes your business special..."
                       value={formData.businessDescription}
-                      onChange={(e) => updateFormData({ businessDescription: e.target.value })}
+                      onChange={(e) =>
+                        updateFormData({ businessDescription: e.target.value })
+                      }
                       className="min-h-[120px] resize-none w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white/50
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
@@ -500,11 +596,17 @@ export function Onboard() {
 
                   {/* Vendor Category */}
                   <div className="space-y-4">
-                    <Label className="text-base font-medium">Business Type</Label>
+                    <Label className="text-base font-medium">
+                      Business Type
+                    </Label>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                       {[
                         { value: "hotel", label: "Hotel", Icon: SvgIcon2 },
-                        { value: "restaurant", label: "Restaurant", Icon: SvgIcon },
+                        {
+                          value: "restaurant",
+                          label: "Restaurant",
+                          Icon: SvgIcon,
+                        },
                         { value: "club", label: "Club", Icon: SvgIcon3 },
                       ].map(({ value, label, Icon }) => (
                         <button
@@ -513,7 +615,9 @@ export function Onboard() {
                           onClick={() => updateFormData({ vendorType: value })}
                           className={cn(
                             "p-4 rounded-lg border-2 transition-all flex gap-2 text-left hover:border-primary/50",
-                            formData.vendorType === value ? "border-primary bg-primary/5" : "border-border",
+                            formData.vendorType === value
+                              ? "border-primary bg-primary/5"
+                              : "border-border",
                           )}
                         >
                           <Icon className="w-6 h-6 text-primary" />
@@ -526,7 +630,10 @@ export function Onboard() {
                   {/* Contact Information */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <Label htmlFor="phone" className="text-base font-medium flex items-center gap-2">
+                      <Label
+                        htmlFor="phone"
+                        className="text-base font-medium flex items-center gap-2"
+                      >
                         <Phone className="w-4 h-4" />
                         Phone Number
                       </Label>
@@ -535,7 +642,9 @@ export function Onboard() {
                         type="tel"
                         placeholder="+234 800 000 0000"
                         value={formData.phone}
-                        onChange={(e) => updateFormData({ phone: e.target.value })}
+                        onChange={(e) =>
+                          updateFormData({ phone: e.target.value })
+                        }
                         className="w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white 
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
@@ -544,7 +653,10 @@ export function Onboard() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="website" className="text-base font-medium flex items-center gap-2">
+                      <Label
+                        htmlFor="website"
+                        className="text-base font-medium flex items-center gap-2"
+                      >
                         <Globe className="w-4 h-4" />
                         Website (Optional)
                       </Label>
@@ -553,7 +665,9 @@ export function Onboard() {
                         type="url"
                         placeholder="https://yourwebsite.com"
                         value={formData.website}
-                        onChange={(e) => updateFormData({ website: e.target.value })}
+                        onChange={(e) =>
+                          updateFormData({ website: e.target.value })
+                        }
                         className="w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
@@ -563,7 +677,10 @@ export function Onboard() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="address" className="text-base font-medium flex items-center gap-2">
+                    <Label
+                      htmlFor="address"
+                      className="text-base font-medium flex items-center gap-2"
+                    >
                       <MapPin className="w-4 h-4" />
                       Business Address
                     </Label>
@@ -571,7 +688,9 @@ export function Onboard() {
                       id="address"
                       placeholder="Enter your complete business address..."
                       value={formData.address}
-                      onChange={(e) => updateFormData({ address: e.target.value })}
+                      onChange={(e) =>
+                        updateFormData({ address: e.target.value })
+                      }
                       className="min-h-20 resize-none w-full h-10 sm:h-12 rounded-md border-[#0A6C6D] bg-white 
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
@@ -585,21 +704,29 @@ export function Onboard() {
                 <div className="space-y-8">
                   {/* Bank Selection */}
                   <div className="space-y-2">
-                    <Label className="text-base font-medium">Select Your Bank</Label>
+                    <Label className="text-base font-medium">
+                      Select Your Bank
+                    </Label>
                     <Select
                       value={formData.bankCode}
                       disabled={loading}
                       onValueChange={(value) => {
-                        const bank = banks.find((b) => b.code === value)
+                        const bank = banks.find((b) => b.code === value);
                         updateFormData({
                           bankCode: value,
                           bankName: bank?.name || "",
-                        })
-                        setBankVerified(false)
+                        });
+                        setBankVerified(false);
                       }}
                     >
                       <SelectTrigger className="">
-                        {loading ? (<><span>Loading Banks...</span></>) : <SelectValue placeholder="Choose your bank" />}
+                        {loading ? (
+                          <>
+                            <span>Loading Banks...</span>
+                          </>
+                        ) : (
+                          <SelectValue placeholder="Choose your bank" />
+                        )}
                       </SelectTrigger>
                       <SelectContent className="w-full max-w-[300px]">
                         {banks.map((bank, i) => (
@@ -613,7 +740,10 @@ export function Onboard() {
 
                   {/* Account Number */}
                   <div className="space-y-2">
-                    <Label htmlFor="accountNumber" className="text-base font-medium">
+                    <Label
+                      htmlFor="accountNumber"
+                      className="text-base font-medium"
+                    >
                       Account Number
                     </Label>
                     <div className="flex gap-3">
@@ -622,8 +752,8 @@ export function Onboard() {
                         placeholder="Enter your 10-digit account number"
                         value={formData.accountNumber}
                         onChange={(e) => {
-                          updateFormData({ accountNumber: e.target.value })
-                          setBankVerified(false)
+                          updateFormData({ accountNumber: e.target.value });
+                          setBankVerified(false);
                         }}
                         maxLength={10}
                         className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
@@ -633,7 +763,11 @@ export function Onboard() {
                       />
                       <Button
                         onClick={handleBankVerification}
-                        disabled={!formData.bankCode || !formData.accountNumber || isVerifyingBank}
+                        disabled={
+                          !formData.bankCode ||
+                          !formData.accountNumber ||
+                          isVerifyingBank
+                        }
                         // variant="outline"
                         className="w-[100px] h-[25px] py-5 rounded-md bg-[#0A6C6D] text-white text-sm font-normal transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D]"
                       >
@@ -657,10 +791,12 @@ export function Onboard() {
                         <span className="font-medium">Account Verified</span>
                       </div>
                       <p className="text-sm">
-                        <span className="font-medium">Account Name:</span> {formData.accountName}
+                        <span className="font-medium">Account Name:</span>{" "}
+                        {formData.accountName}
                       </p>
                       <p className="text-sm">
-                        <span className="font-medium">Bank:</span> {formData.bankName}
+                        <span className="font-medium">Bank:</span>{" "}
+                        {formData.bankName}
                       </p>
                     </div>
                   )}
@@ -679,15 +815,16 @@ export function Onboard() {
                       type="number"
                       value={formData.priceRange}
                       onChange={(e) => {
-                        const value = e.target.value
-                        updateFormData({ priceRange: value === '' ? '' : Number(value) })
+                        const value = e.target.value;
+                        updateFormData({
+                          priceRange: value === "" ? "" : Number(value),
+                        });
                       }}
                       className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
                           hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
                     />
-
                   </div>
 
                   {/* General Offer */}
@@ -699,7 +836,9 @@ export function Onboard() {
                       id="offer"
                       placeholder="e.g., 20% off first booking, Free WiFi, etc."
                       value={formData.offer}
-                      onChange={(e) => updateFormData({ offer: e.target.value })}
+                      onChange={(e) =>
+                        updateFormData({ offer: e.target.value })
+                      }
                       className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
@@ -712,14 +851,19 @@ export function Onboard() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="space-y-2">
-                          <Label htmlFor="openingTime" className="text-base font-medium">
+                          <Label
+                            htmlFor="openingTime"
+                            className="text-base font-medium"
+                          >
                             Opening Time
                           </Label>
                           <Input
                             id="openingTime"
                             type="time"
                             value={formData.openingTime}
-                            onChange={(e) => updateFormData({ openingTime: e.target.value })}
+                            onChange={(e) =>
+                              updateFormData({ openingTime: e.target.value })
+                            }
                             className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
@@ -727,14 +871,19 @@ export function Onboard() {
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="closingTime" className="text-base font-medium">
+                          <Label
+                            htmlFor="closingTime"
+                            className="text-base font-medium"
+                          >
                             Closing Time
                           </Label>
                           <Input
                             id="closingTime"
                             type="time"
                             value={formData.closingTime}
-                            onChange={(e) => updateFormData({ closingTime: e.target.value })}
+                            onChange={(e) =>
+                              updateFormData({ closingTime: e.target.value })
+                            }
                             className="w-full h-10 sm:h-11 rounded-md border-[#0A6C6D] bg-white 
                           text-black text-sm placeholder-[#a0a3a8]
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
@@ -751,13 +900,44 @@ export function Onboard() {
                         onRemove={(value) => removeTag("cuisines", value)}
                       />
 
-                      <TagInput
-                        label="Available Slots"
-                        placeholder="Add time slots (e.g., Breakfast, Lunch, Dinner)"
-                        tags={formData.availableSlots}
-                        onAdd={(value) => addTag("availableSlots", value)}
-                        onRemove={(value) => removeTag("availableSlots", value)}
-                      />
+                      {/* Replace your old TagInput for Available Slots with this: */}
+                      <div className="space-y-3">
+                        <Label className="text-base font-medium">
+                          Select Available Booking Slots
+                        </Label>
+                        {!formData.openingTime || !formData.closingTime ? (
+                          <p className="text-sm text-amber-600 italic">
+                            Please set opening and closing times first.
+                          </p>
+                        ) : (
+                          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                            {availableTimeOptions.map((slot) => {
+                              const isSelected =
+                                formData.availableSlots.includes(slot);
+                              return (
+                                <button
+                                  key={slot}
+                                  type="button"
+                                  onClick={() => toggleSlot(slot)}
+                                  className={cn(
+                                    "py-2 px-1 text-xs rounded-md border transition-all",
+                                    isSelected
+                                      ? "bg-[#0A6C6D] text-white border-[#0A6C6D]"
+                                      : "bg-white text-gray-600 border-gray-200 hover:border-[#0A6C6D]",
+                                  )}
+                                >
+                                  {slot}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+
+                        {/* Show count of selected slots */}
+                        <p className="text-xs text-muted-foreground">
+                          {formData.availableSlots.length} slots selected
+                        </p>
+                      </div>
                     </div>
                   )}
 
@@ -765,18 +945,26 @@ export function Onboard() {
                     <div className="space-y-6">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="space-y-2">
-                          <Label htmlFor="openingTime" className="text-base font-medium">
+                          <Label
+                            htmlFor="openingTime"
+                            className="text-base font-medium"
+                          >
                             Opening Time
                           </Label>
                           <Input
                             id="openingTime"
                             type="time"
                             value={formData.openingTime}
-                            onChange={(e) => updateFormData({ openingTime: e.target.value })}
+                            onChange={(e) =>
+                              updateFormData({ openingTime: e.target.value })
+                            }
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="closingTime" className="text-base font-medium">
+                          <Label
+                            htmlFor="closingTime"
+                            className="text-base font-medium"
+                          >
                             Closing Time
                           </Label>
                           <Input
@@ -785,11 +973,16 @@ export function Onboard() {
                             // defaultValue="10:30:00"
                             // step="1"
                             value={formData.closingTime}
-                            onChange={(e) => updateFormData({ closingTime: e.target.value })}
+                            onChange={(e) =>
+                              updateFormData({ closingTime: e.target.value })
+                            }
                           />
                         </div>
                         <div className="space-y-2">
-                          <Label htmlFor="slots" className="text-base font-medium">
+                          <Label
+                            htmlFor="slots"
+                            className="text-base font-medium"
+                          >
                             Available Slots
                           </Label>
                           <Input
@@ -798,7 +991,11 @@ export function Onboard() {
                             min="1"
                             placeholder="e.g., 100"
                             value={formData.slots || ""}
-                            onChange={(e) => updateFormData({ slots: Number.parseInt(e.target.value) || 0 })}
+                            onChange={(e) =>
+                              updateFormData({
+                                slots: Number.parseInt(e.target.value) || 0,
+                              })
+                            }
                           />
                         </div>
                       </div>
@@ -820,14 +1017,25 @@ export function Onboard() {
                       />
 
                       <div className="space-y-2">
-                        <Label className="text-base font-medium">Age Limit</Label>
-                        <Select value={formData.ageLimit} onValueChange={(value) => updateFormData({ ageLimit: value })}>
+                        <Label className="text-base font-medium">
+                          Age Limit
+                        </Label>
+                        <Select
+                          value={formData.ageLimit}
+                          onValueChange={(value) =>
+                            updateFormData({ ageLimit: value })
+                          }
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select age requirement" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="16">16 years and above</SelectItem>
-                            <SelectItem value="18">18 years and above</SelectItem>
+                            <SelectItem value="16">
+                              16 years and above
+                            </SelectItem>
+                            <SelectItem value="18">
+                              18 years and above
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
@@ -849,12 +1057,20 @@ export function Onboard() {
                 </Button>
 
                 {currentStep < 3 ? (
-                  <Button onClick={handleNext} disabled={!canProceedToNext()} className="flex items-center gap-2 bg-[#0A6C6D]">
+                  <Button
+                    onClick={handleNext}
+                    disabled={!canProceedToNext()}
+                    className="flex items-center gap-2 bg-[#0A6C6D]"
+                  >
                     Continue
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 ) : (
-                  <Button onClick={handleSubmit} disabled={!canProceedToNext()} className="flex items-center gap-2 bg-[#0A6C6D]">
+                  <Button
+                    onClick={handleSubmit}
+                    disabled={!canProceedToNext()}
+                    className="flex items-center gap-2 bg-[#0A6C6D]"
+                  >
                     {isLoading ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
@@ -873,20 +1089,20 @@ export function Onboard() {
           </Card>
         </div>
       </div>
-    </div >
-  )
+    </div>
+  );
 }
 
 function TagInput({ label, placeholder, tags, onAdd, onRemove }) {
-  const [inputValue, setInputValue] = useState("")
+  const [inputValue, setInputValue] = useState("");
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && inputValue.trim()) {
-      e.preventDefault()
-      onAdd(inputValue)
-      setInputValue("")
+      e.preventDefault();
+      onAdd(inputValue);
+      setInputValue("");
     }
-  }
+  };
 
   return (
     <div className="space-y-2">
@@ -902,11 +1118,14 @@ function TagInput({ label, placeholder, tags, onAdd, onRemove }) {
                           focus:outline-none focus:border-[#0A6C6D] focus:ring-1 focus:ring-[#0A6C6D]
                           hover:border-[#0A6C6D] transition-all duration-300 ease-in-out pl-3"
         />
-        <button onClick={() => {
-          if (!inputValue.trim()) return
-          onAdd(inputValue)
-          setInputValue("")
-        }} className="h-10 sm:h-12 p-2 text-white rounded-md bg-[#0A6C6D]">
+        <button
+          onClick={() => {
+            if (!inputValue.trim()) return;
+            onAdd(inputValue);
+            setInputValue("");
+          }}
+          className="h-10 sm:h-12 p-2 text-white rounded-md bg-[#0A6C6D]"
+        >
           <div>
             <Plus className="size-5" />
           </div>
@@ -915,9 +1134,17 @@ function TagInput({ label, placeholder, tags, onAdd, onRemove }) {
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
           {tags.map((tag) => (
-            <Badge key={tag} variant="secondary" className="flex items-center gap-1">
+            <Badge
+              key={tag}
+              variant="secondary"
+              className="flex items-center gap-1"
+            >
               {tag}
-              <button type="button" onClick={() => onRemove(tag)} className="ml-1 hover:text-destructive">
+              <button
+                type="button"
+                onClick={() => onRemove(tag)}
+                className="ml-1 hover:text-destructive"
+              >
                 <X className="w-3 h-3" />
               </button>
             </Badge>
@@ -925,7 +1152,7 @@ function TagInput({ label, placeholder, tags, onAdd, onRemove }) {
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default Onboard
+export default Onboard;
