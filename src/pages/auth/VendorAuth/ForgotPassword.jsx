@@ -1,42 +1,50 @@
-import HeroImage from "@/components/auth/HeroImage"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { useState } from "react"
-import ForgotImage from "../../../public/auth/forgot.svg";
+import HeroImage from "@/components/auth/HeroImage";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { toast } from "react-toastify";
 import { authService } from "@/services/auth.service";
-import { Loader2, Mail } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "react-toastify";
+import ForgotImage from "../../../public/auth/forgot.svg";
 
 const ForgotPassword = () => {
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsloading] = useState(false)
+  const [email, setEmail] = useState("");
+  const [isLoading, setIsloading] = useState(false);
 
   const handleSubmit = async () => {
     if (!email) return;
     try {
-      setIsloading(true)
+      setIsloading(true);
       await authService.vendorForgotPassword(email);
-      toast.success("A reset password link has been sent to your Email")
+      toast.success("A reset password link has been sent to your Email");
     } catch (err) {
-      toast.error(err.response.data.message)
+      const message = err?.response?.data?.message || "User not found";
+
+      toast.error(message);
     } finally {
-      setIsloading(false)
+      setIsloading(false);
     }
-  }
+  };
 
   return (
-    <div className='w-full h-screen flex p-4 bg-white'>
+    <div className="w-full h-screen flex p-4 bg-white">
       <div className="h-screen overflow-auto flex-1 flex flex-col items-center justify-center">
         <Card className="w-full max-w-md p-0 shadow-none border-none">
           <CardHeader className="flex justify-center">
-            <img src={ForgotImage} alt="Forgot password illustration" className="w-48 h-48 object-contain" />
+            <img
+              src={ForgotImage}
+              alt="Forgot password illustration"
+              className="w-48 h-48 object-contain"
+            />
           </CardHeader>
           <CardContent className="space-y-8">
             <div className="text-center space-y-4">
-              <h1 className="text-2xl font-semibold text-gray-900">Forgot Your Password?</h1>
+              <h1 className="text-2xl font-semibold text-gray-900">
+                Forgot Your Password?
+              </h1>
               <p className="text-gray-600 text-sm leading-relaxed">
-                Enter your registered email below to receive password reset instructions.
+                Enter your registered email below to receive password reset
+                instructions.
               </p>
             </div>
             <div className="space-y-6">
@@ -55,19 +63,36 @@ const ForgotPassword = () => {
                 />
               </div>
 
-              <Button disabled={isLoading} onClick={handleSubmit} className="w-full py-6 rounded-md bg-[#0A6C6D] text-white text-sm font-light transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D]" size="lg">
-                {isLoading ? (<> Loading <Loader2 className="animate-spin" /></>) : "Send"}
+              <Button
+                disabled={isLoading}
+                onClick={handleSubmit}
+                className="w-full py-6 rounded-md bg-[#0A6C6D] text-white text-sm font-light transition-transform duration-200 hover:shadow-lg hover:bg-[#0A6C6D]"
+                size="lg"
+              >
+                {isLoading ? (
+                  <>
+                    {" "}
+                    Loading <Loader2 className="animate-spin" />
+                  </>
+                ) : (
+                  "Send"
+                )}
               </Button>
             </div>
             <div className="text-center">
-              <a href="/auth/vendor/login" className="text-sm text-[#0A6C6D] hover:text-[#074f55] font-medium transition-all">Back to Login</a>
+              <a
+                href="/auth/vendor/login"
+                className="text-sm text-[#0A6C6D] hover:text-[#074f55] font-medium transition-all"
+              >
+                Back to Login
+              </a>
             </div>
           </CardContent>
         </Card>
       </div>
-      <HeroImage role='vendor' />
+      <HeroImage role="vendor" />
     </div>
-  )
-}
+  );
+};
 
-export default ForgotPassword
+export default ForgotPassword;
