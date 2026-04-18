@@ -163,6 +163,8 @@ const NIGERIAN_BANKS = [
   { name: "Zenith Bank", code: "057" },
 ];
 
+const CUISINE_OPTIONS = ["nigerian", "italian", "continental", "chinese"];
+
 export function Onboard() {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
@@ -892,19 +894,54 @@ export function Onboard() {
                         </div>
                       </div>
 
-                      <TagInput
-                        label="Cuisines"
-                        placeholder="Add cuisine type (e.g., Italian, Nigerian, Chinese)"
-                        tags={formData.cuisines}
-                        onAdd={(value) => addTag("cuisines", value)}
-                        onRemove={(value) => removeTag("cuisines", value)}
-                      />
+                      {/* Cuisine Selection from List */}
+                      <div className="space-y-3">
+                        <Label className="text-base font-medium">
+                          Cuisines
+                        </Label>
+                        <Select
+                          onValueChange={(value) => addTag("cuisines", value)}
+                        >
+                          <SelectTrigger className="w-full h-10 sm:h-12 border-[#0A6C6D] text-black placeholder:text-black">
+                            <SelectValue placeholder="Select a cuisine to add" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CUISINE_OPTIONS.filter(
+                              (option) => !formData.cuisines.includes(option),
+                            ).map((option) => (
+                              <SelectItem key={option} value={option}>
+                                {option}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+
+                        {/* Display Selected Cuisines as Badges */}
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {formData.cuisines.map((tag) => (
+                            <Badge
+                              key={tag}
+                              variant="secondary"
+                              className="flex items-center gap-1 bg-primary/10 text-primary border-none"
+                            >
+                              {tag}
+                              <button
+                                type="button"
+                                onClick={() => removeTag("cuisines", tag)}
+                                className="ml-1 hover:text-destructive"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
 
                       {/* Replace your old TagInput for Available Slots with this: */}
                       <div className="space-y-3">
                         <Label className="text-base font-medium">
                           Select Available Booking Slots
-                        </Label>
+                        </Label> 
                         {!formData.openingTime || !formData.closingTime ? (
                           <p className="text-sm text-amber-600 italic">
                             Please set opening and closing times first.
