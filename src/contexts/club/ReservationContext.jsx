@@ -105,7 +105,7 @@ if (bottles.length < 1) {
       return true;
     } catch (error) {
       console.error("Error submitting reservation:", error);
-      toast.error("Failed to submit reservation. Please try again.");
+      toast.error(error || "Failed to submit reservation. Please try again.");
     } finally {
       setIsLoading(false);
     }
