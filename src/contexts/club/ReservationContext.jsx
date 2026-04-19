@@ -60,6 +60,10 @@ export function ReservationsProvider({
         throw new Error("Please fill in all required fields.");
       }
 
+if (bottles.length < 1) {
+    throw new Error("Please select a Bottle of Drink to continue!")
+}
+
       const parsedGuestCount = parseInt(guestCount, 10);
       if (!vendor) return;
 
