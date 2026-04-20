@@ -14,7 +14,7 @@ const FinancialDashboard = ({ info }) => {
     const [loading, setLoading] = useState(false)
     const availableBalance = info.balance;
     const currencySymbol = '₦';
-    const lastPaymentDate = 'May 31st, 2025';
+    const lastPaymentDate = info.lastPayment.toLocaleDateString('en-NG');
     const accountHolder = info.accountName;
     const lastFourDigits = info.accountNumber;
     const earningsValue = trend.totalEarnings.toLocaleString('en-US');
