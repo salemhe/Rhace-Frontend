@@ -101,7 +101,7 @@ const PaymentDashboard = () => {
     "accountName": "N/A",
     "bankLogo": "N/A",
     "balance": "N/A",
-    "lastPaymentDate": new Date()
+    "lastPaymentDate": "N/A"
   })
   const [loading, setLoading] = useState({
     data: true,
