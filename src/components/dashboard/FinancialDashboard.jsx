@@ -14,7 +14,7 @@ const FinancialDashboard = ({ info }) => {
     const [loading, setLoading] = useState(false)
     const availableBalance = info.balance;
     const currencySymbol = '₦';
-    const lastPaymentDate = 'May 31st, 2025';
+    const lastPaymentDate = info.lastPaymentDate;
     const accountHolder = info.accountName;
     const lastFourDigits = info.accountNumber;
     const earningsValue = trend.totalEarnings.toLocaleString('en-US');
@@ -62,7 +62,7 @@ const FinancialDashboard = ({ info }) => {
                     <div>
                         <h3 className="text-sm text-gray-500 font-medium mb-1">Available Balance</h3>
                         <div className="text-4xl font-extrabold text-gray-800">{currencySymbol}{availableBalance.toLocaleString()}</div>
-                        <p className="text-xs text-gray-400 mt-1">Last payment processed on {lastPaymentDate}</p>
+                        <p className="text-xs text-gray-400 mt-1">Last payment processed on {new Date(info.lastPayment).toLocaleDateString('en-NG') || lastPaymentDate}</p>
                     </div>
                 </div>
 

@@ -60,6 +60,10 @@ export function ReservationsProvider({
         throw new Error("Please fill in all required fields.");
       }
 
+if (bottles.length < 1) {
+    throw new Error("Please select a Bottle of Drink to continue!")
+}
+
       const parsedGuestCount = parseInt(guestCount, 10);
       if (!vendor) return;
 
@@ -101,7 +105,7 @@ export function ReservationsProvider({
       return true;
     } catch (error) {
       console.error("Error submitting reservation:", error);
-      toast.error("Failed to submit reservation. Please try again.");
+      toast.error(error.message || "Failed to submit reservation. Please try again.");
     } finally {
       setIsLoading(false);
     }

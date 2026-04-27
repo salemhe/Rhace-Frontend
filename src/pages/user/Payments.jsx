@@ -512,9 +512,9 @@ const PaymentsHistory = () => {
           <div className="flex items-center gap-3 px-4 mb-6 mt-5">
             <button
               onClick={() => navigate("/")}
-              className="w-9 h-9 flex items-center justify-center"
+              className="w-9 h-9 p-3 border rounded-full flex items-center justify-center"
             >
-              <ArrowLeft className="w-4 h-4 text-2xl" />
+              <ArrowLeft className="w-4 shrink-0 h-4 text-2xl" />
             </button>
             <div className="flex-1">
               <h1 className="text-[20px] font-bold text-gray-900 leading-tight">

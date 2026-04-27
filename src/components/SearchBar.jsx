@@ -175,9 +175,9 @@ export const SearchBar = ({
               ) : suggestions.length > 0 ? (
                 suggestions.map((v) => (
                   <VendorDropdownRow
-                    key={v._id}
+                    key={v.text}
                     vendor={v}
-                    onClick={() => submitSearch(v.businessName)}
+                    onClick={() => submitSearch(v.text)}
                     showArrow
                   />
                 ))
@@ -216,9 +216,9 @@ const VendorDropdownRow = ({ vendor, onClick, showArrow }) => {
       className="flex items-center gap-2.5 px-3 sm:px-4 py-2 hover:bg-gray-50 cursor-pointer group"
     >
       <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 shrink-0">
-        {vendor.profileImages?.[0] ? (
+        {vendor.image ? (
           <img
-            src={vendor.profileImages[0]}
+            src={vendor.image}
             alt=""
             className="w-full h-full object-cover"
           />
@@ -226,20 +226,20 @@ const VendorDropdownRow = ({ vendor, onClick, showArrow }) => {
           <div
             className={`w-full h-full flex items-center justify-center text-xs font-black ${cfg?.light || "text-gray-400"}`}
           >
-            {vendor.businessName?.[0]}
+            {vendor.text?.[0]}
           </div>
         )}
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-semibold text-gray-800 truncate">
-          {vendor.businessName}
+          {vendor.text}
         </p>
         <p className="text-[11px] text-gray-400 capitalize">
           {cfg?.singular}
-          {vendor.vendorTypeCategory && vendor.vendorTypeCategory !== "General"
-            ? ` · ${vendor.vendorTypeCategory}`
+          {vendor.label && vendor.label !== "General"
+            ? `${vendor.label}`
             : ""}
-          {vendor.address ? ` · ${vendor.address.split(",")[0]}` : ""}
+          {/* {vendor.address ? ` · ${vendor.address.split(",")[0]}` : ""} */}
         </p>
       </div>
       {vendor.rating > 0 && (
@@ -271,6 +271,8 @@ export const SearchPopup = ({
     });
   }
 }, [show]);
+
+console.log(searchProps.suggestions)
 
   if (!show) return null;
   return (
@@ -305,13 +307,13 @@ export const SearchPopup = ({
                   searchProps.suggestions.map((v) => (
                     <div
                       className="py-2 text-sm text-gray-700 border-b last:border-b-0"
-                      key={v.label}
+                      key={v.text}
                       onClick={() => {
-                        searchProps.submitSearch(v.label);
+                        searchProps.submitSearch(v.text);
                         setShow(false);
                       }}
                     >
-                      {v.label}
+                      {v.text}
                     </div>
                   ))
                 ) : (

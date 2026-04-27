@@ -297,26 +297,26 @@ const SearchDropdown = ({
                 <div
                   key={v._id}
                   onMouseDown={(e) => e.preventDefault()}
-                  onClick={() => onSelect(v.label)}
+                  onClick={() => onSelect(v.text)}
                   className="flex items-center gap-2.5 px-4 py-2 hover:bg-gray-50 cursor-pointer group"
                 >
                   <div className="w-8 h-8 rounded-lg overflow-hidden bg-gray-100 shrink-0">
                       <div className="w-full h-full flex items-center justify-center text-xs font-black text-gray-300">
-                        {v.label[0]}
+                        {v.text[0]}
                       </div>
                   </div>
                   <div className="flex-1  justify-items-start min-w-0">
                     <p className="text-sm font-semibold text-gray-800 truncate">
-                      {v.label}
+                      {v.text}
                     </p>
-                    {/* <p className="text-[11px] text-gray-400 capitalize">
+                    <p className="text-[11px] text-gray-400 capitalize">
                       {cfg?.singular}
-                      {v.vendorTypeCategory &&
-                      v.vendorTypeCategory !== "General"
-                        ? ` · ${v.vendorTypeCategory}`
+                      {v.label &&
+                      v.label !== "General"
+                        ? `${v.label}`
                         : ""}
-                      {v.address ? ` · ${v.address.split(",")[0]}` : ""}
-                    </p> */}
+                      {/* {v.address ? ` · ${v.address.split(",")[0]}` : ""} */}
+                    </p>
                   </div>
                   {v.rating > 0 && (
                     <div className="flex items-center gap-0.5 shrink-0">
@@ -413,7 +413,6 @@ const SearchSection = ({ activeTab, onSearch }) => {
   const submit = useCallback(
     (term) => {
       const q = (term !== undefined ? term : inputValue).trim();
-      if (!q) return;
       saveRecent(q);
       setRecentSearches(getRecent());
       setInputValue(q);

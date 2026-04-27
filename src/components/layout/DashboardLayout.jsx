@@ -12,7 +12,7 @@ return (
 
       <div className="hidden lg:flex lg:flex-shrink-0">
         <Sidebar
-          isOpen={false}
+          isOpen={sidebarOpen}
           onClose={() => {}}
           onNavigate={(path) => navigate(path)}
           type={type}

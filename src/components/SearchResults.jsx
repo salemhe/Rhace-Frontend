@@ -56,7 +56,7 @@ export const SearchResults = ({
   const hasResults = results.length > 0;
 
   return (
-    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div className="max-w-7xl mx-auto py-4 sm:py-6">
 
       {/* Mobile filter button */}
       <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
@@ -69,7 +69,7 @@ export const SearchResults = ({
             )}
           </p>
         )}
-        <button
+        {/* <button
           onClick={onOpenFilters}
           className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 rounded-xl text-gray-600 hover:border-gray-400 text-xs font-semibold transition-colors relative"
         >
@@ -80,11 +80,11 @@ export const SearchResults = ({
               {activeFilterCount}
             </span>
           )}
-        </button>
+        </button> */}
       </div>
 
       {/* Active filter chips */}
-      <FilterChips filters={filters} onChange={updateFilter} onClear={clearFilters} />
+      {/* <FilterChips filters={filters} onChange={updateFilter} onClear={clearFilters} /> */}
 
       {/* Error state */}
       {error && (

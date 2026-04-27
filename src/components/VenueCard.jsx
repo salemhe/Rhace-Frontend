@@ -22,10 +22,10 @@ export const VenueCard = ({ vendor, activeType }) => {
   return (
     <div
       onClick={() => navigate(`/${cfg.path}/${vendor._id}`)}
-      className="group cursor-pointer flex gap-3 sm:gap-4 bg-white rounded-3xl p-3 sm:p-4 border border-gray-200 transition-all duration-300"
+      className="group cursor-pointer flex gap-3 sm:gap-4 border-gray-200 transition-all duration-300"
     >
       {/* Image (LEFT) */}
-      <div className="relative w-28 h-32 sm:w-36 sm:h-32 rounded-xl overflow-hidden bg-gray-100 shrink-0">
+      <div className="relative h-42 w-36 overflow-hidden bg-gray-100 shrink-0">
         {photo ? (
           <img
             src={photo}
@@ -135,7 +135,7 @@ export const DiscoveryListCard = ({ vendor, activeType, navigate: nav }) => {
 
   // Short description: use vendor.description, or build from tags/type
   const description =
-    vendor.description ||
+    vendor.businessDescription ||
     vendor.shortDescription ||
     (tags.length
       ? tags.slice(0, 3).join(", ")
@@ -156,7 +156,7 @@ export const DiscoveryListCard = ({ vendor, activeType, navigate: nav }) => {
 
   return (
     <div
-      className={`flex items-center gap-3 px-4 py-3.5 hover:bg-gray-50/80 transition-colors duration-150 ${isClosed ? "opacity-60" : ""}`}
+      className={`flex items-center gap-3 py-3.5 hover:bg-gray-50/80 transition-colors duration-150 ${isClosed ? "opacity-60" : ""}`}
     >
       {/* Thumbnail */}
       <div
@@ -201,21 +201,15 @@ export const DiscoveryListCard = ({ vendor, activeType, navigate: nav }) => {
 
         {/* Rating row */}
         <div className="flex items-center gap-2 mt-0.5">
-          {vendor.rating > 0 ? (
             <div className="flex items-center gap-0.5">
               <FaStar className="w-2.5 h-2.5 text-amber-400" />
               <span className="text-xs font-semibold text-gray-800">
                 {vendor.rating.toFixed(1)}
               </span>
-              {vendor.reviews > 0 && (
                 <span className="text-[10px] text-gray-400 ml-0.5">
                   ({vendor.reviews?.toLocaleString()})
-                </span>
-              )}
+                </span >
             </div>
-          ) : (
-            <span className="text-[10px] text-gray-400">No ratings yet</span>
-          )}
           {vendor.deliveryTime && (
             <>
               <span className="text-gray-200 text-xs">·</span>
@@ -255,7 +249,7 @@ export const DiscoveryListCard = ({ vendor, activeType, navigate: nav }) => {
         {!isClosed && (
           <button
             onClick={handleClick}
-            className="text-[11px] font-bold text-[#0A6C6D] border border-[#0A6C6D]/30 hover:bg-[#0A6C6D] hover:text-white rounded-lg px-2.5 py-1 transition-all duration-200 whitespace-nowrap"
+            className="text-[11px] font-bold hover:text-[#0A6C6D] border hover:border-[#0A6C6D]/30 bg-[#0A6C6D] hover:bg-white text-white rounded-lg px-2.5 py-1 transition-all duration-200 whitespace-nowrap"
           >
             {ctaLabel}
           </button>
