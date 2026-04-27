@@ -56,6 +56,8 @@ import {
   Activity,
   Zap,
   Lock,
+  Eye,
+  Printer,
 } from "lucide-react";
 import {
   LineChart,

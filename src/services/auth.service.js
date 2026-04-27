@@ -117,9 +117,9 @@ class AuthService {
   // Admin routes
   async adminLogin(email, password) {
     const res = await api.post("/auth/admin/login", { email, password });
-    const { accessToken } = res.data;
+    const { token } = res.data;
 
-    localStorage.setItem("token", accessToken);
+    localStorage.setItem("token", token);
     return res.data;
   }
 
