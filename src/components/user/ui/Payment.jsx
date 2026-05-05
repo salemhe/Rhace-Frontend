@@ -21,7 +21,8 @@ export default function PaymentPage({ booking, setPopupOpen, payLater }) {
 
   useEffect(() => {
     setSelectedPayment(paymentMethods[0]);
-  }, [paymentMethods]);
+  }, []);
+
   const displayAmount = payLater
     ? 1000
     : (booking?.totalAmount ?? booking?.amount ?? 0);
