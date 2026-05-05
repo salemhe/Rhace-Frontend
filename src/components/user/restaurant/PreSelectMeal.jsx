@@ -8,7 +8,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ReservationHeader from "./ReservationHeader";
 import { useReservations } from "@/contexts/restaurant/ReservationContext";
 import { toast } from "react-toastify";
-// import { MenusData } from "@/lib/api";
 import { menuService } from "@/services/menu.service";
 import UniversalLoader from "../ui/LogoLoader";
 export default function PreSelectMeal({ id }) {

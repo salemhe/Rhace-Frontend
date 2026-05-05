@@ -21,7 +21,7 @@ return (
 
       <div className="flex flex-1 relative overfow-hidden flex-col w-full">
         <VendorHeader onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 overflow-auto lg:mb-14">
+        <main className="flex-1 overflow-auto">
           {children}
         </main>
       </div>

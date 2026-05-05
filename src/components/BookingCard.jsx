@@ -120,6 +120,8 @@ function BookingCard({ booking, onEdit, onCancel }) {
     return normalized.charAt(0).toUpperCase() + normalized.slice(1);
   };
 
+  const GUESTS = booking.guests || (booking.rooms ? booking.rooms.reduce((total, room) => total + (room.guests || 0), 0) : 0);
+
 
   return (
     <div className="bg-white rounded-xl relative shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-all duration-200">
@@ -172,7 +174,7 @@ function BookingCard({ booking, onEdit, onCancel }) {
             <div className="flex items-center gap-2 text-gray-700">
               <Users className="w-4 h-4 flex-shrink-0" />
               <span className="text-sm">
-                {booking.guests} Guest{booking.guests > 1 ? 's' : ''}, {booking.room_info}
+                {GUESTS} Guest{GUESTS > 1 ? 's' : ''}
               </span>
             </div>
           </div>

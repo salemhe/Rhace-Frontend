@@ -1,359 +1,86 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
-import io from "socket.io-client";
+import { useSelector } from "react-redux";
 
-const WebSocketContext = createContext(null);
+const WebSocketContext = createContext();
 
-export const useWebSocket = () => {
-  return useContext(WebSocketContext);
-};
-
-export const WebSocketProvider = ({ url, children }) => {
+export const WebSocketProvider = ({ children}) => {
   const socket = useRef(null);
+  const vendor = useSelector((state) => state.auth.vendor);
   const [connected, setConnected] = useState(false);
   const listeners = useRef(new Map());
+  const reconnectTimeout = useRef(null);
+
+  const VITE_SOCKET_URL = import.meta.env.VITE_SOCKET_URL; // e.g., ws://localhost:3000
+
+  const connect = useCallback(() => {
+    // Don't connect if we don't have user info or already connected
+    if (!vendor?._id) return;
+    if (socket.current?.readyState === WebSocket.OPEN) return;
+
+    // Construct URL with query params as expected by your backend
+    const url = `${VITE_SOCKET_URL}/?type=vendor&id=${vendor._id}`;
+    
+    socket.current = new WebSocket(url);
+
+    socket.current.onopen = () => {
+      setConnected(true);
+      console.log(`WebSocket Connected as vendor (${vendor._id})`);
+      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
+    };
+
+    socket.current.onclose = (e) => {
+      setConnected(false);
+      console.log(`WebSocket Disconnected: ${e.reason}. Reconnecting in 3s...`);
+      // Manual Reconnection Logic
+      reconnectTimeout.current = setTimeout(connect, 3000);
+    };
+
+    socket.current.onerror = (err) => {
+      console.error("WebSocket Error:", err);
+      socket.current.close();
+    };
+
+    socket.current.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        // We assume your backend sends objects like: { type: 'reservation-created', payload: {...} }
+        const { type, payload } = data;
+
+        const handler = listeners.current.get(type);
+        if (handler) {
+          handler(payload);
+        }
+
+        // Support for your camelCase fallbacks (optional)
+        const camelCaseMapping = {
+          "reservationCreated": "reservation-created",
+          "reservationUpdated": "reservation-updated",
+          "paymentUpdate": "payment_update"
+        };
+        
+        if (camelCaseMapping[type]) {
+          const fallbackHandler = listeners.current.get(camelCaseMapping[type]);
+          if (fallbackHandler) fallbackHandler(payload);
+        }
+      } catch (err) {
+        console.warn("Received non-JSON message or malformed data:", event.data);
+      }
+    };
+  }, [VITE_SOCKET_URL, vendor._id]);
 
   useEffect(() => {
-    socket.current = io(url);
-
-    socket.current.on("connect", () => {
-      setConnected(true);
-      console.log("Socket.IO connected");
-    });
-
-    socket.current.on("disconnect", () => {
-      setConnected(false);
-      console.log("Socket.IO disconnected");
-    });
-
-    socket.current.on("report-update", (payload) => {
-      const handler = listeners.current.get("report-update");
-      if (handler) {
-        console.log("Report update received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("payment_update", (payload) => {
-      const handler = listeners.current.get("payment_update");
-      if (handler) {
-        console.log("Payment update received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("paymentUpdate", (payload) => {
-      const handler = listeners.current.get("payment_update");
-      if (handler) {
-        console.log("Payment update (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("payout_update", (payload) => {
-      const handler = listeners.current.get("payout_update");
-      if (handler) {
-        console.log("Payout update received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("payoutUpdate", (payload) => {
-      const handler = listeners.current.get("payout_update");
-      if (handler) {
-        console.log("Payout update (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("reservation-updated", (payload) => {
-      const handler = listeners.current.get("reservation-updated");
-      if (handler) {
-        console.log("Reservation update received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("reservationUpdated", (payload) => {
-      const handler = listeners.current.get("reservation-updated");
-      if (handler) {
-        console.log("Reservation update (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("reservation-created", (payload) => {
-      const handler = listeners.current.get("reservation-created");
-      if (handler) {
-        console.log("Reservation created received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("reservationCreated", (payload) => {
-      const handler = listeners.current.get("reservation-created");
-      if (handler) {
-        console.log("Reservation created (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("reservation-deleted", (payload) => {
-      const handler = listeners.current.get("reservation-deleted");
-      if (handler) {
-        console.log("Reservation deleted received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("reservationDeleted", (payload) => {
-      const handler = listeners.current.get("reservation-deleted");
-      if (handler) {
-        console.log("Reservation deleted (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("reservation-counters-updated", (payload) => {
-      const handler = listeners.current.get("reservation-counters-updated");
-      if (handler) {
-        console.log("Reservation counters updated received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("reservationCountersUpdated", (payload) => {
-      const handler = listeners.current.get("reservation-counters-updated");
-      if (handler) {
-        console.log("Reservation counters updated (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("user-created", (payload) => {
-      const handler = listeners.current.get("user-created");
-      if (handler) {
-        console.log("User created received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("userCreated", (payload) => {
-      const handler = listeners.current.get("user-created");
-      if (handler) {
-        console.log("User created (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("user-deleted", (payload) => {
-      const handler = listeners.current.get("user-deleted");
-      if (handler) {
-        console.log("User deleted received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("userDeleted", (payload) => {
-      const handler = listeners.current.get("user-deleted");
-      if (handler) {
-        console.log("User deleted (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("user-updated", (payload) => {
-      const handler = listeners.current.get("user-updated");
-      if (handler) {
-        console.log("User updated received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("userUpdated", (payload) => {
-      const handler = listeners.current.get("user-updated");
-      if (handler) {
-        console.log("User updated (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("user-count-updated", (payload) => {
-      const handler = listeners.current.get("user-count-updated");
-      if (handler) {
-        console.log("User count updated received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("userCountUpdated", (payload) => {
-      const handler = listeners.current.get("user-count-updated");
-      if (handler) {
-        console.log("User count updated (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("user-activity", (payload) => {
-      const handler = listeners.current.get("user-activity");
-      if (handler) {
-        console.log("User activity received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("userActivity", (payload) => {
-      const handler = listeners.current.get("user-activity");
-      if (handler) {
-        console.log("User activity (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("vendor-created", (payload) => {
-      const handler = listeners.current.get("vendor-created");
-      if (handler) {
-        console.log("Vendor created received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("vendorCreated", (payload) => {
-      const handler = listeners.current.get("vendor-created");
-      if (handler) {
-        console.log("Vendor created (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("vendor-updated", (payload) => {
-      const handler = listeners.current.get("vendor-updated");
-      if (handler) {
-        console.log("Vendor updated received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("vendorUpdated", (payload) => {
-      const handler = listeners.current.get("vendor-updated");
-      if (handler) {
-        console.log("Vendor updated (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("vendor-deleted", (payload) => {
-      const handler = listeners.current.get("vendor-deleted");
-      if (handler) {
-        console.log("Vendor deleted received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("vendorDeleted", (payload) => {
-      const handler = listeners.current.get("vendor-deleted");
-      if (handler) {
-        console.log("Vendor deleted (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("vendor-earnings-updated", (payload) => {
-      const handler = listeners.current.get("vendor-earnings-updated");
-      if (handler) {
-        console.log("Vendor earnings updated received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("vendorEarningsUpdated", (payload) => {
-      const handler = listeners.current.get("vendor-earnings-updated");
-      if (handler) {
-        console.log("Vendor earnings updated (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    // Handle reservation status changed
-    socket.current.on("reservation-status-changed", (payload) => {
-      const handler = listeners.current.get("reservation-status-changed");
-      if (handler) {
-        console.log("Reservation status changed received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("reservationStatusChanged", (payload) => {
-      const handler = listeners.current.get("reservation-status-changed");
-      if (handler) {
-        console.log("Reservation status changed (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    // Handle payout processed
-    socket.current.on("payout-processed", (payload) => {
-      const handler = listeners.current.get("payout-processed");
-      if (handler) {
-        console.log("Payout processed received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("payoutProcessed", (payload) => {
-      const handler = listeners.current.get("payout-processed");
-      if (handler) {
-        console.log("Payout processed (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    // Handle payment created
-    socket.current.on("payment-created", (payload) => {
-      const handler = listeners.current.get("payment-created");
-      if (handler) {
-        console.log("Payment created received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("paymentCreated", (payload) => {
-      const handler = listeners.current.get("payment-created");
-      if (handler) {
-        console.log("Payment created (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
-    // Handle payment updated
-    socket.current.on("payment-updated", (payload) => {
-      const handler = listeners.current.get("payment-updated");
-      if (handler) {
-        console.log("Payment updated received:", payload);
-        handler(payload);
-      }
-    });
-
-    socket.current.on("paymentUpdated", (payload) => {
-      const handler = listeners.current.get("payment-updated");
-      if (handler) {
-        console.log("Payment updated (camelCase) received:", payload);
-        handler(payload);
-      }
-    });
-
+    connect();
     return () => {
-      socket.current.disconnect();
+      if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
+      if (socket.current) socket.current.close();
     };
-  }, [url]);
+  }, [connect]);
 
-  const sendMessage = useCallback(
-    (type, payload) => {
-      if (socket.current && connected) {
-        socket.current.emit(type, payload);
-      }
-    },
-    [connected]
-  );
+  const sendMessage = useCallback((type, payload) => {
+    if (socket.current?.readyState === WebSocket.OPEN) {
+      socket.current.send(JSON.stringify({ type, payload }));
+    }
+  }, []);
 
   const subscribe = useCallback((type, handler) => {
     listeners.current.set(type, handler);
@@ -368,4 +95,12 @@ export const WebSocketProvider = ({ url, children }) => {
       {children}
     </WebSocketContext.Provider>
   );
+};
+
+export const useWebSocket = () => {
+  const context = useContext(WebSocketContext);
+  if (!context) {
+    throw new Error("useWebSocket must be used within a WebSocketProvider");
+  }
+  return context;
 };

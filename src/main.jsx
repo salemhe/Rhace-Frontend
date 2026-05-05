@@ -24,9 +24,7 @@ createRoot(document.getElementById("root")).render(
           <BrowserRouter>
             <LocationProvider>
               <QueryClientProvider client={queryClient}>
-                <WebSocketProvider url="https://rhace-backend-mkne.onrender.com">
                   <App />
-                </WebSocketProvider>
               </QueryClientProvider>
               <ToastContainer
                 position="top-right"
@@ -43,7 +41,7 @@ createRoot(document.getElementById("root")).render(
                 toastClassName={(context) => {
                   const isError = context?.type === "error";
                   return (
-                    "flex items-center gap-0.5  py-3 pl-3 pr-8 rounded-full " +
+                    "flex items-center gap-0.5  py-3 pl-3 pr-8 rounded-xl " +
                     "bg-[#ffffff] text-[#191b1a] text-sm " +
                     "shadow-[0_0_20px_rgba(29,158,117,0.15)] " +
                     (isError
