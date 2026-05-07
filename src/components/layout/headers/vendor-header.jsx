@@ -144,19 +144,12 @@ if (vendor) {
                       {profile?.businessName ?? 'Vendor'}
                     </div>
                     <div className="text-xs text-gray-500 capitalize">
-                      {profile?.email ?? profile?.vendorType}
+                      {profile?.vendorType}
                     </div>
                   </div>
                 </div>
               </div>
               <div className="py-1">
-                <button
-                  onClick={handleProfile}
-                  className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-                >
-                  <User className="w-4 h-4" />
-                  <span>Profile</span>
-                </button>
                 <button
                   onClick={handleSettings}
                   className="w-full flex items-center space-x-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"

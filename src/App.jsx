@@ -60,6 +60,7 @@ import StaffManagementSystem from "./pages/vendor/dashboard/StaffManagement";
 
 // Vendor - Club
 import BottleServiceManager from "./pages/vendor/club/AddBottleSet";
+import EditBottleServiceManager from "./pages/vendor/club/EditBottleSet";
 import ClubDashboard from "./pages/vendor/club/Dashboard";
 import { DrinksTable } from "./pages/vendor/club/DrinksTable";
 import ClubReservationTable from "./pages/vendor/club/reservations";
@@ -206,6 +207,7 @@ const clubVendorRoutes = [
   { path: "club/payments", element: <PaymentDashboard /> },
   { path: "club/staffs", element: <StaffManagementSystem /> },
   { path: "club/add-drinks", element: <BottleServiceManager /> },
+  { path: "club/edit-bottle-set/:id", element: <EditBottleServiceManager /> },
   { path: "club/settings", element: <RestaurantSettings /> },
 ];
 

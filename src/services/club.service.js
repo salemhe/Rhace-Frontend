@@ -34,6 +34,11 @@ class ClubService {
       throw error;
     }
   }
+
+  async updateDrinkType(drinksData) {
+    const res = await api.put(`/drinks/${drinksData.drinkId}`, drinksData);
+    return res.data;
+  }
   async createTable(tableData) {
     const res = await api.post(`/tables/`, tableData);
     return res.data;
@@ -51,6 +56,16 @@ class ClubService {
 
   async getBottleSet(clubId) {
     const res = await api.get(`/bottle-sets?clubId=${clubId}`);
+    return res.data;
+  }
+
+  async updateBottleSet(id, bottleSetData) {
+    const res = await api.put(`/bottle-sets/${id}`, bottleSetData);
+    return res.data;
+  }
+
+  async getBottleSetById(bottleSetId) {
+    const res = await api.get(`/bottle-sets/${bottleSetId}`);
     return res.data;
   }
 

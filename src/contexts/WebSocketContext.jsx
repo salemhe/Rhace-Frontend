@@ -5,7 +5,7 @@ const WebSocketContext = createContext();
 
 export const WebSocketProvider = ({ children}) => {
   const socket = useRef(null);
-  const vendor = useSelector((state) => state.auth.vendor);
+  const vendor = useSelector((state) => state.auth.vendor || state.auth.admin);
   const [connected, setConnected] = useState(false);
   const listeners = useRef(new Map());
   const reconnectTimeout = useRef(null);

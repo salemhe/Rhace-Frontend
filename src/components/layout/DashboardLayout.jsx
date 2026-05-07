@@ -8,9 +8,9 @@ const DashboardLayout = ({ children, type }) => {
   const navigate = useNavigate();
 
 return (
-    <div className="h-screen flex bg-gray-50 overflow-hidden">
+    <div className="h-screen flex bg-gray-50 overflow-hidden w-full">
 
-      <div className="hidden lg:flex lg:flex-shrink-0">
+      <div className="hidden sm:flex lg:flex-shrink-0">
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => {}}

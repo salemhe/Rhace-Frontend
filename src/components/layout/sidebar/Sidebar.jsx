@@ -1,6 +1,6 @@
 import { logout, logoutAsync } from "@/redux/slices/authSlice";
 import { Menu, Search, X } from "lucide-react";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { ClubList, HotelList, RestaurantList } from "./SideMenuList";
 import logo from "@/public/images/Rhace-09.png";
@@ -43,6 +43,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
   const { menuItems, bottomItems } = useMenuConfig(type);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { vendor } = useSelector((state) => state.auth);
 
   const handleItemClick = (item) => {
     if (item.label === "Logout") {
@@ -92,7 +93,7 @@ const Sidebar = ({ isOpen, onClose, onNavigate, type }) => {
           {/* Business selector */}
           <div className="px-4 py-3 border-b border-teal-700">
             <div className="bg-slate-300 text-gray-900 px-3 py-2 rounded text-sm">
-              {getBusinessName()}
+              {vendor?.businessName}
             </div>
           </div>
 
