@@ -597,7 +597,7 @@ const SearchSection = ({ activeTab, onSearch }) => {
             <label className="text-xs text-text-secondary text-left">
               Guests
             </label>
-            <GuestDropdown onChange={(counts) => setGuests(counts)} />
+            <GuestDropdown hideChildren={activeTab === "clubs"} hideInfants={activeTab === "clubs"} onChange={(counts) => setGuests(counts)} />
           </div>
           <div className="flex items-center justify-center py-2 sm:py-1 px-4 sm:px-1 sm:justify-end w-full">
             <button

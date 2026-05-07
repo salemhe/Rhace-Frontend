@@ -59,9 +59,11 @@ export function DrinksTable() {
   const [itemsPerPage] = useState(10);
   const [totalItems, setTotalItems] = useState(0);
   const [showAddDrinkModal, setShowAddDrinkModal] = useState(false);
+  const [showAddDrinkEditModal, setShowAddDrinkEditModal] = useState(false);
   const [showTablesModal, setShowTablesModal] = useState(false);
   const [showTablesEditModal, setShowTablesEditModal] = useState(false);
   const [initialTableData, setInitialTableData] = useState(null);
+  const [initialDrinksData, setInitialDrinksData] = useState(null);
   const vendor = useSelector((state) => state.auth.vendor);
   const navigate = useNavigate();
 
@@ -259,11 +261,12 @@ export function DrinksTable() {
   return (
     <DashboardLayout type="club" section="drinks">
       {isLoading ? (
-        <UniversalLoader type='dashboard-3' />
+        <UniversalLoader type='dashboard-2' />
       ) : (
         <>
         
-      <div className="min-h-screen bg-gray-50 p-2 md:p-6 mb-12">
+      <div className="bg-gray-50 p-2 md:p-6 mb-16
+      ">
         <div className="max-w-7xl mx-auto">
           <div className="md:flex justify-between items-center mb-6">
             <h2 className="text-[#111827] font-semibold mb-2">Drinks Management</h2>
@@ -687,6 +690,13 @@ export function DrinksTable() {
                               setInitialTableData(item);
                               setShowTablesEditModal(true);
                             }
+                            if (selectedTab === "drinks") {
+                              setInitialDrinksData(item);
+                              setShowAddDrinkEditModal(true);
+                            }
+                            if (selectedTab === "sets") {
+                              navigate(`/dashboard/club/edit-bottle-set/${item._id}`); // Assuming you have a separate page for editing bottle sets
+                            }
                           }} className="text-gray-400 hover:text-gray-600">
                             <Edit size={16} />
                           </button>
@@ -770,6 +780,26 @@ export function DrinksTable() {
             fetchDrinks();
             setShowAddDrinkModal(false);
           }}
+        />
+      )}
+      {showAddDrinkEditModal && (
+        <AddDrinkModal
+          onClose={() => setShowAddDrinkEditModal(false)}
+          onSuccess={() => {
+            // Refresh drinks list
+            const fetchDrinks = async () => {
+              try {
+                const data = await clubService.getDrinks(vendor._id);
+                setDrinks(data.drinks || []);
+              } catch (error) {
+                console.error("Error fetching drinks:", error);
+              }
+            };
+            fetchDrinks();
+            setShowAddDrinkEditModal(false);
+          }}
+          initialData={initialDrinksData}
+          editMode={true}
         />
       )}
 

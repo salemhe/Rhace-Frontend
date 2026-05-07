@@ -528,7 +528,7 @@ const ClubReservationTable = () => {
         <UniversalLoader type="dashboard-2" />
       ) : (
         <>
-          <div className="min-h-screen bg-gray0 p-2 md:p-6 mb-12">
+          <div className="min-h-screen bg-gray-50 p-2 md:p-6 mb-16">
             <div className="max-w-7xl mx-auto">
               <div className="md:flex justify-between items-center mb-6">
                 <h2 className="text-[#111827] mb-2 font-semibold">
@@ -606,8 +606,8 @@ const ClubReservationTable = () => {
               )}
 
               {/* Tabs and Filters */}
-              <div className="bg-white rounded-g borde border-gray-0">
-                <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between py-4 px-4 border- border-gray-200">
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="flex md:items-center flex-col-reverse md:flex-row gap-4 justify-between py-4 px-4">
                   <div className="flex flex-1 items-center">
                     {tabs.map((tab) => (
                       <button

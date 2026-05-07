@@ -11,6 +11,7 @@ import { Edit3, Upload } from "@/public/icons/icons"; // Using requested icon pa
 import { Lock, MailIcon, PhoneIcon } from "lucide-react";
 import { BusinessLogo } from "../../settings/part/BusinessInfo";
 import { vendorSettingsConfig } from "@/lib/api";
+import { Textarea } from "@/components/ui/textarea";
 
 const RestaurantSettings = () => {
   const vendor = useSelector((state) => state.auth.vendor);
@@ -131,6 +132,23 @@ const RestaurantSettings = () => {
                           }
                           className="bg-[#F8FAFC] border-slate-200 h-12 focus:bg-white transition-all"
                         />
+                        <span className="absolute right-3 top-3 text-[10px] text-slate-400">
+                          0/50
+                        </span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-slate-500 mb-1.5 block uppercase tracking-wider">
+                        Business description
+                      </label>
+                      <div className="relative">
+                        <Textarea
+                          value={formData.businessDescription}
+                          onChange={(e) =>
+                            updateField("businessDescription", e.target.value)
+                          }
+                          className="bg-[#F8FAFC] h-24 border-slate-200 focus:bg-white transition-all"
+                        ></Textarea>
                         <span className="absolute right-3 top-3 text-[10px] text-slate-400">
                           0/50
                         </span>

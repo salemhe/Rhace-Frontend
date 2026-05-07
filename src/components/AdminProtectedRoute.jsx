@@ -1,5 +1,6 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { WebSocketProvider } from "@/contexts/WebSocketContext";
 
 export default function AdminProtectedRoute() {
   const { admin } = useSelector((state) => state.auth);
@@ -13,5 +14,9 @@ export default function AdminProtectedRoute() {
     return <Navigate to={`/auth/admin/login?redirect=${returnUrl}`} replace />;
   }
 
-  return <Outlet />;
+  return (
+    <WebSocketProvider>
+      <Outlet />
+    </WebSocketProvider>
+  );
 }

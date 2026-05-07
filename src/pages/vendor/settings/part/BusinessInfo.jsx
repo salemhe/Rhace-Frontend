@@ -95,7 +95,6 @@ export const BusinessLogo = ({ value, onChange, images = [], onImagesChange }) =
         <h2 className="text-xl font-bold text-slate-900 tracking-tight">
           Business Assets
         </h2>
-        <Edit3 className="w-5 h-5 text-slate-400 cursor-pointer hover:text-slate-600 transition-colors" />
       </div>
 
       {/* SECTION: LOGO UPLOAD */}
@@ -138,8 +137,6 @@ export const BusinessLogo = ({ value, onChange, images = [], onImagesChange }) =
           </div>
         </div>
       </div>
-
-      <hr className="border-slate-100" />
 
       {/* SECTION: PROPERTY PHOTOS */}
       <div className="space-y-4">
