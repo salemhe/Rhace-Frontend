@@ -9,10 +9,10 @@ export const vendorSettingsConfig = [
     vendorType: "hotel",
     categories: [
       { id: "general", label: "General", icon: Hotel, disabled: false },
-      { id: "amenities", label: "Amenities", icon: Star, disabled: true },
-      { id: "policies", label: "Policies", icon: Shield, disabled: true },
+      // { id: "amenities", label: "Amenities", icon: Star, disabled: true },
+      { id: "policies", label: "Policies", icon: Shield, disabled: false },
       { id: "images", label: "Gallery", icon: Image, disabled: true },
-      { id: "billing", label: "Billing", icon: PaymentIcon, disabled: true },
+      // { id: "billing", label: "Billing", icon: PaymentIcon, disabled: true },
     ],
   },
   {

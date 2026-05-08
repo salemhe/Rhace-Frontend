@@ -323,7 +323,7 @@ const RoomsManagementComponent = ({
   };
 
   if (isLoading) {
-    return <UniversalLoader fullscreen />;
+    return <UniversalLoader type="dashboard-3" />;
   }
 
   // Check if filters are active
