@@ -159,8 +159,8 @@ const FinancialDashboard = ({ info }) => {
                                 <Area
                                     dataKey="earnings"
                                     type="linear"
-                                    fill="#319246"
-                                    fillOpacity={0.8}
+                                    fill="#75e444"
+                                    fillOpacity={0.4}
                                     stroke="#75e444"
                                 />
                             </AreaChart>

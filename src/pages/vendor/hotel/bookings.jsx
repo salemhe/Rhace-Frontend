@@ -713,7 +713,16 @@ const BookingManagement = () => {
   const [searchInput, setSearchInput] = useState("");
   const debouncedSearch = useDebounce((value) => setSearchTerm(value), 300);
 
-  if (isLoading) return <UniversalLoader fullscreen />;
+  if (isLoading)
+    return (
+      <DashboardLayout
+        type={vendor.vendorType}
+        settings={false}
+        section="bookings"
+      >
+        <UniversalLoader type="dashboard-2" />
+      </DashboardLayout>
+    );
 
   return (
     <DashboardLayout
@@ -1083,111 +1092,114 @@ const BookingManagement = () => {
             <div className="max-w-4xl mx-auto">
               {/* Reservation Details */}
               <div className="bg-white rounded-2xl border border-gray-200 mb-6">
-              <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
-                Reservation Details
-              </h2>
+                <h2 className="text-lg font-semibold text-[#111827] py-4 px-5">
+                  Reservation Details
+                </h2>
 
-              <hr className="border-gray-200 mb-2" />
-              <div className=" divide-y px-4">
-                {showPopup.details.rooms.length > 0 &&
-                  showPopup.details.rooms.map((item, index) => (
-                    <div key={index} className="py-2">
-                      <div className="mb-2 text-xs text-medium">
-                        Superion{" "}
-                        {item.roomId.category || item.roomId.roomCategory}{" "}
-                        {item.roomId.name}
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            Check In Date
-                          </p>
-                          <p className="font-medium text-gray-900">
-                            {new Date(item.checkInDate).toLocaleDateString(
-                              "en-NG",
-                              {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              },
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            Check Out Date
-                          </p>
-                          <p className="font-medium text-gray-900">
-                            {new Date(item.checkOutDate).toLocaleDateString(
-                              "en-NG",
-                              {
-                                year: "numeric",
-                                month: "short",
-                                day: "numeric",
-                              },
-                            )}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            Guests Allowed
-                          </p>
-                          <p className="font-medium text-gray-900">
-                            {item.guests} Guests
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </div>
-            <div className="rounded-2xl bg-white border border-gray-200 mb-6">
-              <div className=" divide-y">
-                <div className="flex p-4 justify-between items-center">
-                  <h3 className="text-lg font-semibold">Room Summary</h3>
-                </div>
-                <div className="divide-y px-4">
+                <hr className="border-gray-200 mb-2" />
+                <div className=" divide-y px-4">
                   {showPopup.details.rooms.length > 0 &&
-                    showPopup.details.rooms.map((room, index) => (
-                      <div key={index} className="grid grid-cols-2 py-4 gap-4">
-                        <div className="space-y-1">
-                          <p className="text-xs text-gray-600">Room Name</p>
-                          <p className="text-sm  line-clamp-1 font-medium text-gray-900">
-                            Superion {room.roomId.category} {room.roomId.name}
-                          </p>
+                    showPopup.details.rooms.map((item, index) => (
+                      <div key={index} className="py-2">
+                        <div className="mb-2 text-xs text-medium">
+                          Superion{" "}
+                          {item.roomId.category || item.roomId.roomCategory}{" "}
+                          {item.roomId.name}
                         </div>
-                        <div className="space-y-1">
-                          <p className="text-xs text-gray-600">
-                            Price per Night
-                          </p>
-                          <p className="text-sm font-medium text-gray-900">
-                            ₦
-                            {(
-                              room.roomId.pricePerNight -
-                              room.roomId.pricePerNight *
-                                (room.roomId.discount / 100)
-                            ).toLocaleString()}
-                          </p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-xs text-gray-600">Bed Type</p>
-                          <p className="text-sm font-medium text-gray-900">
-                            {room.roomId.bedType} Bed
-                          </p>
-                        </div>
-                        <div className="space-y-1">
-                          <p className="text-xs text-gray-600">
-                            Guests Allowed
-                          </p>
-                          <p className="text-sm font-medium text-gray-900">
-                            {room.roomId.adultsCapacity}
-                          </p>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                          <div>
+                            <p className="text-sm text-gray-600 mb-1">
+                              Check In Date
+                            </p>
+                            <p className="font-medium text-gray-900">
+                              {new Date(item.checkInDate).toLocaleDateString(
+                                "en-NG",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600 mb-1">
+                              Check Out Date
+                            </p>
+                            <p className="font-medium text-gray-900">
+                              {new Date(item.checkOutDate).toLocaleDateString(
+                                "en-NG",
+                                {
+                                  year: "numeric",
+                                  month: "short",
+                                  day: "numeric",
+                                },
+                              )}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600 mb-1">
+                              Guests Allowed
+                            </p>
+                            <p className="font-medium text-gray-900">
+                              {item.guests} Guests
+                            </p>
+                          </div>
                         </div>
                       </div>
                     ))}
                 </div>
               </div>
-            </div>
+              <div className="rounded-2xl bg-white border border-gray-200 mb-6">
+                <div className=" divide-y">
+                  <div className="flex p-4 justify-between items-center">
+                    <h3 className="text-lg font-semibold">Room Summary</h3>
+                  </div>
+                  <div className="divide-y px-4">
+                    {showPopup.details.rooms.length > 0 &&
+                      showPopup.details.rooms.map((room, index) => (
+                        <div
+                          key={index}
+                          className="grid grid-cols-2 py-4 gap-4"
+                        >
+                          <div className="space-y-1">
+                            <p className="text-xs text-gray-600">Room Name</p>
+                            <p className="text-sm  line-clamp-1 font-medium text-gray-900">
+                              Superion {room.roomId.category} {room.roomId.name}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs text-gray-600">
+                              Price per Night
+                            </p>
+                            <p className="text-sm font-medium text-gray-900">
+                              ₦
+                              {(
+                                room.roomId.pricePerNight -
+                                room.roomId.pricePerNight *
+                                  (room.roomId.discount / 100)
+                              ).toLocaleString()}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs text-gray-600">Bed Type</p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {room.roomId.bedType} Bed
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <p className="text-xs text-gray-600">
+                              Guests Allowed
+                            </p>
+                            <p className="text-sm font-medium text-gray-900">
+                              {room.roomId.adultsCapacity}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              </div>
 
               {/* Info Cards - Changed to green background */}
               <div className="bg-[#E7F0F0] border border-[#B3D1D2] rounded-2xl p-4 mb-8">

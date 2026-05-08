@@ -10,7 +10,7 @@ const DashboardLayout = ({ children, type }) => {
 return (
     <div className="h-screen flex bg-gray-50 overflow-hidden w-full">
 
-      <div className="hidden sm:flex lg:flex-shrink-0">
+      <div className="flex lg:flex-shrink-0">
         <Sidebar
           isOpen={sidebarOpen}
           onClose={() => {}}

@@ -8,7 +8,7 @@ import { authService } from "@/services/auth.service";
 import { setVendor } from "@/redux/slices/authSlice";
 import { toast } from "react-toastify";
 import { Edit3, Upload } from "@/public/icons/icons"; // Using requested icon path
-import { Lock, MailIcon, PhoneIcon } from "lucide-react";
+import { Lock, MailIcon, PhoneIcon, Plus, Trash2 } from "lucide-react";
 import { BusinessLogo } from "../../settings/part/BusinessInfo";
 import { vendorSettingsConfig } from "@/lib/api";
 import { Textarea } from "@/components/ui/textarea";
@@ -20,6 +20,29 @@ const RestaurantSettings = () => {
   const [activeSection, setActiveSection] = useState("general");
   const [value, setValue] = useState(vendor?.logo || null);
   const [images, setImages] = useState(vendor?.profileImages || []);
+  const [policies, setPolicies] = useState(formData?.policies && formData.policies.length > 0 ? formData.policies : [""]); // Start with one empty input
+
+  // Update a specific input field
+  const handleInputChange = (index, value) => {
+    const newPolicies = [...policies];
+    newPolicies[index] = value;
+    setPolicies(newPolicies);
+    updateField("policies", newPolicies);
+  };
+
+  // Add a new empty input field
+  const addInputField = () => {
+    setPolicies([...policies, ""]);
+  };
+
+  // Remove a specific input field
+  const removeInputField = (index) => {
+    // Keep at least one input box
+    if (policies.length > 1) {
+      const newPolicies = policies.filter((_, i) => i !== index);
+      setPolicies(newPolicies);
+    }
+  };
   const dispatch = useDispatch();
 
   const updateField = (field, value) => {
@@ -130,10 +153,11 @@ const RestaurantSettings = () => {
                           onChange={(e) =>
                             updateField("businessName", e.target.value)
                           }
+                          maxLength={50}
                           className="bg-[#F8FAFC] border-slate-200 h-12 focus:bg-white transition-all"
                         />
                         <span className="absolute right-3 top-3 text-[10px] text-slate-400">
-                          0/50
+                          {formData.businessName.length}/50
                         </span>
                       </div>
                     </div>
@@ -147,10 +171,11 @@ const RestaurantSettings = () => {
                           onChange={(e) =>
                             updateField("businessDescription", e.target.value)
                           }
-                          className="bg-[#F8FAFC] h-24 border-slate-200 focus:bg-white transition-all"
+                          maxLength={1000}
+                          className="bg-[#F8FAFC] h-48 border-slate-200 focus:bg-white transition-all"
                         ></Textarea>
                         <span className="absolute right-3 top-3 text-[10px] text-slate-400">
-                          0/50
+                          {formData.businessDescription.length}/1000
                         </span>
                       </div>
                     </div>
@@ -211,6 +236,61 @@ const RestaurantSettings = () => {
                         />
                         <PhoneIcon className="absolute right-3 top-3.5 w-5 h-5 text-slate-400" />
                       </div>
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          )}
+
+          {activeSection === "policies" && (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <div className="space-y-8">
+                <Card className="p-4 shadow-none bg-white border border-slate-200 rounded-2xl">
+                  <div className="flex justify-between items-center">
+                    <h2 className="text-lg font-semibold text-slate-800">
+                      Policies
+                    </h2>
+                  </div>
+
+                  <div className="space-y-5">
+                    <div>
+                      <label className="text-xs font-medium text-slate-500 mb-1.5 block uppercase tracking-wider">
+                        Room Policies
+                        <span className="text-red-500">*</span>
+                      </label>
+                      <div className="space-y-3">
+                        {policies.map((input, index) => (
+                          <div key={index} className="flex items-center w-full gap-2">
+                            <div className="relative w-full">
+                            <Input
+                              type="text"
+                              value={input}
+                              placeholder={`Item ${index + 1}`}
+                              onChange={(e) =>
+                                handleInputChange(index, e.target.value)
+                              }
+                              className="bg-[#F8FAFC] border-slate-200 h-12 w-full focus:bg-white transition-all"
+                            />
+                            </div>
+                              <button
+                                onClick={() => removeInputField(index)}
+                                className="p-2 text-red-500 disabled:text-red-300 hover:bg-red-50 rounded-md transition"
+                                title="Remove"
+                                disabled={policies.length === 1}
+                              >
+                                <Trash2 size={18} />
+                              </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button
+                        onClick={addInputField}
+                        className="flex items-center justify-center w-full gap-2 p-2 mt-4 text-slate-600 rounded-xl border hover:border-gray-500 hover:text-gray-800 border-dashed transition font-medium"
+                      >
+                        <Plus size={18} /> Add Another
+                      </button>
                     </div>
                   </div>
                 </Card>
