@@ -110,6 +110,8 @@ const ReservationDashboard = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [resID, setResID] = useState();
   const [confirmingIds, setConfirmingIds] = useState(new Set());
+  const [confirmationType, setConfirmationType] = useState("completed");
+
   const reservationStatusOptions = (status) => {
     switch (status) {
       case "upcoming":
@@ -118,13 +120,33 @@ const ReservationDashboard = () => {
         return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
       case "cancelled":
         return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
-      case "no-show":
+      case "no_show":
         return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
     }
   };
   const socketRef = useRef(null);
+
+  const handleNoShow = useCallback(
+    async (booking) => {
+      try {
+        await userService.markNoShow({
+          reservationId: booking._id,
+          vendorId: vendor?._id,
+        });
+        setData((prev) =>
+          prev.map((b) =>
+            b._id === booking._id ? { ...b, reservationStatus: "no_show" } : b,
+          ),
+        );
+      } catch (err) {
+        const msg = err?.response?.data?.message || err?.message || "";
+        toast.error(msg || "Failed to mark as no-show.");
+      }
+    },
+    [vendor?._id],
+  );
 
   const handleConfirmArrival = useCallback(
     async (booking) => {
@@ -339,10 +361,14 @@ const ReservationDashboard = () => {
             ${reservationStatusOptions(row.getValue("reservationStatus").toLowerCase())} 
               flex py-1.5 px-3 border rounded-full`}
         >
-          {row.getValue("reservationStatus").toLowerCase() === "upcoming" && "Upcoming"}
-          {row.getValue("reservationStatus").toLowerCase() === "confirmed" && "Confirmed"}
-          {row.getValue("reservationStatus").toLowerCase() === "cancelled" && "Cancelled"}
-          {row.getValue("reservationStatus").toLowerCase() === "no-show" && "No Show"}
+          {row.getValue("reservationStatus").toLowerCase() === "upcoming" &&
+            "Upcoming"}
+          {row.getValue("reservationStatus").toLowerCase() === "confirmed" &&
+            "Confirmed"}
+          {row.getValue("reservationStatus").toLowerCase() === "cancelled" &&
+            "Cancelled"}
+          {row.getValue("reservationStatus").toLowerCase() === "no_show" &&
+            "No Show"}
         </div>
       ),
     },
@@ -377,36 +403,37 @@ const ReservationDashboard = () => {
                 <Eye2 /> View Reservation
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Pencil /> Edit Reservation
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Phone /> Contact Customer
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Printer /> Print Receipt
-              </DropdownMenuItem>
-              <DropdownMenuItem>
                 <span
                   className="relative flex cursor-default items-center gap-2 rounded-sm  py-1.5"
                   onClick={() => {
                     setOpen(true);
                     setSelectedBooking(booking);
+                    setConfirmationType("completed");
                   }}
                 >
                   <CheckCircle /> Mark as Completed
                 </span>
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CheckCircle /> Mark as No-Show
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedBooking(booking);
+                  setOpen(true);
+                  setConfirmationType("no-show");
+                }}
+              >
+                <XCircle /> Mark as No-Show
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => navigator.clipboard.writeText(booking.id)}
+                onClick={() => {
+                  navigator.clipboard.writeText(booking._id);
+                  toast.success("Booking ID copied to clipboard!");
+                }}
               >
                 <Copy /> Dupllicate Reservation
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className="text-[#EF4444]">
-                <XCircle /> Cancel Reservation
+                <XCircle className="text-[#EF4444]" /> Cancel Reservation
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -485,15 +512,15 @@ const ReservationDashboard = () => {
     };
 
     const handleReservationUpdate = (payload) => {
-      toast.info(`Reservation updated: ${payload._id?.slice(0,8) || 'ID'}`);
+      toast.info(`Reservation updated: ${payload._id?.slice(0, 8) || "ID"}`);
       // Refetch data/stats
       fetchReservations();
       fetchStats();
     };
 
     // subscribe('reservation-created', handleNewReservation);
-    subscribe('reservation-updated', handleReservationUpdate);
-    subscribe('reservation-counters-updated', () => fetchStats());
+    subscribe("reservation-updated", handleReservationUpdate);
+    subscribe("reservation-counters-updated", () => fetchStats());
 
     return () => {
       if (socketRef.current) {
@@ -505,7 +532,6 @@ const ReservationDashboard = () => {
       // }
     };
   }, [vendor?._id, subscribe, unsubscribe]);
-
 
   useEffect(() => {
     const fetchReservations = async () => {
@@ -919,7 +945,10 @@ const ReservationDashboard = () => {
                   variant="secondary"
                   icon={<ChevronLeft className="size-5" />}
                   // size="sm"
-                  onClick={() => query.page > 1 && setQuery((prev) => ({ ...prev, page: prev.page - 1 }))}
+                  onClick={() =>
+                    query.page > 1 &&
+                    setQuery((prev) => ({ ...prev, page: prev.page - 1 }))
+                  }
                   disabled={query.page === 1}
                   className="shadow-md"
                 />
@@ -1085,15 +1114,17 @@ const ReservationDashboard = () => {
           <ConfirmReservation
             onConfirm={async () => {
               if (selectedBooking) {
-                console.log(
-                  "Confirming arrival for booking ID:",
-                  selectedBooking._id,
-                );
-                handleConfirmArrival(selectedBooking);
+                if (confirmationType === "no-show") {
+                  await handleNoShow(selectedBooking);
+                }
+                if (confirmationType === "completed") {
+                  await handleConfirmArrival(selectedBooking);
+                }
               }
             }}
             setOpen={setOpen}
             open={open}
+            confirmationType={confirmationType}
           />
         </>
       )}

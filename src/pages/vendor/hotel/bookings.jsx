@@ -60,6 +60,7 @@ import {
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { set } from "date-fns";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -116,7 +117,7 @@ const BookingManagement = () => {
         return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
       case "canceled":
         return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
-      case "no-show":
+      case "no_show":
         return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
@@ -127,6 +128,7 @@ const BookingManagement = () => {
   const [open, setOpen] = useState(false);
   // Store the full booking object so handleConfirmArrival has everything it needs
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [confirmationType, setConfirmationType] = useState("completed"); // or "no-show"
 
   // ── Arrival confirmation state ───────────────────────────────────────────────
   const [confirmingIds, setConfirmingIds] = useState(new Set());
@@ -134,6 +136,26 @@ const BookingManagement = () => {
   // ── Confirm arrival handler ──────────────────────────────────────────────────
   // Errors are re-thrown after toasting so ConfirmReservation's try/finally
   // keeps the loader spinner visible for the full duration of the API call.
+  const handleNoShow = useCallback(
+    async (booking) => {
+      try {
+        await userService.markNoShow({
+          reservationId: booking._id,
+          vendorId: vendor?._id,
+        });
+        setBookings((prev) =>
+          prev.map((b) =>
+            b._id === booking._id ? { ...b, reservationStatus: "no_show" } : b,
+          ),
+        );
+      } catch (err) {
+        const msg = err?.response?.data?.message || err?.message || "";
+        toast.error(msg || "Failed to mark as no-show.");
+      }
+    },
+    [vendor?._id],
+  );
+
   const handleConfirmArrival = useCallback(
     async (booking) => {
       const bookingId = booking._id;
@@ -182,11 +204,9 @@ const BookingManagement = () => {
           throw new Error("Cannot confirm arrival: Payment not completed");
         }
 
-        await userService.updateReservationStatus({
+        await userService.markNoShow({
           reservationId: bookingId,
           vendorId: vendor?._id,
-          resId,
-          paymentRef,
         });
 
         setBookings((prev) =>
@@ -355,7 +375,7 @@ const BookingManagement = () => {
                 {rooms && rooms.length > 0
                   ? rooms.slice(0, 2).map((room, i) => (
                       <div key={i} className="text-sm text-gray-900">
-                        {room.roomId.name || "N/A"}
+                        {room.roomId?.name || "Room no longer available"}
                       </div>
                     ))
                   : "N/A"}
@@ -423,7 +443,7 @@ const BookingManagement = () => {
             {row.getValue("reservationStatus") === "upcoming" && "Upcoming"}
             {row.getValue("reservationStatus") === "confirmed" && "Confirmed"}
             {row.getValue("reservationStatus") === "canceled" && "Canceled"}
-            {row.getValue("reservationStatus") === "no-show" && "No Show"}
+            {row.getValue("reservationStatus") === "no_show" && "No Show"}
           </div>
         ),
       },
@@ -455,13 +475,31 @@ const BookingManagement = () => {
                   onClick={() => {
                     setSelectedBooking(booking);
                     setOpen(true);
+                    setConfirmationType("completed");
                   }}
                 >
                   <CheckCircle /> Mark as Completed
                 </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedBooking(booking);
+                    setOpen(true);
+                    setConfirmationType("no-show");
+                  }}
+                >
+                  <XCircle className="text-slate-600" /> Mark as no-show
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    navigator.clipboard.writeText(booking._id);
+                    toast.success("Booking ID copied to clipboard!");
+                  }}
+                >
+                  <Copy /> Dupllicate Reservation
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-[#EF4444]">
-                  <XCircle /> Cancel Booking
+                  <XCircle className="text-[#EF4444]" /> Cancel Booking
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -1103,8 +1141,8 @@ const BookingManagement = () => {
                       <div key={index} className="py-2">
                         <div className="mb-2 text-xs text-medium">
                           Superion{" "}
-                          {item.roomId.category || item.roomId.roomCategory}{" "}
-                          {item.roomId.name}
+                          {item.roomId?.category || item.roomId?.roomCategory}{" "}
+                          {item.roomId?.name}
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
                           <div>
@@ -1165,7 +1203,8 @@ const BookingManagement = () => {
                           <div className="space-y-1">
                             <p className="text-xs text-gray-600">Room Name</p>
                             <p className="text-sm  line-clamp-1 font-medium text-gray-900">
-                              Superion {room.roomId.category} {room.roomId.name}
+                              Superion {room.roomId?.category}{" "}
+                              {room.roomId?.name}
                             </p>
                           </div>
                           <div className="space-y-1">
@@ -1175,16 +1214,17 @@ const BookingManagement = () => {
                             <p className="text-sm font-medium text-gray-900">
                               ₦
                               {(
-                                room.roomId.pricePerNight -
-                                room.roomId.pricePerNight *
-                                  (room.roomId.discount / 100)
+                                room.roomId?.pricePerNight -
+                                room.roomId?.pricePerNight *
+                                  (room.roomId?.discount / 100 || 0)
                               ).toLocaleString()}
                             </p>
                           </div>
                           <div className="space-y-1">
                             <p className="text-xs text-gray-600">Bed Type</p>
                             <p className="text-sm font-medium text-gray-900">
-                              {room.roomId.bedType} Bed
+                              {room.roomId?.bedType || "Bed type not available"}{" "}
+                              Bed
                             </p>
                           </div>
                           <div className="space-y-1">
@@ -1192,7 +1232,8 @@ const BookingManagement = () => {
                               Guests Allowed
                             </p>
                             <p className="text-sm font-medium text-gray-900">
-                              {room.roomId.adultsCapacity}
+                              {room.roomId?.adultsCapacity ||
+                                "Guest capacity not available"}
                             </p>
                           </div>
                         </div>
@@ -1253,11 +1294,17 @@ const BookingManagement = () => {
       <ConfirmReservation
         onConfirm={async () => {
           if (selectedBooking) {
-            handleConfirmArrival(selectedBooking);
+            if (confirmationType === "no-show") {
+              await handleNoShow(selectedBooking);
+            }
+            if (confirmationType === "completed") {
+              await handleConfirmArrival(selectedBooking);
+            }
           }
         }}
         setOpen={setOpen}
         open={open}
+        confirmationType={confirmationType}
       />
     </DashboardLayout>
   );

@@ -136,6 +136,7 @@ const ClubReservationTable = () => {
   const [selectedPaymentStatus, setSelectedPaymentStatus] = useState("all");
   const [selectedTable, setSelectedTable] = useState("all");
   const [resID, setResID] = useState();
+  const [confirmationType, setConfirmationType] = useState("no-show");
 
   const [hideTab, setHideTab] = useState(false);
   const [showPopup, setShowPopup] = useState({
@@ -430,7 +431,7 @@ const ClubReservationTable = () => {
         return "bg-[#D1FAE5] text-[#37703F] border-[#B8FFC2]";
       case "canceled":
         return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
-      case "no-show":
+      case "no_show":
         return "bg-[#FCE6E6] text-[#EF4444] border-[#FAE48A]";
       default:
         return "bg-gray-100 text-gray-800 border-gray-300";
@@ -1052,7 +1053,7 @@ const ClubReservationTable = () => {
                                   {reservation.reservationStatus ===
                                     "canceled" && "Canceled"}
                                   {reservation.reservationStatus ===
-                                    "no-show" && "No Show"}
+                                    "no_show" && "No Show"}
                                 </div>
                               </TableCell>
                               <TableCell>
@@ -1078,11 +1079,6 @@ const ClubReservationTable = () => {
                                     </Button>
                                   </DropdownMenuTrigger>
                                   <DropdownMenuContent align="end">
-                                    {/* <DropdownMenuItem
-              onClick={() => navigator.clipboard.writeText(payment.id)}
-            >
-              Copy payment ID
-            </DropdownMenuItem> */}
                                     <DropdownMenuItem
                                       onClick={() =>
                                         setShowPopup({
@@ -1094,35 +1090,34 @@ const ClubReservationTable = () => {
                                       <Eye2 /> View Reservation
                                     </DropdownMenuItem>
                                     <DropdownMenuItem>
-                                      <Pencil /> Edit Reservation
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <Phone /> Contact Customer
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
-                                      <Printer /> Print Receipt
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem>
                                       <span
                                         className="relative flex cursor-pointer items-center gap-2 rounded-sm  py-1.5"
                                         onClick={() => {
                                           setOpen(true);
                                           setResID(reservation._id);
+                                          setConfirmationType("completed");
                                           console.log(resID);
                                         }}
                                       >
                                         <CheckCircle /> Mark as Completed
                                       </span>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() => {
+                                        setOpen(true);
+                                        setConfirmationType("no-show");
+                                        setResID(reservation._id);
+                                      }}
+                                    >
                                       <CheckCircle /> Mark as No-Show
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
-                                      onClick={() =>
+                                      onClick={() => {
                                         navigator.clipboard.writeText(
-                                          reservation.id,
-                                        )
-                                      }
+                                          reservation._id,
+                                        );
+                                        toast.success("Reservation ID copied to clipboard!");
+                                      }}
                                     >
                                       <Copy /> Dupllicate Reservation
                                     </DropdownMenuItem>
@@ -1414,25 +1409,48 @@ const ClubReservationTable = () => {
                 );
                 return;
               }
-
-              try {
-                await userService.updateReservationStatus({
-                  reservationId: resID,
-                  vendorId: vendor._id,
-                });
-                toast.success("Reservation marked as complete!");
-                // Refresh reservations list
-                const freshRes = await userService.fetchReservations({
-                  vendorId: vendor._id,
-                });
-                setReservations(freshRes.data || []);
-              } catch (error) {
-                console.error("Update failed:", error);
-                toast.error(
-                  error.response?.data?.message ||
-                    "Failed to update reservation",
-                );
+              if (confirmationType === "no-show") {
+                try {
+                  await userService.markNoShow({
+                    reservationId: resID,
+                    vendorId: vendor._id,
+                  });
+                  toast.success("Reservation marked as no-show!");
+                  // Refresh reservations list
+                  const freshRes = await userService.fetchReservations({
+                    vendorId: vendor._id,
+                  });
+                  setReservations(freshRes.data || []);
+                } catch (error) {
+                  console.error("Update failed:", error);
+                  toast.error(
+                    error.response?.data?.message ||
+                      "Failed to update reservation",
+                  );
+                }
               }
+              if (confirmationType === "completed") {
+                try {
+                  await userService.updateReservationStatus({
+                    reservationId: resID,
+                    vendorId: vendor._id,
+                  });
+                  toast.success("Reservation marked as complete!");
+                  // Refresh reservations list
+                  const freshRes = await userService.fetchReservations({
+                    vendorId: vendor._id,
+                  });
+                  setReservations(freshRes.data || []);
+                } catch (error) {
+                  console.error("Update failed:", error);
+                  toast.error(
+                    error.response?.data?.message ||
+                      "Failed to update reservation",
+                  );
+                }
+                
+              }
+
             }}
             setOpen={setOpen}
             open={open}

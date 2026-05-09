@@ -6,29 +6,31 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
+import { PeopleIcon, UsersIcon, Edit3, Car, Wifi, City, Breakfast } from '@/public/icons/icons';
 import {
-  Building,
+  // Building,
   Camera,
-  Car,
+  // Car,
   Coffee,
-  Edit,
-  Edit2,
+  // Edit3,
+  // Edit,
+  // Edit2,
   Home,
   MapPin,
   Plus,
-  User,
-  Users,
-  Wifi
+  // User,
+  // Users,
+  // Wifi
 } from 'lucide-react';
 import { useState } from 'react';
 
 
 const amenityIcons = {
-  "Free Breakfast": <Coffee className="w-4 h-4" />,
-  "Breakfast": <Coffee className="w-4 h-4" />,
+  "Free Breakfast": <Breakfast className="w-4 h-4" />,
+  "Breakfast": <Breakfast className="w-4 h-4" />,
   "Free Parking": <Car className="w-4 h-4" />,
   "Parking": <Car className="w-4 h-4" />,
-  "City View": <Building className="w-4 h-4" />,
+  "City View": <City className="w-4 h-4" />,
   "Free WiFi": <Wifi className="w-4 h-4" />,
   "Wi-Fi": <Wifi className="w-4 h-4" />,
   "WiFi": <Wifi className="w-4 h-4" />
@@ -81,10 +83,10 @@ export default function HotelBookingInterface ({
             <Button
               variant="ghost"
               size="sm"
-              className="text-teal-600 hover:text-teal-700"
+              className="text-[#0a6c6d] hover:text-teal-700"
               onClick={() => onEditStep(1)}
             >
-              <Edit className="w-4 h-4 mr-1" />
+              <Edit3 className="w-4 text-[#0a6c6d] h-4 mr-1" />
               Edit
             </Button>
           </CardHeader>
@@ -110,14 +112,14 @@ export default function HotelBookingInterface ({
                     </div>
 
                     {/* Content Section */}
-                    <div className="flex-1 p-6">
+                    <div className="flex-1 p-3">
                       {/* Header */}
                       <div className="flex items-start justify-between mb-1">
                         <div>
                           <h3 className="text-xl font-semibold text-gray-900 mb-1">{room.name}</h3>
                           <p className="text-sm text-gray-600">{room.description || 'Luxury five Star Hotel'}</p>
                         </div>
-                        <div className="text-right">
+                        <div className="text-right flex items-center gap-1">
                           <p className="text-2xl font-bold text-gray-900">{formatPrice(room.pricePerNight)}</p>
                           <p className="text-sm text-gray-500">/night</p>
                         </div>
@@ -125,16 +127,16 @@ export default function HotelBookingInterface ({
 
                       {/* Capacity Badges */}
                       <div className="flex items-center space-x-4 my-4 text-sm text-gray-600">
-                        <div className="flex items-center text-gray-600">
-                          <Users className="w-4 h-4 mr-1.5" />
+                        <div className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-md text-[#191919]">
+                          <PeopleIcon className="w-4 h-4 mr-1.5" />
                           <span>{room.adultsCapacity} Adults</span>
                         </div>
-                        <div className="flex items-center text-gray-600">
-                          <User className="w-4 h-4 mr-1.5" />
+                        <div className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-md text-[#191919]">
+                          <PeopleIcon className="w-4 h-4 mr-1.5" />
                           <span>{room.childrenCapacity} {room.childrenCapacity === 1 ? 'Child' : 'Children'}</span>
                         </div>
-                        <div className="flex items-center text-gray-600">
-                          <Home className="w-4 h-4 mr-1.5" />
+                        <div className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-md text-[#191919]">
+                          <PeopleIcon className="w-4 h-4 mr-1.5" />
                           <span>{room.totalAvailableRooms} rooms</span>
                         </div>
                       </div>
@@ -144,9 +146,9 @@ export default function HotelBookingInterface ({
                         <p className="text-sm font-medium text-gray-700 mb-3">Amenities</p>
                         <div className="flex flex-wrap items-center gap-3">
                           {room.amenities.slice(0, 4).map((amenity, index) => (
-                            <div key={index} className="flex items-center text-sm text-gray-700">
-                              {amenityIcons[amenity] || <Home className="w-4 h-4" />}
-                              <span className="ml-2">{amenity}</span>
+                            <div key={index} className="flex items-center gap-2 bg-gray-100 px-2 py-1 rounded-md text-[#191919]!">
+                              {amenityIcons[amenity] || <City className="w-4 h-4 " />}
+                              <span className="">{amenity}</span>
                             </div>
                           ))}
                           {room.amenities.length > 4 && (
@@ -161,9 +163,9 @@ export default function HotelBookingInterface ({
                       {/* Edit Button */}
                       <button 
                         onClick={() => onEditStep(1)}
-                        className="mt-4 flex items-center text-blue-600 hover:text-blue-700 text-sm font-medium"
+                        className="mt-4 flex items-center text-[#0a6c6d] hover:text-teal-700 text-sm font-medium"
                       >
-                        <Edit2 className="w-4 h-4 mr-1.5" />
+                        <Edit3 className="w-4 h-4 mr-1.5" />
                         Edit
                       </button>
                     </div>
@@ -192,10 +194,10 @@ export default function HotelBookingInterface ({
             <Button
               variant="ghost"
               size="sm"
-              className="text-teal-600 hover:text-teal-700"
+              className="text-[#0a6c6d] hover:text-teal-700"
               onClick={() => onEditStep(2)}
             >
-              <Edit className="w-4 h-4 mr-1" />
+              <Edit3 className="w-4 h-4 mr-1" />
               Edit
             </Button>
           </CardHeader>
