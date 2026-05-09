@@ -4,11 +4,12 @@ import { Loader2, Plus } from 'lucide-react';
 import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router';
-import Header from './components/Header';
+// import Header from './components/Header';
 import AddRoomType from './components/add-rooms';
 import { BookingPolicyForm } from './components/booking-policy';
 import HotelBookingInterface from './components/rooms-confirmation';
 import { SetupSteps } from './components/setup-steps';
+import Header2 from '@/components/layout/headers/vendor_header2';
 
 
 export default function AddRooms () {
@@ -285,7 +286,7 @@ export default function AddRooms () {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Header />
+      <Header2 />
       <div className="max-w-6xl mx-auto pt-24 px-6">
         {/* Progress Steps */}
         <SetupSteps currentStep={currentStep} />

@@ -148,6 +148,18 @@ async updateReservationStatus({ reservationId, vendorId, resId, paymentRef }) {
   const res = await api.post(`/bookings/${reservationId}/confirm`, payload);
   return res.data;
 }
+
+async markNoShow({ reservationId, vendorId }) {
+  if (!reservationId) throw new Error("reservationId is required");
+  if (!vendorId) throw new Error("vendorId is required");
+
+  const payload = { vendorId };
+
+  console.log('[user.service] Sending no-show payload:', payload);
+
+  const res = await api.post(`/bookings/${reservationId}/mark-no-show`, payload);
+  return res.data;
+}
   async getReservationStatus({reservationId}) {
     // if (!reservationId) throw new Error("reservationId is required");
     // if (!vendorId) throw new Error("vendorId is required");

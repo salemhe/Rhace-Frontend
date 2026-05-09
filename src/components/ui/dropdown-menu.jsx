@@ -201,7 +201,7 @@ export {
 import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 
-export default function ConfirmReservation({ onConfirm, open, setOpen }) {
+export default function ConfirmReservation({ onConfirm, open, setOpen, confirmationType }) {
   const [loading, setLoading] = useState(false);
 
   const handleConfirm = async () => {
@@ -226,14 +226,16 @@ export default function ConfirmReservation({ onConfirm, open, setOpen }) {
                 <div className=" p-6">
                   <div className="flex justify-between">
                     <h2 className="text-lg font-semibold text-gray-800 mb-3">
-                      Confirm Reservation
+                      {confirmationType === "no-show" ? "Mark as No-Show" : "Confirm Reservation"}
                     </h2>
                     <span onClick={() => setOpen(false)}>
                       <IoClose className="size-6" />
                     </span>
                   </div>
                   <p className="text-gray-500 mb-10">
-                    Are you sure you want to confirm this reservation?
+                    {confirmationType === "no-show"
+                      ? "Are you sure you want to mark this reservation as a no-show?"
+                      : "Are you sure you want to confirm this reservation?"}
                   </p>
                 </div>
 
