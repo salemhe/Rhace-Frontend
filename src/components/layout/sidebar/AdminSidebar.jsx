@@ -1,10 +1,11 @@
-import React from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
-import { logout } from '../../../redux/slices/authSlice';
-import { AdminList } from './SideMenuList';
-import { X } from 'lucide-react';
-import { RhaceIcon } from '@/public/icons/icons';
+import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { logout } from "../../../redux/slices/authSlice";
+import { AdminList } from "./SideMenuList";
+import { X } from "lucide-react";
+import { RhaceIcon } from "@/public/icons/icons";
+import logo from "@/public/images/Rhace-09.png";
 
 const AdminSidebar = ({ isOpen, onClose }) => {
   const location = useLocation();
@@ -27,25 +28,28 @@ const AdminSidebar = ({ isOpen, onClose }) => {
     }
   };
 
-  const menuItems = AdminList.topItems.map(item => ({
+  const menuItems = AdminList.topItems.map((item) => ({
     ...item,
-    active: isActiveRoute(item.path)
+    active: isActiveRoute(item.path),
   }));
 
-  const bottomItems = AdminList.bottomItems.map(item => ({
+  const bottomItems = AdminList.bottomItems.map((item) => ({
     ...item,
-    active: isActiveRoute(item.path)
+    active: isActiveRoute(item.path),
   }));
 
   return (
     <>
       {/* Desktop Sidebar */}
       <div className="hidden lg:flex lg:flex-shrink-0">
-        <div className="flex flex-col w-64 bg-emerald-950 text-white">
+        <div className="flex flex-col w-64 bg-[#042626] text-white">
           <div className="flex items-center h-16 px-4">
-<div className="flex items-center">
-              <RhaceIcon className="w-6 h-6 mr-3" />
-              <span className="text-xl font-bold">rhace Admin</span>
+            <div className="flex items-center">
+              <img
+                src={logo}
+                alt="Rhace Logo"
+                className="w-20 h-20 object-contain"
+              />
             </div>
           </div>
 
@@ -56,8 +60,8 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                 onClick={() => handleItemClick(item)}
                 className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
                   item.active
-                    ? 'bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]'
-                    : 'text-teal-100 hover:bg-teal-700 hover:text-white'
+                    ? "bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]"
+                    : "text-teal-100 hover:bg-teal-700 hover:text-white"
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -73,8 +77,8 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                 onClick={() => handleItemClick(item)}
                 className={`w-[90%] flex items-center pl-7 py-2 gap-3 rounded-tr-[36px] rounded-br-[36px] text-left transition-colors duration-200 ${
                   item.active
-                    ? 'bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]'
-                    : 'text-teal-100 hover:bg-teal-700 hover:text-white'
+                    ? "bg-teal-700 text-white shadow-[0px_1px_3px_0px_rgba(122,122,122,0.10)]"
+                    : "text-teal-100 hover:bg-teal-700 hover:text-white"
                 }`}
               >
                 <item.icon className="w-5 h-5" />
@@ -88,7 +92,7 @@ const AdminSidebar = ({ isOpen, onClose }) => {
       {/* Mobile Sidebar */}
       <div
         className={`fixed inset-y-0 left-0 z-30 w-64 bg-emerald-950 text-white transform transition-transform duration-300 ease-in-out lg:hidden ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
+          isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="flex items-center justify-between h-16 px-4 bg-teal-900">
@@ -113,8 +117,8 @@ const AdminSidebar = ({ isOpen, onClose }) => {
                 item.label === "Logout" ? "mt-16" : ""
               } ${
                 item.active
-                  ? 'bg-teal-700 text-white'
-                  : 'text-teal-100 hover:bg-teal-700 hover:text-white'
+                  ? "bg-teal-700 text-white"
+                  : "text-teal-100 hover:bg-teal-700 hover:text-white"
               }`}
             >
               <item.icon className="w-5 h-5 mr-3" />
@@ -130,8 +134,8 @@ const AdminSidebar = ({ isOpen, onClose }) => {
               onClick={() => handleItemClick(item)}
               className={`w-full flex items-center px-3 py-2 gap-3 rounded-lg text-left transition-colors duration-200 ${
                 item.active
-                  ? 'bg-teal-700 text-white'
-                  : 'text-teal-100 hover:bg-teal-700 hover:text-white'
+                  ? "bg-teal-700 text-white"
+                  : "text-teal-100 hover:bg-teal-700 hover:text-white"
               }`}
             >
               <item.icon className="w-5 h-5" />

@@ -12,14 +12,14 @@ export function StatCard ({ title, value, change, icon, iconBg, iconColor, trend
     // If a component (function/class) was passed, render it as a component
     if (typeof icon === "function" || typeof icon === "object") {
       const IconComp = icon;
-      return <IconComp className="w-5 h-5" />;
+      return <IconComp className="w-5 h-5" colors={iconColor} />;
     }
 
     return null;
   };
 
   return (
-    <Card className="p-4">
+    <Card className="p-4 shadow-none">
       <div className="flex items-start justify-between">
         <div className="flex-1">
           <p className="text-sm text-muted-foreground mb-1">{title}</p>
