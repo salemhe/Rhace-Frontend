@@ -56,6 +56,7 @@ import {
   Search,
   Mail,
   Clock,
+  Copy,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
