@@ -1150,11 +1150,11 @@ export default function Payments() {
               </div>
 
               {/* ── NEW PAYMENT STATUS CARD ── */}
-              <PaymentStatusCard
+              {/* <PaymentStatusCard
                 paystackBalance={paystackBalance}
                 successRate={98.5}
                 transactionCount={1284}
-              />
+              /> */}
 
               {/* Edit Bank Account Dialog */}
               <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -1209,13 +1209,12 @@ export default function Payments() {
             </Card>
 
             {/* Earnings Trends Chart */}
-            <Card className="p-6 lg:col-span-2 shadow-lg border-0 bg-gradient-to-br from-white to-gray-50/50">
+            <Card className="p-6 lg:col-span-2 border from-white to-gray-50/50">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <div>
                   <h3 className="font-bold text-lg text-gray-900">Earnings Trends</h3>
                   <div className="flex items-center gap-4 mt-2">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full"></div>
                       <span className="text-2xl font-bold text-gray-900">
                         {revenueTrends.length > 0 ? revenueTrends.length : 0}
                       </span>
@@ -1229,7 +1228,6 @@ export default function Payments() {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2 text-sm">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
                     <span className="text-gray-600">Earnings</span>
                   </div>
                   <Select value={selectedPeriod} onValueChange={handlePeriodChange}>
@@ -1242,7 +1240,7 @@ export default function Payments() {
                   </Select>
                 </div>
               </div>
-              <div className="bg-white rounded-lg p-4 shadow-sm border border-gray-100">
+              <div className="">
                 <ResponsiveContainer width="100%" height={280}>
                   <LineChart data={revenueTrends.length > 0 ? revenueTrends : earningsData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                     <defs>
@@ -1275,7 +1273,6 @@ export default function Payments() {
               <div className="flex items-center justify-between mt-4 text-sm text-gray-600">
                 <span>Track your revenue performance</span>
                 <div className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                   <span>Live data</span>
                 </div>
               </div>
